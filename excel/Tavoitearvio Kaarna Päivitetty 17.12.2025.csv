@@ -1,0 +1,778 @@
+﻿Litterakoodi;Litteraselite;Koodi;Selite;Määrä;Yksikkö;Työ €/h;Työ €/yks.;Työ €;Aine €/yks.;Aine €;Alih €/yks.;Alih €;Vmiehet €/yks.;Vmiehet €;Muu €;Summa
+0100;Tontin tai osakekannan hankinta/vuokra;0100101;TONTIN KUSTANNUKSET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+0100;Tontin tai osakekannan hankinta/vuokra;01001010;Tontin vuokrakustannukset;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;19 555,00;19 555,00
+0100;Tontin tai osakekannan hankinta/vuokra;01001011;Tontin hankintakustannukset;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;940 600,00;940 600,00
+0100;Tontin tai osakekannan hankinta/vuokra;01001012;Muut kiinteistöstä aiheutuvat kustannukset;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;100 000,00;100 000,00
+0310;ARK-suunnittelu;0310;ARK-Suunnittelu;1,00;erä;0,000;0,00;0,00;0,00;0,00;6 500,00;6 500,00;0,00;0,00;0,00;6 500,00
+0320;RAK-suunnittelu;0320;RAK-Suunnittelu;1,00;erä;0,000;0,00;0,00;0,00;0,00;20 000,00;20 000,00;0,00;0,00;0,00;20 000,00
+0330;LVI-suunnittelu;0330;LVI-Suunnittelu;1,00;erä;0,000;0,00;0,00;0,00;0,00;3 500,00;3 500,00;0,00;0,00;0,00;3 500,00
+0340;Sähkösuunnittelu;0340;SÄHKÖ-Suunnittelu;1,00;erä;0,000;0,00;0,00;0,00;0,00;4 000,00;4 000,00;0,00;0,00;0,00;4 000,00
+0350;Pohjarakennussuunnittelu;0350;GEO-Suunnittelu;1,00;erä;0,000;0,00;0,00;0,00;0,00;1 100,00;1 100,00;0,00;0,00;0,00;1 100,00
+0365;Energiatehokkuus;0365;Energialaskenta, -simulointi ja tiiveysmittaus;1,00;erä;0,000;0,00;0,00;0,00;0,00;1 500,00;1 500,00;0,00;0,00;0,00;1 500,00
+0510;Rakennuslupa- ja tarkastusmaksut;0510;Rakennuslupamaksut;1,00;erä;0,000;0,00;0,00;3 000,00;3 000,00;0,00;0,00;0,00;0,00;0,00;3 000,00
+0551;Rakennustyövakuutus;0551;Rakennustyövakuutus;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;4 000,00;4 000,00
+0552;Rakennusaikaisen vakuuden korot;0552;Rakennusaikaisen vakuuden korot;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;21 250,00;21 250,00
+0553;Takuuajan vakuuden korot;0553;Takuuajan vakuuden korot;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;7 900,00;7 900,00
+0601;Vesi- ja viemäriliittymä;06010;Vesi- ja viemäriliittymä;1,00;erä;0,000;0,00;0,00;28 500,00;28 500,00;0,00;0,00;0,00;0,00;0,00;28 500,00
+0602;Kaukolämpöliittymä;06020;Kaukolämpöliittymä;1,00;erä;0,000;0,00;0,00;8 900,00;8 900,00;0,00;0,00;0,00;0,00;0,00;8 900,00
+0603;Sähköliittymä;06030;Sähköliittymä;1,00;erä;0,000;0,00;0,00;10 800,00;10 800,00;0,00;0,00;0,00;0,00;0,00;10 800,00
+0900;Riskivaraus;0900;Riskivaraus projektille;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1100;Purkukustannukset;11001001;Vanhojen rakennusten purkukustannukset KAARNAN OSUUS PESULASTA;1,00;erä;0,000;0,00;0,00;0,00;0,00;27 200,00;27 200,00;0,00;0,00;0,00;27 200,00
+1200;Maankaivu;1200101;Tilavuuskaivu, kuljetus ja vastaanottomaksu;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12001010;Tilavuuskaivu leikkaustasoon, hox, luiskaus kaavan kautta;4 001,14;m3;0,000;0,00;0,00;0,00;0,00;4,00;16 004,54;0,00;0,00;0,00;16 004,54
+1200;Maankaivu;12001011;Kaivettujen massojen poiskuljetus OULU;6 401,82;erä;0,000;0,00;0,00;0,00;0,00;6,50;41 611,81;0,00;0,00;0,00;41 611,81
+1200;Maankaivu;1200140;Yksikköhintaisen maatyön yleiskulut;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12001401;MRU työnjohtokulut;1,00;kk;0,000;0,00;0,00;0,00;0,00;2 400,00;2 400,00;0,00;0,00;0,00;2 400,00
+1200;Maankaivu;12001402;Kaluston lavettisiirrot;2,00;kpl;0,000;0,00;0,00;0,00;0,00;250,00;500,00;0,00;0,00;0,00;500,00
+1200;Maankaivu;1200501;Anturoiden Alustäyttö / Paalupeti;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12005010;Suodatinkangas KL 2 kerroksen pohjalle;1 211,08;m2;0,000;0,00;0,00;1,15;1 392,74;0,45;544,99;0,00;0,00;0,00;1 937,73
+1200;Maankaivu;12005011;Alustäyttö massoineen, tiivistetyt kuutiot;924,83;m3;0,000;0,00;0,00;13,74;12 711,27;4,40;4 069,23;0,00;0,00;0,00;16 780,50
+1200;Maankaivu;12005012;Alustäytön tiivistäminen;3 302,95;m2;0,000;0,00;0,00;0,00;0,00;1,21;4 004,83;0,00;0,00;0,00;4 004,83
+1200;Maankaivu;1200503;Rakennuksen sisätäyttö;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;1200504;Rakennuksen sisätäyttö;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;1200504(1);Tilavuustäyttö rakennuksen reunoilla;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12005040;Suodatinkangas KL 2 kerroksen pohjalle;72,16;m2;0,000;0,00;0,00;1,15;82,99;0,45;32,47;0,00;0,00;0,00;115,46
+1200;Maankaivu;12005041;Tilavuustäyttö massoineen, tiivistetyt kuutiot;137,76;m3;0,000;0,00;0,00;9,52;1 311,51;13,50;1 859,80;0,00;0,00;0,00;3 171,31
+1200;Maankaivu;12005042;Tilavuustäytön tiivistäminen;328,01;m2;0,000;0,00;0,00;0,00;0,00;1,21;397,71;0,00;0,00;0,00;397,71
+1200;Maankaivu;1200505;Rakennuksen sisätäyttö;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12005050;Suodatinkangas KL 2 kerroksen pohjalle;851,42;m2;0,000;0,00;0,00;1,15;979,13;0,45;383,14;0,00;0,00;0,00;1 362,27
+1200;Maankaivu;12005051;Sisätäyttö massoineen, tiivistetyt kuutiot;1 356,51;m3;0,000;0,00;0,00;9,52;12 914,01;5,80;7 867,78;0,00;0,00;0,00;20 781,80
+1200;Maankaivu;12005052;Sisätäytön tiivistäminen;2 870,93;m2;0,000;0,00;0,00;0,00;0,00;2,18;6 265,80;0,00;0,00;0,00;6 265,80
+1200;Maankaivu;1200510;Perustusten/kellarin  vierustäyttö, Salaojakerros + routimaton sora, h=3m;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12005101;Suodatinkangas KL 2 salaojakerroksen reunaan;122,95;m2;0,000;0,00;0,00;1,15;141,39;0,45;55,33;0,00;0,00;0,00;196,72
+1200;Maankaivu;12005102;Sokkelin salaojatäyttö massoineen, tiivistetyt kuutiot;109,08;m3;0,000;0,00;0,00;15,11;1 648,07;6,60;719,93;0,00;0,00;0,00;2 368,00
+1200;Maankaivu;12005103;Sokkelin salaojatäytön tiivistäminen;83,83;m2;0,000;0,00;0,00;0,00;0,00;0,82;69,12;0,00;0,00;0,00;69,12
+1200;Maankaivu;1200601;Rakennekerrokset, asfaltti ja laatoitusalueet, -100mm valmiista pinnasta ( PR1 osuus );0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12006010;Suodatinkangas KL 2 kerroksen pohjalle;911,25;m2;0,000;0,00;0,00;1,15;1 047,93;0,45;410,06;0,00;0,00;0,00;1 457,99
+1200;Maankaivu;12006012;Täyttökerrosten tiivistäminen;2 485,21;m2;0,000;0,00;0,00;0,00;0,00;2,14;5 318,36;0,00;0,00;0,00;5 318,36
+1200;Maankaivu;12006013;Liikennealueen Kantava kerros, tiivistetyt kuutiot;447,34;m3;0,000;0,00;0,00;13,17;5 890,11;5,40;2 415,63;0,00;0,00;0,00;8 305,74
+1200;Maankaivu;12006014;Liikennealueen Jakava kerros, tiivistetyt kuutiot;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1200;Maankaivu;12006015;Liikennealueen Eristävä kerros, tiivistetyt kuutiot;223,67;m3;0,000;0,00;0,00;10,08;2 254,59;5,40;1 207,81;0,00;0,00;0,00;3 462,40
+1450;Ponttaus;1450201;PONTTAUS, KAARNATIEN OSUUS PONTTAUKSESTA;1,00;erä;0,000;0,00;0,00;0,00;0,00;37 500,00;37 500,00;0,00;0,00;0,00;37 500,00
+1500;Salaojat, putkijohdot, kaivot ja viemäri;1500101;Ulkopuolinen LVVS pumppaamoineen yms. Urakka-alue Kaarna;1,00;erä;0,000;0,00;0,00;45 200,00;45 200,00;0,00;0,00;0,00;0,00;0,00;45 200,00
+1500;Salaojat, putkijohdot, kaivot ja viemäri;1500103;Ulkopuolisten kaapelien asennus + kaivuut;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1500;Salaojat, putkijohdot, kaivot ja viemäri;15001030;Kaapelien asennus + kaivuut;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1500;Salaojat, putkijohdot, kaivot ja viemäri;1500110;Rakennusten putkistojen kaivuu ja täyttötyöt;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1500;Salaojat, putkijohdot, kaivot ja viemäri;15001100;Rakennusten putkistojen kaivuu ja täyttötyöt;128,16;jm;0,000;0,00;0,00;0,00;0,00;33,75;4 325,52;0,00;0,00;0,00;4 325,52
+1730;Asfaltointi;1730113;Asfaltointi AB 16/120 + profilointi;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1730;Asfaltointi;17301130;Asfalttibetoni AB 16/120, Valitse määrä!;523,38;m2;0,000;0,00;0,00;0,00;0,00;12,50;6 542,24;0,00;0,00;0,00;6 542,24
+1730;Asfaltointi;17301910;Asfalttialueiden profilointi 0-50mm, KaM 0-20/32, Valitse määrä!;523,38;m2;0,000;0,00;0,00;0,00;0,00;4,50;2 355,21;0,00;0,00;0,00;2 355,21
+1730;Asfaltointi;17301920;Autopaikkojen kestomerkintä massalla;11,00;kpl;0,000;0,00;0,00;0,00;0,00;25,00;275,00;0,00;0,00;0,00;275,00
+1740;Vihertyöt;1740103;PIHA-URAKKA-ARVIO, PINNAT;1,00;erä;0,000;0,00;0,00;0,00;0,00;30 000,00;30 000,00;0,00;0,00;0,00;30 000,00
+1800;Ulkovarusteet;1800100;LEIKKIVÄLINEET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001001;Leikkiset, leikkivälineet;1,00;erä;0,000;0,00;0,00;0,00;0,00;1 800,00;1 800,00;0,00;0,00;0,00;1 800,00
+1800;Ulkovarusteet;18001002;Hiekkalaatikko;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;1800101;ULKOPUOLISET PENKIT JA PÖYDÄT, TALOVARUSTEET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001010;Ulkopuoliset penkit ja pöydät;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001011;Ulkopuoliset Polkupyöräpaikat;21,00;kpl;0,000;0,00;0,00;0,00;0,00;45,00;945,00;0,00;0,00;0,00;945,00
+1800;Ulkovarusteet;18001012;Lipputanko;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001013;Tomutusteline, kuivatustelineet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001014;Pihan Roska-astiat;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001015;Ulkopuoliset opasteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001016;Ulkopuoliset postilaatikot;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;1800102;JÄTEHUOLTOVARUSTEET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001020;Molok- DOMINO jäteastiat;1,00;erä;0,000;0,00;0,00;17 253,00;17 253,00;0,00;0,00;0,00;0,00;0,00;17 253,00
+1800;Ulkovarusteet;18001021;Molok- CLASSIC jäteastiat, komposiittiverhous;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;18001022;Molok- jäteastiaston asennus;1,00;erä;0,000;0,00;0,00;0,00;0,00;1 600,00;1 600,00;0,00;0,00;0,00;1 600,00
+1800;Ulkovarusteet;18001023;Molok- jäteastiaston asennus;1,00;erä;0,000;0,00;0,00;0,00;0,00;800,00;800,00;0,00;0,00;0,00;800,00
+1800;Ulkovarusteet;18001024;Rullattavat jäteastiat;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+1800;Ulkovarusteet;1800103;PIHA- VARUSTEET arvio;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2080;Perustusten vedeneristys;2080103;MP-seinien ulkopuoliset pystyeristykset + VER;66,53;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2080;Perustusten vedeneristys;20801030;MP seinän pystyeriste EPS Platina 180mm;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2080;Perustusten vedeneristys;20801031;Kumibitumikermi MP seinään;130,00;m2;0,000;0,00;0,00;0,00;0,00;17,00;2 210,00;0,00;0,00;0,00;2 210,00
+2080;Perustusten vedeneristys;20801032;MP seinän pystyeriste EPS 120 PRO ROUTA, kuorielementin takana 100mm;133,06;m2;38,000;6,35;844,38;7,13;948,79;0,00;0,00;0,00;0,00;0,00;1 793,18
+2080;Perustusten vedeneristys;20801033;MP seinän pystyeriste EPS 120 PRO ROUTA, maata vasten 50mm;99,79;m2;38,000;6,35;633,29;4,09;408,55;0,00;0,00;0,00;0,00;0,00;1 041,84
+2080;Perustusten vedeneristys;20801103;Sokkelin yläpään taitettu bitumikaista + viistetty villa;66,53;jm;38,000;11,40;758,43;7,95;528,90;0,00;0,00;0,00;0,00;0,00;1 287,33
+2080;Perustusten vedeneristys;20801973;Anturan yläpinnan bitumisively;297,63;m2;0,000;0,00;0,00;0,00;0,00;7,00;2 083,41;0,00;0,00;0,00;2 083,41
+2200;Anturat ja perusmuurit;2200101;PS: Nauha-antura (300 x 800);24,40;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200102;PS: Nauha-antura ( 650 x 1200 );78,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200103;PS: Nauha-antura ( 650 x 1400 );10,90;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200104;PS: Nauha-antura ( 650 x 1700 );22,40;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200105;PS: Nauha-antura ( 650 x 1800 );26,40;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200106;PS: Nauha-antura ( 650 x 2000 );32,80;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22001079;Laastikallistus sokkelin juureen;66,53;jm;38,000;4,75;316,01;8,00;532,23;0,00;0,00;0,00;0,00;0,00;848,24
+2200;Anturat ja perusmuurit;2200140;PS: Nauha-antura/ Muuntamon pohjalaatta ( 400 x 2500 );3,80;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200141;PS: Nauha-antura/ Hissin pohjalaatta ( 650 x 2850 );3,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22001970;Nauha-anturan muotitus;260,31;m2;38,000;26,98;7 023,16;0,00;0,00;0,00;0,00;3,20;832,99;0,00;7 856,16
+2200;Anturat ja perusmuurit;22001971;Nauha-anturan raudoitus;9 565,74;kg;0,820;0,84;8 000,78;0,78;7 461,28;0,00;0,00;0,00;0,00;0,00;15 462,06
+2200;Anturat ja perusmuurit;22001972;Nauha-anturan betonointi;191,08;m3;38,000;14,82;2 831,87;123,90;23 675,37;0,00;0,00;0,00;0,00;0,00;26 507,24
+2200;Anturat ja perusmuurit;22001974;Paalutusten tuoma lisäraudoite 9,5kg/paalu;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22001975;Anturoiden pystyeriste 100S 100mm;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22001977;Nauha-anturan muottityö, lautamuottauksena;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22001978;Nauha-anturan muotitus LAUTATAVARALLA;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200201;Pilariantura (Korkeus x Leveys x Leveys);4,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22002070;Pilarin suojavalumuotitus;3,00;kpl;38,000;7,60;22,80;5,00;15,00;0,00;0,00;0,00;0,00;0,00;37,80
+2200;Anturat ja perusmuurit;22002070(1);Pilarianturan muotitus;2,80;m2;38,000;26,98;75,54;0,00;0,00;0,00;0,00;2,40;6,72;0,00;82,26
+2200;Anturat ja perusmuurit;22002071;Pilarianturan raudoitus;35,00;kg;0,820;0,84;29,27;0,78;27,30;0,00;0,00;0,00;0,00;0,00;56,57
+2200;Anturat ja perusmuurit;22002072;Pilarin suojavalubetonointi;3,00;kpl;38,000;7,60;22,80;5,00;15,00;0,00;0,00;0,00;0,00;0,00;37,80
+2200;Anturat ja perusmuurit;22002072(1);Pilarianturan betonointi;0,70;m3;38,000;14,82;10,37;123,90;86,73;0,00;0,00;0,00;0,00;0,00;97,10
+2200;Anturat ja perusmuurit;22002073;Pilarianturan yläpinnan bitumisively;1,00;m2;38,000;5,70;5,70;6,40;6,40;0,00;0,00;0,00;0,00;0,00;12,10
+2200;Anturat ja perusmuurit;22002075;Pilarianturan pystyeriste 100S 100mm;2,80;m2;38,000;6,35;17,77;6,53;18,29;0,00;0,00;0,00;0,00;0,00;36,06
+2200;Anturat ja perusmuurit;22002076;Pilarianturan vaakaeriste 100S 100mm;1,00;m2;38,000;6,35;6,35;6,53;6,53;0,00;0,00;0,00;0,00;0,00;12,88
+2200;Anturat ja perusmuurit;22002077;Peruspulttiryhmä Pilarianturaan;3,00;kpl;38,000;4,56;13,68;22,00;66,00;0,00;0,00;0,00;0,00;0,00;79,68
+2200;Anturat ja perusmuurit;22002077(1);Peruspulttiryhmä Pilarianturaan;1,00;kpl;38,000;4,56;4,56;33,00;33,00;0,00;0,00;0,00;0,00;0,00;37,56
+2200;Anturat ja perusmuurit;22002095;Peruspulttiryhmä Pilarianturaan;51,00;kpl;38,000;4,56;232,56;22,00;1 122,00;0,00;0,00;0,00;0,00;0,00;1 354,56
+2200;Anturat ja perusmuurit;2200423;PS: Perusmuurikorotus, H=1180, TB300, Pieliseinien alle;6,66;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,12;0,12
+2200;Anturat ja perusmuurit;22004270;Perusmuurikorotuksen muotitus;13,32;m2;38,000;19,00;253,09;0,00;0,00;0,00;0,00;6,60;87,91;0,00;341,00
+2200;Anturat ja perusmuurit;22004271;Perusmuurikorotuksen raudoitus;176,41;kg;0,820;0,84;147,55;0,78;137,60;0,00;0,00;0,00;0,00;0,00;285,16
+2200;Anturat ja perusmuurit;22004272;Perusmuurikorotuksen betonointi;3,73;m3;38,000;14,82;55,27;144,90;540,43;0,00;0,00;0,00;0,00;0,00;595,70
+2200;Anturat ja perusmuurit;2200499;PERUSTUKSET ALIURAKKANA, PERUSTUSPALVELU;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22004991;PERUSTUKSET ALIURAKKANA, PERUSTUSPALVELU;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;2200501;PS: PV-Maanpaineseinät TB200;470,53;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22005071;PV-MP-seinän betonointi;112,75;m3;38,000;14,82;1 670,98;123,90;13 969,94;0,00;0,00;0,00;0,00;0,00;15 640,93
+2200;Anturat ja perusmuurit;22005072;PV-MP-seinän raudoitus;9 553,90;kg;0,820;0,84;7 990,88;0,78;7 452,04;0,00;0,00;0,00;0,00;0,00;15 442,92
+2200;Anturat ja perusmuurit;22005073;PV-MP-Seinien kasettimuottityö+purku+puhdistus;941,05;m2;38,000;19,00;17 880,04;0,00;0,00;0,00;0,00;8,76;8 239,84;0,00;26 119,88
+2200;Anturat ja perusmuurit;22005074;PV-MP-Seinien työsaumaraudoitteet;199,51;m2;38,000;4,94;985,57;14,76;2 945,04;0,00;0,00;0,00;0,00;0,00;3 930,61
+2200;Anturat ja perusmuurit;2200601;PS: PV-Pilasterit (Leveys x Leveys), H=korkeus;1,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2200;Anturat ja perusmuurit;22006071;PV-pilasterin muotitus;3,26;m2;38,000;24,89;81,24;16,94;55,29;0,00;0,00;0,00;0,00;0,00;136,53
+2200;Anturat ja perusmuurit;22006072;PV-pilasterin raudoitus;19,58;kg;0,820;0,84;16,38;0,78;15,28;0,00;0,00;0,00;0,00;0,00;31,66
+2200;Anturat ja perusmuurit;22006073;PV-pilasterin betonointi;0,39;m3;38,000;18,24;7,14;123,90;48,53;0,00;0,00;0,00;0,00;0,00;55,67
+2250;Sokkelielementit / sokkelikuorielementit;2250101;PS: KE- Sokkelikuorielementit H=700mm, TB120;10,28;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;2250102;PS: KE- Sokkelikuorielementit H=1135mm, TB120;59,67;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501070;KE- Sokkelikuorielementtien asennus;12,00;kpl;38,000;64,60;775,20;27,27;327,25;0,00;0,00;0,00;0,00;0,00;1 102,45
+2250;Sokkelielementit / sokkelikuorielementit;22501072;PS: KE- Sokkelikuorielementit H=700-1200mm, TB120;69,96;m2;0,000;0,00;0,00;120,00;8 395,04;0,00;0,00;0,00;0,00;0,00;8 395,04
+2250;Sokkelielementit / sokkelikuorielementit;2250131;PS: AS- Sokkelielementit H=1135mm, ( TB90 + 100ER + TB180 );10,52;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501370;AS- Sokkelielementtien asennus;1,00;kpl;38,000;64,60;64,60;39,27;39,27;0,00;0,00;0,00;0,00;0,00;103,87
+2250;Sokkelielementit / sokkelikuorielementit;22501372;PS: AS- Sokkelielementit H=1135mm, ( TB90 + 100ER + TB180 );10,52;m2;0,000;0,00;0,00;210,00;2 210,05;0,00;0,00;0,00;0,00;0,00;2 210,05
+2250;Sokkelielementit / sokkelikuorielementit;22501373;AS- Elementtien pystysaumasbetonit;1,00;kpl;0,000;0,00;0,00;7,40;7,40;0,00;0,00;0,00;0,00;0,00;7,40
+2250;Sokkelielementit / sokkelikuorielementit;2250141;PS: AV/AK- Sokkelielementit H=1135mm,  (TB160+100ER);32,69;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501471;AV/AK- Sokkelielementtien asennus;4,00;kpl;38,000;64,60;258,40;39,27;157,08;0,00;0,00;0,00;0,00;0,00;415,48
+2250;Sokkelielementit / sokkelikuorielementit;22501472;PS: AV/AK- Sokkelielementit H=1135mm,  (TB160+100ER);32,69;m2;0,000;0,00;0,00;190,00;6 211,31;0,00;0,00;0,00;0,00;0,00;6 211,31
+2250;Sokkelielementit / sokkelikuorielementit;22501473;AV/AK- Elementtien pystysaumasbetonit;4,00;kpl;0,000;0,00;0,00;7,40;29,60;0,00;0,00;0,00;0,00;0,00;29,60
+2250;Sokkelielementit / sokkelikuorielementit;2250161;PS: Sokkelielementtien kiinnitys Reunavalulla (Leveys X Korkeus );44,59;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501671;Reunavalukiinnityksen muotitus;17,83;m2;38,000;24,89;443,90;28,94;516,11;0,00;0,00;0,00;0,00;0,00;960,01
+2250;Sokkelielementit / sokkelikuorielementit;22501672;Reunavalukiinnityksen raudoitus;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501673;Reunavalukiinnityksen betonointi;2,68;m3;38,000;14,44;38,63;129,80;347,24;0,00;0,00;0,00;0,00;0,00;385,86
+2250;Sokkelielementit / sokkelikuorielementit;2250181;PS: Kuorielementtien Putkikannatukset ja sitomiset, Teräs;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2250;Sokkelielementit / sokkelikuorielementit;22501871;Kuorielementtien kiinnitys Weldat ja Lattateräkset;55,00;kpl;0,000;0,00;0,00;26,96;1 482,80;13,50;742,50;0,00;0,00;0,00;2 225,30
+2250;Sokkelielementit / sokkelikuorielementit;22501872;Kuorielementtien Putkikannatukset;55,00;kpl;0,000;0,00;0,00;32,00;1 760,00;18,00;990,00;0,00;0,00;0,00;2 750,00
+2500;VSS-rakenteet;2500101;VSS-AP1 : Maanvarainen alapohjalaatta 150TBmm + 50+50ER;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001010;MV-laatan hierto;78,43;m2;38,000;6,66;522,60;0,00;0,00;0,00;0,00;0,00;0,00;0,00;522,60
+2500;VSS-rakenteet;25001011;MV-laatan betonointi;11,76;m3;38,000;17,96;211,23;165,00;1 941,15;0,00;0,00;0,00;0,00;0,00;2 152,38
+2500;VSS-rakenteet;25001012;MV-laatan raudoitus;1 568,61;kg;0,820;0,89;1 389,16;0,81;1 270,57;0,00;0,00;0,00;0,00;0,00;2 659,73
+2500;VSS-rakenteet;25001013;MV-laatan eristys EPS 100 LATTIA 100mm;156,86;m2;38,000;4,79;751,05;8,40;1 317,63;0,00;0,00;0,00;0,00;0,00;2 068,68
+2500;VSS-rakenteet;25001014;MV-laatan suodatinkangas;78,43;m2;38,000;0,22;17,14;0,35;27,06;0,00;0,00;0,00;0,00;0,00;44,20
+2500;VSS-rakenteet;25001015;Radonkaistan asennus Muurin ja MV-laatan liittymään;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001016;Radonkaista, Pilarihaitta;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001017;Laatan reunojen saumakittaus;35,00;jm;38,000;1,52;53,20;1,20;42,00;0,00;0,00;0,00;0,00;0,00;95,20
+2500;VSS-rakenteet;25001018;Betonilattian hionta, liiman poisto;78,43;m2;38,000;1,52;119,21;1,50;117,65;0,00;0,00;0,00;0,00;0,00;236,86
+2500;VSS-rakenteet;25001019;MV-laatan eristys, 1 m reuna-alue 100ER;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001020;MV-laatan eristys EPS 100 LATTIA 50mm;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;2500120;VSS-Ulkoseinät 300mm;82,17;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001201;VSS-seinän betonointi, Hox! Xypex lisäaineen tarve määritettävä;23,90;m3;38,000;15,96;381,46;165,00;3 943,71;0,00;0,00;0,00;0,00;0,00;4 325,17
+2500;VSS-rakenteet;25001202;VSS-seinän raudoitus;3 410,09;kg;0,820;0,85;2 908,12;0,83;2 813,32;0,00;0,00;0,00;0,00;0,00;5 721,45
+2500;VSS-rakenteet;25001203;VSS-Seinien kasettimuottityö+purku+puhdistus;164,34;m2;38,000;20,90;3 434,74;0,00;0,00;0,00;0,00;26,12;4 292,30;0,00;7 727,04
+2500;VSS-rakenteet;25001205;Routamatto 100m2  Liikuntasaumaseinään;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;2500130;VSS-Sisäpuoliset väliseinät 200mm;12,10;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001301;VSS-väliseinän betonointi;2,42;m3;38,000;15,96;38,62;165,00;399,30;0,00;0,00;0,00;0,00;0,00;437,93
+2500;VSS-rakenteet;25001302;VSS-väliseinän raudoitus;544,50;kg;0,820;0,85;464,35;0,83;449,22;0,00;0,00;0,00;0,00;0,00;913,57
+2500;VSS-rakenteet;25001303;VSS-väliseinien kasettimuottityö+purku+puhdistus;24,20;m2;38,000;20,90;505,78;0,00;0,00;0,00;0,00;26,12;632,07;0,00;1 137,85
+2500;VSS-rakenteet;2500140;VSS-Välipohja 300mm;78,36;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001401;VSS-VP-laatan hierto;78,36;m2;38,000;6,66;522,12;0,00;0,00;0,00;0,00;0,00;0,00;0,00;522,12
+2500;VSS-rakenteet;25001402;VSS-VP-laatan betonointi;23,51;m3;38,000;15,96;375,17;165,00;3 878,67;0,00;0,00;0,00;0,00;0,00;4 253,85
+2500;VSS-rakenteet;25001403;VSS-VP-laatan raudoitus;4 152,92;kg;0,820;0,85;3 541,61;0,86;3 563,21;0,00;0,00;0,00;0,00;0,00;7 104,82
+2500;VSS-rakenteet;25001404;VSS-VP muottityö+purku+puhdistus;66,60;m2;38,000;27,93;1 860,24;15,29;1 018,37;0,00;0,00;0,00;0,00;874,28;3 752,88
+2500;VSS-rakenteet;25001405;VSS-VP reunamuottaus,;11,77;m2;38,000;10,37;122,12;14,42;169,79;0,00;0,00;0,00;0,00;0,00;291,91
+2500;VSS-rakenteet;25001406;VSS-VP-sirpaleverkko;78,36;m2;0,820;0,85;66,82;3,05;238,91;0,00;0,00;0,00;0,00;0,00;305,73
+2500;VSS-rakenteet;2500150;VSS-SPK-kuilu PV  seinät 200mm + Laatat 150, Tässä molemmat Kuilut;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001501;VSS-kuilun betonointi;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001502;VSS-kuilun raudoitus;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001503;VSS-kuilun muottityö+purku+puhdistus;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001504;Kuilulaatan hierto;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001505;Kuilulaatan betonointi;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;25001506;Kuilulaatan raudoitus;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2500;VSS-rakenteet;2500201;PS: Perusmuurikorotus, H=1180, TB300, Pieliseinien alle;12,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,22;0,22
+2500;VSS-rakenteet;25002011;Perusmuurikorotuksen muotitus;8,88;m2;38,000;19,00;168,72;0,00;0,00;0,00;0,00;6,60;58,61;0,00;227,33
+2500;VSS-rakenteet;25002012;Perusmuurikorotuksen raudoitus;12,43;kg;0,820;0,84;10,40;0,78;9,70;0,00;0,00;0,00;0,00;0,00;20,10
+2500;VSS-rakenteet;25002013;Perusmuurikorotuksen betonointi;0,62;m3;38,000;14,82;9,21;165,00;102,56;0,00;0,00;0,00;0,00;0,00;111,78
+2500;VSS-rakenteet;25003350;VSS-Betonipintojen paikkaus;250,15;m2;38,000;3,80;950,55;0,50;125,07;0,00;0,00;0,00;0,00;0,00;1 075,63
+2600;Maanvaraiset alapohjat;2600101;PS: Maanvarainen alapohjalaatta 80TBmm + 70+70ER;417,06;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2600;Maanvaraiset alapohjat;26001070;MV-laatan hierto;417,06;m2;0,000;0,00;0,00;0,00;0,00;7,35;3 065,39;0,00;0,00;0,00;3 065,39
+2600;Maanvaraiset alapohjat;26001071;MV-laatan betonointi;33,36;m3;0,000;0,00;0,00;0,00;0,00;175,48;5 854,85;0,00;0,00;0,00;5 854,85
+2600;Maanvaraiset alapohjat;26001072;MV-laatan raudoitus;1 626,53;kg;0,820;0,85;1 387,11;0,83;1 341,89;0,00;0,00;0,00;0,00;0,00;2 728,99
+2600;Maanvaraiset alapohjat;26001074;Radonkaistan asennus Muurin ja MV-laatan liittymään;286,00;jm;0,000;0,00;0,00;0,00;0,00;9,90;2 831,40;0,00;0,00;0,00;2 831,40
+2600;Maanvaraiset alapohjat;26001075;Radonkaista, Pilarihaitta;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2600;Maanvaraiset alapohjat;26001076;Laatan reunojen saumakittaus+solumuovinauha;290,00;jm;38,000;6,78;1 967,07;2,70;783,00;0,00;0,00;0,00;0,00;0,00;2 750,07
+2600;Maanvaraiset alapohjat;26001077;Betonilattian hionta, liiman poisto;417,06;m2;38,000;3,80;1 584,83;1,50;625,59;0,00;0,00;0,00;0,00;0,00;2 210,41
+2600;Maanvaraiset alapohjat;26001078;MV-laatan eristys EPS 100 LATTIA 70mm;834,12;m2;38,000;3,19;2 662,51;4,57;3 813,92;0,00;0,00;0,00;0,00;0,00;6 476,43
+2600;Maanvaraiset alapohjat;26001079;MV-laatan eristys EPS 100 LATTIA 100mm;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303070;Porrasaskelmien hierto;0,80;m2;38,000;6,66;5,33;0,00;0,00;0,00;0,00;0,00;0,00;0,00;5,33
+2830;Sisäänkäyntitasot ja -katokset;28303071;Porras askelmien betonointi;0,24;m3;38,000;15,96;3,83;147,66;35,44;0,00;0,00;0,00;0,00;0,00;39,27
+2830;Sisäänkäyntitasot ja -katokset;28303072;Porrasaskelmien raudoitus;6,56;kg;0,820;0,90;5,92;0,83;5,41;0,00;0,00;0,00;0,00;0,00;11,33
+2830;Sisäänkäyntitasot ja -katokset;28303073;Portaan alapuolinen eristys 120mm XPS ER;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303075;Porrasaskelmien muotitus;0,45;m2;38,000;190,00;85,50;37,71;16,97;0,00;0,00;0,00;0,00;0,00;102,47
+2830;Sisäänkäyntitasot ja -katokset;2830321;PS: Ulkop.RV-laatta TB 80..100 , ER50, Vahvennos reunassa 500/500;14,49;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,17;0,17
+2830;Sisäänkäyntitasot ja -katokset;28303270;Ulkop.-laatan hierto;14,49;m2;38,000;8,38;121,38;0,00;0,00;0,00;0,00;0,00;0,00;0,00;121,38
+2830;Sisäänkäyntitasot ja -katokset;28303271;Ulkop.-laatan betonointi;2,32;m3;38,000;14,36;33,29;158,70;367,83;0,00;0,00;0,00;0,00;0,00;401,12
+2830;Sisäänkäyntitasot ja -katokset;28303272;Ulkop.-laatan raudoitus;142,94;kg;0,820;0,85;121,90;0,83;117,93;0,00;0,00;0,00;0,00;0,00;239,83
+2830;Sisäänkäyntitasot ja -katokset;28303273;Ulkop.-laatan suodatinkangas;14,49;m2;38,000;0,22;3,17;0,35;5,00;0,00;0,00;0,00;0,00;0,00;8,16
+2830;Sisäänkäyntitasot ja -katokset;28303274;RV-laatan muotitus;7,60;m2;38,000;79,80;606,48;15,05;114,39;0,00;0,00;0,00;0,00;0,00;720,87
+2830;Sisäänkäyntitasot ja -katokset;28303275;RV-laatan betonointilisä;2,40;m3;38,000;14,36;34,47;151,80;364,32;0,00;0,00;0,00;0,00;0,00;398,79
+2830;Sisäänkäyntitasot ja -katokset;28303276;RV-laatan eristys EPS 100 LATTIA 50mm;14,49;m2;38,000;6,38;92,48;3,27;47,31;0,00;0,00;0,00;0,00;0,00;139,79
+2830;Sisäänkäyntitasot ja -katokset;28303277;RV-laatan eristys EPS 100 LATTIA 100mm;14,49;m2;38,000;6,38;92,48;6,53;94,62;0,00;0,00;0,00;0,00;0,00;187,10
+2830;Sisäänkäyntitasot ja -katokset;2830341;PS: Sisäänkäyntien ja terassien ulkoportaat N225/S400;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;2830350;Sisäänkäynnin Teräspilarit 150x150x5, H=2750;4,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1,00;1,00
+2830;Sisäänkäyntitasot ja -katokset;28303501;Teräspilarit 150x150x5, H=2750;161,28;kg;0,000;0,00;0,00;6,36;1 026,34;0,00;0,00;0,00;0,00;0,00;1 026,34
+2830;Sisäänkäyntitasot ja -katokset;28303502;Teräspilarin asennus;4,00;kpl;38,000;10,93;43,70;0,00;0,00;0,00;0,00;0,00;0,00;0,00;43,70
+2830;Sisäänkäyntitasot ja -katokset;28303503;Teräspilareiden juotosbetonointi, H=2750;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;2830355;PS: Asuntojen kestopuuterassit, neliöpohjainen;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303571;Terassilaudoitus, Kestopuu 28x120;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303572;Terassilaudoitus, Kestopuu 28x120, Terassin reunat ja päädyt;7,32;m2;38,000;15,20;111,26;20,99;153,61;0,00;0,00;0,00;0,00;0,00;264,87
+2830;Sisäänkäyntitasot ja -katokset;28303573;Terassin kannatus sokkeliin, Kestopuu 48x123;12,00;jm;38,000;5,70;68,40;3,15;37,74;0,00;0,00;0,00;0,00;0,00;106,14
+2830;Sisäänkäyntitasot ja -katokset;28303574;Terassin kannatus etulaidasta, Kestopuu 48x173;12,00;m2;38,000;5,70;68,40;6,05;72,60;0,00;0,00;0,00;0,00;0,00;141,00
+2830;Sisäänkäyntitasot ja -katokset;28303577;Terassin runko, Kestopuu 48x173 k600;13,46;m2;38,000;4,56;61,36;9,74;131,00;0,00;0,00;0,00;0,00;0,00;192,37
+2830;Sisäänkäyntitasot ja -katokset;2830360;Sisäänkäynnin katon Teräspalkit UPE160, L=5500;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303601;Teräspalkki UPE160, L=2000;176,80;kg;0,000;0,00;0,00;0,00;0,00;3,60;636,48;0,00;0,00;0,00;636,48
+2830;Sisäänkäyntitasot ja -katokset;28303602;Teräspalkin UPE Päätylaput työstöineen;78,50;kg;0,000;0,00;0,00;0,00;0,00;4,02;315,93;0,00;0,00;0,00;315,93
+2830;Sisäänkäyntitasot ja -katokset;28303603;Teräspalkin UPE Muut reiät ja työstöt;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303604;Teräspalkin UPE asennus, omatyö;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303605;Teräspalkin UPE asennus hitsattuna;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303606;Kiinnityslatat UPE k xxx lisähintavaraus;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;2830361;Sisäänkäynnin Teräspilarit UPE160, H=2600;4,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;2830370;PS: Teräspalkki IPE100, L=3000;1,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303701;Teräspalkki IPExxx, L=xxxx;141,35;kg;0,000;0,00;0,00;0,00;0,00;3,60;508,84;0,00;0,00;0,00;508,84
+2830;Sisäänkäyntitasot ja -katokset;28303702;Teräspalkin IPE Päätylaput työstöineen;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303703;Teräspalkin IPE Muut reiät ja työstöt;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303704;Teräspalkin IPE asennus, omatyö;4,00;kpl;38,000;49,40;197,60;0,00;0,00;0,00;0,00;0,00;0,00;0,00;197,60
+2830;Sisäänkäyntitasot ja -katokset;28303705;Teräspalkin IPE asennus hitsattuna;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303706;Kiinnityslatat IPE k xxx lisähintavaraus;21,00;kpl;0,000;0,00;0,00;0,00;0,00;10,00;210,00;0,00;0,00;0,00;210,00
+2830;Sisäänkäyntitasot ja -katokset;2830371;PS: Teräspalkki IPE100, L=3450;1,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28303711;Katon alapinnan koolaus 22x100  k400;16,01;m2;38,000;5,70;91,25;2,66;42,52;0,00;0,00;0,00;0,00;0,00;133,77
+2830;Sisäänkäyntitasot ja -katokset;2830372;PS: Teräspalkki IPE100, L=5500;2,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;2830401;Sisäänkäynnin Vesikattorakenteet  + Vesikate + Varusteet;16,01;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28304010;Kattopalkisto 48x123 k800, L=3600;8,00;kpl;38,000;10,45;83,60;9,50;76,00;0,00;0,00;0,00;0,00;0,00;159,60
+2830;Sisäänkäyntitasot ja -katokset;28304011;Sisäänkäyntikatoksen otsalaudoitus;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28304012;Kattopintojen OSB-levytys;16,01;m2;38,000;5,02;80,30;10,58;169,37;0,00;0,00;0,00;0,00;0,00;249,67
+2830;Sisäänkäyntitasot ja -katokset;28304013;Katon rännikourut;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28304014;Katon syöskytorvet;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+2830;Sisäänkäyntitasot ja -katokset;28304015;Vesikate VE20...40, kumibitumikermein;16,01;m2;0,000;0,00;0,00;0,00;0,00;29,40;470,64;0,00;0,00;0,00;470,64
+3020;Rungon teräsosat;3020201;Teräspilari ( Sivu x Sivu x Paksuus), H=Korkeus;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202010;Teräspilari ( Sivu x Sivu x Paksuus), H=Korkeus;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202021;Teräspilarin Päätylaput työstöineen;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202022;Teräspilarin Muut reiät ja työstöt;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202023;Teräspilarin asennus, sis. juotos + hitsaus;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202024;Teräspilarin asennus hitsattuna;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202025;Teräspilareiden juotosbetonit;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202026;Teräspilarien raudoitus;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;3020291;PS: Teräsputkipalkit, Suorakaide ( Sivu x Sivu x Paksuus) L=Pituus;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202911;Teräsputkipalkki Suorakaide,  ( Sivu x Sivu x Paksuus) L=xxxx;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202912;Teräsputkipalkki, Suorakaide, Päätylaput työstöineen;0,00;kg;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202913;Teräsputkipalkki, Suorakaide, Muut reiät ja työstöt;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202914;Teräsputkipalkki, Suorakaide, asennus, omatyö;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202915;Teräsputkipalkki, Suorakaide, asennus hitsattuna;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30202916;Kiinnityslatat Teräsputkipalkki, Suorakaide, k xxx lisähintavaraus;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;3020420;PS:DELTA-Palkit;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30204281;Delta-Palkit D26-400-10;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30204282;Delta-Palkin asennus;7,00;kpl;38,000;133,00;931,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;931,00
+3020;Rungon teräsosat;30204283;Deltapalkkien betonointi;0,00;m3;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30204284;Delta-Palkkien liitososat arvio;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30204285;Delta-Palkit D32 ja D37 konepajatöineen TARJOUS;7,00;kpl;0,000;0,00;0,00;1 571,43;11 000,00;0,00;0,00;0,00;0,00;0,00;11 000,00
+3020;Rungon teräsosat;3020520;PS:PETRA-Palkit;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30205281;PETRA 265-1200;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3020;Rungon teräsosat;30205282;Petra-palkin asennus;12,00;kpl;38,000;30,40;364,80;0,00;0,00;0,00;0,00;0,00;0,00;0,00;364,80
+3020;Rungon teräsosat;30205283;PETRA special 370-L480-620, 370-st370;10,00;kpl;0,000;0,00;0,00;170,00;1 700,00;0,00;0,00;0,00;0,00;0,00;1 700,00
+3020;Rungon teräsosat;30205284;PETRA special 320-L480-620, 320-st320;2,00;kpl;0,000;0,00;0,00;165,00;330,00;0,00;0,00;0,00;0,00;0,00;330,00
+3110;Väliseinäelementit;3110101;PS: V- Väliseinäelementit TB180, 184,51 brm2, 148,57 nm2, 12 kpl;184,51;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3110;Väliseinäelementit;31101010;V-seinäelementtien asennus;119,00;kpl;38,000;100,32;11 938,08;41,95;4 992,05;0,00;0,00;7,50;892,50;0,00;17 822,63
+3110;Väliseinäelementit;31101011;V- Elementtien pystysaumasbetonit;119,00;kpl;0,000;0,00;0,00;14,80;1 761,20;0,00;0,00;0,00;0,00;0,00;1 761,20
+3110;Väliseinäelementit;31101012;V-Väliseinäelementit TB180,;184,51;m2;0,000;0,00;0,00;80,00;14 760,80;0,00;0,00;0,00;0,00;0,00;14 760,80
+3110;Väliseinäelementit;3110102;PS: V- Väliseinäelementit TB200, 1539,47 brm2, 1401,88 nm2, 107 kpl;1 539,47;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3110;Väliseinäelementit;31101022;V-Väliseinäelementit TB200;1 539,47;m2;0,000;0,00;0,00;82,00;126 236,54;0,00;0,00;0,00;0,00;0,00;126 236,54
+3120;Ontelo-, Massiivi- ja tulppalaatat;31200390;PS:  Ontelokentän alapinnan Viemäreiden Painelaatikot;6,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31201903;Painelaatikon raudoitus;8,64;kg;0,000;0,00;0,00;0,83;7,13;0,00;0,00;0,00;0,00;0,00;7,13
+3120;Ontelo-, Massiivi- ja tulppalaatat;31201904;Painelaatikon betonointi;0,43;m3;0,000;0,00;0,00;155,40;67,13;0,00;0,00;0,00;0,00;0,00;67,13
+3120;Ontelo-, Massiivi- ja tulppalaatat;31201905;Viemärin painelaatikoiden työ;6,00;kpl;38,000;114,00;684,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;684,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;3120201;PS: L-Massiivilaatta elementit TB240, PRSH 201 brm2, 193,53 nm2, 22 kpl;218,62;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202010;Massiivilaattojen asennus, sis.tukkolautojen asennuksen;25,00;kpl;38,000;64,60;1 615,00;13,25;331,25;0,00;0,00;0,00;0,00;0,00;1 946,25
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202011;Massiivilaattojen saumabetonointi;25,00;kpl;0,000;0,00;0,00;16,28;407,00;0,00;0,00;0,00;0,00;0,00;407,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202012;Massiivilaatta L- TB 240;218,62;m2;0,000;0,00;0,00;120,00;26 234,40;0,00;0,00;0,00;0,00;0,00;26 234,40
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202013;Massiivilaattojen tukkolaudoitus < 150mm;190,00;jm;38,000;5,70;1 083,00;3,86;733,88;0,00;0,00;0,00;0,00;0,00;1 816,88
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202092;Ontelokentän PV-kaistat betonointi;54,95;m3;38,000;15,20;835,16;155,40;8 538,45;0,00;0,00;0,00;0,00;0,00;9 373,62
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202093;Ontelokentän PV-kaistat raudoitus;2 112,00;kg;0,820;0,84;1 766,48;0,83;1 742,40;0,00;0,00;0,00;0,00;0,00;3 508,88
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202094;Ontelokentän PV-kaistat muotitus;145,00;m2;38,000;5,70;826,50;18,69;2 710,52;0,00;0,00;0,00;0,00;0,00;3 537,02
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202095;Ontelokentän tukkolaudoitukset;500,00;jm;38,000;3,80;1 900,00;3,86;1 931,25;0,00;0,00;0,00;0,00;0,00;3 831,25
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202096;Ontelokentän varauskolomuottaukset ja niiden juotokset;90,00;kpl;38,000;13,30;1 197,00;4,77;429,35;0,00;0,00;0,00;0,00;0,00;1 626,35
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202097;Ontelokentän timanttiporaukset 252 kpl;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;3120221;PS: Ontelolaatta O32 / O37 + O37K / 2O37 + 2O37K Yhteensä 381 kpl;2 596,89;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202210;Syvennettyjen onteloiden m2;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202211;O32 Ontelolaatta TB320, O32= 64 kpl;444,00;m2;0,000;0,00;0,00;47,00;20 868,00;0,00;0,00;0,00;0,00;0,00;20 868,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202212;O37 + O37K - Ontelolaatta TB370, O37=194 kpl, O37K=109 kpl;2 072,50;m2;0,000;0,00;0,00;54,00;111 915,00;0,00;0,00;0,00;0,00;0,00;111 915,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202213;2O37 + 2O37K - Ontelolaatta TB370, 2O37=11 kpl, 2O37K= 3kpl, [ REI xxx ];80,70;m2;0,000;0,00;0,00;66,00;5 326,20;0,00;0,00;0,00;0,00;0,00;5 326,20
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202214;KLxx - Kuorilaatta TBxxx, KLxx=xxkpl,;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202270;Ontelolaattojen asennus, sis.saumavalutyöt, hox! €/m2;2 596,89;m2;38,000;7,98;20 723,21;1,94;5 031,48;0,00;0,00;0,00;0,00;0,00;25 754,69
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202271;Ontelolaattojen asennus, sis.saumavalutyöt, hox! €/kpl;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3120;Ontelo-, Massiivi- ja tulppalaatat;31202272;Ontelolaattojen saumabetonit;77,59;m3;0,000;0,00;0,00;155,40;12 057,46;0,00;0,00;0,00;0,00;0,00;12 057,46
+3120;Ontelo-, Massiivi- ja tulppalaatat;31203902;Painelaatikon muotitus vanerilla;3,96;m2;0,000;0,00;0,00;27,14;107,47;0,00;0,00;0,00;0,00;0,00;107,47
+3130;Kuorielementit (SK,RK);3130301;PS: SK-Kuorielementit TB150,  883,07 brm2, 710,97 nm2, 64 kpl;883,07;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3130;Kuorielementit (SK,RK);31303010;SK-seinäelementtien asennus + ulkopuolen tilkkaukset;64,00;kpl;38,000;101,35;6 486,14;37,65;2 409,60;0,00;0,00;7,50;480,00;0,00;9 375,74
+3130;Kuorielementit (SK,RK);31303011;SK-Elementtien pystysaumabetonit;64,00;kpl;0,000;0,00;0,00;14,80;947,20;0,00;0,00;0,00;0,00;0,00;947,20
+3130;Kuorielementit (SK,RK);31303012;SK-elementit TB150+ER180;883,07;m2;0,000;0,00;0,00;90,00;79 476,30;0,00;0,00;0,00;0,00;0,00;79 476,30
+3140;Hissikuiluelementit(seinä ja kuppilaat.);3140410;Hissikuilun ylälaatta;1,00;erä;0,000;0,00;0,00;1 100,00;1 100,00;0,00;0,00;0,00;0,00;0,00;1 100,00
+3140;Hissikuiluelementit(seinä ja kuppilaat.);31404101;Hissikuiluelementtien asennus;1,00;kpl;36,000;57,60;57,60;12,20;12,20;0,00;0,00;0,00;0,00;0,00;69,80
+3140;Hissikuiluelementit(seinä ja kuppilaat.);31404102;Elementtien juotosbetoni;3,75;jm;36,000;9,36;35,10;1,30;4,88;0,00;0,00;0,00;0,00;0,00;39,98
+3150;Porraselementit;3150501;Porraselementti, Elemento 1;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3150;Porraselementit;31505012;Porraselementtien juotosbetonointi;0,25;m3;38,000;304,00;76,00;162,80;40,70;0,00;0,00;0,00;0,00;0,00;116,70
+3150;Porraselementit;31505013;Porraselementti Elemento 1;5,00;kpl;0,000;0,00;0,00;2 640,00;13 200,00;0,00;0,00;0,00;0,00;0,00;13 200,00
+3150;Porraselementit;31505070;Porraselementin asennus;5,00;kpl;38,000;98,80;494,00;0,00;0,00;135,00;675,00;0,00;0,00;0,00;1 169,00
+3150;Porraselementit;31505072;Porrasaskelsuojat;5,00;kpl;38,000;7,60;38,00;450,00;2 250,00;0,00;0,00;0,00;0,00;0,00;2 288,00
+3150;Porraselementit;31505073;Porraselementtien jälkityöt;5,00;kpl;0,000;0,00;0,00;0,00;0,00;200,00;1 000,00;0,00;0,00;0,00;1 000,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170701;PS: M-Parvekkeen pielielementit TB200, 47,78 brm2 42nm2, 11 kpl;47,80;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707010;M-Pielielementtien asennus;11,00;kpl;38,000;60,80;668,80;12,48;137,23;0,00;0,00;7,50;82,50;0,00;888,53
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707013;M-Parvekkeen pielielementit TBxxx H=xxxx;47,80;m2;0,000;0,00;0,00;100,00;4 780,00;0,00;0,00;0,00;0,00;0,00;4 780,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707070;CL-Parvekelaatan asennus;28,00;kpl;38,000;60,80;1 702,40;5,00;140,00;0,00;0,00;0,00;0,00;0,00;1 842,40
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707072;CX-Parvekekattolaatan asennus;5,00;kpl;38,000;60,80;304,00;5,00;25,00;0,00;0,00;0,00;0,00;0,00;329,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707075;Parvekelaattojen saumabetonit;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170710;PS: CL-Kiila-Parvekelaatta TBxxx, syvyys xxxm, Hox poistumisluukut!;178,70;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707101;CL-Kiila-Parvekelaatta TB240, pielikannatteinen;178,70;m2;0,000;0,00;0,00;170,00;30 379,00;0,00;0,00;0,00;0,00;0,00;30 379,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707102;CL-Kiila-Parvekelaatta TB240, pielikannatteinen, Poistumisluukullinen;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170730;PS: CX-Kiila-Parvekkeen kattolaatta TBxxx, syvyys xxxm, pielikannatteinen + Bitumieristys;26,54;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707301;PS: CX-Kiila-Parvekkeen kattolaatta TBxxx, pielikannatteinen;26,54;m2;0,000;0,00;0,00;150,00;3 981,00;0,00;0,00;0,00;0,00;0,00;3 981,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170735;PS: CX-Tasapaksu-Parvekkeen kattolaatta TBxxx, syvyys xxxm, pielikannatteinen, Vesikaton alla;5,92;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31707351;PS: CX-Tasapaksu-Parvekkeen kattolaatta TBxxx, pielikannatteinen;5,92;m2;0,000;0,00;0,00;171,00;1 012,32;0,00;0,00;0,00;0,00;0,00;1 012,32
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170801;PS: P-Pilarielementti, 280 x 280, H=2720, Parvekepilarit;5,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;5,00;5,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708012;PS: P-Pilarielementti, 280 x 280, H=2720, Parvekepilarit;5,00;kpl;0,000;0,00;0,00;380,00;1 900,00;0,00;0,00;0,00;0,00;0,00;1 900,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170802;PS: P-Pilarielementti, 380 x 380, H=2950;6,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;6,00;6,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708022;PS: P-Pilarielementti, 380 x 380, H=2950;6,00;kpl;0,000;0,00;0,00;650,00;3 900,00;0,00;0,00;0,00;0,00;0,00;3 900,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170803;PS: P-Pilarielementti, 580 x 380, H=6040;1,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1,00;1,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708032;PS: P-Pilarielementti, 580 x 380, H=6040;1,00;kpl;0,000;0,00;0,00;700,00;700,00;0,00;0,00;0,00;0,00;0,00;700,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708091;P-pilarielementtien asennus;12,00;kpl;38,000;96,90;1 162,80;22,48;269,70;0,00;0,00;10,00;120,00;0,00;1 552,50
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170810;PS: CP-Pilarielementti, d=280, pyöreä, H=2720, Parvekepilarit;51,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708101;CP-pilarielementtien asennus;51,00;kpl;38,000;72,20;3 682,20;22,48;1 146,23;0,00;0,00;10,00;510,00;0,00;5 338,43
+3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;31708102;PS: CP-Pilarielementti, d=280, pyöreä, H=2720, Parvekepilarit;51,00;kpl;0,000;0,00;0,00;265,00;13 515,00;0,00;0,00;0,00;0,00;0,00;13 515,00
+3350;Betonipintojen etupaikkaus;33503100;Seinäelementtien etupaikkaus;3 100,90;m2;38,000;1,90;5 891,71;0,00;0,00;0,00;0,00;0,00;0,00;0,00;5 891,71
+3350;Betonipintojen etupaikkaus;33503110;Seinäelementtien etupaikkaus;711,00;m2;38,000;1,90;1 350,90;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1 350,90
+3350;Betonipintojen etupaikkaus;3350501;PV-MP-Betonipintojen paikkaus;941,05;m2;38,000;3,80;3 576,01;0,50;470,53;0,00;0,00;0,00;0,00;0,00;4 046,54
+3350;Betonipintojen etupaikkaus;335056;Holvin betoniliiman poisto ja hionta;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3500;Ulkoseinät;3500121;Puurunkoiset ulkoseinät ( 50mm villa + Kipsilevy 13KN);843,42;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3500;Ulkoseinät;35001212;Ulkoseinän sisäverhous, 13mm kipsilevy;573,00;m2;0,000;0,00;0,00;2,81;1 608,41;0,00;0,00;0,00;0,00;0,00;1 608,41
+3500;Ulkoseinät;35001216;Ulkoseinän villoitus 50mm;573,00;m2;0,000;0,00;0,00;2,59;1 481,21;0,00;0,00;0,00;0,00;0,00;1 481,21
+3500;Ulkoseinät;3500921;US-kipsilevytys+ 50mm villa;843,42;m2;0,000;0,00;0,00;0,00;0,00;10,50;8 855,92;0,00;0,00;0,00;8 855,92
+3550;Ulkoseinät elementteinä, puu;3550201;Puu-ulkoseinäelementit (US01/ US02 /US04 /US05 /US07) asennettuna;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3550;Ulkoseinät elementteinä, puu;35502010;Puu-ulkoseinäelementti (US01/ US02 /US04 /US05 /US07);1 762,00;m2;0,000;0,00;0,00;0,00;0,00;56,00;98 672,00;0,00;0,00;0,00;98 672,00
+3550;Ulkoseinät elementteinä, puu;3550202;Puu-ulkoseinäelementtien alajuoksut + haitat;103,63;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3550;Ulkoseinät elementteinä, puu;35502020;Puu-ulkoseinäelementtien alajuoksut ja haittatyöt;103,63;jm;38,000;13,30;1 378,28;7,42;768,94;0,00;0,00;0,00;0,00;0,00;2 147,22
+3550;Ulkoseinät elementteinä, puu;35502070;Puu-ulkoseinäelementin asennus 1-6 KRS;70,00;kpl;120,000;120,00;8 400,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;8 400,00
+3550;Ulkoseinät elementteinä, puu;35502071;Puu-ulkoseinäelementin asennus 2 KRS;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3550;Ulkoseinät elementteinä, puu;35502073;Puu-ulkoseinäelementin asennus Ullakko;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3550;Ulkoseinät elementteinä, puu;35502075;Ikkunoiden asennus tehtaalla elementteihin;139,00;kpl;0,000;0,00;0,00;0,00;0,00;56,00;7 784,00;0,00;0,00;0,00;7 784,00
+3550;Ulkoseinät elementteinä, puu;35502077;Puuelementtien suunnittelukulut;70,00;kpl;0,000;0,00;0,00;0,00;0,00;67,00;4 690,00;0,00;0,00;0,00;4 690,00
+3550;Ulkoseinät elementteinä, puu;35502078;Puuelementtien rahtikulut;70,00;kpl;0,000;0,00;0,00;0,00;0,00;60,00;4 200,00;0,00;0,00;0,00;4 200,00
+3550;Ulkoseinät elementteinä, puu;35502079;Puuelementtien asennuksen nosturikulut;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3600;Kattotasot ja parvekkeet;36003170;Terassimatot parvekkeille;178,70;m2;0,000;0,00;0,00;0,00;0,00;10,00;1 787,00;0,00;0,00;0,00;1 787,00
+3600;Kattotasot ja parvekkeet;3600601;Parvekkeiden kevyet väliseinät [ EI15 ] Luja-A;20,40;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,15;0,15
+3600;Kattotasot ja parvekkeet;36006011;Parvekkeen väliseinän runko;20,40;m2;38,000;20,90;426,36;11,00;224,36;0,00;0,00;0,00;0,00;0,00;650,72
+3600;Kattotasot ja parvekkeet;36006012;Ulkoseinän tuuletuskoolaus 2x22mm, k400;40,80;m2;38,000;3,99;162,79;2,03;82,62;0,00;0,00;0,00;0,00;0,00;245,41
+3600;Kattotasot ja parvekkeet;3600770;Parvekelaatan ja seinän tiivistysmassaus ja pellitys;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3600;Kattotasot ja parvekkeet;36007701;Vanerikorotus laatan reunaan 12mmx50mm;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3600;Kattotasot ja parvekkeet;36007702;Seinävierustan vedeneristemassaus ElaProof;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3600;Kattotasot ja parvekkeet;36007703;Seinävierustan Sika Multiseal Bitumiteippaus;136,76;jm;38,000;7,60;1 039,36;5,18;707,72;0,00;0,00;0,00;0,00;0,00;1 747,09
+3700;Ullakko- ja kattorakenteet;3700701;YP1 : Pukkiristikkoyläpohja, Raakaponttilaudoitus;555,23;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007011;Kattorakenteen otsa- ja aluslaudoitus;105,00;jm;38,000;15,20;1 596,00;13,11;1 376,94;0,00;0,00;0,00;0,00;0,00;2 972,94
+3700;Ullakko- ja kattorakenteet;37007012;Katon poikoset ja päätylankku;28,00;jm;0,000;0,00;0,00;2,88;80,64;0,00;0,00;0,00;0,00;0,00;80,64
+3700;Ullakko- ja kattorakenteet;37007013;Kattopintojen Raakaponttilaudoitus / OSB-levytys;566,00;m2;0,000;0,00;0,00;10,40;5 886,40;0,00;0,00;0,00;0,00;0,00;5 886,40
+3700;Ullakko- ja kattorakenteet;37007018;Tuulenohjaimet;56,00;jm;38,000;5,32;297,92;2,44;136,75;0,00;0,00;0,00;0,00;0,00;434,67
+3700;Ullakko- ja kattorakenteet;37007019;Kattopollarien ja Vilpehattujen tukirakenteet;8,00;kpl;0,000;0,00;0,00;46,00;368,00;0,00;0,00;0,00;0,00;0,00;368,00
+3700;Ullakko- ja kattorakenteet;37007020;Kattotuolien revaukset ja tukilankkulinjat;555,23;m2;0,000;0,00;0,00;4,45;2 473,41;0,00;0,00;0,00;0,00;0,00;2 473,41
+3700;Ullakko- ja kattorakenteet;37007030;Vesikaton TYÖURAKKA;555,23;m2;38,000;23,37;12 975,68;0,00;0,00;0,00;0,00;0,00;0,00;0,00;12 975,68
+3700;Ullakko- ja kattorakenteet;3700720;Huoneistojen välinen palokatko vesikaton osalla n.15m2 /asunto;1,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007201;Katon palokatkolevytyksen koolausrunko 48x98mm, k600;42,50;m2;38,000;5,99;254,36;10,40;441,92;0,00;0,00;0,00;0,00;0,00;696,28
+3700;Ullakko- ja kattorakenteet;37007203;Katon palokatkolevytys, 2x13mm KN;85,00;m2;38,000;7,60;646,00;3,84;326,74;0,00;0,00;0,00;0,00;0,00;972,74
+3700;Ullakko- ja kattorakenteet;3700721;Ullakon eristyksen tukiseinät ristikkoväleihin;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007210;Ullakon eristyksen tukiseinät ristikkoväleihin;9,00;m2;38,000;16,72;150,48;3,55;31,95;0,00;0,00;0,00;0,00;0,00;182,43
+3700;Ullakko- ja kattorakenteet;37007211;Palokatkoseinän Kulkuluukku EI30, 9x9;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007212;Ullakon eristyksen tukiseinät ristikkoväleihin TS levytys-9mm, nm2;9,00;m2;0,000;0,00;0,00;4,18;37,58;0,00;0,00;0,00;0,00;0,00;37,58
+3700;Ullakko- ja kattorakenteet;3700730;Ullakon kulkusilta;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007301;Ullakon kulkusilta 4x48x123;20,00;jm;38,000;19,00;380,00;13,00;260,00;0,00;0,00;0,00;0,00;0,00;640,00
+3700;Ullakko- ja kattorakenteet;3700731;Vesikaton Kattoluukku 600x600;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007310;Kattoluukku 600x600: lankkukehys/vanerikansi pellitettynä;2,00;kpl;0,000;0,00;0,00;0,00;0,00;150,00;300,00;0,00;0,00;0,00;300,00
+3700;Ullakko- ja kattorakenteet;37007311;Kattoluukun reiän teko ja tukilankut;2,00;kpl;38,000;38,00;76,00;4,48;8,96;0,00;0,00;0,00;0,00;0,00;84,96
+3700;Ullakko- ja kattorakenteet;3700732;Vesikaton Valokuilun SP ikkuna +  RUNKO;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+3700;Ullakko- ja kattorakenteet;37007322;SP-ikkunakorokkeen puurunko 48x198 k600;9,00;m2;38,000;19,95;179,55;14,13;127,18;0,00;0,00;0,00;0,00;0,00;306,73
+3700;Ullakko- ja kattorakenteet;37007323;SP-ikkunakorokkeen villoitus 200mm, nm2;9,00;m2;0,000;0,00;0,00;8,86;79,70;0,00;0,00;0,00;0,00;0,00;79,70
+3700;Ullakko- ja kattorakenteet;37007324;SP-ikkunakorokkeen OSB-levytys;9,00;m2;38,000;7,98;71,82;9,85;88,65;0,00;0,00;0,00;0,00;0,00;160,47
+3700;Ullakko- ja kattorakenteet;37007325;SP-ikkunakorokkeen HS + 2xKPS-levytys;9,00;m2;38,000;31,92;287,28;17,13;154,17;0,00;0,00;0,00;0,00;0,00;441,45
+3700;Ullakko- ja kattorakenteet;3700750;Hissikuilun yläkupin eristys;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,10;0,10
+3700;Ullakko- ja kattorakenteet;37007505;EPS 100S 150mm, Hissikupin ympärille;20,00;m2;38,000;15,20;304,00;16,08;321,52;0,00;0,00;0,00;0,00;0,00;625,52
+3700;Ullakko- ja kattorakenteet;3700772;Ullakon osuuden 48x98 koolaus + TS levytys,Rappauslevyn taakse;210,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;2,00;2,00
+3700;Ullakko- ja kattorakenteet;37007723;Ullakko-osuuden seinän koolaus 48x49, k600;210,00;m2;38,000;6,78;1 424,43;4,99;1 047,98;0,00;0,00;0,00;0,00;0,00;2 472,41
+3700;Ullakko- ja kattorakenteet;37007724;Ullakko-osuuden seinän TS-levytys;210,00;m2;38,000;7,98;1 675,80;4,13;866,25;0,00;0,00;0,00;0,00;0,00;2 542,05
+3720;Kattoristikot;37207010;Kattoristikot;47,00;kpl;0,000;0,00;0,00;211,04;9 918,90;0,00;0,00;0,00;0,00;0,00;9 918,90
+3750;Puhallusvilla;37507016;Katon Eristys,  500 Puhallusvilla;555,23;m2;0,000;0,00;0,00;0,00;0,00;14,70;8 161,85;0,00;0,00;0,00;8 161,85
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100101;PS: IA - (MSEA)- Avattavat ikkunat, m²-pohjainen;75,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41001070;IA - (MSEA), Puualumiini-ikkuna, karmi 170/210mm;75,00;m2;0,000;0,00;0,00;130,00;9 750,00;0,00;0,00;0,00;0,00;0,00;9 750,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41001071;IA - (MSEA) - Avattavat ikkunat ASENNUS. sis. vaahdotukset;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41001072;Lisähinta, puuikkunan sälekaihtimet, MSEA;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41001073;MSEA- MEK -ikkunoiden elastiset kittaukset HOX: sisäpinta;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100301;PS: IK - (MEK)- Kiinteät ikkunat, m²-pohjainen;260,90;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100307;Lisähinta, puuikkunan sälekaihtimet, MEK;260,90;m2;0,000;0,00;0,00;25,00;6 522,50;0,00;0,00;0,00;0,00;0,00;6 522,50
+4100;Puu- ja muovi-ikkunat, parvekeovet;41003070;IK - (MEK)- Kiinteät ikkunat, m²-pohjainen, karmi 170/210mm;260,90;m2;0,000;0,00;0,00;150,00;39 135,00;0,00;0,00;0,00;0,00;0,00;39 135,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41003071;IK - (MEK)- Kiinteät ikkunat ASENNUS. sis. vaahdotukset;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100601;PS: PO - Parvekkeiden ja terassien Lasiulko-ovet 10x23;33,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41006010;PO - Parvekkeiden ja terassien Lasiulko-ovet 10x23;33,00;kpl;0,000;0,00;0,00;800,00;26 400,00;0,00;0,00;0,00;0,00;0,00;26 400,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100607;Lisähinta, puuikkunan sälekaihtimet, PO-parvekeovet;75,90;m2;0,000;0,00;0,00;25,00;1 897,50;0,00;0,00;0,00;0,00;0,00;1 897,50
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100608;Lisähinta, puuikkunan sälekaihtimet, RPO;21,50;m2;0,000;0,00;0,00;25,00;537,50;0,00;0,00;0,00;0,00;0,00;537,50
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100611;RPO-Paketti10x20  ICCUNA;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41006111;RPO-Paketti10x20  ICCUNA;5,00;kpl;0,000;0,00;0,00;600,00;3 000,00;0,00;0,00;0,00;0,00;0,00;3 000,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;4100612;RPO-Paketti18x20 Kaksiosainen;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41006121;RPO-Paketti18x20 Kaksiosainen   ICCUNA;5,00;kpl;0,000;0,00;0,00;900,00;4 500,00;0,00;0,00;0,00;0,00;0,00;4 500,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41006122;RPO-ovet, ASENNUS;10,00;kpl;38,000;87,40;874,00;4,00;40,00;0,00;0,00;0,00;0,00;0,00;914,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41006192;Parvekeovien ASENNUS, sis. vaahdotukset ja haalaukset;33,00;kpl;0,000;0,00;0,00;4,00;132,00;55,00;1 815,00;0,00;0,00;0,00;1 947,00
+4100;Puu- ja muovi-ikkunat, parvekeovet;41009001;Ikkunoiden ja terassiovien haalaus;190,00;kpl;0,000;0,00;0,00;0,00;0,00;15,00;2 850,00;0,00;0,00;0,00;2 850,00
+4200;Erityisikkunat, sp-luukut;4200732;SavunpoistoLUUKKU katolla;1,00;kpl;0,000;0,00;0,00;0,00;0,00;2 000,00;2 000,00;0,00;0,00;0,00;2 000,00
+4200;Erityisikkunat, sp-luukut;4200733;Kiinteä tikas SPL/KL luukkuun;1,00;kpl;0,000;0,00;0,00;0,00;0,00;450,00;450,00;0,00;0,00;0,00;450,00
+4300;Puuovet;4300201;Kerrostaso-ovet, Huoneisto-ovet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4300;Puuovet;43002010;Huoneisto-ovet,  ASENNUS;43,00;kpl;0,000;0,00;0,00;2,00;86,00;83,80;3 603,40;0,00;0,00;0,00;3 689,40
+4300;Puuovet;43002011;Huoneisto-oven tammikynnys;43,00;kpl;0,000;0,00;0,00;7,00;301,00;15,00;645,00;0,00;0,00;0,00;946,00
+4300;Puuovet;43002012;Huoneisto-ovi 10-11x21M;43,00;kpl;0,000;0,00;0,00;600,00;25 800,00;0,00;0,00;0,00;0,00;0,00;25 800,00
+4300;Puuovet;4300301;Väliovi VO  7/10x21, laakaovi, karmi 92mm;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4300;Puuovet;43003010;Väliovet, ASENNUS;61,00;kpl;0,000;0,00;0,00;2,00;122,00;44,04;2 686,44;0,00;0,00;0,00;2 808,44
+4300;Puuovet;43003012;Väliovi VO 7/10x21, laakaovi, karmi 92mm;61,00;kpl;0,000;0,00;0,00;80,00;4 880,00;0,00;0,00;0,00;0,00;0,00;4 880,00
+4300;Puuovet;4300305;Kostean tilan väliovi VO-K 9 x 21;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4300;Puuovet;43003050;Kostean tilan väliovet, ASENNUS;50,00;kpl;0,000;0,00;0,00;2,00;100,00;44,04;2 202,00;0,00;0,00;0,00;2 302,00
+4300;Puuovet;43003051;Välioven kostean tilan kynnys;50,00;kpl;0,000;0,00;0,00;20,00;1 000,00;20,00;1 000,00;0,00;0,00;0,00;2 000,00
+4300;Puuovet;43003052;Kostean tilan väliovi VO-K 9 x 21;50,00;kpl;0,000;0,00;0,00;110,00;5 500,00;0,00;0,00;0,00;0,00;0,00;5 500,00
+4300;Puuovet;4300306;Löylyhuoneen lasiovi, korkea pystyvedin,  M8x19;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4300;Puuovet;43003060;Saunan lasioven ASENNUS;17,00;kpl;0,000;0,00;0,00;2,00;34,00;67,04;1 139,68;0,00;0,00;0,00;1 173,68
+4300;Puuovet;43003062;Löylyhuoneen lasiovi, korkea pystyvedin,  M8x19;17,00;kpl;0,000;0,00;0,00;150,00;2 550,00;0,00;0,00;0,00;0,00;0,00;2 550,00
+4300;Puuovet;4300501;Liukuovi M9 x 21, Seinäkiinnitteinen;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4300;Puuovet;43005010;Väliovet, ASENNUS;5,00;kpl;0,000;0,00;0,00;2,00;10,00;45,00;225,00;0,00;0,00;0,00;235,00
+4300;Puuovet;43005013;Liukuovi M9 x 21, Seinäkiinnitteinen;5,00;kpl;0,000;0,00;0,00;180,00;900,00;0,00;0,00;0,00;0,00;0,00;900,00
+4300;Puuovet;43009001;Sisäovien haalaus;176,00;kpl;0,000;0,00;0,00;0,00;0,00;15,00;2 640,00;0,00;0,00;0,00;2 640,00
+4330;Metalliovet, -ikkunat ja lasiseinät;4330151;MLS-Alumiinilasiseinä 8,2m x 13,8m;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43301510;MLS-Alumiinilasiseinä 8,2m x 13,8m;11,32;m2;0,000;0,00;0,00;500,00;5 658,00;0,00;0,00;0,00;0,00;0,00;5 658,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43301511;MLS Alumiinilasiseinä, ASENNUS;1,00;kpl;0,000;0,00;0,00;0,00;0,00;510,00;510,00;0,00;0,00;0,00;510,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43301512;Alumiinilasiseinän sisäpuolen pellitykset;29,24;jm;0,000;0,00;0,00;0,00;0,00;6,90;201,76;0,00;0,00;0,00;201,76
+4330;Metalliovet, -ikkunat ja lasiseinät;43303012;Metallisen ulko-oven sisäpuolen pellitykset;23,60;jm;0,000;0,00;0,00;0,00;0,00;6,90;162,84;0,00;0,00;0,00;162,84
+4330;Metalliovet, -ikkunat ja lasiseinät;43303021;Alumiini ulko-ovi, ASENNUS;1,00;kpl;0,000;0,00;0,00;0,00;0,00;194,80;194,80;0,00;0,00;0,00;194,80
+4330;Metalliovet, -ikkunat ja lasiseinät;4330303;Alumiini-ulko-ovi 10+2 x 23M , Lasiaukolla;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43303030;Alumiini-ulko-ovi 10+2 x 23M, Lasiaukolla;1,00;kpl;0,000;0,00;0,00;2 000,00;2 000,00;0,00;0,00;0,00;0,00;0,00;2 000,00
+4330;Metalliovet, -ikkunat ja lasiseinät;4330304;Alumiini-ulko-ovi 10 x 23M;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43303040;Alumiini-ulko-ovi 10 x 23M,;2,00;kpl;0,000;0,00;0,00;0,00;0,00;1 250,00;2 500,00;0,00;0,00;0,00;2 500,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43303041;Alumiini ulko-ovi, ASENNUS;2,00;kpl;0,000;0,00;0,00;0,00;0,00;186,80;373,60;0,00;0,00;0,00;373,60
+4330;Metalliovet, -ikkunat ja lasiseinät;4330305;SPI-Savunpoistoikkunat;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43303050;SPI-Savunpoistoikkunat;3,00;kpl;0,000;0,00;0,00;0,00;0,00;1 000,00;3 000,00;0,00;0,00;0,00;3 000,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43303051;SPI-Savunpoistoikkunat ASENNUS;3,00;kpl;0,000;0,00;0,00;0,00;0,00;186,80;560,40;0,00;0,00;0,00;560,40
+4330;Metalliovet, -ikkunat ja lasiseinät;43303600;Parvekelaatan ja seinänvierustan tiivistyspellitys LL=100-200;136,76;jm;0,000;0,00;0,00;0,00;0,00;9,06;1 239,03;0,00;0,00;0,00;1 239,03
+4330;Metalliovet, -ikkunat ja lasiseinät;43307020;Parvekkeiden poistumistieluukut;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;4330803;TVO-  Teräksinen väliovi [EI30] 10x21;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43308030;Teräksinen väliovi [EI30] 10x21;5,00;kpl;0,000;0,00;0,00;500,00;2 500,00;0,00;0,00;0,00;0,00;0,00;2 500,00
+4330;Metalliovet, -ikkunat ja lasiseinät;4330810;TVO- Teräksinen väliovi [EI60] 10x21;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43308101;Teräksinen väliovi [EI60] 10x21;2,00;kpl;0,000;0,00;0,00;510,00;1 020,00;0,00;0,00;0,00;0,00;0,00;1 020,00
+4330;Metalliovet, -ikkunat ja lasiseinät;4330823;TVPO- (MO)  Teräksinen pariväliovi [EI30] 14x21;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43308230;TVPO- (MO)  Teräksinen pariväliovi [EI30] 14x21;3,00;kpl;0,000;0,00;0,00;1 200,00;3 600,00;0,00;0,00;0,00;0,00;0,00;3 600,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43308991;Teräksinen väliovi, ASENNUS;10,00;kpl;0,000;0,00;0,00;0,00;0,00;150,00;1 500,00;0,00;0,00;0,00;1 500,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43308992;Metallisen välioven pellitykset;104,00;jm;0,000;0,00;0,00;0,00;0,00;6,90;717,60;0,00;0,00;0,00;717,60
+4330;Metalliovet, -ikkunat ja lasiseinät;43308993;Metallisen välioven tiivistys ja kittaus;62,00;jm;0,000;0,00;0,00;0,00;0,00;8,00;496,00;0,00;0,00;0,00;496,00
+4330;Metalliovet, -ikkunat ja lasiseinät;43330893;Metallisen välioven kynnyspellitys;8,00;jm;0,000;0,00;0,00;0,00;0,00;39,90;319,20;0,00;0,00;0,00;319,20
+4360;Lukitukset ja heloitukset;4360102;Lukitus ja heloitusurakka Certego;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4360;Lukitukset ja heloitukset;43601020;Lukitus ja heloitusurakka Certego;43,00;as;0,000;0,00;0,00;0,00;0,00;790,70;34 000,00;0,00;0,00;0,00;34 000,00
+4510;Kipsiväliseinät;4510201;Kevyt väliseinä (13+66+13) Tavanomainen;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4510;Kipsiväliseinät;45102010;Kevyen seinän runko + levytys (13+66+13);0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4510;Kipsiväliseinät;45102011;Kevyen seinän runko + levytys (13+66+13) ALIURAKKANA;644,80;m2;0,000;0,00;0,00;9,66;6 227,98;20,00;12 895,99;0,00;0,00;0,00;19 123,97
+4510;Kipsiväliseinät;4510203;Kevyt väliseinä (13+66+13) Kuivatila-PSH/WC;535,86;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1,83;1,83
+4510;Kipsiväliseinät;45102030;Kevyen seinän runko + levytys (13+66+13);0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4510;Kipsiväliseinät;45102031;Kevyen seinän runko + levytys (13+66+13)  ALIURAKKANA;535,86;m2;0,000;0,00;0,00;12,15;6 510,49;20,00;10 717,17;0,00;0,00;0,00;17 227,66
+4510;Kipsiväliseinät;4510205;Kevyt väliseinä (66+13) PSH/Kuivatila-Sauna ( PAPERIT JA KOOLAUKSET TOISAALLA );224,70;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;2,70;2,70
+4510;Kipsiväliseinät;45102050;Kevyen seinän runko + levytys (66+13);0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4510;Kipsiväliseinät;45102051;Kevyen seinän runko + levytys (66+13) ALIURAKKANA;224,70;m2;0,000;0,00;0,00;10,39;2 334,27;16,00;3 595,16;0,00;0,00;0,00;5 929,43
+4510;Kipsiväliseinät;45102991;Kipsiseinän äänieristemassaus;2 496,81;jm;38,000;1,14;2 846,36;1,05;2 621,65;0,00;0,00;0,00;0,00;0,00;5 468,01
+4510;Kipsiväliseinät;4510407;Kevyt väliseinä (13+95+13) [ dB>35, EI 60 ]  Jakotukki ja Ryhmäkeskus seinä;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4510;Kipsiväliseinät;45104070;Kevyt väliseinä (13+95+13) Jakotukki ja Ryhmäkeskus seinä ERISTETTY;155,15;m2;0,000;0,00;0,00;16,96;2 631,45;22,00;3 413,31;0,00;0,00;0,00;6 044,76
+4520;Kipsialakatot;4520201;Alaslaskettu kipsikatto, tavanomainen;403,15;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,64;0,64
+4520;Kipsialakatot;45202013;Alaslaskun roikotus + vaakakoolaus 25x100  k400;403,15;m2;0,000;0,00;0,00;10,43;4 204,61;0,00;0,00;0,00;0,00;0,00;4 204,61
+4520;Kipsialakatot;45202014;Alaslaskun kipsilevytys, 13mm kipsilevy;403,15;m2;0,000;0,00;0,00;3,73;1 501,92;0,00;0,00;0,00;0,00;0,00;1 501,92
+4520;Kipsialakatot;45202015;Alaslaskun tarkastusluukut ( asennus levykattoon );0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4520;Kipsialakatot;45202016;Alaslaskettu kipsikatto, Tavanomainen ALIURAKKANA;403,15;m2;0,000;0,00;0,00;0,00;0,00;24,00;9 675,50;0,00;0,00;0,00;9 675,50
+4520;Kipsialakatot;45202017;Alaslaskettu kipsikatto, Otsapinnat ALIURAKKANA;321,00;jm;0,000;0,00;0,00;2,41;772,84;18,00;5 778,00;0,00;0,00;0,00;6 550,84
+4520;Kipsialakatot;4520250;EI30 Alaslaskettu kipsikatto, 1 KRS PRSH,  ALIURAKKANA;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4520;Kipsialakatot;45202501;Alaslaskun roikotus + vaakakoolaus Teräsranka 66 k400;23,19;m2;0,000;0,00;0,00;11,42;264,94;0,00;0,00;0,00;0,00;0,00;264,94
+4520;Kipsialakatot;45202502;Alaslaskun kipsilevytys, 13mm kipsilevy;46,38;m2;0,000;0,00;0,00;3,89;180,48;0,00;0,00;0,00;0,00;0,00;180,48
+4520;Kipsialakatot;45202503;Alaslaskun tarkastusluukut ( asennus levykattoon ) EI30;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4520;Kipsialakatot;45202506;Alaslaskettu kipsikatto, EI30 ALIURAKKANA;23,19;m2;0,000;0,00;0,00;0,00;0,00;30,00;695,77;0,00;0,00;0,00;695,77
+4520;Kipsialakatot;45202507;Alaslaskettu kipsikatto, EI30 Otsapinnat ALIURAKKANA;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4530;Kipsihormit;4530230;Hormien seinät (66+2x13) Tavanomainen;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4530;Kipsihormit;45302301;Hormien seinät (66+2x13);0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4530;Kipsihormit;45302302;Hormien seinät (66+2x13) ALIURAKKANA;269,35;m2;0,000;0,00;0,00;11,63;3 132,68;26,00;7 003,21;0,00;0,00;0,00;10 135,89
+4530;Kipsihormit;45302991;Hormiseinän äänieristemassaus;430,97;jm;38,000;1,14;491,30;1,05;452,52;0,00;0,00;0,00;0,00;0,00;943,82
+4540;Muuratut väliseinät;4540403;VS 8 : Kalkkihiekkatiilimuuraus 130mm;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4540;Muuratut väliseinät;45404030;Kalkkihiekkatiilimuuraus 130mm;61,25;m2;0,000;0,00;0,00;41,03;2 513,40;62,22;3 811,22;0,00;0,00;0,00;6 324,63
+4600;Irtaimistokopit ja erityisväliseinät;4600101;Irtaimistokopit, teräsverkkoseinälliset;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4600;Irtaimistokopit ja erityisväliseinät;46001010;Irtaimistokopit Kaustisen elementtivalmiste;46,00;as;0,000;0,00;0,00;0,00;0,00;250,00;11 500,00;0,00;0,00;0,00;11 500,00
+4700;Kaiteet ja parvekelasitukset;4700102;Sisäpuoliset teräskäsijohteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47001020;Sisäpuoliset Käsijohteet asennettuna;58,00;jm;0,000;0,00;0,00;0,00;0,00;110,00;6 380,00;0,00;0,00;0,00;6 380,00
+4700;Kaiteet ja parvekelasitukset;4700103;Teräspinnakaide H=1200, Sisäpuolinen ja ulkopuoliset;64,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;53,33;53,33
+4700;Kaiteet ja parvekelasitukset;47001030;Teräspinnakaide H=1200;64,00;jm;0,000;0,00;0,00;0,00;0,00;220,00;14 080,00;0,00;0,00;0,00;14 080,00
+4700;Kaiteet ja parvekelasitukset;4700115;Käsijohde ulkoportaisiin. Maasta kannakoitu;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47001151;Käsijohde ulkoportaisiin. Maasta kannakoitu;10,00;jm;0,000;0,00;0,00;0,00;0,00;160,00;1 600,00;0,00;0,00;0,00;1 600,00
+4700;Kaiteet ja parvekelasitukset;4700201;Parvekelasitus Lasikaiteen päälle;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002010;Parvekelasitus Lasikaiteen päälle ML0;165,00;jm;0,000;0,00;0,00;0,00;0,00;270,00;44 550,00;0,00;0,00;0,00;44 550,00
+4700;Kaiteet ja parvekelasitukset;47002011;Parvekelasitus Lasikaiteen päälle ML1;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002012;Parvekelasitus Lasikaiteen päälle ML2;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002013;Parvekelasitus Lasikaiteen päälle ML3;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;4700202;Parvekkeen Lasikaide H=1050;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002020;Parvekkeen Lasikaide H=1050,;165,00;jm;0,000;0,00;0,00;0,00;0,00;250,00;41 250,00;0,00;0,00;0,00;41 250,00
+4700;Kaiteet ja parvekelasitukset;4700203;Terassilasitus Koko korkeus;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002030;Terassilasitus Koko korkeus  ML0;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002031;Terassilasitus Koko korkeus  ML1;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002032;Terassilasitus Koko korkeus  ML2;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002033;Terassilasitus Koko korkeus  ML3;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002034;Terassilasitus EI 15 kiinteät lisäkustannus;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;4700204;Asuntopihojen Lasiset terassiovet 8x24;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002041;Asuntopihojen Lasiset terassiovet 8x24 asennettuna;3,00;kpl;0,000;0,00;0,00;0,00;0,00;600,00;1 800,00;0,00;0,00;0,00;1 800,00
+4700;Kaiteet ja parvekelasitukset;4700205;Parvekkeen Pinnakaide lasikaiteen päälle H=1050;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47002050;Parvekkeen Pinnakaide lasikaiteen päälle H=1050;46,00;jm;0,000;0,00;0,00;0,00;0,00;400,00;18 400,00;0,00;0,00;0,00;18 400,00
+4700;Kaiteet ja parvekelasitukset;4700302;Asuntopihojen LEGI-aidat;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+4700;Kaiteet ja parvekelasitukset;47003020;Asuntopihojen LEGI-aidat;6,86;jm;0,000;0,00;0,00;0,00;0,00;200,00;1 372,69;0,00;0,00;0,00;1 372,69
+4700;Kaiteet ja parvekelasitukset;47005070;Käsijohde Porraselementti Elemento 1;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;5110101;Katon vesikattovarusteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101010;Katon huoltosillat;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101012;Katon talotikkaat;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101013;Katon lumiesteet;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101014;Katon ankkurit;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101015;Katon rännikourut;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101016;Katon syöksytorvet;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101017;Parvekkeiden sisäpuolinen vedenpoisto;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101018;Alaslaskun vaakavedot;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101019;Kantikkaat Verhouspellit sadevesikourujen päälle;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5110;Vesikattovarusteet, tikkaat yms.;51101020;Katon vesikattovarusteet ja vedenpoisto KOKONAISURAKKA;1,00;erä;0,000;0,00;0,00;0,00;0,00;4 800,00;4 800,00;0,00;0,00;0,00;4 800,00
+5180;Bitumikatteet;5180102;YP 1 : Pukkiristikko-osuuden Bitumikate;705,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5180;Bitumikatteet;518010212;Vesikate VE80, kumibitumikermein;705,00;m2;0,000;0,00;0,00;0,00;0,00;22,58;15 915,38;0,00;0,00;0,00;15 915,38
+5180;Bitumikatteet;51801022;Tippapelti pural 0,5mm asennettuna LL=178-208mm;25,00;jm;0,000;0,00;0,00;0,00;0,00;13,00;325,00;0,00;0,00;0,00;325,00
+5180;Bitumikatteet;51801023;Reuna- ja räystäspelti limiliitoksin asennettuna pural 0,5mm;80,00;jm;0,000;0,00;0,00;0,00;0,00;15,00;1 200,00;0,00;0,00;0,00;1 200,00
+5180;Bitumikatteet;51801024;Liimaus kumibitumilla LH / Pienoiskorotus LH / Tilaajan toimittamat Enkadrain ja XPS-asennukset;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5180;Bitumikatteet;51801025;Vesikatteen värillisten pintakermien ( K-PS 170-5000) lisähinta;705,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5180;Bitumikatteet;51801026;Vilpet asennettuna;10,00;kpl;0,000;0,00;0,00;0,00;0,00;180,00;1 800,00;0,00;0,00;0,00;1 800,00
+5180;Bitumikatteet;51801027;Kattopollarit;5,00;kpl;0,000;0,00;0,00;0,00;0,00;250,00;1 250,00;0,00;0,00;0,00;1 250,00
+5180;Bitumikatteet;51803171;Vesikate VE20...40, kumibitumikermein;26,54;m2;0,000;0,00;0,00;0,00;0,00;21,00;557,34;0,00;0,00;0,00;557,34
+5180;Bitumikatteet;51803172;Tippapelti pural 0,5mm asennettuna LL=178-208mm;17,00;jm;0,000;0,00;0,00;0,00;0,00;13,00;221,00;0,00;0,00;0,00;221,00
+5180;Bitumikatteet;51803173;Reuna- ja räystäspelti limiliitoksin asennettuna pural 0,5mm;27,00;jm;0,000;0,00;0,00;0,00;0,00;15,00;405,00;0,00;0,00;0,00;405,00
+5180;Bitumikatteet;51803174;Vedeneristyksen seinällenosto VE20...40;17,00;jm;0,000;0,00;0,00;0,00;0,00;8,40;142,80;0,00;0,00;0,00;142,80
+5180;Bitumikatteet;51807014;Höyrynsulkukermi;555,23;m2;0,000;0,00;0,00;0,00;0,00;9,50;5 274,67;0,00;0,00;0,00;5 274,67
+5240;Märkätilojen laatoitukset;5240101;Märkätilan seinälaatoitus PSH;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5240;Märkätilojen laatoitukset;52401010;Märkätilan seinän Vesieristys;834,17;m2;0,000;0,00;0,00;0,00;0,00;19,50;16 266,25;0,00;0,00;0,00;16 266,25
+5240;Märkätilojen laatoitukset;52401011;Märkätilan seinän Laatoitus;834,17;m2;0,000;0,00;0,00;11,50;9 592,92;28,00;23 356,66;0,00;0,00;0,00;32 949,58
+5240;Märkätilojen laatoitukset;52401012;Seinälaatoituksen saniteettisilikonit;951,35;m2;0,000;0,00;0,00;1,08;1 030,31;1,00;951,35;0,00;0,00;0,00;1 981,65
+5240;Märkätilojen laatoitukset;52401013;PSH laatoituksen kulmalista;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5240;Märkätilojen laatoitukset;52401014;PSH lattiakaivojen kannet;110,00;kpl;0,000;0,00;0,00;15,00;1 650,00;10,00;1 100,00;0,00;0,00;0,00;2 750,00
+5240;Märkätilojen laatoitukset;52401015;Laattojen haalauskulut;834,17;m2;32,000;1,28;1 067,73;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1 067,73
+5240;Märkätilojen laatoitukset;5240103;Märkätilan lattialaatoitus PSH + SAUNA;288,56;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;288,56;288,56
+5240;Märkätilojen laatoitukset;52401030;Lattialaatoituksen pohjatyöt;288,56;m2;0,000;0,00;0,00;10,00;2 885,59;13,00;3 751,26;0,00;0,00;0,00;6 636,85
+5240;Märkätilojen laatoitukset;52401031;Lattialaatoitus 100x100;302,16;m2;0,000;0,00;0,00;16,50;4 985,62;36,00;10 877,71;0,00;0,00;0,00;15 863,33
+5240;Märkätilojen laatoitukset;52401032;Lattialaatoituksen vesieriste;302,16;m2;0,000;0,00;0,00;0,00;0,00;17,50;5 287,78;0,00;0,00;0,00;5 287,78
+5240;Märkätilojen laatoitukset;52401035;Laattojen haalauskulut;302,16;m2;32,000;1,28;386,76;0,00;0,00;0,00;0,00;0,00;0,00;0,00;386,76
+5245;Yleisten tilojen laatoitukset;52451013;Laattojen haalauskulut;40,97;m2;32,000;1,28;52,44;0,00;0,00;0,00;0,00;0,00;0,00;0,00;52,44
+5245;Yleisten tilojen laatoitukset;5245201;Yleisten tilojen lattialaatoitus, PRSH;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5245;Yleisten tilojen laatoitukset;52452011;Lattialaatoituksen pohjatyöt;40,97;m2;32,000;12,80;524,35;10,00;409,65;3,00;122,90;0,00;0,00;0,00;1 056,90
+5245;Yleisten tilojen laatoitukset;52452012;Lattialaatoitus 300x600;40,97;m2;32,000;0,64;26,22;36,40;1 491,13;30,00;1 228,95;0,00;0,00;0,00;2 746,30
+5245;Yleisten tilojen laatoitukset;52452013;Lattialaatoituksen vesieriste;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5245;Yleisten tilojen laatoitukset;52452014;PRSH laatoituksen alle askeläänimatto;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5260;Puulistoitukset;5260101;Jalkalistoitukset  12 x 42;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5260;Puulistoitukset;52601010;Jalkalistoitus, Tehdaslakattu mänty 12x42, ruuvikiinnitys;2 069,34;jm;0,000;0,00;0,00;0,00;0,00;4,67;9 668,98;0,00;0,00;0,00;9 668,98
+5260;Puulistoitukset;5260107;Puuikkunan listoitus 12x42;970,30;jm;0,000;0,00;0,00;0,00;0,00;4,47;4 340,64;0,00;0,00;0,00;4 340,64
+5260;Puulistoitukset;52604301;Huoneisto-ovien listoitus 12x42, molemmin puolin;219,30;jm;0,000;0,00;0,00;0,00;0,00;10,12;2 219,32;0,00;0,00;0,00;2 219,32
+5260;Puulistoitukset;52605011;Väliovien listoitus 12x42, molemmin puolin;311,10;jm;0,000;0,00;0,00;0,00;0,00;10,12;3 148,33;0,00;0,00;0,00;3 148,33
+5260;Puulistoitukset;52605012;Liukuovien smyygien kulmalistat;5,00;kpl;0,000;0,00;0,00;0,00;0,00;44,00;220,00;0,00;0,00;0,00;220,00
+5260;Puulistoitukset;52605013;Väliovien listoitus kosteat tilat 12x42, molemmin puolin;255,00;jm;0,000;0,00;0,00;0,00;0,00;14,59;3 721,34;0,00;0,00;0,00;3 721,34
+5260;Puulistoitukset;52605014;Liukuovien kynnyslista;5,00;kpl;0,000;0,00;0,00;30,00;150,00;15,00;75,00;0,00;0,00;0,00;225,00
+5260;Puulistoitukset;52605061;Saunan oven listoitus muovilista 12x42 + mäntylista;86,70;jm;0,000;0,00;0,00;0,00;0,00;8,65;749,78;0,00;0,00;0,00;749,78
+5260;Puulistoitukset;5260601;Parvekeovet listoitus 12x42;217,80;jm;0,000;0,00;0,00;0,00;0,00;4,47;974,33;0,00;0,00;0,00;974,33
+5350;Akustoivat alakatot;5350101;AK 4 : Avattava ja akustoiva katto T-listoilla 600x600, 2-3 KRS PRSH;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5350;Akustoivat alakatot;53501010;Avattava ja akustoiva katto T-listoilla 600x600, asennettuna;153,16;m2;0,000;0,00;0,00;0,00;0,00;40,00;6 126,34;0,00;0,00;0,00;6 126,34
+5350;Akustoivat alakatot;5350105;Liimattavat akustolevyt;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5350;Akustoivat alakatot;53501050;Liimattavat akustolevyt;15,02;m2;0,000;0,00;0,00;0,00;0,00;20,00;300,31;0,00;0,00;0,00;300,31
+5530;Julkisivun pellitykset ja metalliverhoukset;55301020;JS-muurauksen ja puuverhoksen välinen pystypellitys;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5530;Julkisivun pellitykset ja metalliverhoukset;55301070;Ikkunan ulkopuoliset smyygipellitykset;780,20;jm;0,000;0,00;0,00;0,00;0,00;12,20;9 514,54;0,00;0,00;0,00;9 514,54
+5530;Julkisivun pellitykset ja metalliverhoukset;55301071;Ikkunan vesipellit;190,30;jm;38,000;3,80;723,14;2,74;522,34;21,74;4 136,17;0,00;0,00;0,00;5 381,65
+5530;Julkisivun pellitykset ja metalliverhoukset;55301512;Alumiinilasiseinän ulkopuoliset smyygipellitykset;28,42;jm;0,000;0,00;0,00;0,00;0,00;13,40;380,83;0,00;0,00;0,00;380,83
+5530;Julkisivun pellitykset ja metalliverhoukset;55302830;Sisäänkäynnin kattopellitykset;20,00;jm;0,000;0,00;0,00;0,00;0,00;19,45;389,00;0,00;0,00;0,00;389,00
+5530;Julkisivun pellitykset ja metalliverhoukset;55303012;Ulko-oven ulkopuoliset smyygipellitykset;23,60;jm;0,000;0,00;0,00;0,00;0,00;13,40;316,24;0,00;0,00;0,00;316,24
+5530;Julkisivun pellitykset ja metalliverhoukset;55303015;Metalliulko-oven vesipelti, riisipelti;5,00;jm;0,000;0,00;0,00;0,00;0,00;39,90;199,50;0,00;0,00;0,00;199,50
+5530;Julkisivun pellitykset ja metalliverhoukset;55303021;Ikkunan vesipellit;0,82;jm;38,000;3,80;3,12;2,74;2,25;21,77;17,85;0,00;0,00;0,00;23,22
+5530;Julkisivun pellitykset ja metalliverhoukset;55306011;Parvekeoven ulkopuoliset smyygipellitykset;184,80;jm;0,000;0,00;0,00;0,00;0,00;13,42;2 480,20;0,00;0,00;0,00;2 480,20
+5530;Julkisivun pellitykset ja metalliverhoukset;55306012;Parvekeoven vesipelti, riisipelti;33,00;kpl;0,000;0,00;0,00;0,00;0,00;36,54;1 205,82;0,00;0,00;0,00;1 205,82
+5530;Julkisivun pellitykset ja metalliverhoukset;55307320;SP-valokuiluikkunan pellitykset;1,00;kpl;0,000;0,00;0,00;0,00;0,00;150,00;150,00;0,00;0,00;0,00;150,00
+5530;Julkisivun pellitykset ja metalliverhoukset;55308991;Metallisen välioven kynnyspellitys;2,00;jm;0,000;0,00;0,00;0,00;0,00;39,90;79,80;0,00;0,00;0,00;79,80
+5540;Julkisivumuuraus;5540102;Julkisivumuuraus 135mm, RT60;189,41;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5540;Julkisivumuuraus;55401020;Julkisivumuuraus 135mm RT60;189,41;m2;0,000;0,00;0,00;61,58;11 664,63;71,40;13 523,79;0,00;0,00;0,00;25 188,42
+5540;Julkisivumuuraus;55401021;Julkisivumuuraus 135mm RT60, Tehostemuuraukset;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5540;Julkisivumuuraus;55401023;Muuraustarvikkeet, siilot;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;170,00;170,00;0,00;170,00
+5540;Julkisivumuuraus;55401024;Aukon ylityspalkit Amutek;20,00;jm;0,000;0,00;0,00;55,22;1 104,40;0,00;0,00;0,00;0,00;0,00;1 104,40
+5540;Julkisivumuuraus;55401025;Parvekkeiden otsamuurausten tuenta L-teräs 150x100;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5540;Julkisivumuuraus;55401026;4 krs muuratun kaiteen tuenta;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5550;Julkisivurappaus;5550201;Julkisivun Levyrappaus;1 487,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5550;Julkisivurappaus;55502011;Julkisivun Levyrappaus;1 487,00;m2;0,000;0,00;0,00;0,00;0,00;62,21;92 500,00;0,00;0,00;0,00;92 500,00
+5560;Julkisivun puu- ja levyverhoukset;5560107;Ikkunan ulkopuoliset puiset smyygiverhoilut;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55602010(1);Ulkoseinän tuuletuskoolaus 2*22x100mm, k600;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55602011;Ulkoseinän tuuletuskoolaus 25mm, k600;39,40;m2;0,000;0,00;0,00;2,30;90,59;0,00;0,00;0,00;0,00;0,00;90,59
+5560;Julkisivun puu- ja levyverhoukset;55602012;Ulkoseinän tuuletuskoolaus 32mm, k600;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55602018;Tuuletuskoolauksen roppauslisä eristeen läpi;39,40;m2;38,000;3,99;157,21;0,70;27,58;0,00;0,00;0,00;0,00;0,00;184,79
+5560;Julkisivun puu- ja levyverhoukset;5560275;Ulkoverhouspaneeli  Vaaka UYV 23x120, sis.vedetty parveke;39,40;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;556027511;Ulkoverhouspaneeli  Vaaka UYV 23x120;39,40;m2;38,000;17,10;673,74;13,49;531,33;0,00;0,00;0,00;0,00;0,00;1 205,07
+5560;Julkisivun puu- ja levyverhoukset;556027513;Palosuojakäsittely paneelille;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55602830;Kattopinnan Luja-A levytys 12mm;16,01;m2;38,000;15,96;255,49;37,37;598,23;0,00;0,00;0,00;0,00;0,00;853,72
+5560;Julkisivun puu- ja levyverhoukset;5560301;Julkisivun vaakakoolaus verhouksen taakse, 22x100 k400;1 487,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55603015;Ulkoseinän pystykoolaus levytyksen taakse, 25x100 k600;1 487,00;m2;38,000;8,36;12 431,32;3,27;4 858,77;0,00;0,00;0,00;0,00;0,00;17 290,09
+5560;Julkisivun puu- ja levyverhoukset;55603016;Ulkoseinän pystykoolaus levytyksen taakse, 25x100 k600 ALIURAKKANA;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;5560302;Julkisivun rappauslevyn asennus;1 487,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5560;Julkisivun puu- ja levyverhoukset;55603021;Ulkoverhous Cembrit Patina;1 487,00;m2;0,000;0,00;0,00;22,57;33 555,64;0,00;0,00;0,00;0,00;0,00;33 555,64
+5560;Julkisivun puu- ja levyverhoukset;55603022;Ulkoverhous Cembrit, Permabase ASENNUS;1 487,00;m2;38,000;6,08;9 040,96;0,00;0,00;0,00;0,00;0,00;0,00;0,00;9 040,96
+5560;Julkisivun puu- ja levyverhoukset;55603092;Ulkoseinän Luja-A levytys 12mm;40,80;m2;38,000;15,96;651,17;37,37;1 524,70;0,00;0,00;0,00;0,00;0,00;2 175,86
+5560;Julkisivun puu- ja levyverhoukset;55606010;Parvekeoven ulkopuoliset puiset smyygiverhoilut;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5570;Elastiset saumaukset;5570107;Elementtien elastiset saumamassaukset;51,60;jm;0,000;0,00;0,00;0,00;0,00;15,75;812,70;0,00;0,00;0,00;812,70
+5570;Elastiset saumaukset;55704100;MSEA- MEK -ikkunoiden elastiset kittaukset HOX: ulkopinta;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5570;Elastiset saumaukset;55705070;Porraselementtien elastiset saumamassaukset;42,50;jm;0,000;0,00;0,00;0,00;0,00;15,75;669,38;0,00;0,00;0,00;669,38
+5570;Elastiset saumaukset;55705540;Liikuntasaumojen elastiset saumamassaukset;0,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5570;Elastiset saumaukset;55705540(1);Muurauksen Liikuntasaumojen elastiset saumamassaukset;10,00;jm;0,000;0,00;0,00;0,00;0,00;15,75;157,50;0,00;0,00;0,00;157,50
+5600;Pintabetonilattiat;56001013;PB-laatan eristys 100mm ER;516,03;m2;38,000;4,79;2 470,75;5,27;2 720,00;0,00;0,00;0,00;0,00;0,00;5 190,75
+5600;Pintabetonilattiat;5600103;VSS holvin kelluva pintalaatta TB100 + 200ER;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5600;Pintabetonilattiat;56001030;PB-laatan hierto;72,50;m2;0,000;0,00;0,00;0,00;0,00;6,56;475,78;0,00;0,00;0,00;475,78
+5600;Pintabetonilattiat;56001030(1);KAATOLATTIOIDEN VALUTYÖT JA KALLISTUSHIERROT;298,53;m2;38,000;12,57;3 752,08;0,00;0,00;0,00;0,00;0,00;0,00;0,00;3 752,08
+5600;Pintabetonilattiat;56001031;PB-laatan betonointi;61,63;m3;38,000;15,96;983,54;160,60;9 896,98;0,00;0,00;0,00;0,00;0,00;10 880,51
+5600;Pintabetonilattiat;56001032;KAATOLATTIOIDEN  betonointi;20,90;m3;0,000;0,00;0,00;160,60;3 356,08;0,00;0,00;0,00;0,00;0,00;3 356,08
+5600;Pintabetonilattiat;56001034;Betonilattian hionta, liiman poisto;371,03;m2;0,000;0,00;0,00;0,00;0,00;2,60;964,68;0,00;0,00;0,00;964,68
+5600;Pintabetonilattiat;56001035;PB-laatan raudoitus;1 613,98;kg;0,000;0,00;0,00;0,00;0,00;2,00;3 227,97;0,00;0,00;0,00;3 227,97
+5600;Pintabetonilattiat;5600120;Kaatovalulattiat ontelokenttään 50..80mm;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5600;Pintabetonilattiat;56001200;Kaatovalulattioiden pohjatyöt;298,53;m2;0,000;0,00;0,00;0,00;0,00;3,15;940,37;0,00;0,00;0,00;940,37
+5640;Tasoitelattiat (pumpputasoite);5640201;PS: Yleis Plaano 140 NOVA PLUS, matala-alk. Heikkinen vuosisopimus;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5640;Tasoitelattiat (pumpputasoite);56402011;Matala-alk. plaano, 140 NOVA Plus 10mm / 17kg / m2, sis. Primer;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5640;Tasoitelattiat (pumpputasoite);56402012;Matala-alk. plaano, 140 NOVA Plus 15mm 25,5kg / m2, sis. Primer;1 933,74;m2;0,000;0,00;0,00;0,00;0,00;10,17;19 674,79;0,00;0,00;0,00;19 674,79
+5640;Tasoitelattiat (pumpputasoite);56402013;Matala-alk. plaano, 140 NOVA Plus 20mm / 34kg / m2, sis. Primer;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5640;Tasoitelattiat (pumpputasoite);56402014;Korkojen merkintä pumpattavalle alueelle;1 933,74;m2;0,000;0,00;0,00;0,00;0,00;0,37;710,65;0,00;0,00;0,00;710,65
+5640;Tasoitelattiat (pumpputasoite);56402015;Plaanojen esivalmistelut;1 933,74;m2;38,000;0,76;1 469,64;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1 469,64
+5640;Tasoitelattiat (pumpputasoite);56402019;Ovien tukkolauta + kittaus;1 933,74;m2;38,000;1,90;3 674,10;0,70;1 353,62;0,00;0,00;0,00;0,00;0,00;5 027,71
+5660;Parketti ja laminaatti;5660101;Asuinhuoneiden Laminaattilattiat L01;1 921,13;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;2,07;2,07
+5660;Parketti ja laminaatti;56601010;Lattialaminaatti asennettuna;1 921,13;m2;0,000;0,00;0,00;0,00;0,00;22,05;42 360,83;0,00;0,00;0,00;42 360,83
+5660;Parketti ja laminaatti;56601011;Laminaattiasennuksen pohjatyöt;1 921,13;m2;0,000;0,00;0,00;0,00;0,00;2,00;3 842,25;0,00;0,00;0,00;3 842,25
+5660;Parketti ja laminaatti;56601013;Laminaattiasennuksen jälkeinen lattioiden suojaus;1 921,13;m2;0,000;0,00;0,00;0,00;0,00;2,00;3 842,25;0,00;0,00;0,00;3 842,25
+5660;Parketti ja laminaatti;56603011;Välioven kohdalle lattiasaumalista;61,00;kpl;0,000;0,00;0,00;15,00;915,00;15,00;915,00;0,00;0,00;0,00;1 830,00
+5690;Mattolattiat pohjatöineen;5690105;Muovimatto esim. Upofloor Estrad, VAALEAN HARMAA;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5690;Mattolattiat pohjatöineen;56901050;Askeläänimuovimatto, Upofloor Estrad;143,38;m2;32,000;3,84;550,57;0,00;0,00;37,15;5 326,43;0,00;0,00;0,00;5 877,00
+5690;Mattolattiat pohjatöineen;56901051;Mattolattioiden muovijalkalistat;250,00;jm;0,000;0,00;0,00;0,00;0,00;6,00;1 500,00;0,00;0,00;0,00;1 500,00
+5690;Mattolattiat pohjatöineen;56901052;Lattioiden suojaus, sis.materiaalit;143,38;m2;0,000;0,00;0,00;0,00;0,00;2,00;286,75;0,00;0,00;0,00;286,75
+5690;Mattolattiat pohjatöineen;56901053;Mattotöiden aloitusmaksu;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5710;Saunat;5710101;AL-paperi Koolaus + Saunojen paneloinnit;56,45;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5710;Saunat;57101011;Saunan SPU:t + Koolaukset ALIURAKKANA;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5710;Saunat;57101012;Paneelikattojen alaslaskurungot ALIURAKKANA;56,45;m2;0,000;0,00;0,00;10,43;588,80;23,63;1 333,75;0,00;0,00;0,00;1 922,54
+5710;Saunat;57101013;Saunojen sisäverhouspanelointi ALIURAKKANA, Sävytetty kuusipaneeli + sis.SAUNASUOJA;301,50;m2;0,000;0,00;0,00;24,74;7 460,56;21,00;6 331,50;0,00;0,00;0,00;13 792,06
+5710;Saunat;57101014;Saunan AL-paperi + Koolaukset ALIURAKKANA;301,50;m2;0,000;0,00;0,00;7,41;2 234,72;14,70;4 432,05;0,00;0,00;0,00;6 666,77
+5730;Puualakatot;5730101;Alaslaskettu katto, Paneeloitu;236,33;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,38;0,38
+5730;Puualakatot;57301013;Alaslaskun tarkastusluukut ( asennus paneelikattoon );43,00;kpl;0,000;0,00;0,00;0,00;0,00;13,65;586,95;0,00;0,00;0,00;586,95
+5730;Puualakatot;57301014;Paneelikattojen alaslaskurungot ALIURAKKANA;236,33;m2;0,000;0,00;0,00;10,43;2 464,85;23,63;5 583,41;0,00;0,00;0,00;8 048,26
+5730;Puualakatot;57301015;Sisäverhouspanelointi ALIURAKKANA, Mäntypaneeli valkolakattu;136,80;m2;0,000;0,00;0,00;32,59;4 458,31;27,93;3 820,82;0,00;0,00;0,00;8 279,14
+5730;Puualakatot;57301016;Sisäverhouspanelointi ALIURAKKANA, Sävytetty kuusipaneeli + sis.SAUNASUOJA;99,50;m2;0,000;0,00;0,00;23,74;2 362,61;27,93;2 779,04;0,00;0,00;0,00;5 141,64
+5730;Puualakatot;57301018;Paneeloidun katon varjolistoitus;448,50;jm;0,000;0,00;0,00;0,00;0,00;5,50;2 466,75;0,00;0,00;0,00;2 466,75
+5800;Maalaus- ja tasoitetyöt;5800100;Tasoite- ja maalausurakka kokonaisurakka-arvio;1,00;erä;0,000;0,00;0,00;0,00;0,00;112 900,00;112 900,00;0,00;0,00;0,00;112 900,00
+5800;Maalaus- ja tasoitetyöt;5800201;Ulkoverhouksen maalaus;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5800;Maalaus- ja tasoitetyöt;58002830;Ulkoverhouksen maalaus SISÄÄNKÄYNTI;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5800;Maalaus- ja tasoitetyöt;58003170;M-Pielielementtien ulkopuoliset maalaukset;95,60;m2;0,000;0,00;0,00;0,00;0,00;14,00;1 338,40;0,00;0,00;0,00;1 338,40
+5800;Maalaus- ja tasoitetyöt;58003171;Parvekelaattojen ulkopuoliset maalaukset;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+5800;Maalaus- ja tasoitetyöt;58005710;Paneelien käsittely, Saunasuoja;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6110;Huoneistojen kalusteet;6100101;Asuinhuoneiden KEITTIÖ- JA KIINTO kalusteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6110;Huoneistojen kalusteet;61101010;Kalusteiden lisätoimitukset ja -hinnat, LISÄTYÖVARAUS;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6110;Huoneistojen kalusteet;61101011;Kokonaisurakkatarjous asennettuna;1,00;erä;0,000;0,00;0,00;0,00;0,00;150 000,00;150 000,00;0,00;0,00;0,00;150 000,00
+6110;Huoneistojen kalusteet;61101012;Keittiöiden lisähinnat ja tilaukset;0,00;as;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6110;Huoneistojen kalusteet;61101013;Kalusteiden haalaukset asuntoihin;1,00;erä;0,000;0,00;0,00;0,00;0,00;6 000,00;6 000,00;0,00;0,00;0,00;6 000,00
+6120;Märkätilojen kalusteet;6120201;PSH- Kalusteet, Valaisinpeili ja allaskaluste;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6120;Märkätilojen kalusteet;61202010;PSH-Valaisinpeilikaappi;48,00;kpl;36,000;12,60;604,80;225,00;10 800,00;0,00;0,00;0,00;0,00;0,00;11 404,80
+6120;Märkätilojen kalusteet;61202011;PSH-Allaskalustesetti;48,00;kpl;36,000;21,60;1 036,80;305,00;14 640,00;0,00;0,00;0,00;0,00;0,00;15 676,80
+6120;Märkätilojen kalusteet;61202012;PSH-Pyykkikaappi, POLARIA PYK 400/S5300;43,00;kpl;36,000;21,60;928,80;240,00;10 320,00;0,00;0,00;0,00;0,00;0,00;11 248,80
+6120;Märkätilojen kalusteet;6120202;INVA WC + PUKUHUONE- Varustus, Valaisinpeili ja allaskaluste, Penkki naulakko;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6120;Märkätilojen kalusteet;61202023;INVA WC + PUKUHUONE- Varustus, Valaisinpeili ja allaskaluste, Penkki naulakko;1,00;kpl;36,000;216,00;216,00;1 500,00;1 500,00;0,00;0,00;0,00;0,00;0,00;1 716,00
+6200;Varusteet;6200101;PSH- Varusteet, Suihkuseinät jne.;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6200;Varusteet;62001010;PSH ja WC -Perus varustesetti;48,00;kpl;36,000;18,00;864,00;24,00;1 152,00;0,00;0,00;0,00;0,00;0,00;2 016,00
+6200;Varusteet;62001011;PSH-Suihkuseinät INR;5,00;kpl;36,000;50,40;252,00;120,00;600,00;0,00;0,00;0,00;0,00;0,00;852,00
+6200;Varusteet;62001012;PSH-Suihkun verhotanko kattoon;43,00;kpl;36,000;28,80;1 238,40;50,00;2 150,00;0,00;0,00;0,00;0,00;0,00;3 388,40
+6200;Varusteet;6200102;Parvekkeiden varusteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6200;Varusteet;62001020;Parvekkeen oskarinoksa;43,00;kpl;36,000;18,00;774,00;50,00;2 150,00;0,00;0,00;0,00;0,00;0,00;2 924,00
+6200;Varusteet;6200150;Verholauta + kisko;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6200;Varusteet;62001501;Verholauta + kiskot kovamuovinen järjestelmä;314,22;jm;0,000;0,00;0,00;0,00;0,00;13,50;4 241,94;0,00;0,00;0,00;4 241,94
+6200;Varusteet;6200202;Talovarusteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6200;Varusteet;62002020;Sisäänkäynnin talovarusteet;1,00;erä;0,000;0,00;0,00;730,00;730,00;0,00;0,00;0,00;0,00;0,00;730,00
+6200;Varusteet;62002021;Sisäpuoliset PP-Telineet, 84kpl kattotelineitä;90,00;kpl;38,000;13,51;1 216,00;112,00;10 080,00;0,00;0,00;0,00;0,00;0,00;11 296,00
+6200;Varusteet;62002022;LMJKH-varusteet;1,00;erä;0,000;0,00;0,00;500,00;500,00;0,00;0,00;0,00;0,00;0,00;500,00
+6200;Varusteet;62002023;Kuivaushuoneen-varusteet;1,00;erä;0,000;0,00;0,00;500,00;500,00;0,00;0,00;0,00;0,00;0,00;500,00
+6250;Saunojen tarvikkeet;6250401;Asuinhuoneiston SAUNAN varusteet ja tarvikkeet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6250;Saunojen tarvikkeet;62504011;Saunan Varusteet + Kiuas;16,00;kpl;38,000;13,30;212,80;225,00;3 600,00;0,00;0,00;0,00;0,00;0,00;3 812,80
+6250;Saunojen tarvikkeet;62504012;Saunojen LASISEINÄT JA LASIOVET;0,00;kpl;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6250;Saunojen tarvikkeet;6250402;Yleisen SAUNAN varusteet ja tarvikkeet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6250;Saunojen tarvikkeet;62504021;Yleisen SAUNAN Varusteet + Kiuas;1,00;kpl;38,000;13,30;13,30;740,00;740,00;0,00;0,00;0,00;0,00;0,00;753,30
+6300;Laitteet ja kodinkoneet;6300102;Isompien huoneistojen KEITTIÖN laitteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6300;Laitteet ja kodinkoneet;63001020;Kodinkoneiden asennus;172,00;kpl;0,000;0,00;0,00;0,00;0,00;40,00;6 880,00;0,00;0,00;0,00;6 880,00
+6300;Laitteet ja kodinkoneet;63001021;Kodinkoneet;43,00;erä;0,000;0,00;0,00;807,70;34 731,00;0,00;0,00;0,00;0,00;0,00;34 731,00
+6700;Väestönsuojan varusteet;6700701;VSS-Valuosat ja Varusteet;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6700;Väestönsuojan varusteet;67007010;VSS-Valuosat ja Varusteet ~50m2, TEMET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6700;Väestönsuojan varusteet;67007011;VSS-Valuosat ja Varusteet ~100m2, TEMET;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+6700;Väestönsuojan varusteet;67007012;VSS-Valuosat ja Varusteet ~75m2, TEMET;1,00;erä;0,000;0,00;0,00;0,00;0,00;18 000,00;18 000,00;0,00;0,00;0,00;18 000,00
+7100;LÄMPÖ, VESI JA VIEMÄRI;7100101;LVIA-URAKKA;43,00;as;0,000;0,00;0,00;0,00;0,00;11 488,37;494 000,00;0,00;0,00;0,00;494 000,00
+7300;SÄHKÖ;7300101;SÄHKÖ-URAKKA;43,00;as;0,000;0,00;0,00;0,00;0,00;4 976,74;214 000,00;0,00;0,00;0,00;214 000,00
+7500;Siirtolaitteet, hissit;7500101;Asuinkerrostalon Hissi;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+7500;Siirtolaitteet, hissit;75001010;Asuinkerrostalon Hissi;1,00;erä;0,000;0,00;0,00;0,00;0,00;33 500,00;33 500,00;0,00;0,00;0,00;33 500,00
+7500;Siirtolaitteet, hissit;75001011;Hissin lisäkustannusoptiot;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+7850;Palokatkot;7850501;Palokatkot + Sewatekit;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+7850;Palokatkot;78505010;Palokatkot työmaalla;3 307,50;brm2;0,000;0,00;0,00;0,00;0,00;2,50;8 268,75;0,00;0,00;0,00;8 268,75
+7850;Palokatkot;78505011;Sewatek läpiviennit;0,00;brm2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+7900;LVIS-aputyöt;7900900;LVIS-APUTYÖT;3 307,50;brm2;38,000;1,90;6 284,25;0,00;0,00;0,00;0,00;0,00;0,00;0,00;6 284,25
+8110;Työmaarakennukset;81101101;Työmaarakennusten vuokra;12,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;1 285,00;15 420,00;0,00;15 420,00
+8110;Työmaarakennukset;81101102;Työmaarakennusten kuljetus, pystytys ja purku;9,00;kpl;36,000;54,00;486,00;51,11;460,00;1 292,22;11 630,00;0,00;0,00;0,00;12 576,00
+8140;Katualueen vuokrat;81401401;Katualueiden vuokrat;67,00;vrk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1 507,50;1 507,50
+8150;Työmaa-alue , aitaukset ja mainoskilvet;81501501;Työmaan aitaus;260,00;jm;0,000;0,00;0,00;0,00;0,00;0,00;0,00;18,38;4 780,00;0,00;4 780,00
+8150;Työmaa-alue , aitaukset ja mainoskilvet;81501502;Työmaan Mainoskilvet;1,00;erä;38,000;288,34;288,34;854,00;854,00;0,00;0,00;0,00;0,00;0,00;1 142,34
+8150;Työmaa-alue , aitaukset ja mainoskilvet;81501503;Työmaatiet, Varastoalueet ja liikennejärjestelyt;1,00;erä;38,000;646,00;646,00;160,00;160,00;0,00;0,00;2 000,00;2 000,00;0,00;2 806,00
+8150;Työmaa-alue , aitaukset ja mainoskilvet;81501504;Vuokra-alueet, varastoalue tms.;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8160;Rakennussuojaus;81601601;Rakennustyön aikaiset suojaukset;3 307,50;brm2;38,000;0,69;2 280,00;2,44;8 079,46;0,00;0,00;0,00;0,00;0,00;10 359,46
+8170;Työturvallisuus;81701701;Työturvallisuus;1,00;erä;34,826;4 806,00;4 806,00;5 362,50;5 362,50;0,00;0,00;4 716,00;4 716,00;0,00;14 884,50
+8170;Työturvallisuus;81701702;Rungon urakkamaksut, Työturvallisuus, kem2;3 307,50;m2;2,700;2,70;8 930,25;0,00;0,00;0,00;0,00;0,00;0,00;0,00;8 930,25
+8180;Telineet ja julkisivunostimet;81801801;Sisäpuoliset telineet;10,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;1 230,00;12 300,00;0,00;12 300,00
+8180;Telineet ja julkisivunostimet;81801802;Mastolavat;6,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;6 460,00;38 760,00;0,00;38 760,00
+8180;Telineet ja julkisivunostimet;81801803;Julkisivutelineet / sääsuoja;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8180;Telineet ja julkisivunostimet;81801804;Julkisivutelineiden avaus ja umpeen laitto;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8180;Telineet ja julkisivunostimet;81801805;Porrastorni 4 - 10m, Kulkutieksi;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8180;Telineet ja julkisivunostimet;81801806;Julkisivutelineiden pystytys ja purku;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8200;Työaikaiset rakenteet  LVIS;82002001;Väliaikaiset LVI-työt;11,00;kk;38,000;62,18;684,00;195,45;2 150,00;53,18;585,00;0,00;0,00;0,00;3 419,00
+8200;Työaikaiset rakenteet  LVIS;82002002;Väliaikaiset sähkötyöt;11,00;kk;38,000;89,82;988,00;3,64;40,00;8,36;92,00;40,40;444,40;0,00;1 564,40
+8200;Työaikaiset rakenteet  LVIS;82002003;Työmaakeskukset ja -valaisimet;11,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;220,00;2 420,00;0,00;2 420,00
+8320;Ajoneuvonosturit;83203201;Autonosturi esim. Liebherr;1,50;kk;0,000;0,00;0,00;0,00;0,00;4 520,00;6 780,00;0,00;0,00;0,00;6 780,00
+8320;Ajoneuvonosturit;83203202;Autonosturi esim. Liebherr, Tuonti ja vienti;2,00;krt;0,000;0,00;0,00;0,00;0,00;480,00;960,00;0,00;0,00;0,00;960,00
+8320;Ajoneuvonosturit;83203203;Autonosturi esim. Liebherr, Työmaasiirto;1,50;kk;0,000;0,00;0,00;0,00;0,00;300,00;450,00;0,00;0,00;0,00;450,00
+8330;Torninosturit, ristikkopuominosturit;83303301;Torninosturi MD 285;4,50;kk;43,000;7 310,00;32 895,00;0,00;0,00;0,00;0,00;10 866,67;48 900,00;0,00;81 795,00
+8340;Rakennushissit;8340340;Henkilö- ja Tavarahissi;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;12 260,00;12 260,00;0,00;12 260,00
+8340;Rakennushissit;83403402;Tela-alustainen mininosturi;0,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8350;Muut siirtokoneet, henkilönostimet;83503501;Kurottajat;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;23 580,00;23 580,00;0,00;23 580,00
+8350;Muut siirtokoneet, henkilönostimet;83503502;Kuukulkijat;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;2 560,00;2 560,00;0,00;2 560,00
+8350;Muut siirtokoneet, henkilönostimet;83503503;Saxilavat;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;2 600,00;2 600,00;0,00;2 600,00
+8350;Muut siirtokoneet, henkilönostimet;83503504;Muut siirtokoneet, vaakasiirrot;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;6 300,00;6 300,00;0,00;6 300,00
+8400;Työkalut ja -välineet;84004001;Työkoneet, työkalut ja välineet;3 307,50;brm2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;3,03;10 013,00;0,00;10 013,00
+8400;Työkalut ja -välineet;84004002;Vuokrakoneet vuokraamosta;3 307,50;brm2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;6,19;20 461,00;0,00;20 461,00
+8500;Työmaan käyttötarvikkeet;85005001;Työmaan käyttötarvikkeet;3 007,50;brm2;0,000;0,00;0,00;1,48;4 465,00;0,00;0,00;0,00;0,00;0,00;4 465,00
+8610;Sähkölaskut;86106001;Työmaan sähkö;105 000,00;kWh;0,000;0,00;0,00;0,15;15 750,00;0,00;0,00;0,00;0,00;0,00;15 750,00
+8620;Vesilaskut;86206001;Työmaan vesi;240,00;m3;0,000;0,00;0,00;9,60;2 304,00;0,00;0,00;0,00;0,00;0,00;2 304,00
+8630;Rakennusaikainen kuivatus/lämmitys;86306001;Työmaa-aikainen kuivatus/lämmitys, KL-vaihdin, puhaltimet...;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;6 802,00;6 802,00;0,00;6 802,00
+8630;Rakennusaikainen kuivatus/lämmitys;86306002;Työmaa-aikainen/väliaikainen polttoöljy, kaasu;0,00;l;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8630;Rakennusaikainen kuivatus/lämmitys;86306003;Työmaa-aikainen/väliaikainen sähkötoiminen 400kw lämmönvaihdin;0,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+8640;Kaukolämpömaksut;86406001;Työmaan Kaukolämpö;100,00;MWh;0,000;0,00;0,00;140,00;14 000,00;0,00;0,00;0,00;0,00;0,00;14 000,00
+8700;Työmaan jätemaksut ja kuljetukset;87007001;Työmaan jätemaksut;110,00;tn;0,000;0,00;0,00;150,00;16 500,00;0,00;0,00;0,00;0,00;0,00;16 500,00
+8700;Työmaan jätemaksut ja kuljetukset;87007002;Työmaan jätepuristin;1,00;erä;0,000;0,00;0,00;0,00;0,00;0,00;0,00;1 500,00;1 500,00;0,00;1 500,00
+8700;Työmaan jätemaksut ja kuljetukset;87007003;Työmaan Jätelavavuokrat;11,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;30,00;330,00;0,00;330,00
+8700;Työmaan jätemaksut ja kuljetukset;87007004;Työmaan Kuorma-autokuljetukset;11,00;kk;0,000;0,00;0,00;0,00;0,00;260,00;2 860,00;0,00;0,00;0,00;2 860,00
+8700;Työmaan jätemaksut ja kuljetukset;87007005;Työmaan Pakettiautokuljetukset;2,00;kk;0,000;0,00;0,00;0,00;0,00;450,00;900,00;0,00;0,00;0,00;900,00
+9110;Työjohdon palkat & kustannusten korvaukset;91101101;Työnjohdon palkat KÖNTTÄNÄ;1,00;erä;220 000,000;220 000,00;220 000,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;220 000,00
+9110;Työjohdon palkat & kustannusten korvaukset;91101102;Matka- ja kululaskut, Työmaa-aikaiset;0,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+9110;Työjohdon palkat & kustannusten korvaukset;91101103;Projektinjohto;0,00;kk;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;91201201;Huoltokirja-aineisto;1,00;erä;0,000;0,00;0,00;0,00;0,00;2 400,00;2 400,00;0,00;0,00;0,00;2 400,00
+9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;91201202;Huoltokirjan paperiversio;1,00;erä;0,000;0,00;0,00;0,00;0,00;500,00;500,00;0,00;0,00;0,00;500,00
+9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;91201203;Työmaatoimiston ylläpito;11,00;kk;0,000;0,00;0,00;0,00;0,00;154,00;1 694,00;0,00;0,00;0,00;1 694,00
+9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;91201204;Työmaan kopiosarjat;3 307,50;brm2;0,000;0,00;0,00;0,90;2 977,00;0,00;0,00;0,00;0,00;0,00;2 977,00
+9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;91201205;Työmaan Laaduntarkkailujärjestelmä;1,00;erä;0,000;0,00;0,00;5 700,00;5 700,00;0,00;0,00;0,00;0,00;0,00;5 700,00
+9200;Viimeistelytyöt;92002001;Viimeistelytyöt;3 307,50;brm2;1,000;1,10;3 638,25;0,00;0,00;0,00;0,00;0,00;0,00;0,00;3 638,25
+9210;Mittaukset ja kokeet;92102101;Työmaa-aikaiset Mittaukset;10,00;kk;0,000;0,00;0,00;0,00;0,00;675,00;6 750,00;0,00;0,00;0,00;6 750,00
+9210;Mittaukset ja kokeet;92102102;Työmaa-aikaiset kokeet ja katselmukset;1,00;erä;0,000;0,00;0,00;0,00;0,00;1 460,00;1 460,00;0,00;0,00;0,00;1 460,00
+9230;Työmaan vartiointi;92302301;Työmaa-aikainen vartiointi;1,00;kk;0,000;0,00;0,00;0,00;0,00;488,00;488,00;0,00;0,00;0,00;488,00
+9240;Siivous ja raivaus;92402401;Työmaatilojen hoito/siivous;10,00;kk;0,000;0,00;0,00;60,00;600,00;1 656,00;16 560,00;0,00;0,00;0,00;17 160,00
+9240;Siivous ja raivaus;92402402;Työmaa-aikainen Siivous ja raivaus;8,00;kk;0,000;0,00;0,00;150,00;1 200,00;4 800,00;38 400,00;0,00;0,00;0,00;39 600,00
+9240;Siivous ja raivaus;92402403;Siivous ja raivaus, Rungon urakkamaksut;0,00;m2;0,000;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00
+9250;Loppusiivous;92502501;Loppusiivous;3 307,50;brm2;0,000;0,00;0,00;0,00;0,00;5,40;17 850,00;0,00;0,00;0,00;17 850,00
+9400;Talvilisätyöt;94004001;Talvilisätyöt;3 307,50;brm2;38,000;0,34;1 140,00;0,00;0,00;0,47;1 560,00;0,30;992,00;0,00;3 692,00
+9400;Talvilisätyöt;94004002;Talvilisätyöt, Rungon urakkamaksut;3 307,50;kem2;2,550;1,28;4 217,06;0,00;0,00;0,00;0,00;0,00;0,00;0,00;4 217,06
+9700;Työntekijöiden palkanlisät;97007001;Työntekijöiden Matkakulut ja majoituskulut;1,00;kk;136,000;1 088,00;1 088,00;0,00;0,00;0,00;0,00;0,00;0,00;0,00;1 088,00
+9750;Työntekijöiden työvaatetus;9750901;Työntekijöiden sosiaalikulut/työvaatetus;1,00;erä;0,000;0,00;0,00;14 400,00;14 400,00;0,00;0,00;0,00;0,00;0,00;14 400,00
+;;;;;;;;519 505,52;;1 301 425,71;;2 193 038,13;;;1 096 052,03;5 343 565,24

@@ -1,0 +1,12 @@
+# MASTER – SaaS v1 päätösloki
+
+## lukittu
+- Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.
+- KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).
+- Tavoitearviossa olleet mutta puuttuvat rivit saa lisätä työpakettiin hyväksynnällä.
+- Tavoitearviossa EI olleita rivejä ei lisätä baselineen.
+- “Selvitettävät” = unmapped actuals.
+- Terminologia UI: terminology_get_dictionary (org+locale), ei kovakoodattuja tekstejä.
+
+## avoinna
+- (täytetään kun tulee uusia päätöksiä)
