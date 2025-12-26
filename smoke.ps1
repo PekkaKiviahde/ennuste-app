@@ -11,7 +11,7 @@ $ImportedBy  = "Pekka"
 $DbContainer = "codex_saas_db"
 $DbUser      = "codex"
 $DbName      = "codex"
-$DatabaseUrl = "postgresql://codex:codex@localhost:5432/codex"
+$DatabaseUrl = "postgresql://codex:codex@127.0.0.1:5433/codex"
 
 # ---------- HELPERS ----------
 function Say($msg) { Write-Host "`n$msg" -ForegroundColor Cyan }
@@ -79,6 +79,9 @@ PsqlFromFile "migrations\0002_views.sql"
 if (Test-Path "migrations\0003_jyda_snapshot_views.sql") {
   PsqlFromFile "migrations\0003_jyda_snapshot_views.sql"
 }
+if (Test-Path "migrations\0004_budget_items.sql.txt") {
+  PsqlFromFile "migrations\0004_budget_items.sql.txt"
+}
 
 # ---------- CREATE PROJECT ----------
 Say "Luodaan projekti (INSERT projects) ja otetaan PROJECT_ID talteen"
@@ -93,12 +96,12 @@ if (!(Test-Path $Py)) { $Py = "python" }
 
 # ---------- SEED LITTERAS (BUDGET) ----------
 Say "Seed litteras budget.csv:stä"
-& $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv
+& $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv --database-url $DatabaseUrl
 if ($LASTEXITCODE -ne 0) { Die "seed_litteras_from_budget_csv.py epäonnistui" }
 
 # ---------- IMPORT BUDGET ----------
 Say "Import budget.csv"
-& $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy
+& $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy --database-url $DatabaseUrl
 if ($LASTEXITCODE -ne 0) { Die "import_budget.py epäonnistui" }
 
 # Kopioi budjetti OccurredOn-kuukaudelle (append-only)
@@ -126,7 +129,7 @@ PsqlOneLine $copyBudgetSql | Out-Host
 
 # ---------- IMPORT JYDA ACTUALS (UNAPPROVED) ----------
 Say "Import JYDA actuals (sis. hyväksymätt.)"
-& $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved
+& $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved --database-url $DatabaseUrl
 if ($LASTEXITCODE -ne 0) { Die "import_jyda_csv.py epäonnistui" }
 
 # ---------- FORECAST TABLE + IMPORT FORECAST ----------
