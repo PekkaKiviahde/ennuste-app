@@ -81,3 +81,19 @@ Repo-juuressa PowerShellissa:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\smoke.ps1
+```
+
+### Ympäristömuuttujat (DB)
+
+Määritä `.env`-tiedostoon kaksi erillistä URL:ia ja käytä oikeaa ympäristön mukaan:
+
+- `DATABASE_URL_HOST = postgresql://codex:codex@localhost:5433/codex`
+  - Käytä Windows/PowerShell-skripteissä (esim. `smoke.ps1`), koska portti 5433 on hostilta.
+- `DATABASE_URL_DOCKER = postgresql://codex:codex@db:5432/codex`
+  - Käytä konttiverkon sisällä (docker network), kun palvelu puhuu `db`-palvelulle.
+
+### Muutosmuisti
+
+- Mitä muuttui: dokumentoitiin `DATABASE_URL_HOST` ja `DATABASE_URL_DOCKER` sekä niiden käyttötarkoitus.
+- Miksi: Windowsin `smoke.ps1` tarvitsee host-portin (5433), mutta docker-verkossa käytetään `db:5432`.
+- Miten testataan (manuaali): aja `smoke.ps1` PowerShellissa `.env`-tiedoston kanssa ja varmista, että `DATABASE_URL (redacted)` näkyy ilman salasanaa.

@@ -11,11 +11,47 @@ $ImportedBy  = "Pekka"
 $DbContainer = "codex_saas_db"
 $DbUser      = "codex"
 $DbName      = "codex"
-$DatabaseUrl = "postgresql://codex:codex@localhost:5432/codex"
 
 # ---------- HELPERS ----------
 function Say($msg) { Write-Host "`n$msg" -ForegroundColor Cyan }
 function Die($msg) { throw $msg }
+
+function Load-DatabaseUrlFromEnv([string]$path) {
+  if (!(Test-Path $path)) { return }
+
+  $allowed = @("DATABASE_URL", "DATABASE_URL_HOST", "DATABASE_URL_DOCKER")
+  Get-Content $path | ForEach-Object {
+    $line = $_.Trim()
+    if ($line -eq "" -or $line.StartsWith("#")) { return }
+    if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$') {
+      $key = $matches[1]
+      if ($allowed -notcontains $key) { return }
+
+      $value = $matches[2].Trim()
+      if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+        $value = $value.Substring(1, $value.Length - 2)
+      }
+
+      [System.Environment]::SetEnvironmentVariable($key, $value, "Process")
+    }
+  }
+}
+
+function Redact-DatabaseUrl([string]$url) {
+  if ([string]::IsNullOrWhiteSpace($url)) { return "" }
+  try {
+    $uri = [System.Uri]$url
+    if ($uri.UserInfo) {
+      $user = $uri.UserInfo.Split(":")[0]
+      $port = if ($uri.IsDefaultPort) { "" } else { ":$($uri.Port)" }
+      $db = $uri.AbsolutePath.TrimStart("/")
+      return "postgresql://$user:***@$($uri.Host)$port/$db"
+    }
+  } catch {
+    # fallback to regex below
+  }
+  return ($url -replace '://([^:]+):[^@]+@', '://$1:***@')
+}
 
 function Run-Checked([string]$title, [scriptblock]$cmd) {
   Say $title
@@ -47,6 +83,11 @@ function PsqlFromFile([string]$path) {
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $RepoRoot
 
+Load-DatabaseUrlFromEnv (Join-Path $RepoRoot ".env")
+if (-not $env:DATABASE_URL -and $env:DATABASE_URL_HOST) {
+  $env:DATABASE_URL = $env:DATABASE_URL_HOST
+}
+
 if (!(Test-Path $BudgetCsv)) { Die "BudgetCsv puuttuu: $BudgetCsv" }
 if (!(Test-Path $JydaCsv))   { Die "JydaCsv puuttuu: $JydaCsv" }
 
@@ -55,6 +96,11 @@ Write-Host "  BudgetCsv : $BudgetCsv"
 Write-Host "  JydaCsv   : $JydaCsv"
 Write-Host "  OccurredOn: $OccurredOn"
 Write-Host "  ImportedBy: $ImportedBy"
+if ($env:DATABASE_URL) {
+  Write-Host "  DATABASE_URL (redacted): $(Redact-DatabaseUrl $env:DATABASE_URL)"
+} else {
+  Write-Host "  DATABASE_URL (redacted): ei asetettu"
+}
 Write-Host ""
 Write-Host "VAROITUS: tämä poistaa docker-volyymin (DB-data nollautuu)!"
 
@@ -87,7 +133,6 @@ if ($ProjectId -notmatch '^[0-9a-fA-F-]{36}$') { Die "PROJECT_ID ei ollut UUID: 
 Write-Host "PROJECT_ID = $ProjectId"
 
 # ---------- PYTHON ----------
-$env:DATABASE_URL = $DatabaseUrl
 $Py = ".\.venv\Scripts\python.exe"
 if (!(Test-Path $Py)) { $Py = "python" }
 
