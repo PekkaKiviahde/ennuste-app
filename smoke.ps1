@@ -125,11 +125,17 @@ if (-not $ok) { Die "Postgres ei tullut valmiiksi (60s). Katso: docker logs $DbC
 Say "Varmistetaan etta Postgres vastaanottaa kyselyita..."
 $queryOk = $false
 for ($i=0; $i -lt 60; $i++) {
-  docker exec $DbContainer psql -U $DbUser -d $DbName -X -v ON_ERROR_STOP=1 -c "SELECT 1" *> $null
-  if ($LASTEXITCODE -eq 0) { $queryOk = $true; break }
+  $exitCode = 1
+  try {
+    docker exec $DbContainer psql -U $DbUser -d $DbName -X -v ON_ERROR_STOP=1 -c "SELECT 1" *> $null
+    $exitCode = $LASTEXITCODE
+  } catch {
+    $exitCode = 1
+  }
+  if ($exitCode -eq 0) { $queryOk = $true; break }
   Start-Sleep -Seconds 1
 }
-if (-not $queryOk) { Die "Postgres ei tullut taysin valmiiksi (SELECT 1, 60s). Katso: docker logs $DbContainer" }
+if (-not $queryOk) { Die "Postgres not ready (SELECT 1) after 60s. Check docker logs $DbContainer" }
 
 # ---------- MIGRATIONS ----------
 Say "Ajetaan migraatiot 0001-0003"
