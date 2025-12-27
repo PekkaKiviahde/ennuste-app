@@ -50,6 +50,10 @@ Excel-työkirja ja exportatut VBA-moduulit tallennetaan tänne:
 - `migrations/` – (myöhemmin) tietokantamigraatiot
 - `tests/` – (myöhemmin) testit
 
+## Windows local dev DB
+
+Ohjeet host-portille 5433 ja osoitteelle 127.0.0.1 löytyvät: `docs/local-dev-db-windows.md`.
+
 ## Seuraavat askeleet (tämän reposi-pohjan jälkeen)
 
 1. Tee **VBA-export** automaattiseksi (makro, joka dumppaa moduulit aina `vba/`-kansioon)
