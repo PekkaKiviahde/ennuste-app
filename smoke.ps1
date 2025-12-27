@@ -145,6 +145,9 @@ if (Test-Path "migrations\0003_jyda_snapshot_views.sql") {
   PsqlFromFile "migrations\0003_jyda_snapshot_views.sql"
 }
 
+# ---------- ENFORCE TCP PASSWORD ----------
+PsqlOneLine "ALTER USER `"$DbUser`" WITH PASSWORD 'codex';" | Out-Null
+
 # ---------- CREATE PROJECT ----------
 Say "Luodaan projekti (INSERT projects) ja otetaan PROJECT_ID talteen"
 $ProjectId = ((PsqlOneLine "INSERT INTO projects (name, customer) VALUES ('Smoke project','SMOKE') RETURNING project_id;" -TupleOnly).Trim().Split()[0])
