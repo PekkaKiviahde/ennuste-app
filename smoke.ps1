@@ -298,4 +298,4 @@ ORDER BY cost_type;
 "@
 PsqlOneLine $monthlyReportSql | Out-Host
 
-Say "VALMIS ✅ (PROJECT_ID=$ProjectId)"
+Say "VALMIS (PROJECT_ID=$ProjectId)"
