@@ -282,14 +282,20 @@ PsqlOneLine $viewSql | Out-Host
 
 # ---------- SMOKE OUTPUT ----------
 Say "SMOKE: rivimäärät"
-PsqlOneLine "SELECT 'budget_lines' AS t, COUNT(*) FROM budget_lines WHERE project_id='$ProjectId'::uuid
+$smokeCountsSql = @"
+SELECT 'budget_lines' AS t, COUNT(*) FROM budget_lines WHERE project_id='$ProjectId'::uuid
 UNION ALL SELECT 'actual_cost_lines', COUNT(*) FROM actual_cost_lines WHERE project_id='$ProjectId'::uuid
-UNION ALL SELECT 'forecast_cost_lines', COUNT(*) FROM forecast_cost_lines WHERE project_id='$ProjectId'::uuid;" | Out-Host
+UNION ALL SELECT 'forecast_cost_lines', COUNT(*) FROM forecast_cost_lines WHERE project_id='$ProjectId'::uuid;
+"@
+PsqlOneLine $smokeCountsSql | Out-Host
 
 Say "SMOKE: kuukausiraportti (PROJECT_ID + OccurredOn-kuukausi)"
-PsqlOneLine "SELECT month, cost_type, budget_amount, actual_amount, forecast_amount
+$monthlyReportSql = @"
+SELECT month, cost_type, budget_amount, actual_amount, forecast_amount
 FROM v_monthly_cost_report_by_cost_type
 WHERE project_id='$ProjectId'::uuid AND month=date_trunc('month','$OccurredOn'::date)::date
-ORDER BY cost_type;" | Out-Host
+ORDER BY cost_type;
+"@
+PsqlOneLine $monthlyReportSql | Out-Host
 
 Say "VALMIS ✅ (PROJECT_ID=$ProjectId)"
