@@ -2,6 +2,12 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+[CmdletBinding()]
+param(
+  [switch]$ImportBudget,
+  [switch]$ImportJyda
+)
+
 # ---------- CONFIG ----------
 $BudgetCsv   = "data\budget.csv"
 $JydaCsv     = "excel\Jyda-ajo Kaarnatien Kaarna.csv"
@@ -11,11 +17,47 @@ $ImportedBy  = "Pekka"
 $DbContainer = "codex_saas_db"
 $DbUser      = "codex"
 $DbName      = "codex"
-$DatabaseUrl = "postgresql://codex:codex@127.0.0.1:5433/codex"
 
 # ---------- HELPERS ----------
 function Say($msg) { Write-Host "`n$msg" -ForegroundColor Cyan }
 function Die($msg) { throw $msg }
+
+function Load-DatabaseUrlFromEnv([string]$path) {
+  if (!(Test-Path $path)) { return }
+
+  $allowed = @("DATABASE_URL", "DATABASE_URL_HOST", "DATABASE_URL_DOCKER")
+  Get-Content $path | ForEach-Object {
+    $line = $_.Trim()
+    if ($line -eq "" -or $line.StartsWith("#")) { return }
+    if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$') {
+      $key = $matches[1]
+      if ($allowed -notcontains $key) { return }
+
+      $value = $matches[2].Trim()
+      if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+        $value = $value.Substring(1, $value.Length - 2)
+      }
+
+      [System.Environment]::SetEnvironmentVariable($key, $value, "Process")
+    }
+  }
+}
+
+function Redact-DatabaseUrl([string]$url) {
+  if ([string]::IsNullOrWhiteSpace($url)) { return "" }
+  try {
+    $uri = [System.Uri]$url
+    if ($uri.UserInfo) {
+      $user = $uri.UserInfo.Split(":")[0]
+      $port = if ($uri.IsDefaultPort) { "" } else { ":$($uri.Port)" }
+      $db = $uri.AbsolutePath.TrimStart("/")
+      return "postgresql://$user:***@$($uri.Host)$port/$db"
+    }
+  } catch {
+    # fallback to regex below
+  }
+  return ($url -replace '://([^:]+):[^@]+@', '://$1:***@')
+}
 
 function Run-Checked([string]$title, [scriptblock]$cmd) {
   Say $title
@@ -47,14 +89,21 @@ function PsqlFromFile([string]$path) {
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $RepoRoot
 
-if (!(Test-Path $BudgetCsv)) { Die "BudgetCsv puuttuu: $BudgetCsv" }
-if (!(Test-Path $JydaCsv))   { Die "JydaCsv puuttuu: $JydaCsv" }
+Load-DatabaseUrlFromEnv (Join-Path $RepoRoot ".env")
+if (-not $env:DATABASE_URL -and $env:DATABASE_URL_HOST) {
+  $env:DATABASE_URL = $env:DATABASE_URL_HOST
+}
 
 Write-Host "Käytetään tiedostoja:"
 Write-Host "  BudgetCsv : $BudgetCsv"
 Write-Host "  JydaCsv   : $JydaCsv"
 Write-Host "  OccurredOn: $OccurredOn"
 Write-Host "  ImportedBy: $ImportedBy"
+if ($env:DATABASE_URL) {
+  Write-Host "  DATABASE_URL (redacted): $(Redact-DatabaseUrl $env:DATABASE_URL)"
+} else {
+  Write-Host "  DATABASE_URL (redacted): ei asetettu"
+}
 Write-Host ""
 Write-Host "VAROITUS: tämä poistaa docker-volyymin (DB-data nollautuu)!"
 
@@ -72,6 +121,7 @@ for ($i=0; $i -lt 60; $i++) {
 }
 if (-not $ok) { Die "Postgres ei tullut valmiiksi (60s). Katso: docker logs $DbContainer" }
 
+smoke-ps1-wait-select1
 # ---------- WAIT DB QUERY READY ----------
 Say "Varmistetaan ett„ Postgres vastaanottaa kyselyit„..."
 $queryOk = $false
@@ -96,24 +146,32 @@ $ProjectId = ((PsqlOneLine "INSERT INTO projects (name, customer) VALUES ('Smoke
 if ($ProjectId -notmatch '^[0-9a-fA-F-]{36}$') { Die "PROJECT_ID ei ollut UUID: $ProjectId" }
 Write-Host "PROJECT_ID = $ProjectId"
 
-# ---------- PYTHON ----------
-$env:DATABASE_URL = $DatabaseUrl
-$Py = ".\.venv\Scripts\python.exe"
-if (!(Test-Path $Py)) { $Py = "python" }
+# ---------- PYTHON IMPORTS ----------
+if ($ImportBudget -or $ImportJyda) {
+  $Py = ".\.venv\Scripts\python.exe"
+  if (!(Test-Path $Py)) {
+    Die "Python-venv puuttuu: $Py. Luo venv: python -m venv .venv; .venv\Scripts\activate; pip install -r tools\scripts\requirements.txt"
+  }
+}
 
-# ---------- SEED LITTERAS (BUDGET) ----------
-Say "Seed litteras budget.csv:stä"
-& $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv
-if ($LASTEXITCODE -ne 0) { Die "seed_litteras_from_budget_csv.py epäonnistui" }
+if ($ImportBudget) {
+  if (!(Test-Path $BudgetCsv)) { Die "BudgetCsv missing: $BudgetCsv. Provide the file or run without -ImportBudget." }
 
-# ---------- IMPORT BUDGET ----------
-Say "Import budget.csv"
-& $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy
-if ($LASTEXITCODE -ne 0) { Die "import_budget.py epäonnistui" }
+  Write-Host "ImportBudget: käytössä"
 
-# Kopioi budjetti OccurredOn-kuukaudelle (append-only)
-Say "Kopioidaan budjetti OccurredOn-kuukaudelle (append-only)"
-$copyBudgetSql = @"
+  # ---------- SEED LITTERAS (BUDGET) ----------
+  Say "Seed litteras budget.csv:stä"
+  & $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv
+  if ($LASTEXITCODE -ne 0) { Die "seed_litteras_from_budget_csv.py epäonnistui" }
+
+  # ---------- IMPORT BUDGET ----------
+  Say "Import budget.csv"
+  & $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy
+  if ($LASTEXITCODE -ne 0) { Die "import_budget.py epäonnistui" }
+
+  # Kopioi budjetti OccurredOn-kuukaudelle (append-only)
+  Say "Kopioidaan budjetti OccurredOn-kuukaudelle (append-only)"
+  $copyBudgetSql = @"
 WITH month_start AS (SELECT date_trunc('month', '$OccurredOn'::date)::date AS d),
 month_end AS (SELECT (date_trunc('month', '$OccurredOn'::date) + interval '1 month - 1 day')::date AS d),
 last_batch AS (
@@ -132,12 +190,23 @@ FROM budget_lines bl
 WHERE bl.project_id='$ProjectId'::uuid
   AND bl.import_batch_id=(SELECT import_batch_id FROM last_batch);
 "@
-PsqlOneLine $copyBudgetSql | Out-Host
+  PsqlOneLine $copyBudgetSql | Out-Host
+}
+
+if (-not $ImportBudget -and -not $ImportJyda) {
+  Write-Host "Imports skipped. Run .\\smoke.ps1 -ImportBudget and/or -ImportJyda"
+}
 
 # ---------- IMPORT JYDA ACTUALS (UNAPPROVED) ----------
-Say "Import JYDA actuals (sis. hyväksymätt.)"
-& $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved
-if ($LASTEXITCODE -ne 0) { Die "import_jyda_csv.py epäonnistui" }
+if ($ImportJyda) {
+  if (!(Test-Path $JydaCsv)) { Die "JydaCsv missing: $JydaCsv. Provide the file or run without -ImportJyda." }
+
+  Write-Host "ImportJyda: käytössä"
+
+  Say "Import JYDA actuals (sis. hyväksymätt.)"
+  & $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved
+  if ($LASTEXITCODE -ne 0) { Die "import_jyda_csv.py epäonnistui" }
+}
 
 # ---------- FORECAST TABLE + IMPORT FORECAST ----------
 Say "Varmistetaan forecast_cost_lines taulu"
@@ -157,12 +226,14 @@ CREATE INDEX IF NOT EXISTS idx_forecast_cost_lines_project_occurred ON forecast_
 "@
 PsqlOneLine $forecastSchema | Out-Host
 
-if (Test-Path "tools\scripts\import_forecast_from_jyda_csv.py") {
-  Say "Import forecast (Ennustettu kustannus)"
-  & $Py "tools\scripts\import_forecast_from_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras
-  if ($LASTEXITCODE -ne 0) { Die "import_forecast_from_jyda_csv.py epäonnistui" }
-} else {
-  Write-Host "HUOM: tools/scripts/import_forecast_from_jyda_csv.py puuttuu -> forecast ohitetaan."
+if ($ImportJyda) {
+  if (Test-Path "tools\scripts\import_forecast_from_jyda_csv.py") {
+    Say "Import forecast (Ennustettu kustannus)"
+    & $Py "tools\scripts\import_forecast_from_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras
+    if ($LASTEXITCODE -ne 0) { Die "import_forecast_from_jyda_csv.py epäonnistui" }
+  } else {
+    Write-Host "HUOM: tools/scripts/import_forecast_from_jyda_csv.py puuttuu -> forecast ohitetaan."
+  }
 }
 
 # ---------- REPORT VIEW ----------
