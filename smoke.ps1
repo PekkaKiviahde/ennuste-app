@@ -172,12 +172,12 @@ if ($ImportBudget) {
 
   # ---------- SEED LITTERAS (BUDGET) ----------
   Say "Seed litteras budget.csv:stä"
-  & $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv
+  & $Py "tools\scripts\seed_litteras_from_budget_csv.py" --project-id $ProjectId --file $BudgetCsv --database-url $env:DATABASE_URL
   if ($LASTEXITCODE -ne 0) { Die "seed_litteras_from_budget_csv.py epäonnistui" }
 
   # ---------- IMPORT BUDGET ----------
   Say "Import budget.csv"
-  & $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy
+  & $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy --database-url $env:DATABASE_URL
   if ($LASTEXITCODE -ne 0) { Die "import_budget.py epäonnistui" }
 
   # Kopioi budjetti OccurredOn-kuukaudelle (append-only)
@@ -215,7 +215,7 @@ if ($ImportJyda) {
   Write-Host "ImportJyda: käytössä"
 
   Say "Import JYDA actuals (sis. hyväksymätt.)"
-  & $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved
+  & $Py "tools\scripts\import_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --use-unapproved --database-url $env:DATABASE_URL
   if ($LASTEXITCODE -ne 0) { Die "import_jyda_csv.py epäonnistui" }
 }
 
@@ -240,7 +240,7 @@ PsqlOneLine $forecastSchema | Out-Host
 if ($ImportJyda) {
   if (Test-Path "tools\scripts\import_forecast_from_jyda_csv.py") {
     Say "Import forecast (Ennustettu kustannus)"
-    & $Py "tools\scripts\import_forecast_from_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras
+    & $Py "tools\scripts\import_forecast_from_jyda_csv.py" --project-id $ProjectId --file $JydaCsv --occurred-on $OccurredOn --imported-by $ImportedBy --auto-seed-litteras --database-url $env:DATABASE_URL
     if ($LASTEXITCODE -ne 0) { Die "import_forecast_from_jyda_csv.py epäonnistui" }
   } else {
     Write-Host "HUOM: tools/scripts/import_forecast_from_jyda_csv.py puuttuu -> forecast ohitetaan."
