@@ -141,11 +141,14 @@ for ($i=0; $i -lt 60; $i++) {
 if (-not $queryOk) { Die "Postgres not ready (SELECT 1) after 60s. Check docker logs $DbContainer" }
 
 # ---------- MIGRATIONS ----------
-Say "Ajetaan migraatiot 0001-0003"
+Say "Ajetaan migraatiot 0001-0004"
 PsqlFromFile "migrations\0001_init.sql"
 PsqlFromFile "migrations\0002_views.sql"
 if (Test-Path "migrations\0003_jyda_snapshot_views.sql") {
   PsqlFromFile "migrations\0003_jyda_snapshot_views.sql"
+}
+if (Test-Path "migrations\0004_budget_items.sql.txt") {
+  PsqlFromFile "migrations\0004_budget_items.sql.txt"
 }
 
 # ---------- ENFORCE TCP PASSWORD ----------
