@@ -93,6 +93,9 @@ Load-DatabaseUrlFromEnv (Join-Path $RepoRoot ".env")
 if (-not $env:DATABASE_URL -and $env:DATABASE_URL_HOST) {
   $env:DATABASE_URL = $env:DATABASE_URL_HOST
 }
+if (-not $env:DATABASE_URL) {
+  $env:DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
+}
 
 Write-Host "Käytetään tiedostoja:"
 Write-Host "  BudgetCsv : $BudgetCsv"
