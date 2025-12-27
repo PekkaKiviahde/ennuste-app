@@ -152,6 +152,7 @@ if ($ImportBudget -or $ImportJyda) {
     Die "Python-venv puuttuu: $Py. Luo venv: python -m venv .venv; .venv\Scripts\activate; pip install -r tools\scripts\requirements.txt"
   }
 }
+}
 
 if ($ImportBudget) {
   if (!(Test-Path $BudgetCsv)) { Die "BudgetCsv missing: $BudgetCsv. Provide the file or run without -ImportBudget." }
