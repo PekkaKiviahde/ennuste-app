@@ -6,6 +6,7 @@
 - Käytä Windows-hostilla osoitetta **127.0.0.1:5433** (ei localhost).
 - Oletus-URL:
   - `postgresql://codex:codex@127.0.0.1:5433/codex`
+- pgAdminissa käytä Docker-verkkoa: host **codex_saas_db**, portti **5432**.
 
 ## .env-esimerkki
 
