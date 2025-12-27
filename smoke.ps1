@@ -121,7 +121,6 @@ for ($i=0; $i -lt 60; $i++) {
 }
 if (-not $ok) { Die "Postgres ei tullut valmiiksi (60s). Katso: docker logs $DbContainer" }
 
-smoke-ps1-wait-select1
 # ---------- WAIT DB QUERY READY ----------
 Say "Varmistetaan ett„ Postgres vastaanottaa kyselyit„..."
 $queryOk = $false
