@@ -1,12 +1,12 @@
 ﻿# smoke.ps1 (robust, Windows-friendly)
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
 [CmdletBinding()]
 param(
   [switch]$ImportBudget,
   [switch]$ImportJyda
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 # ---------- CONFIG ----------
 $BudgetCsv   = "data\budget.csv"
@@ -51,7 +51,7 @@ function Redact-DatabaseUrl([string]$url) {
       $user = $uri.UserInfo.Split(":")[0]
       $port = if ($uri.IsDefaultPort) { "" } else { ":$($uri.Port)" }
       $db = $uri.AbsolutePath.TrimStart("/")
-      return "postgresql://$user:***@$($uri.Host)$port/$db"
+      return "postgresql://${user}:***@$($uri.Host)$port/$db"
     }
   } catch {
     # fallback to regex below
