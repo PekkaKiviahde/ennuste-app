@@ -45,9 +45,12 @@ Päivitetty: 2025-12-19
 - Aja migraatiot `0013_amount_kind_npss_cutover.sql` ja `0015_npss_opening_snapshot_views.sql`.
 - Aja tämän jälkeen `docs/sql/VERIFY_NPSS_CUTOVER.sql`.
 
+## How to test
+- Suorita `docs/sql/VERIFY_NPSS_CUTOVER.sql` pgAdminissa ja varmista, että NPSS-opening on erillään COST-only ketjusta.
+
 ## Mitä muuttui
 - AC-määritelmä rajattiin COST-only-toteumiin (`amount_kind = 'COST'`).
-- Lisättiin lyhyt ajo-ohje migraatioille ja VERIFY-skriptille.
+- Lisättiin lyhyt ajo-ohje ja testausohje migraatioille sekä VERIFY-skriptille.
 
 ## Miksi
 - NPSS/cutover opening snapshot ei saa sekoittua KPI/EV/CPI- eikä kuukausiraportin COST-toteumiin.
