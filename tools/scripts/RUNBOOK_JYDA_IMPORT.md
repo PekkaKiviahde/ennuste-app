@@ -22,7 +22,7 @@ Tee tiedosto `tools/scripts/.env` (.env.template pohjalta) ja aseta DATABASE_URL
 
 ## 4) Ajo (xlsm)
 ```bash
-set DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/DBNAME
+set DATABASE_URL=postgresql://USER:PASSWORD@127.0.0.1:5433/DBNAME
 python tools/scripts/import_jyda.py --file "excel/OMA_TIEDOSTO.xlsm" --project-id <UUID>
 ```
 
@@ -37,4 +37,3 @@ Koska Jyda-ajo on snapshot, käytä:
 - `v_actuals_latest_snapshot_mapped`
 - `v_mapping_coverage_latest_snapshot`
 (Ne tulevat migraatiosta `0003_jyda_snapshot_views.sql`)
-

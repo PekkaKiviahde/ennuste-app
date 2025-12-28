@@ -13,7 +13,7 @@ Jyda-ajo is typically cumulative snapshot. Do NOT sum multiple imports.
 Use views from migrations/0003_jyda_snapshot_views.sql for reporting the latest snapshot.
 
 Usage example:
-  python tools/scripts/import_jyda.py --file "excel/Tavo ja ennuste ....xlsm" --project-id <uuid> --db-url "postgresql://user:pass@localhost:5432/db" --imported-by Pekka
+  python tools/scripts/import_jyda.py --file "excel/Tavo ja ennuste ....xlsm" --project-id <uuid> --db-url "postgresql://user:pass@127.0.0.1:5433/db" --imported-by Pekka
 
 """
 from __future__ import annotations

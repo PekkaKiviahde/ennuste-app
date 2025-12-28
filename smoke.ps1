@@ -183,6 +183,12 @@ if ($ImportBudget) {
   & $Py "tools\scripts\import_budget.py" --project-id $ProjectId --file $BudgetCsv --imported-by $ImportedBy --database-url $env:DATABASE_URL
   if ($LASTEXITCODE -ne 0) { Die "import_budget.py epäonnistui" }
 
+  if (Test-Path "tools\scripts\build_budget_items_from_budget_lines.py") {
+    Say "Build budget_items from budget_lines (smoke/dev)"
+    & $Py "tools\scripts\build_budget_items_from_budget_lines.py" --project-id $ProjectId --imported-by $ImportedBy --database-url $env:DATABASE_URL
+    if ($LASTEXITCODE -ne 0) { Die "build_budget_items_from_budget_lines.py epäonnistui" }
+  }
+
   # Kopioi budjetti OccurredOn-kuukaudelle (append-only)
   Say "Kopioidaan budjetti OccurredOn-kuukaudelle (append-only)"
   $copyBudgetSql = @"
@@ -300,7 +306,8 @@ Say "SMOKE: rivimäärät"
 $smokeCountsSql = @"
 SELECT 'budget_lines' AS t, COUNT(*) FROM budget_lines WHERE project_id='$ProjectId'::uuid
 UNION ALL SELECT 'actual_cost_lines', COUNT(*) FROM actual_cost_lines WHERE project_id='$ProjectId'::uuid
-UNION ALL SELECT 'forecast_cost_lines', COUNT(*) FROM forecast_cost_lines WHERE project_id='$ProjectId'::uuid;
+UNION ALL SELECT 'forecast_cost_lines', COUNT(*) FROM forecast_cost_lines WHERE project_id='$ProjectId'::uuid
+UNION ALL SELECT 'budget_items', COUNT(*) FROM budget_items WHERE project_id='$ProjectId'::uuid;
 "@
 PsqlOneLine $smokeCountsSql | Out-Host
 

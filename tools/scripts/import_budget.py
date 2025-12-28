@@ -18,8 +18,8 @@ Usage (write):
   python tools/scripts/import_budget.py --project-id <UUID> --file data/budget.csv --imported-by Pekka
 
 DB connection:
-  Uses env DATABASE_URL if set, else defaults to local docker:
-  postgresql://codex:codex@localhost:5432/codex
+  Uses env DATABASE_URL if set, else defaults to local dev:
+  postgresql://codex:codex@127.0.0.1:5433/codex
 """
 
 from __future__ import annotations
@@ -36,8 +36,10 @@ from typing import Dict, Tuple, List, Optional
 
 import psycopg
 
+from db_url_redact import redact_database_url
 
-DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
+
+DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 DEFAULT_SOURCE_SYSTEM = "TARGET_ESTIMATE"
 
 # Expected headers (your file has these)
@@ -342,7 +344,7 @@ def main() -> None:
 
     # Connect DB
     dsn = args.database_url
-    print(f"DB: {dsn}")
+    print(f"DB: {redact_database_url(dsn)}")
     signature = sha256_file(csv_path)
     print(f"Signature (sha256): {signature}")
 

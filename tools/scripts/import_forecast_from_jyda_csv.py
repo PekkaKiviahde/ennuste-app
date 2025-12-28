@@ -26,7 +26,9 @@ from typing import Dict, Optional, Tuple, List
 
 import psycopg
 
-DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
+from db_url_redact import redact_database_url
+
+DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 SOURCE_SYSTEM = "JYDA_CSV_FORECAST"
 
 COL_CODE = "Koodi"
@@ -200,7 +202,7 @@ def main() -> None:
     print(f"Read {len(rows)} code rows with non-zero forecast amounts.")
     print(f"Using occurred_on={occurred_on} and cost_type=OTHER")
     signature = sha256_file(csv_path)
-    print(f"DB: {args.database_url}")
+    print(f"DB: {redact_database_url(args.database_url)}")
     print(f"Signature (sha256): {signature}")
 
     with psycopg.connect(args.database_url) as conn:
