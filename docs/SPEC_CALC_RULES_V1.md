@@ -20,7 +20,7 @@ Päivitetty: 2025-12-19
 - Ehto: baseline lukittu + PCT olemassa
 
 **AC (Actual cost €)**  
-- Määritelmä: toteuma euroina (kirjanpito/JYDA/import) työvaiheen jäsenlitteroille  
+- Määritelmä: toteuma euroina työvaiheen jäsenlitteroille, **vain COST-only** (`amount_kind = 'COST'`)  
 - Huom: toteuma on usein viiveellinen (laskut/palkat)
 
 **GHOST_OPEN (€)**  
@@ -40,3 +40,17 @@ Päivitetty: 2025-12-19
 ## Projektitaso
 - Projektin BAC/EV/AC\* = baseline-lukittujen työvaiheiden summa  
 - Lisäksi näytetään erillisenä: `UNMAPPED_ACTUAL_TOTAL` (selvitettävät)
+
+## How to run
+- Aja migraatiot `0013_amount_kind_npss_cutover.sql` ja `0015_npss_opening_snapshot_views.sql`.
+- Aja tämän jälkeen `docs/sql/VERIFY_NPSS_CUTOVER.sql`.
+
+## Mitä muuttui
+- AC-määritelmä rajattiin COST-only-toteumiin (`amount_kind = 'COST'`).
+- Lisättiin lyhyt ajo-ohje migraatioille ja VERIFY-skriptille.
+
+## Miksi
+- NPSS/cutover opening snapshot ei saa sekoittua KPI/EV/CPI- eikä kuukausiraportin COST-toteumiin.
+
+## Miten testataan (manuaali)
+- Aja migraatiot ja VERIFY-skripti; varmista että COST-only ja NPSS-opening summat erottuvat.

@@ -1,6 +1,6 @@
 # MASTER – SaaS v1 päätösloki
 
-Päivitetty: 2025-12-28  
+Päivitetty: 2025-12-30  
 Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain lukitut päätökset, varmennukset (gate/known-good) ja avoimet päätökset.
 
 ---
@@ -96,7 +96,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 ---
 
 ## Mitä muuttui
-- Päivitetty MASTER-päätösloki: lisätty LUKITTU/VARMENNETTU/TOTEUTUSLINJAUKSET/AVOIN -osiot ja täydennetty D/F-listat tulkinnoilla.
+- Täsmennetty NPSS/cutover-päätösten kirjaus (D-012, D-013, D-015–D-016, D-022, D-024–D-026) ja päivitetty aikaleima.
 
 ## Miksi
 - Päätösten, varmennusten ja toteutuslinjausten erottelu ja tulkinta estävät sekoittamasta UI-bugia data-pipeline -puutteeseen.
