@@ -25,7 +25,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 > “VARMENNETTU” = gate/known-good: tämän on todistettavasti toiminut, ja siihen voidaan nojata (UI/API/backlog).  
 > Tarkat ajokomennot ja rivimäärät kuuluvat runbookiin.
 
-- **F-001 (VARMENNETTU)** Windows-local smoke on toistettava, kun käytetään DSN:ää `127.0.0.1:5433` ja `smoke.ps1`-ajossa DSN välitetään eksplisiittisesti (ei `localhost:5432` -oletuksia).
+- **F-001 (VARMENNETTU)** Windows-local smoke on toistettava, kun käytetään DSN:ää `127.0.0.1:5433` ja `smoke.ps1`-ajossa DSN välitetään eksplisiittisesti (ei `localhost`-oletuksia; käytä `127.0.0.1:5433`).
 - **F-002 (VARMENNETTU)** Mapping-vaihe toimii: `v_actuals_latest_snapshot_mapped` tuottaa rivejä, kun **ACTIVE `mapping_version`** on olemassa.
 - **F-003 (VARMENNETTU)** Kuukausiraportin pipeline tuottaa kuukausirivejä testidatalla ketjulla: **actual → mapping → mapped snapshot → monthly → adapter → work_phase** (ja sitä kautta `v_target_month_cost_report` saa dataa).
 - **F-004 (VARMENNETTU)** Ennuste näkyy kuukausiriveillä oikein per `cost_type`, kun `planning_event` = **READY_FOR_FORECAST** ja `forecast_event_lines` on lisätty; **0-arvo = ennustetta ei syötetty** kyseiselle `cost_type`:lle.
