@@ -98,16 +98,16 @@ Määritä `.env`-tiedostoon kaksi erillistä URL:ia ja käytä oikeaa ympärist
 
 ### Muutosmuisti
 
-- Mitä muuttui: dokumentoitiin `DATABASE_URL_HOST` ja `DATABASE_URL_DOCKER` sekä niiden käyttötarkoitus.
-- Miksi: Windowsin `smoke.ps1` tarvitsee host-portin (5433), mutta docker-verkossa käytetään `db:5432`.
-- Miten testataan (manuaali): aja `smoke.ps1` PowerShellissa `.env`-tiedoston kanssa ja varmista, että `DATABASE_URL (redacted)` näkyy ilman salasanaa.
+- Mitä muuttui: lisättiin Windows-yhteensopiva leak check -ohje, joka etsii mahdolliset salasanavuodot lokeista.
+- Miksi: DSN-redaktointi on kriittinen, ja nopea tarkistus varmistaa ettei salasanoja näy logeissa.
+- Miten testataan (manuaali): aja `smoke.ps1`, tallenna loki ja suorita leak check -komento alla.
 
-### Hygienia: DSN-redaction itsevarmistus (valinnainen)
+### Leak check: salasanojen varmistus (valinnainen)
 
-Varmista, ettei lokeissa näy selkokielistä salasanaa:
+Varmista, ettei lokeissa näy selkokielistä salasanaa (esim. `:<salasana>@` tai `password=`):
 
 ```powershell
-rg -n ":codex@|password=" .\smoke.log
+rg -n ":[^@\\s]+@|password=" .\smoke.log
 ```
 
 Jos tuloksia ei tule, redaktointi on kunnossa. Päinvastoin, korjaa tulostus käyttämään `redact_database_url()`-apua.
