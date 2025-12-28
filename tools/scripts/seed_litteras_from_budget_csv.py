@@ -9,6 +9,8 @@ from typing import Dict, Tuple
 
 import psycopg
 
+from db_url_redact import redact_database_url
+
 DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
 
 COL_CODE = "Litterakoodi"
@@ -59,7 +61,7 @@ def main() -> None:
 
     # DB insert
     dsn = args.database_url
-    print(f"DB: {dsn}")
+    print(f"DB: {redact_database_url(dsn)}")
 
     codes_sorted = sorted(found.keys())
 

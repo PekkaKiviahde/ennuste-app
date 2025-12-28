@@ -35,6 +35,8 @@ from typing import Dict, Optional, Tuple, List
 
 import psycopg
 
+from db_url_redact import redact_database_url
+
 DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
 SOURCE_SYSTEM_DELTA = "JYDA_CSV_DELTA_UNAPPROVED"
 
@@ -227,7 +229,7 @@ def main() -> None:
 
     signature = sha256_file(csv_path)
     print(f"Read {len(desired)} code rows with non-zero unapproved amounts.")
-    print(f"DB: {args.database_url}")
+    print(f"DB: {redact_database_url(args.database_url)}")
     print(f"Signature (sha256): {signature}")
     print(f"occurred_on={occurred_on}")
 

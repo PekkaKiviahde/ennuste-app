@@ -36,6 +36,8 @@ from typing import Dict, Tuple, List, Optional
 
 import psycopg
 
+from db_url_redact import redact_database_url
+
 
 DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
 DEFAULT_SOURCE_SYSTEM = "TARGET_ESTIMATE"
@@ -342,7 +344,7 @@ def main() -> None:
 
     # Connect DB
     dsn = args.database_url
-    print(f"DB: {dsn}")
+    print(f"DB: {redact_database_url(dsn)}")
     signature = sha256_file(csv_path)
     print(f"Signature (sha256): {signature}")
 
