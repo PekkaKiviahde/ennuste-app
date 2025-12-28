@@ -18,7 +18,7 @@ Usage (write):
   python tools/scripts/apply_jyda_unapproved_delta.py --project-id <UUID> --file "excel/Jyda-ajo ... .csv" --occurred-on 2025-12-01 --imported-by Pekka
 
 DB:
-  uses env DATABASE_URL if set, else defaults to local docker
+  uses env DATABASE_URL if set, else defaults to local dev (127.0.0.1:5433)
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ import psycopg
 
 from db_url_redact import redact_database_url
 
-DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
+DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 SOURCE_SYSTEM_DELTA = "JYDA_CSV_DELTA_UNAPPROVED"
 
 COL_CODE = "Koodi"

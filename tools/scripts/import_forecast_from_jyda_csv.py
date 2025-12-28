@@ -28,7 +28,7 @@ import psycopg
 
 from db_url_redact import redact_database_url
 
-DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
+DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 SOURCE_SYSTEM = "JYDA_CSV_FORECAST"
 
 COL_CODE = "Koodi"

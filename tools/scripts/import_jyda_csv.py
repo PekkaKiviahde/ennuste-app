@@ -16,7 +16,7 @@ Usage (write):
 
 DB connection:
   Uses env DATABASE_URL if set, else defaults:
-  postgresql://codex:codex@localhost:5432/codex
+  postgresql://codex:codex@127.0.0.1:5433/codex
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ import psycopg
 from db_url_redact import redact_database_url
 
 
-DEFAULT_DATABASE_URL = "postgresql://codex:codex@localhost:5432/codex"
+DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 DEFAULT_SOURCE_SYSTEM = "JYDA_CSV"
 
 COL_CODE = "Koodi"
