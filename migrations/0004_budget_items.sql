@@ -2,13 +2,7 @@
 -- Detailed target estimate items (nimiketaso)
 -- Tämä vastaa tavoitearvio-Excelin rivejä (A–Q)
 -- Luotu: 2025-12-18
---
--- Mitä muuttui:
--- - Lisätty budjettirivien item-taulu migraatioketjuun (tarvitaan korjauspolulle).
--- Miksi:
--- - Work phase -korjauspolku viittaa budget_items-tauluun; migraatioketju tarvitsee sen.
--- Miten testataan (manuaali):
--- - Aja migraatiot ja varmista, että budget_items-taulu syntyy ilman virheitä.
+
 
 CREATE TABLE IF NOT EXISTS budget_items (
   budget_item_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
