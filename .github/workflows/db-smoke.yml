@@ -1,0 +1,66 @@
+name: DB smoke
+
+on:
+  pull_request:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  db-smoke:
+    name: DB smoke (migrations + verify + smoke)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ennuste
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d ennuste"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres -d ennuste && exit 0
+            sleep 2
+          done
+          echo "Postgres not ready" >&2
+          exit 1
+
+      - name: Run migrations + verify + smoke
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          for f in $(ls migrations/*.sql | sort); do
+            echo "Running $f"
+            psql -v ON_ERROR_STOP=1 -h localhost -p 5432 -U postgres -d ennuste -f "$f"
+          done
+
+          psql -v ON_ERROR_STOP=1 -h localhost -p 5432 -U postgres -d ennuste -f docs/sql/VERIFY_INVARIANTS.sql
+          psql -v ON_ERROR_STOP=1 -h localhost -p 5432 -U postgres -d ennuste -f docs/sql/SMOKE_E2E_CORE.sql
+
+# Mitä muuttui:
+# - Lisätty DB-smoke CI-workflow (migrations + verify + smoke).
+# Miksi:
+# - Automaattinen gate ydininvariansseille.
+# Miten testataan (manuaali):
+# - Aja sama polku paikallisesti psql-komentojen kautta (ks. docs/runbooks/db-smoke.md).
