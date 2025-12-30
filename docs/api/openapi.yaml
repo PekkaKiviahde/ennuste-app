@@ -1,0 +1,1354 @@
+openapi: 3.1.0
+info:
+  title: Ennustus API (MVP)
+  version: "0.1.0"
+  description: >
+    OpenAPI-luonnos Ennustus-MVP:lle. Tämä kuvaa tärkeimmät endpointit,
+    joita UI-työnkulut (onboarding, työpaketit, viikko, month close, korjaukset, raporttiarkisto, incident banneri) tarvitsevat.
+servers:
+  - url: /api
+security:
+  - bearerAuth: []
+tags:
+  - name: Seller
+    description: Myyjän provisioning (stub + onboarding-linkki)
+  - name: Admin
+    description: Yritysadmin / Superadmin -hallinta
+  - name: WorkPackages
+    description: Työpaketit (SETUP/TRACK) + baseline approvals
+  - name: Tracking
+    description: Viikkopäivitys, ghostit, selvitettävät
+  - name: MonthClose
+    description: Kuukausiennuste, raporttien lähetys ja lukitus, korjaukset
+  - name: Reports
+    description: Report package -arkisto
+  - name: Superadmin
+    description: Toimittajan ylläpito (incident banner)
+paths:
+
+  /me/capabilities:
+    get:
+      tags: [Admin]
+      summary: Get UI capabilities for current user (action gates)
+      description: >
+        Palauttaa nykyiselle käyttäjälle (token) ne toiminnot, jotka ovat sallittuja tietyssä kontekstissa (projekti/kuukausi/työpaketti).
+        UI voi tämän perusteella näyttää/piilottaa nappeja ja näyttää perustelut, mutta backend tekee silti lopullisen validoinnin.
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+        - name: wp_id
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+          description: Optional work package id for work-package specific capabilities
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /seller/tenants:
+    post:
+      tags: [Seller]
+      summary: Create tenant (stub)
+      description: >
+        Luo uusi yritys/tenant "stub"-tilaan provisioning-vaiheessa.
+        Tenant-id ja onboarding-tila alustetaan.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SellerCreateTenantRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /seller/projects:
+    post:
+      tags: [Seller]
+      summary: Create project (stub)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SellerCreateProjectRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /seller/onboarding-links:
+    post:
+      tags: [Seller]
+      summary: Create and send onboarding link
+      description: >
+        Luo onboarding-linkin (token) ja lähettää sen asiakkaalle.
+        Linkki ohjaa yritysadminin täyttämään yritys/projektitiedot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOnboardingLinkRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingLink'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tenants/{tenant_id}/onboarding/submit:
+    post:
+      tags: [Admin]
+      summary: Submit onboarding form (mark tenant ready)
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingSubmitRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tenants/{tenant_id}/users:invite:
+    post:
+      tags: [Admin]
+      summary: Invite users (automated)
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteUsersRequest'
+      responses:
+        "202":
+          description: Accepted (invites queued/sent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteUsersResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tenants/{tenant_id}/rbac:
+    put:
+      tags: [Admin]
+      summary: Update RBAC (roles)
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRbacRequest'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateRbacResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/projects/{project_id}/reporting-settings:
+    put:
+      tags: [Admin]
+      summary: Update reporting settings (recipients, email rules)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportingSettings'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportingSettings'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/projects/{project_id}/approval-settings:
+    put:
+      tags: [Admin]
+      summary: Update approval settings (baseline + month correction)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalSettings'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalSettings'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/projects/{project_id}/mappings:
+    get:
+      tags: [Admin]
+      summary: List mappings
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Mapping' }
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/projects/{project_id}/mappings/{mapping_id}:
+    patch:
+      tags: [Admin]
+      summary: Patch a mapping (limited edit)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/MappingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchMappingRequest'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mapping'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{project_id}/work-packages:
+    post:
+      tags: [WorkPackages]
+      summary: Create work package
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkPackageRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /work-packages/{wp_id}:
+    put:
+      tags: [WorkPackages]
+      summary: Update work package base fields (SETUP only)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkPackageRequest'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (wrong state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /work-packages/{wp_id}/context:
+    get:
+      tags: [WorkPackages]
+      summary: Get work package context (state + approvals) for UI
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackageContext'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /work-packages/{wp_id}/members:
+    post:
+      tags: [WorkPackages]
+      summary: Add member (littera/item) to work package (SETUP only, append-only)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemberRequest'
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackageMember'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (wrong state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /work-packages/{wp_id}/baseline-lock:request:
+    post:
+      tags: [WorkPackages]
+      summary: Request baseline lock (W0 -> W1)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestBaselineLockRequest'
+      responses:
+        "200":
+          description: Requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /work-packages/{wp_id}/baseline-lock:approve:
+    post:
+      tags: [WorkPackages]
+      summary: Approve baseline lock (step=1 PM, step=2 TJ)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+        - name: step
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1, 2]
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkPackage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (wrong step/state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /work-packages/{wp_id}/weekly-updates:
+    post:
+      tags: [Tracking]
+      summary: Create weekly update (% + memo) (TRACK only, month must be open)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWeeklyUpdateRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyUpdate'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (month locked or wrong state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /work-packages/{wp_id}/ghosts:
+    post:
+      tags: [Tracking]
+      summary: Add ghost entry (€) (TRACK only, month must be open)
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGhostRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GhostEntry'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (month locked or wrong state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{project_id}/unmapped-actuals:
+    get:
+      tags: [Tracking]
+      summary: List unmapped actuals (selvitettävät)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/UnmappedActual' }
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{project_id}/unmapped-actuals/{unmapped_id}:assign:
+    post:
+      tags: [Tracking]
+      summary: Assign an unmapped actual to a work package
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/UnmappedId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUnmappedActualRequest'
+      responses:
+        "200":
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnmappedActual'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{project_id}/months/{month}/forecast:
+    put:
+      tags: [MonthClose]
+      summary: Set monthly forecast (manual) (M0/M1 only)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonthForecast'
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthForecast'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (month locked)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{project_id}/months/{month}:send-reports:
+    post:
+      tags: [MonthClose]
+      summary: Send monthly reports and lock month (Month close)
+      description: >
+        Atominen operaatio: generoi raportit, arkistoi report package, lähettää emailit ja lukitsee kuukauden (M2_SENT_LOCKED).
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendReportsRequest'
+      responses:
+        "200":
+          description: Sent and locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendReportsResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (not open)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{project_id}/months/{month}/corrections:request:
+    post:
+      tags: [MonthClose]
+      summary: Request correction after lock (TJ only)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestMonthCorrection'
+      responses:
+        "201":
+          description: Requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthCorrection'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{project_id}/months/{month}/corrections/{correction_id}:approve:
+    post:
+      tags: [MonthClose]
+      summary: Approve correction (Unit head only)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+        - $ref: '#/components/parameters/CorrectionId'
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthCorrection'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: Conflict (wrong state)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{project_id}/months/{month}/corrections/{correction_id}:reject:
+    post:
+      tags: [MonthClose]
+      summary: Reject correction
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+        - $ref: '#/components/parameters/CorrectionId'
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthCorrection'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{project_id}/months/{month}/report-packages:
+    get:
+      tags: [Reports]
+      summary: List report packages for month
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ReportPackage' }
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /report-packages/{package_id}/download:
+    get:
+      tags: [Reports]
+      summary: Download report package artifact (or get signed URL)
+      parameters:
+        - $ref: '#/components/parameters/PackageId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /incident-banner:
+    get:
+      tags: [Superadmin]
+      summary: Get current incident banner (read-only for all users)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentBanner'
+
+  /superadmin/incident-banner:
+    put:
+      tags: [Superadmin]
+      summary: Set incident banner (superadmin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetIncidentBannerRequest'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentBanner'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    WpId:
+      name: wp_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    MappingId:
+      name: mapping_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    UnmappedId:
+      name: unmapped_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Month:
+      name: month
+      in: path
+      required: true
+      description: Month in YYYY-MM format
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}$'
+    CorrectionId:
+      name: correction_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PackageId:
+      name: package_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        request_id: { type: string, description: \"Correlation id for troubleshooting\" }
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+        validation_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+            required: [field, message]
+      required: [code, message]
+
+    Tenant:
+      type: object
+      properties:
+        tenant_id: { type: string, format: uuid }
+        name: { type: string }
+        onboarding_state:
+          $ref: '#/components/schemas/CompanyOnboardingState'
+        created_at: { type: string, format: date-time }
+      required: [tenant_id, onboarding_state, created_at]
+
+    Project:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        name: { type: string }
+        project_state:
+          $ref: '#/components/schemas/ProjectState'
+        created_at: { type: string, format: date-time }
+      required: [project_id, tenant_id, project_state, created_at]
+
+    WorkPackage:
+      type: object
+      properties:
+        wp_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        lead_code: { type: string, description: "Lead littera / koodi" }
+        work_package_state:
+          $ref: '#/components/schemas/WorkPackageState'
+        created_at: { type: string, format: date-time }
+      required: [wp_id, project_id, work_package_state, created_at]
+
+    WorkPackageMember:
+      type: object
+      properties:
+        member_id: { type: string, format: uuid }
+        wp_id: { type: string, format: uuid }
+        kind:
+          type: string
+          enum: [LITTERA, ITEM_CODE]
+        code: { type: string }
+        created_at: { type: string, format: date-time }
+      required: [member_id, wp_id, kind, code, created_at]
+
+    WeeklyUpdate:
+      type: object
+      properties:
+        weekly_update_id: { type: string, format: uuid }
+        wp_id: { type: string, format: uuid }
+        week_ending: { type: string, format: date }
+        percent_complete:
+          type: number
+          minimum: 0
+          maximum: 100
+        memo: { type: string }
+        created_at: { type: string, format: date-time }
+      required: [weekly_update_id, wp_id, week_ending, percent_complete, created_at]
+
+    GhostEntry:
+      type: object
+      properties:
+        ghost_id: { type: string, format: uuid }
+        wp_id: { type: string, format: uuid }
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        amount_eur: { type: number }
+        cost_type: { type: string }
+        note: { type: string }
+        created_at: { type: string, format: date-time }
+      required: [ghost_id, wp_id, month, amount_eur, created_at]
+
+    UnmappedActual:
+      type: object
+      properties:
+        unmapped_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        occurred_on: { type: string, format: date }
+        amount_eur: { type: number }
+        reference: { type: string }
+        assigned_wp_id: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+      required: [unmapped_id, project_id, amount_eur, created_at]
+
+    MonthForecast:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        forecast_total_eur: { type: number }
+        note: { type: string }
+      required: [project_id, month, forecast_total_eur]
+
+    MonthCorrection:
+      type: object
+      properties:
+        correction_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        state:
+          type: string
+          enum: [REQUESTED, APPROVED, REJECTED]
+        requested_by_user_id: { type: string, format: uuid }
+        approved_by_user_id: { type: string, format: uuid, nullable: true }
+        reason: { type: string }
+        patch:
+          $ref: '#/components/schemas/MonthCorrectionPatch'
+        created_at: { type: string, format: date-time }
+      required: [correction_id, project_id, month, state, requested_by_user_id, patch, created_at]
+
+    MonthCorrectionPatch:
+      type: object
+      description: >
+        Korjauksen payload. Saa koskea ennustetta, %valmiutta, ghosteja ja memoja.
+        Toteutus voi mallintaa tämän tarkemmin.
+      properties:
+        forecast_total_eur: { type: number, nullable: true }
+        percent_complete: { type: number, nullable: true }
+        ghost_adjustments:
+          type: array
+          items:
+            type: object
+            properties:
+              ghost_id: { type: string, format: uuid, nullable: true }
+              amount_eur: { type: number }
+              note: { type: string }
+        memo: { type: string, nullable: true }
+      additionalProperties: true
+
+    ReportPackage:
+      type: object
+      properties:
+        package_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        sent_at: { type: string, format: date-time }
+        sent_by_user_id: { type: string, format: uuid }
+        recipients:
+          type: array
+          items: { type: string, format: email }
+        artifact_type:
+          type: string
+          enum: [PDF, XLSX, LINK]
+        artifact_uri: { type: string }
+        checksum: { type: string }
+      required: [package_id, project_id, month, sent_at, sent_by_user_id, recipients, artifact_type]
+
+    Mapping:
+      type: object
+      properties:
+        mapping_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        source_key: { type: string }
+        target_wp_id: { type: string, format: uuid, nullable: true }
+        updated_at: { type: string, format: date-time }
+      required: [mapping_id, project_id, source_key]
+
+    CompanyOnboardingState:
+      type: string
+      enum: [C0_PROVISIONED, C1_ONBOARDING_LINK_SENT, C2_ONBOARDING_IN_PROGRESS, C3_READY]
+
+    ProjectState:
+      type: string
+      enum: [P0_PROJECT_DRAFT, P1_PROJECT_ACTIVE, P2_PROJECT_ARCHIVED]
+
+    WorkPackageState:
+      type: string
+      enum: [W0_SETUP_DRAFT, W1_BASELINE_APPROVAL_PENDING, W2_TRACK_ACTIVE, W3_WORKPACKAGE_ARCHIVED]
+
+    MonthState:
+      type: string
+      enum: [M0_OPEN_DRAFT, M1_READY_TO_SEND, M2_SENT_LOCKED, M3_CORRECTION_PENDING, M4_CORRECTED_LOCKED]
+
+    IncidentBannerState:
+      type: string
+      enum: [I0_NONE, I1_INVESTIGATING, I2_IDENTIFIED, I3_MONITORING, I4_RESOLVED]
+
+    IncidentBanner:
+      type: object
+      properties:
+        state: { $ref: '#/components/schemas/IncidentBannerState' }
+        severity:
+          type: string
+          enum: [SEV1, SEV2, SEV3]
+          nullable: true
+        title: { type: string, nullable: true }
+        message: { type: string, nullable: true }
+        affects:
+          type: array
+          items:
+            type: string
+            enum: [LOGIN, IMPORTS, REPORTS, OTHER]
+        workaround: { type: string, nullable: true }
+        next_update_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time }
+      required: [state, updated_at]
+
+    SetIncidentBannerRequest:
+      type: object
+      properties:
+        state: { $ref: '#/components/schemas/IncidentBannerState' }
+        severity:
+          type: string
+          enum: [SEV1, SEV2, SEV3]
+          nullable: true
+        title: { type: string, nullable: true }
+        message: { type: string, nullable: true }
+        affects:
+          type: array
+          items:
+            type: string
+            enum: [LOGIN, IMPORTS, REPORTS, OTHER]
+        workaround: { type: string, nullable: true }
+        next_update_at: { type: string, format: date-time, nullable: true }
+      required: [state]
+
+    SellerCreateTenantRequest:
+      type: object
+      properties:
+        name: { type: string }
+        admin_email: { type: string, format: email, description: "Ensimmäinen yritysadmin (optional, jos kutsut lähetetään myöhemmin)" }
+      required: [name]
+
+    SellerCreateProjectRequest:
+      type: object
+      properties:
+        tenant_id: { type: string, format: uuid }
+        name: { type: string }
+      required: [tenant_id, name]
+
+    CreateOnboardingLinkRequest:
+      type: object
+      properties:
+        tenant_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        recipient_email: { type: string, format: email }
+      required: [tenant_id, recipient_email]
+
+    OnboardingLink:
+      type: object
+      properties:
+        onboarding_link_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        url: { type: string }
+        expires_at: { type: string, format: date-time }
+      required: [onboarding_link_id, tenant_id, url, expires_at]
+
+    OnboardingSubmitRequest:
+      type: object
+      properties:
+        company:
+          type: object
+          properties:
+            name: { type: string }
+            business_id: { type: string, nullable: true }
+            address: { type: string, nullable: true }
+          required: [name]
+        project:
+          type: object
+          properties:
+            project_id: { type: string, format: uuid }
+            name: { type: string }
+            start_date: { type: string, format: date, nullable: true }
+          required: [project_id, name]
+      required: [company, project]
+
+    InviteUsersRequest:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              email: { type: string, format: email }
+              display_name: { type: string }
+              role: { $ref: '#/components/schemas/UserRole' }
+            required: [email, role]
+      required: [users]
+
+    InviteUsersResponse:
+      type: object
+      properties:
+        invited:
+          type: integer
+      required: [invited]
+
+    UpdateRbacRequest:
+      type: object
+      properties:
+        assignments:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id: { type: string, format: uuid }
+              role: { $ref: '#/components/schemas/UserRole' }
+            required: [user_id, role]
+      required: [assignments]
+
+    UpdateRbacResponse:
+      type: object
+      properties:
+        updated:
+          type: integer
+      required: [updated]
+
+    UserRole:
+      type: string
+      enum: [SUPERADMIN, SELLER, COMPANY_ADMIN, PM, PRODUCTION_MANAGER, UNIT_HEAD, CFO, USER]
+
+    ReportingSettings:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        recipients:
+          type: array
+          items: { type: string, format: email }
+        lock_on_send:
+          type: boolean
+          description: "True = month close locks month on send"
+      required: [project_id, recipients, lock_on_send]
+
+    ApprovalSettings:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        baseline_lock_steps:
+          type: integer
+          enum: [2]
+        month_correction_requires_unit_head:
+          type: boolean
+      required: [project_id, baseline_lock_steps, month_correction_requires_unit_head]
+
+    PatchMappingRequest:
+      type: object
+      properties:
+        target_wp_id: { type: string, format: uuid, nullable: true }
+        note: { type: string, nullable: true }
+
+    CreateWorkPackageRequest:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        lead_code: { type: string, nullable: true }
+      required: [name]
+
+    UpdateWorkPackageRequest:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        lead_code: { type: string, nullable: true }
+
+    AddMemberRequest:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [LITTERA, ITEM_CODE]
+        code: { type: string }
+      required: [kind, code]
+
+    RequestBaselineLockRequest:
+      type: object
+      properties:
+        note: { type: string, nullable: true }
+
+    CreateWeeklyUpdateRequest:
+      type: object
+      properties:
+        week_ending: { type: string, format: date }
+        percent_complete:
+          type: number
+          minimum: 0
+          maximum: 100
+        memo: { type: string, nullable: true }
+      required: [week_ending, percent_complete]
+
+    CreateGhostRequest:
+      type: object
+      properties:
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        amount_eur: { type: number }
+        cost_type: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+      required: [month, amount_eur]
+
+    AssignUnmappedActualRequest:
+      type: object
+      properties:
+        wp_id: { type: string, format: uuid }
+      required: [wp_id]
+
+    SendReportsRequest:
+      type: object
+      properties:
+        dry_run:
+          type: boolean
+          default: false
+        note:
+          type: string
+          nullable: true
+
+    SendReportsResponse:
+      type: object
+      properties:
+        sent_at: { type: string, format: date-time, description: \"When reports were sent\" }
+        lock_applied_at: { type: string, format: date-time, description: \"When month lock was applied\" }
+        email_status:
+          type: string
+          enum: [QUEUED, SENT, FAILED]
+        month_state: { $ref: '#/components/schemas/MonthState' }
+        report_package: { $ref: '#/components/schemas/ReportPackage' }
+      required: [month_state, report_package]
+
+    RequestMonthCorrection:
+      type: object
+      properties:
+        reason: { type: string }
+        patch: { $ref: '#/components/schemas/MonthCorrectionPatch' }
+      required: [reason, patch]
+
+    CapabilitiesResponse:
+      type: object
+      description: >
+        Kokoaa UI:lle "mitä saa tehdä" -tiedon yhdessä kutsussa.
+        Backend/DB tekee silti lopullisen validoinnin jokaisessa kirjoittavassa endpointissa.
+      properties:
+        user:
+          type: object
+          properties:
+            user_id: { type: string, format: uuid }
+            tenant_id: { type: string, format: uuid }
+            roles:
+              type: array
+              items: { $ref: '#/components/schemas/UserRole' }
+          required: [user_id, tenant_id, roles]
+        context:
+          type: object
+          properties:
+            project_id: { type: string, format: uuid }
+            month:
+              type: string
+              pattern: '^[0-9]{4}-[0-9]{2}$'
+              nullable: true
+            wp_id: { type: string, format: uuid, nullable: true }
+          required: [project_id]
+        state:
+          type: object
+          description: Relevant state snapshots for the UI.
+          properties:
+            company_onboarding_state: { $ref: '#/components/schemas/CompanyOnboardingState' }
+            project_state: { $ref: '#/components/schemas/ProjectState' }
+            month_state: { $ref: '#/components/schemas/MonthState', nullable: true }
+            work_package_state: { $ref: '#/components/schemas/WorkPackageState', nullable: true }
+          required: [project_state]
+        capabilities:
+          type: object
+          description: Boolean gates for UI actions.
+          additionalProperties: { type: boolean }
+        reasons:
+          type: object
+          description: Optional reason codes for disabled actions (key = action, value = reason).
+          additionalProperties: { type: string }
+      required: [user, context, state, capabilities]
+
+    MonthContext:
+      type: object
+      properties:
+        project_id: { type: string, format: uuid }
+        month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        month_state: { $ref: '#/components/schemas/MonthState' }
+        forecast: { $ref: '#/components/schemas/MonthForecast', nullable: true }
+        last_report_package: { $ref: '#/components/schemas/ReportPackage', nullable: true }
+        locked_at: { type: string, format: date-time, nullable: true }
+      required: [project_id, month, month_state]
+
+    WorkPackageContext:
+      type: object
+      properties:
+        wp: { $ref: '#/components/schemas/WorkPackage' }
+        approvals:
+          type: object
+          description: Baseline lock approval status.
+          properties:
+            requested_at: { type: string, format: date-time, nullable: true }
+            step1_pm_approved_at: { type: string, format: date-time, nullable: true }
+            step2_tj_approved_at: { type: string, format: date-time, nullable: true }
+            current_step:
+              type: integer
+              enum: [0, 1, 2]
+              description: "0 = not requested, 1 = waiting for step1, 2 = waiting for step2"
+          required: [current_step]
+        members_count: { type: integer, minimum: 0 }
+      required: [wp, approvals, members_count]
+

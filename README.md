@@ -111,3 +111,23 @@ rg -n ":[^@\\s]+@|password=" .\smoke.log
 ```
 
 Jos tuloksia ei tule, redaktointi on kunnossa. Päinvastoin, korjaa tulostus käyttämään `redact_database_url()`-apua.
+
+
+Docs
+⦁	Docs index: docs/README.md
+⦁	API docs: docs/api/README.md
+⦁	Master workflow: docs/workflows/master.md
+⦁	Nappipolut: docs/workflows/nappipolut.md
+⦁	Tilakoneet: docs/workflows/state-machines.md
+⦁	Toimittajan polku (SDLC): docs/workflows/supplier-sdlc.md
+⦁	Traceability: docs/traceability.md
+⦁	Business rules: docs/workflows/business-rules.md
+⦁	RBAC-matriisi: docs/workflows/rbac-matrix.md
+⦁	Sanasto: docs/workflows/glossary.md
+⦁	GDPR & compliance: docs/compliance/gdpr.md
+⦁	Päätösloki: docs/decisions/decision-log.md
+⦁	Open questions: docs/decisions/open-questions.md
+⦁	Incident runbook: docs/runbooks/incident.md
+⦁	Data-fix runbook: docs/runbooks/data-fix.md
+⦁	Release runbook: docs/runbooks/release.md
+
