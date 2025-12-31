@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ennuste MVP</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <main class="container">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">MVP / suunnittelu → ennustetapahtuma</p>
+          <h1>Ennuste sovelluksena</h1>
+          <p class="lead">
+            Kirjaa suunnitelma ja tee ennustetapahtuma append-only lokiin. Kaikki tapahtumat jäävät talteen.
+          </p>
+          <label class="role-select">
+            Järjestelmärooli
+            <select id="system-role-select">
+              <option value="">(ei)</option>
+              <option value="superadmin">superadmin</option>
+              <option value="admin">admin</option>
+              <option value="director">director</option>
+            </select>
+          </label>
+          <label class="role-select">
+            Projektin rooli
+            <select id="project-role-select">
+              <option value="viewer">viewer</option>
+              <option value="editor">editor</option>
+              <option value="manager">manager</option>
+              <option value="owner">owner</option>
+            </select>
+          </label>
+        </div>
+        <div class="badge">
+          <span>Append-only</span>
+          <span>Suunnitelma ensin</span>
+          <span>Tavoitearvio-littera</span>
+        </div>
+      </header>
+
+      <nav class="tabs" id="tab-nav">
+        <a href="/setup" data-page="setup">Setup</a>
+        <a href="/mapping" data-page="mapping">Mapping</a>
+        <a href="/planning" data-page="planning">Suunnitelma</a>
+        <a href="/forecast" data-page="forecast">Ennuste</a>
+        <a href="/report" data-page="report">Raportti</a>
+        <a href="/history" data-page="history">Historia</a>
+      </nav>
+      <div class="tab-hint" id="tab-hint"></div>
+
+      <section class="card quick-actions">
+        <h2>Pikatoiminnot</h2>
+        <div class="action-grid">
+          <button data-action="go-setup">Siirry Setupiin</button>
+          <button data-action="focus-project">Luo projekti (avaa lomake)</button>
+          <button data-action="go-report">Siirry Raporttiin</button>
+          <button data-action="role-admin-owner">Roolit: admin + owner</button>
+          <button id="demo-seed" data-guard="system:admin">Täytä esimerkkidata</button>
+        </div>
+        <div class="hint" id="demo-seed-result"></div>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>1. Projekti</h2>
+        <form id="project-form" class="stack" data-guard="system:admin">
+          <label>
+            Projektin nimi
+            <input name="name" placeholder="Kaarnatie" required />
+          </label>
+          <label>
+            Asiakas
+            <input name="customer" placeholder="Kaarna Oy" />
+          </label>
+          <button type="submit">Luo projekti</button>
+          <div class="hint" id="project-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>2. Tavoitearvio-littera</h2>
+        <form id="littera-form" class="stack" data-guard="project:editor">
+          <label>
+            Projekti
+            <select name="projectId" id="project-select" required></select>
+          </label>
+          <label>
+            Litterakoodi
+            <input name="code" placeholder="0100" required />
+          </label>
+          <label>
+            Litteraselite
+            <input name="title" placeholder="Perustukset" />
+          </label>
+          <button type="submit">Lisää littera</button>
+          <div class="hint" id="littera-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="planning">
+        <h2>3. Suunnitelma</h2>
+        <form id="planning-form" class="stack" data-guard="project:editor">
+          <label>
+            Projekti
+            <select name="projectId" id="planning-project" required></select>
+          </label>
+          <label>
+            Tavoitearvio-littera
+            <select name="targetLitteraId" id="planning-littera" required></select>
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <label>
+            Status
+            <select name="status" required>
+              <option value="DRAFT">DRAFT</option>
+              <option value="READY_FOR_FORECAST">READY_FOR_FORECAST</option>
+              <option value="LOCKED">LOCKED</option>
+            </select>
+          </label>
+          <label>
+            Yhteenveto
+            <textarea name="summary" placeholder="Miten työ johdetaan?"></textarea>
+          </label>
+          <label>
+            Huomiot
+            <textarea name="observations" placeholder="Kriittiset havainnot"></textarea>
+          </label>
+          <label>
+            Riskit
+            <textarea name="risks" placeholder="Mitkä riskit vaikuttavat? "></textarea>
+          </label>
+          <label>
+            Päätökset
+            <textarea name="decisions" placeholder="Mitä päätettiin?"></textarea>
+          </label>
+          <button type="submit">Tallenna suunnitelma</button>
+          <div class="hint" id="planning-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="mapping">
+        <h2>4. Mapping</h2>
+        <form id="mapping-version-form" class="stack" data-guard="project:editor">
+          <label>
+            Projekti
+            <select name="projectId" id="mapping-project" required></select>
+          </label>
+          <label>
+            Voimassa alkaen (valid_from)
+            <input name="validFrom" type="date" required />
+          </label>
+          <label>
+            Voimassa asti (valid_to)
+            <input name="validTo" type="date" />
+          </label>
+          <label>
+            Perustelu
+            <input name="reason" placeholder="Miksi mapping luotiin?" required />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <button type="submit">Luo mapping-versio</button>
+          <div class="hint" id="mapping-version-result"></div>
+        </form>
+
+        <form id="mapping-line-form" class="stack" data-guard="project:editor">
+          <label>
+            Mapping-versio
+            <select name="mappingVersionId" id="mapping-version" required></select>
+          </label>
+          <label>
+            Työlittera
+            <select name="workLitteraId" id="mapping-work-littera" required></select>
+          </label>
+          <label>
+            Tavoitearvio-littera
+            <select name="targetLitteraId" id="mapping-target-littera" required></select>
+          </label>
+          <div class="grid-2">
+            <label>
+              Allokointisääntö
+              <select name="allocationRule" required>
+                <option value="FULL">FULL</option>
+                <option value="PERCENT">PERCENT</option>
+              </select>
+            </label>
+            <label>
+              Arvo (FULL=1.0, PERCENT=0..1)
+              <input name="allocationValue" placeholder="1.0" required />
+            </label>
+          </div>
+          <label>
+            Kustannuslaji (tyhjä = kaikki)
+            <select name="costType">
+              <option value="">(kaikki)</option>
+              <option value="LABOR">Työ</option>
+              <option value="MATERIAL">Aine</option>
+              <option value="SUBCONTRACT">Alihankinta</option>
+              <option value="RENTAL">Vuokra</option>
+              <option value="OTHER">Muu</option>
+            </select>
+          </label>
+          <label>
+            Muistiinpano
+            <input name="note" placeholder="Mappingin huomio" />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <button type="submit">Lisää mapping-rivi</button>
+          <div class="hint" id="mapping-line-result"></div>
+        </form>
+
+        <form id="mapping-activate-form" class="stack" data-guard="project:manager">
+          <label>
+            Mapping-versio
+            <select name="mappingVersionId" id="mapping-version-activate" required></select>
+          </label>
+          <label>
+            Hyväksyjä
+            <input name="approvedBy" placeholder="Työpäällikkö" required />
+          </label>
+          <button type="submit">Aktivoi mapping-versio</button>
+          <div class="hint" id="mapping-activate-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="forecast">
+        <h2>5. Ennustetapahtuma</h2>
+        <form id="forecast-form" class="stack" data-guard="project:editor">
+          <label>
+            Projekti
+            <select name="projectId" id="forecast-project" required></select>
+          </label>
+          <label>
+            Tavoitearvio-littera
+            <select name="targetLitteraId" id="forecast-littera" required></select>
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <label>
+            Yleisperustelu
+            <textarea name="comment" placeholder="Miksi ennuste muuttui?"></textarea>
+          </label>
+          <div class="grid-2">
+            <label>
+              Tek. valmius (0..1)
+              <input name="technicalProgress" placeholder="0.45" />
+            </label>
+            <label>
+              Tal. valmius (0..1)
+              <input name="financialProgress" placeholder="0.40" />
+            </label>
+          </div>
+          <label>
+            KPI-arvo
+            <input name="kpiValue" placeholder="1.05" />
+          </label>
+
+          <div class="lines">
+            <h3>Kustannuslajit</h3>
+            <div class="line-row" data-cost-type="LABOR">
+              <span>Työ</span>
+              <input placeholder="€" data-field="value" />
+              <input placeholder="Perustelu" data-field="memo" />
+            </div>
+            <div class="line-row" data-cost-type="MATERIAL">
+              <span>Aine</span>
+              <input placeholder="€" data-field="value" />
+              <input placeholder="Perustelu" data-field="memo" />
+            </div>
+            <div class="line-row" data-cost-type="SUBCONTRACT">
+              <span>Alihankinta</span>
+              <input placeholder="€" data-field="value" />
+              <input placeholder="Perustelu" data-field="memo" />
+            </div>
+            <div class="line-row" data-cost-type="RENTAL">
+              <span>Vuokra</span>
+              <input placeholder="€" data-field="value" />
+              <input placeholder="Perustelu" data-field="memo" />
+            </div>
+            <div class="line-row" data-cost-type="OTHER">
+              <span>Muu</span>
+              <input placeholder="€" data-field="value" />
+              <input placeholder="Perustelu" data-field="memo" />
+            </div>
+          </div>
+
+          <button type="submit">Tallenna ennuste</button>
+          <div class="hint" id="forecast-result"></div>
+        </form>
+      </section>
+
+      <section class="card" id="report-section" data-page="report" data-guard="project:viewer">
+        <h2>6. Raportti</h2>
+        <div class="stack">
+          <label>
+            Projekti
+            <select id="report-project"></select>
+          </label>
+          <label>
+            Tavoitearvio-littera
+            <select id="report-littera"></select>
+          </label>
+          <button id="report-refresh">Päivitä raportti</button>
+          <div class="history" id="report-output"></div>
+        </div>
+      </section>
+
+      <section class="card" data-page="history" data-guard="project:viewer">
+        <h2>7. Historia</h2>
+        <div class="stack">
+          <label>
+            Projekti
+            <select id="history-project"></select>
+          </label>
+          <label>
+            Tavoitearvio-littera
+            <select id="history-littera"></select>
+          </label>
+          <button id="history-refresh">Päivitä historia</button>
+          <div class="history" id="history-output"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

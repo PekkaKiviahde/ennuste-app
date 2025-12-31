@@ -1,0 +1,12 @@
+{
+  "scenario": "uusi tavoitearvio-littera ilman historiaa",
+  "project": {
+    "name": "Kaarnatie",
+    "customer": "Kaarna Oy"
+  },
+  "target_littera": {
+    "code": "0100",
+    "title": "Perustukset",
+    "group_code": 0
+  }
+}

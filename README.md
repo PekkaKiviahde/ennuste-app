@@ -34,6 +34,23 @@ että logiikka toimii ilman Exceliä.
 4. Ennuste kirjataan **tapahtumana** (kustannuslajit + muistiot + perustelut)
 5. Ryhmä-/kokonaistaso päivittyy (raportointi)
 
+## MVP-sovellus (demo)
+
+Nopea demo käyttää Postgresia ja minimikäyttöliittymää (suunnitelma + ennustetapahtuma).
+
+1. Kopioi `.env.example` → `.env` ja varmista `DATABASE_URL`.
+2. Aja: `docker compose up -d`
+3. Avaa: `http://localhost:3000` (tai suoraan `/setup`, `/mapping`, `/planning`, `/forecast`, `/report`, `/history`)
+
+Käyttöliittymä tarjoaa:
+- projektin luonti
+- tavoitearvio-litteran luonti
+- mapping-versio + mapping-rivit + aktivointi
+- suunnitelma (status READY_FOR_FORECAST ennen ennustetta)
+- ennustetapahtuma kustannuslajeittain (append-only)
+- perusraportti (tavoite/ennuste/toteuma kustannuslajeittain)
+- välilehdet + omat reitit yllä mainituille osioille
+
 ## Lähteet (nykyinen Excel)
 
 Excel-työkirja ja exportatut VBA-moduulit tallennetaan tänne:
@@ -242,6 +259,34 @@ rg -n ":[^@\\s]+@|password=" .\smoke.log
 ```
 
 Jos tuloksia ei tule, redaktointi on kunnossa. Päinvastoin, korjaa tulostus käyttämään `redact_database_url()`-apua.
+
+## Mitä muuttui
+- Laajennettu MVP-sovellus: mapping-versiot/rivit/aktivointi, perusraportti ja esimerkkidatan automaatio.
+- Lisätty RBAC-minimi: Bearer-token + järjestelmärooli + projektikohtaiset roolit.
+- Rajattu kirjoitus- ja luku-API:t roolien mukaan sekä UI:n näkyvyys.
+- Lisätty Pikatoiminnot-osio nopeaan navigointiin ja roolivalintoihin.
+- Päivitetty demo-ohje ja UI-polut vastaamaan MVP-ydintä.
+- Lisätty `data/samples/`-skenaariot MVP-testattavuutta varten.
+
+## Miksi
+- MVP-ydin pitää saada näkyviin sovelluksena (suunnitelma + mapping + ennuste + raportti).
+- Esimerkkidatan napilla saadaan UI-polku toistettavasti yhdellä klikkauksella.
+- Roolien ohjaus parantaa käytettävyyttä ja estää väärät toiminnot kevyesti.
+- Token-pohjainen tarkistus valmistaa API:n myöhemmälle autentikaatiolle.
+- Pikatoiminnot nopeuttavat MVP-polun läpivientiä.
+
+## Miten testataan (manuaali)
+- Aja `docker compose up -d` ja varmista, että `http://localhost:3000` avautuu.
+- Luo projekti → littera → suunnitelma → ennuste ja tarkista, että historia listautuu.
+- Luo mapping-versio → lisää mapping-rivi → aktivoi mapping ja tarkista, että raportti päivittyy.
+- Klikkaa “Täytä esimerkkidata” ja varmista, että uusi projekti ilmestyy ja raportti näyttää ennusteen.
+- Vaihda järjestelmärooliin `admin` ja projektin rooliin `owner`, ja varmista että kaikki lomakkeet toimivat.
+- Vaihda projektin rooliin `viewer` ja varmista, että muokkauslomakkeet ovat poissa käytöstä.
+- Vaihda välilehtiä ja varmista, että URL päivittyy (esim. `/report`).
+- Paina Alt+1..Alt+6 ja varmista, että välilehdet vaihtuvat.
+- Yritä avata `/report` ilman projektia ja varmista, että ohjaus pyytää valitsemaan projektin.
+- Klikkaa “Roolit: admin + owner” ja varmista, että roolivalinnat päivittyvät.
+- Klikkaa “Luo projekti (avaa lomake)” ja varmista, että Setupin projektilomake fokusoituu.
 
 
 Docs
