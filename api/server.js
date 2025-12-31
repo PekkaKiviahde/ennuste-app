@@ -1,6 +1,10 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import os from "os";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import dotenv from "dotenv";
 import { query, withClient } from "./db.js";
 
@@ -12,7 +16,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 const app = express();
 const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/api", (req, res, next) => {
@@ -136,6 +140,97 @@ async function logMappingEvent({ projectId, actor, action, payload }) {
   );
 }
 
+const execFileAsync = promisify(execFile);
+
+function trimLog(text, limit = 8000) {
+  if (!text) {
+    return "";
+  }
+  const cleaned = String(text).trim();
+  if (cleaned.length <= limit) {
+    return cleaned;
+  }
+  return `${cleaned.slice(0, limit)}…(truncated)`;
+}
+
+function extractImportBatchId(text) {
+  const cleaned = String(text || "");
+  const match = cleaned.match(/import_batch_id=([0-9a-f-]+)/i);
+  if (match) {
+    return match[1];
+  }
+  const alt = cleaned.match(/Import batch:\s*([0-9a-f-]+)/i);
+  return alt ? alt[1] : null;
+}
+
+async function runBudgetImport({ projectId, importedBy, filePath, dryRun }) {
+  const scriptPath = path.join(__dirname, "..", "tools", "scripts", "import_budget.py");
+  const pythonBin = process.env.PYTHON || "python";
+  const args = [
+    scriptPath,
+    "--project-id",
+    projectId,
+    "--file",
+    filePath,
+    "--imported-by",
+    importedBy,
+  ];
+  if (dryRun) {
+    args.push("--dry-run");
+  }
+  return execFileAsync(pythonBin, args, {
+    env: process.env,
+    maxBuffer: 10 * 1024 * 1024,
+  });
+}
+
+async function runJydaImport({
+  projectId,
+  importedBy,
+  filePath,
+  dryRun,
+  occurredOn,
+  metrics,
+  includeZeros,
+}) {
+  const scriptPath = path.join(__dirname, "..", "tools", "scripts", "import_jyda.py");
+  const pythonBin = process.env.PYTHON || "python";
+  const args = ["--file", filePath, "--project-id", projectId, "--imported-by", importedBy];
+  if (occurredOn) {
+    args.push("--occurred-on", occurredOn);
+  }
+  if (Array.isArray(metrics) && metrics.length > 0) {
+    args.push("--metrics", ...metrics);
+  }
+  if (includeZeros) {
+    args.push("--include-zeros");
+  }
+  if (dryRun) {
+    args.push("--dry-run");
+  }
+  return execFileAsync(pythonBin, [scriptPath, ...args], {
+    env: process.env,
+    maxBuffer: 10 * 1024 * 1024,
+  });
+}
+
+function decodeFileData(fileData) {
+  if (!fileData) {
+    return null;
+  }
+  const text = String(fileData);
+  const commaIdx = text.indexOf(",");
+  const base64 = commaIdx >= 0 ? text.slice(commaIdx + 1) : text;
+  return Buffer.from(base64, "base64");
+}
+
+async function logImportJobEvent({ jobId, status, message }) {
+  await query(
+    "INSERT INTO import_job_events (import_job_id, status, message) VALUES ($1,$2,$3)",
+    [jobId, status, message || null]
+  );
+}
+
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
@@ -227,6 +322,328 @@ app.post("/api/litteras", async (req, res, next) => {
     );
 
     res.status(201).json({ littera_id: rows[0].littera_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/budget-import", async (req, res, next) => {
+  const tmpDirPrefix = path.join(os.tmpdir(), "budget-import-");
+  let tmpDir = null;
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "manager")) {
+      return;
+    }
+    const { projectId, importedBy, filename, csvText, dryRun } = req.body;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!importedBy || String(importedBy).trim() === "") {
+      return badRequest(res, "importedBy puuttuu.");
+    }
+    if (!csvText || String(csvText).trim() === "") {
+      return badRequest(res, "CSV-teksti puuttuu.");
+    }
+
+    tmpDir = await fs.mkdtemp(tmpDirPrefix);
+    const safeName = filename ? String(filename).replace(/[^\w.\-]/g, "_") : "budget.csv";
+    const filePath = path.join(tmpDir, safeName);
+    await fs.writeFile(filePath, String(csvText), "utf8");
+
+    const { rows } = await query(
+      `INSERT INTO import_jobs (project_id, import_type, status, created_by, source_filename)
+       VALUES ($1, 'BUDGET', 'QUEUED', $2, $3)
+       RETURNING import_job_id`,
+      [projectId, String(importedBy).trim(), safeName]
+    );
+    const jobId = rows[0].import_job_id;
+    await logImportJobEvent({ jobId, status: "QUEUED", message: "Tuonti jonossa." });
+
+    res.json({ ok: true, import_job_id: jobId });
+
+    setImmediate(async () => {
+      try {
+        await query(
+          `UPDATE import_jobs
+           SET status='RUNNING', started_at=now()
+           WHERE import_job_id=$1`,
+          [jobId]
+        );
+        await logImportJobEvent({ jobId, status: "RUNNING", message: "Tuonti käynnistetty." });
+
+        const { stdout, stderr } = await runBudgetImport({
+          projectId,
+          importedBy: String(importedBy).trim(),
+          filePath,
+          dryRun: Boolean(dryRun),
+        });
+        const importBatchId = extractImportBatchId(stdout);
+        await query(
+          `UPDATE import_jobs
+           SET status='SUCCESS', finished_at=now(), import_batch_id=$2,
+               stdout=$3, stderr=$4
+           WHERE import_job_id=$1`,
+          [jobId, importBatchId, trimLog(stdout), trimLog(stderr)]
+        );
+        await logImportJobEvent({
+          jobId,
+          status: "SUCCESS",
+          message: importBatchId ? `Valmis. import_batch_id=${importBatchId}` : "Valmis.",
+        });
+      } catch (err) {
+        const stderr = err?.stderr || "";
+        await query(
+          `UPDATE import_jobs
+           SET status='FAILED', finished_at=now(), error_message=$2, stdout=$3, stderr=$4
+           WHERE import_job_id=$1`,
+          [jobId, String(err.message || "Tuonti epäonnistui."), trimLog(err.stdout), trimLog(stderr)]
+        );
+        await logImportJobEvent({
+          jobId,
+          status: "FAILED",
+          message: String(err.message || "Tuonti epäonnistui."),
+        });
+      } finally {
+        if (tmpDir) {
+          try {
+            await fs.rm(tmpDir, { recursive: true, force: true });
+          } catch (_) {
+            // cleanup best-effort
+          }
+        }
+      }
+    });
+  } catch (err) {
+    if (tmpDir) {
+      try {
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      } catch (_) {
+        // cleanup best-effort
+      }
+    }
+    next(err);
+  }
+});
+
+app.post("/api/jyda-import", async (req, res, next) => {
+  const tmpDirPrefix = path.join(os.tmpdir(), "jyda-import-");
+  let tmpDir = null;
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "manager")) {
+      return;
+    }
+    const {
+      projectId,
+      importedBy,
+      filename,
+      csvText,
+      fileData,
+      dryRun,
+      occurredOn,
+      metrics,
+      includeZeros,
+    } = req.body;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!importedBy || String(importedBy).trim() === "") {
+      return badRequest(res, "importedBy puuttuu.");
+    }
+    if ((!csvText || String(csvText).trim() === "") && !fileData) {
+      return badRequest(res, "CSV-teksti tai tiedosto puuttuu.");
+    }
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      return badRequest(res, "metrics puuttuu.");
+    }
+
+    tmpDir = await fs.mkdtemp(tmpDirPrefix);
+    const safeName = filename ? String(filename).replace(/[^\w.\-]/g, "_") : "jyda.csv";
+    const filePath = path.join(tmpDir, safeName);
+    if (fileData) {
+      const buffer = decodeFileData(fileData);
+      await fs.writeFile(filePath, buffer);
+    } else {
+      await fs.writeFile(filePath, String(csvText), "utf8");
+    }
+
+    const { rows } = await query(
+      `INSERT INTO import_jobs (project_id, import_type, status, created_by, source_filename)
+       VALUES ($1, 'JYDA', 'QUEUED', $2, $3)
+       RETURNING import_job_id`,
+      [projectId, String(importedBy).trim(), safeName]
+    );
+    const jobId = rows[0].import_job_id;
+    await logImportJobEvent({ jobId, status: "QUEUED", message: "Tuonti jonossa." });
+
+    res.json({ ok: true, import_job_id: jobId });
+
+    setImmediate(async () => {
+      try {
+        await query(
+          `UPDATE import_jobs
+           SET status='RUNNING', started_at=now()
+           WHERE import_job_id=$1`,
+          [jobId]
+        );
+        await logImportJobEvent({ jobId, status: "RUNNING", message: "Tuonti käynnistetty." });
+
+        const { stdout, stderr } = await runJydaImport({
+          projectId,
+          importedBy: String(importedBy).trim(),
+          filePath,
+          dryRun: Boolean(dryRun),
+          occurredOn: occurredOn ? String(occurredOn).trim() : "",
+          metrics,
+          includeZeros: Boolean(includeZeros),
+        });
+        const importBatchId = extractImportBatchId(stdout);
+        await query(
+          `UPDATE import_jobs
+           SET status='SUCCESS', finished_at=now(), import_batch_id=$2,
+               stdout=$3, stderr=$4
+           WHERE import_job_id=$1`,
+          [jobId, importBatchId, trimLog(stdout), trimLog(stderr)]
+        );
+        await logImportJobEvent({
+          jobId,
+          status: "SUCCESS",
+          message: importBatchId ? `Valmis. import_batch_id=${importBatchId}` : "Valmis.",
+        });
+      } catch (err) {
+        const stderr = err?.stderr || "";
+        await query(
+          `UPDATE import_jobs
+           SET status='FAILED', finished_at=now(), error_message=$2, stdout=$3, stderr=$4
+           WHERE import_job_id=$1`,
+          [jobId, String(err.message || "Tuonti epäonnistui."), trimLog(err.stdout), trimLog(stderr)]
+        );
+        await logImportJobEvent({
+          jobId,
+          status: "FAILED",
+          message: String(err.message || "Tuonti epäonnistui."),
+        });
+      } finally {
+        if (tmpDir) {
+          try {
+            await fs.rm(tmpDir, { recursive: true, force: true });
+          } catch (_) {
+            // cleanup best-effort
+          }
+        }
+      }
+    });
+  } catch (err) {
+    if (tmpDir) {
+      try {
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      } catch (_) {
+        // cleanup best-effort
+      }
+    }
+    next(err);
+  }
+});
+
+app.get("/api/import-jobs", async (req, res, next) => {
+  try {
+    const { projectId } = req.query;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+    const { rows } = await query(
+      `SELECT import_job_id, project_id, import_type, status, source_filename,
+              created_by, created_at, started_at, finished_at, import_batch_id
+       FROM import_jobs
+       WHERE project_id=$1
+       ORDER BY created_at DESC
+       LIMIT 20`,
+      [projectId]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-jobs/:jobId", async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+    const { rows } = await query(
+      `SELECT import_job_id, project_id, import_type, status, source_filename,
+              created_by, created_at, started_at, finished_at, import_batch_id,
+              stdout, stderr, error_message
+       FROM import_jobs
+       WHERE import_job_id=$1`,
+      [jobId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Import-ajon tunnistetta ei löydy." });
+    }
+    const job = rows[0];
+    if (!requireProjectAccess(req, res, job.project_id, "manager")) {
+      return;
+    }
+    const events = await query(
+      `SELECT status, message, created_at
+       FROM import_job_events
+       WHERE import_job_id=$1
+       ORDER BY created_at ASC`,
+      [jobId]
+    );
+    res.json({ job, events: events.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-mappings", async (req, res, next) => {
+  try {
+    const { projectId, type } = req.query;
+    if (!projectId || !type) {
+      return badRequest(res, "projectId ja type puuttuu.");
+    }
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+    const { rows } = await query(
+      `SELECT mapping, updated_at, created_by
+       FROM import_mappings
+       WHERE project_id=$1 AND import_type=$2`,
+      [projectId, type]
+    );
+    res.json(rows[0] || null);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.put("/api/import-mappings", async (req, res, next) => {
+  try {
+    const { projectId, type, mapping, createdBy } = req.body;
+    if (!projectId || !type) {
+      return badRequest(res, "projectId ja type puuttuu.");
+    }
+    if (!mapping || typeof mapping !== "object") {
+      return badRequest(res, "mapping puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+    const { rows } = await query(
+      `INSERT INTO import_mappings (project_id, import_type, mapping, created_by)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (project_id, import_type)
+       DO UPDATE SET mapping=$3, updated_at=now(), created_by=$4
+       RETURNING import_mapping_id`,
+      [projectId, type, mapping, String(createdBy).trim()]
+    );
+    res.json({ ok: true, import_mapping_id: rows[0].import_mapping_id });
   } catch (err) {
     next(err);
   }

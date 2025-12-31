@@ -100,8 +100,185 @@
         </form>
       </section>
 
+      <section class="card" data-page="setup">
+        <h2>3. Budjetin tuonti (CSV)</h2>
+        <form id="budget-import-form" class="stack" data-guard="project:manager">
+          <label>
+            Projekti
+            <select name="projectId" id="budget-project" required></select>
+          </label>
+          <label>
+            Tuojan nimi
+            <input name="importedBy" placeholder="Taloushallinto" required />
+          </label>
+          <label>
+            CSV-tiedosto (;<span>erotin</span>, UTF-8)
+            <input type="file" id="budget-file" name="file" accept=".csv,text/csv" required />
+          </label>
+          <div class="stack">
+            <h3>Esikatselu ja kenttien mappaus</h3>
+            <div class="preview-note" id="budget-preview-note">Valitse CSV nähdäksesi esikatselun.</div>
+            <div class="preview-note" id="budget-validation"></div>
+            <div class="preview-table" id="budget-preview-table"></div>
+            <div class="grid-2">
+              <label>
+                Litterakoodi (pakollinen)
+                <select id="map-littera-code" required></select>
+              </label>
+              <label>
+                Litteraselite (valinnainen)
+                <select id="map-littera-title"></select>
+              </label>
+              <label>
+                Työ € (LABOR)
+                <select id="map-labor" required></select>
+              </label>
+              <label>
+                Aine € (MATERIAL)
+                <select id="map-material" required></select>
+              </label>
+              <label>
+                Alih € (SUBCONTRACT)
+                <select id="map-subcontract" required></select>
+              </label>
+              <label>
+                Vmiehet € (RENTAL)
+                <select id="map-rental" required></select>
+              </label>
+              <label>
+                Muu € (OTHER)
+                <select id="map-other" required></select>
+              </label>
+            </div>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" name="dryRun" />
+            Kuiva-ajo (ei kirjoiteta kantaan)
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" name="saveMapping" checked />
+            Tallenna mappaus tälle projektille
+          </label>
+          <button type="submit">Tuo budjetti</button>
+          <div class="hint" id="budget-import-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>4. JYDA-tuonti (CSV)</h2>
+        <form id="jyda-import-form" class="stack" data-guard="project:manager">
+          <label>
+            Projekti
+            <select name="projectId" id="jyda-project" required></select>
+          </label>
+          <label>
+            Tuojan nimi
+            <input name="importedBy" placeholder="Taloushallinto" required />
+          </label>
+          <label>
+            Snapshot-päivä (occurred_on)
+            <input type="date" name="occurredOn" />
+          </label>
+          <label>
+            CSV-tiedosto (pilkku- tai puolipiste-erotin)
+            <input type="file" id="jyda-file" name="file" accept=".csv,.xlsx,.xlsm,text/csv" required />
+          </label>
+          <div class="stack">
+            <h3>Esikatselu ja kenttien mappaus</h3>
+            <div class="preview-note" id="jyda-preview-note">Valitse CSV nähdäksesi esikatselun.</div>
+            <div class="preview-note" id="jyda-validation"></div>
+            <div class="preview-table" id="jyda-preview-table"></div>
+            <div class="grid-2">
+              <label>
+                Koodi (pakollinen)
+                <select id="map-jyda-code" required></select>
+              </label>
+              <label>
+                Nimi (valinnainen)
+                <select id="map-jyda-name"></select>
+              </label>
+              <label>
+                Sidottu kustannus
+                <select id="map-jyda-committed" required></select>
+              </label>
+              <label>
+                Toteutunut kustannus
+                <select id="map-jyda-actual" required></select>
+              </label>
+              <label>
+                Toteutunut (sis. hyväksymätt.)
+                <select id="map-jyda-actual-unapproved"></select>
+              </label>
+              <label>
+                Ennustettu kustannus
+                <select id="map-jyda-forecast"></select>
+              </label>
+              <label>
+                Tavoitekustannus (optional)
+                <select id="map-jyda-target"></select>
+              </label>
+            </div>
+            <div class="grid-2">
+              <label class="checkbox">
+                <input type="checkbox" id="metric-committed" checked />
+                Sisällytä Sidottu kustannus
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="metric-actual" checked />
+                Sisällytä Toteutunut kustannus
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="metric-actual-unapproved" />
+                Sisällytä Toteutunut (sis. hyväksymätt.)
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="metric-forecast" />
+                Sisällytä Ennustettu kustannus
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="metric-target" />
+                Sisällytä Tavoitekustannus
+              </label>
+            </div>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" name="includeZeros" />
+            Tuo myös nollarivit
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" name="dryRun" />
+            Kuiva-ajo (ei kirjoiteta kantaan)
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" name="saveMapping" checked />
+            Tallenna mappaus tälle projektille
+          </label>
+          <button type="submit">Tuo JYDA</button>
+          <div class="hint" id="jyda-import-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>5. Tuontilokit</h2>
+        <div class="grid-2">
+          <label>
+            Suodata tyyppi
+            <select id="import-filter-type">
+              <option value="ALL">Kaikki</option>
+              <option value="BUDGET">BUDGET</option>
+              <option value="JYDA">JYDA</option>
+            </select>
+          </label>
+          <label>
+            Haku (tiedosto / status / batch)
+            <input id="import-filter-query" placeholder="etsi..." />
+          </label>
+        </div>
+        <div class="history" id="budget-import-jobs">Valitse projekti nähdäksesi tuontihistorian.</div>
+      </section>
+
       <section class="card" data-page="planning">
-        <h2>3. Suunnitelma</h2>
+        <h2>6. Suunnitelma</h2>
         <form id="planning-form" class="stack" data-guard="project:editor">
           <label>
             Projekti

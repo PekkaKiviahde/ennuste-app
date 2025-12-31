@@ -220,6 +220,66 @@ button:hover {
   color: var(--accent-2);
 }
 
+.preview-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.preview-table {
+  overflow-x: auto;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.preview-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--stroke);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.job-log {
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+}
+
+.job-log pre {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  color: var(--muted);
+}
+
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.job-actions button {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
 .grid-2 {
   display: grid;
   gap: 12px;

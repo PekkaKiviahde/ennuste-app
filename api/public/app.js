@@ -1,5 +1,7 @@
 const projectSelects = {
   project: document.getElementById("project-select"),
+  budget: document.getElementById("budget-project"),
+  jyda: document.getElementById("jyda-project"),
   planning: document.getElementById("planning-project"),
   forecast: document.getElementById("forecast-project"),
   mapping: document.getElementById("mapping-project"),
@@ -21,6 +23,40 @@ const reportOutput = document.getElementById("report-output");
 const mappingVersionSelect = document.getElementById("mapping-version");
 const mappingVersionActivateSelect = document.getElementById("mapping-version-activate");
 const demoSeedResult = document.getElementById("demo-seed-result");
+const budgetPreviewNote = document.getElementById("budget-preview-note");
+const budgetPreviewTable = document.getElementById("budget-preview-table");
+const budgetValidation = document.getElementById("budget-validation");
+const budgetJobs = document.getElementById("budget-import-jobs");
+const budgetFileInput = document.getElementById("budget-file");
+const jydaPreviewNote = document.getElementById("jyda-preview-note");
+const jydaPreviewTable = document.getElementById("jyda-preview-table");
+const jydaValidation = document.getElementById("jyda-validation");
+const jydaFileInput = document.getElementById("jyda-file");
+const jydaMetricChecks = {
+  committed: document.getElementById("metric-committed"),
+  actual: document.getElementById("metric-actual"),
+  actualUnapproved: document.getElementById("metric-actual-unapproved"),
+  forecast: document.getElementById("metric-forecast"),
+  target: document.getElementById("metric-target"),
+};
+const mappingSelects = {
+  litteraCode: document.getElementById("map-littera-code"),
+  litteraTitle: document.getElementById("map-littera-title"),
+  labor: document.getElementById("map-labor"),
+  material: document.getElementById("map-material"),
+  subcontract: document.getElementById("map-subcontract"),
+  rental: document.getElementById("map-rental"),
+  other: document.getElementById("map-other"),
+};
+const jydaMappingSelects = {
+  code: document.getElementById("map-jyda-code"),
+  name: document.getElementById("map-jyda-name"),
+  committed: document.getElementById("map-jyda-committed"),
+  actual: document.getElementById("map-jyda-actual"),
+  actualUnapproved: document.getElementById("map-jyda-actual-unapproved"),
+  forecast: document.getElementById("map-jyda-forecast"),
+  target: document.getElementById("map-jyda-target"),
+};
 const systemRoleSelect = document.getElementById("system-role-select");
 const projectRoleSelect = document.getElementById("project-role-select");
 const ROLE_RANK = { viewer: 1, editor: 2, manager: 3, owner: 4 };
@@ -28,6 +64,13 @@ let knownProjectIds = [];
 const pages = ["setup", "mapping", "planning", "forecast", "report", "history"];
 const tabHint = document.getElementById("tab-hint");
 const quickActions = document.querySelector(".quick-actions");
+let budgetCsvData = null;
+let savedBudgetMapping = null;
+let jydaCsvData = null;
+let savedJydaMapping = null;
+let jydaFileMode = "csv";
+let jydaFileData = null;
+let lastImportJobs = [];
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, {
@@ -51,6 +94,293 @@ function option(label, value) {
   opt.value = value;
   opt.textContent = label;
   return opt;
+}
+
+function parseCsv(text, delimiter = ";") {
+  const rows = [];
+  let current = "";
+  let row = [];
+  let inQuotes = false;
+
+  const pushField = () => {
+    row.push(current);
+    current = "";
+  };
+
+  const pushRow = () => {
+    if (row.length > 0 || current.length > 0) {
+      pushField();
+      rows.push(row);
+      row = [];
+    }
+  };
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (ch === "\"") {
+      if (inQuotes && next === "\"") {
+        current += "\"";
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (!inQuotes && ch === delimiter) {
+      pushField();
+      continue;
+    }
+    if (!inQuotes && (ch === "\n" || ch === "\r")) {
+      if (ch === "\r" && next === "\n") {
+        i += 1;
+      }
+      pushRow();
+      continue;
+    }
+    current += ch;
+  }
+  pushRow();
+  return rows;
+}
+
+function csvEscape(value, delimiter = ";") {
+  const text = value == null ? "" : String(value);
+  if (text.includes(delimiter) || text.includes("\"") || text.includes("\n") || text.includes("\r")) {
+    return `"${text.replace(/"/g, "\"\"")}"`;
+  }
+  return text;
+}
+
+function detectDelimiter(text) {
+  const firstLine = text.split(/\r?\n/, 1)[0] || "";
+  const semicolons = (firstLine.match(/;/g) || []).length;
+  const commas = (firstLine.match(/,/g) || []).length;
+  return semicolons > commas ? ";" : ",";
+}
+
+function normalizeHeader(header) {
+  return String(header || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[_-]/g, "");
+}
+
+function autoSelect(select, headers, candidates) {
+  const normalized = headers.map((h) => normalizeHeader(h));
+  const idx = normalized.findIndex((h) => candidates.includes(h));
+  if (idx >= 0) {
+    select.value = headers[idx];
+  }
+}
+
+function fillMappingOptions(headers) {
+  Object.values(mappingSelects).forEach((select) => {
+    select.innerHTML = "";
+    select.appendChild(option("Valitse sarake", ""));
+    headers.forEach((h) => select.appendChild(option(h, h)));
+  });
+
+  autoSelect(mappingSelects.litteraCode, headers, ["litterakoodi", "littera", "koodi"]);
+  autoSelect(mappingSelects.litteraTitle, headers, ["litteraselite", "selite", "nimi"]);
+  autoSelect(mappingSelects.labor, headers, ["työ€", "tyo€", "tyoeur", "tyoeuro", "labor€", "labor"]);
+  autoSelect(mappingSelects.material, headers, ["aine€", "aineeur", "material€", "material"]);
+  autoSelect(mappingSelects.subcontract, headers, ["alih€", "aliheur", "alihankinta€", "subcontract"]);
+  autoSelect(mappingSelects.rental, headers, ["vmiehet€", "vmieheteur", "rental€", "rental"]);
+  autoSelect(mappingSelects.other, headers, ["muu€", "muueur", "other€", "other"]);
+
+  if (savedBudgetMapping) {
+    mappingSelects.litteraCode.value = savedBudgetMapping.litteraCode || "";
+    mappingSelects.litteraTitle.value = savedBudgetMapping.litteraTitle || "";
+    mappingSelects.labor.value = savedBudgetMapping.labor || "";
+    mappingSelects.material.value = savedBudgetMapping.material || "";
+    mappingSelects.subcontract.value = savedBudgetMapping.subcontract || "";
+    mappingSelects.rental.value = savedBudgetMapping.rental || "";
+    mappingSelects.other.value = savedBudgetMapping.other || "";
+  }
+
+  updateValidationSummary(headers, budgetCsvData ? budgetCsvData.rows : []);
+}
+
+function fillJydaMappingOptions(headers) {
+  Object.values(jydaMappingSelects).forEach((select) => {
+    select.innerHTML = "";
+    select.appendChild(option("Valitse sarake", ""));
+    headers.forEach((h) => select.appendChild(option(h, h)));
+  });
+
+  autoSelect(jydaMappingSelects.code, headers, ["koodi", "code"]);
+  autoSelect(jydaMappingSelects.name, headers, ["nimi", "name"]);
+  autoSelect(jydaMappingSelects.committed, headers, ["sidottukustannus", "committed"]);
+  autoSelect(jydaMappingSelects.actual, headers, ["toteutunutkustannus", "actual"]);
+  autoSelect(jydaMappingSelects.actualUnapproved, headers, ["toteutunutkustannussishyväksymätt", "actualunapproved"]);
+  autoSelect(jydaMappingSelects.forecast, headers, ["ennustettukustannus", "forecast"]);
+  autoSelect(jydaMappingSelects.target, headers, ["tavoitekustannus", "target"]);
+
+  if (savedJydaMapping) {
+    jydaMappingSelects.code.value = savedJydaMapping.code || "";
+    jydaMappingSelects.name.value = savedJydaMapping.name || "";
+    jydaMappingSelects.committed.value = savedJydaMapping.committed || "";
+    jydaMappingSelects.actual.value = savedJydaMapping.actual || "";
+    jydaMappingSelects.actualUnapproved.value = savedJydaMapping.actualUnapproved || "";
+    jydaMappingSelects.forecast.value = savedJydaMapping.forecast || "";
+    jydaMappingSelects.target.value = savedJydaMapping.target || "";
+  }
+
+  updateJydaValidationSummary(headers, jydaCsvData ? jydaCsvData.rows : []);
+}
+
+function renderPreview(headers, rows) {
+  if (!headers.length) {
+    budgetPreviewTable.innerHTML = "";
+    return;
+  }
+  const previewRows = rows.slice(0, 5);
+  const headerHtml = headers.map((h) => `<th>${h}</th>`).join("");
+  const bodyHtml = previewRows
+    .map((r) => `<tr>${headers.map((_, i) => `<td>${r[i] || ""}</td>`).join("")}</tr>`)
+    .join("");
+  budgetPreviewTable.innerHTML = `<table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function parseFiNumber(raw) {
+  const text = String(raw || "").trim();
+  if (!text) {
+    return 0;
+  }
+  const normalized = text.replace(/\u00A0/g, " ").replace(/ /g, "").replace(",", ".");
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : NaN;
+}
+
+function updateValidationSummary(headers, rows) {
+  if (!budgetValidation) {
+    return;
+  }
+  const total = rows.length;
+  if (total === 0) {
+    budgetValidation.textContent = "Ei rivejä.";
+    return;
+  }
+  const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
+  const codeKey = mappingSelects.litteraCode.value;
+  const costKeys = [
+    mappingSelects.labor.value,
+    mappingSelects.material.value,
+    mappingSelects.subcontract.value,
+    mappingSelects.rental.value,
+    mappingSelects.other.value,
+  ].filter(Boolean);
+  let emptyCode = 0;
+  let zeroSum = 0;
+  let badNumbers = 0;
+
+  rows.forEach((row) => {
+    const code = codeKey ? (row[headerIndex[codeKey]] || "").trim() : "";
+    if (!code) {
+      emptyCode += 1;
+      return;
+    }
+    if (costKeys.length === 0) {
+      return;
+    }
+    let sum = 0;
+    let hasBad = false;
+    costKeys.forEach((key) => {
+      const val = parseFiNumber(row[headerIndex[key]]);
+      if (Number.isNaN(val)) {
+        hasBad = true;
+      } else {
+        sum += val;
+      }
+    });
+    if (hasBad) {
+      badNumbers += 1;
+    }
+    if (sum === 0) {
+      zeroSum += 1;
+    }
+  });
+
+  const warnings = [];
+  if (emptyCode) {
+    warnings.push(`Tyhjä litterakoodi: ${emptyCode} riviä`);
+  }
+  if (zeroSum) {
+    warnings.push(`Kustannukset 0: ${zeroSum} riviä`);
+  }
+  if (badNumbers) {
+    warnings.push(`Epäkelpo luku: ${badNumbers} riviä`);
+  }
+  budgetValidation.textContent =
+    warnings.length === 0 ? `Rivejä yhteensä: ${total}.` : `Rivejä: ${total}. ${warnings.join(" · ")}`;
+}
+
+function updateJydaValidationSummary(headers, rows) {
+  if (!jydaValidation) {
+    return;
+  }
+  if (jydaFileMode === "excel") {
+    jydaValidation.textContent = "Excel-esikatselu: tarkistukset tehdään importissa.";
+    return;
+  }
+  const total = rows.length;
+  if (total === 0) {
+    jydaValidation.textContent = "Ei rivejä.";
+    return;
+  }
+  const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
+  const codeKey = jydaMappingSelects.code.value;
+  const metricKeys = [
+    jydaMappingSelects.committed.value,
+    jydaMappingSelects.actual.value,
+    jydaMappingSelects.actualUnapproved.value,
+    jydaMappingSelects.forecast.value,
+    jydaMappingSelects.target.value,
+  ].filter(Boolean);
+  let emptyCode = 0;
+  let zeroSum = 0;
+  let badNumbers = 0;
+
+  rows.forEach((row) => {
+    const code = codeKey ? (row[headerIndex[codeKey]] || "").trim() : "";
+    if (!code) {
+      emptyCode += 1;
+      return;
+    }
+    if (metricKeys.length === 0) {
+      return;
+    }
+    let sum = 0;
+    let hasBad = false;
+    metricKeys.forEach((key) => {
+      const val = parseFiNumber(row[headerIndex[key]]);
+      if (Number.isNaN(val)) {
+        hasBad = true;
+      } else {
+        sum += val;
+      }
+    });
+    if (hasBad) {
+      badNumbers += 1;
+    }
+    if (sum === 0) {
+      zeroSum += 1;
+    }
+  });
+
+  const warnings = [];
+  if (emptyCode) {
+    warnings.push(`Tyhjä koodi: ${emptyCode} riviä`);
+  }
+  if (zeroSum) {
+    warnings.push(`Kustannukset 0: ${zeroSum} riviä`);
+  }
+  if (badNumbers) {
+    warnings.push(`Epäkelpo luku: ${badNumbers} riviä`);
+  }
+  jydaValidation.textContent =
+    warnings.length === 0 ? `Rivejä yhteensä: ${total}.` : `Rivejä: ${total}. ${warnings.join(" · ")}`;
 }
 
 function authState() {
@@ -107,6 +437,8 @@ function selectedProjectId() {
   return (
     projectSelects.report.value ||
     projectSelects.mapping.value ||
+    projectSelects.jyda.value ||
+    projectSelects.budget.value ||
     projectSelects.planning.value ||
     projectSelects.forecast.value ||
     projectSelects.history.value ||
@@ -222,6 +554,72 @@ async function loadProjects() {
   applyRoleUi();
 }
 
+async function loadBudgetJobs(projectId) {
+  if (!budgetJobs) {
+    return;
+  }
+  if (!projectId) {
+    budgetJobs.textContent = "Valitse projekti nähdäksesi tuontihistorian.";
+    return;
+  }
+  try {
+    const jobs = await fetchJson(`/api/import-jobs?projectId=${projectId}`);
+    lastImportJobs = jobs;
+    renderImportJobs(jobs);
+  } catch (err) {
+    budgetJobs.textContent = err.message;
+  }
+}
+
+function renderImportJobs(jobs) {
+  const filterType = document.getElementById("import-filter-type")?.value || "ALL";
+  const query = (document.getElementById("import-filter-query")?.value || "").toLowerCase();
+  const filtered = jobs.filter((job) => {
+    if (filterType !== "ALL" && job.import_type !== filterType) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    const haystack = [
+      job.import_type,
+      job.status,
+      job.source_filename,
+      job.import_batch_id,
+      job.created_by,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
+  });
+
+  budgetJobs.innerHTML = "";
+  if (!filtered.length) {
+    budgetJobs.textContent = "Ei tuonteja.";
+    return;
+  }
+  filtered.forEach((job) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+    item.innerHTML = `
+      <strong>${job.import_type} • ${job.status}</strong>
+      <div>${new Date(job.created_at).toLocaleString("fi-FI")} — ${job.source_filename || "-"}</div>
+      <div>${job.import_batch_id ? `import_batch_id=${job.import_batch_id}` : ""}</div>
+      <div class="job-actions">
+        <button type="button" class="job-detail" data-job-id="${job.import_job_id}">Näytä loki</button>
+        <button type="button" class="job-download" data-job-id="${job.import_job_id}" data-format="json">
+          Lataa loki (json)
+        </button>
+        <button type="button" class="job-download" data-job-id="${job.import_job_id}" data-format="csv">
+          Lataa loki (csv)
+        </button>
+      </div>
+    `;
+    budgetJobs.appendChild(item);
+  });
+}
+
 async function loadLitteras(projectId) {
   if (!projectId) {
     Object.values(litteraSelects).forEach((select) => {
@@ -312,6 +710,61 @@ projectSelects.project.addEventListener("change", async (e) => {
   applyRoleUi();
 });
 
+projectSelects.budget.addEventListener("change", async () => {
+  applyRoleUi();
+  await loadBudgetJobs(projectSelects.budget.value);
+  const projectId = projectSelects.budget.value;
+  savedBudgetMapping = null;
+  if (projectId) {
+    try {
+      const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=BUDGET`);
+      if (mapping && mapping.mapping) {
+        savedBudgetMapping = mapping.mapping;
+        if (budgetCsvData) {
+          fillMappingOptions(budgetCsvData.headers);
+          updateValidationSummary(budgetCsvData.headers, budgetCsvData.rows);
+        }
+      }
+    } catch (_) {
+      // ignore mapping fetch errors
+    }
+  }
+});
+
+projectSelects.jyda.addEventListener("change", async () => {
+  applyRoleUi();
+  await loadBudgetJobs(projectSelects.jyda.value);
+  const projectId = projectSelects.jyda.value;
+  savedJydaMapping = null;
+  if (projectId) {
+    try {
+      const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=JYDA`);
+      if (mapping && mapping.mapping) {
+        savedJydaMapping = mapping.mapping;
+        if (jydaCsvData) {
+          fillJydaMappingOptions(jydaCsvData.headers);
+          updateJydaValidationSummary(jydaCsvData.headers, jydaCsvData.rows);
+        }
+      }
+    } catch (_) {
+      // ignore mapping fetch errors
+    }
+  }
+});
+
+const importFilterType = document.getElementById("import-filter-type");
+const importFilterQuery = document.getElementById("import-filter-query");
+if (importFilterType) {
+  importFilterType.addEventListener("change", () => {
+    renderImportJobs(lastImportJobs);
+  });
+}
+if (importFilterQuery) {
+  importFilterQuery.addEventListener("input", () => {
+    renderImportJobs(lastImportJobs);
+  });
+}
+
 projectSelects.planning.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
 });
@@ -357,6 +810,467 @@ projectForm.addEventListener("submit", async (e) => {
     setHint(result, "Projekti luotu.");
     projectForm.reset();
     await loadProjects();
+  } catch (err) {
+    setHint(result, err.message, true);
+  }
+});
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Tiedoston luku epäonnistui."));
+    reader.readAsText(file, "utf-8");
+  });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Tiedoston luku epäonnistui."));
+    reader.readAsDataURL(file);
+  });
+}
+
+budgetFileInput.addEventListener("change", async () => {
+  const file = budgetFileInput.files[0];
+  if (!file) {
+    budgetCsvData = null;
+    budgetPreviewNote.textContent = "Valitse CSV nähdäksesi esikatselun.";
+    budgetPreviewTable.innerHTML = "";
+    return;
+  }
+  try {
+    const text = await readFileAsText(file);
+    const rows = parseCsv(text);
+    if (!rows.length) {
+      throw new Error("CSV on tyhjä.");
+    }
+    const headers = rows[0].map((h) => (h || "").trim());
+    if (headers[0]) {
+      headers[0] = headers[0].replace(/^\uFEFF/, "");
+    }
+    const dataRows = rows.slice(1);
+    budgetCsvData = { headers, rows: dataRows };
+    budgetPreviewNote.textContent = `Rivejä: ${dataRows.length}`;
+    renderPreview(headers, dataRows);
+    fillMappingOptions(headers);
+    updateValidationSummary(headers, dataRows);
+  } catch (err) {
+    budgetCsvData = null;
+    budgetPreviewNote.textContent = err.message;
+    budgetPreviewTable.innerHTML = "";
+  }
+});
+
+Object.values(mappingSelects).forEach((select) => {
+  select.addEventListener("change", () => {
+    if (budgetCsvData) {
+      updateValidationSummary(budgetCsvData.headers, budgetCsvData.rows);
+    }
+  });
+});
+
+jydaFileInput.addEventListener("change", async () => {
+  const file = jydaFileInput.files[0];
+  if (!file) {
+    jydaCsvData = null;
+    jydaFileMode = "csv";
+    jydaFileData = null;
+    jydaPreviewNote.textContent = "Valitse CSV nähdäksesi esikatselun.";
+    jydaPreviewTable.innerHTML = "";
+    if (jydaValidation) {
+      jydaValidation.textContent = "";
+    }
+    return;
+  }
+  try {
+    const ext = file.name.toLowerCase().split(".").pop();
+    if (ext === "xlsx" || ext === "xlsm") {
+      jydaFileMode = "excel";
+      jydaFileData = await readFileAsDataUrl(file);
+      jydaCsvData = null;
+      jydaPreviewNote.textContent = "Excel valittu: esikatselu ei ole käytössä.";
+      jydaPreviewTable.innerHTML = "";
+      Object.values(jydaMappingSelects).forEach((select) => {
+        select.disabled = true;
+        select.required = false;
+      });
+      updateJydaValidationSummary([], []);
+      return;
+    }
+
+    const text = await readFileAsText(file);
+    const delimiter = detectDelimiter(text);
+    const rows = parseCsv(text, delimiter);
+    if (!rows.length) {
+      throw new Error("CSV on tyhjä.");
+    }
+    const headers = rows[0].map((h) => (h || "").trim());
+    if (headers[0]) {
+      headers[0] = headers[0].replace(/^\uFEFF/, "");
+    }
+    const dataRows = rows.slice(1);
+    jydaFileMode = "csv";
+    jydaFileData = null;
+    jydaCsvData = { headers, rows: dataRows, delimiter };
+    jydaPreviewNote.textContent = `Rivejä: ${dataRows.length}`;
+    renderPreview(headers, dataRows);
+    fillJydaMappingOptions(headers);
+    Object.values(jydaMappingSelects).forEach((select) => {
+      select.disabled = false;
+      select.required = select.id === "map-jyda-code" || select.id === "map-jyda-committed" || select.id === "map-jyda-actual";
+    });
+    updateJydaValidationSummary(headers, dataRows);
+  } catch (err) {
+    jydaCsvData = null;
+    jydaFileData = null;
+    jydaFileMode = "csv";
+    jydaPreviewNote.textContent = err.message;
+    jydaPreviewTable.innerHTML = "";
+  }
+});
+
+Object.values(jydaMappingSelects).forEach((select) => {
+  select.addEventListener("change", () => {
+    if (jydaCsvData) {
+      updateJydaValidationSummary(jydaCsvData.headers, jydaCsvData.rows);
+    }
+  });
+});
+
+Object.values(jydaMetricChecks).forEach((check) => {
+  if (!check) {
+    return;
+  }
+  check.addEventListener("change", () => {
+    if (jydaFileMode === "excel") {
+      updateJydaValidationSummary([], []);
+    }
+  });
+});
+
+if (budgetJobs) {
+  budgetJobs.addEventListener("click", async (e) => {
+    const button = e.target.closest(".job-detail");
+    const download = e.target.closest(".job-download");
+    const jobId = button ? button.dataset.jobId : download ? download.dataset.jobId : null;
+    const format = download ? download.dataset.format : null;
+    if (!jobId) {
+      return;
+    }
+    try {
+      const detail = await fetchJson(`/api/import-jobs/${jobId}`);
+      if (format === "json") {
+        const blob = new Blob([JSON.stringify(detail, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `import-job-${jobId}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+      if (format === "csv") {
+        const header = ["timestamp", "status", "message"];
+        const lines = [header.join(",")];
+        detail.events.forEach((ev) => {
+          const row = [
+            new Date(ev.created_at).toISOString(),
+            ev.status,
+            (ev.message || "").replace(/"/g, "\"\""),
+          ];
+          lines.push(row.map((v) => csvEscape(v, ",")).join(","));
+        });
+        const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `import-job-${jobId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      if (!button) {
+        return;
+      }
+      const log = document.createElement("div");
+      log.className = "job-log";
+      const events = detail.events
+        .map((ev) => `${new Date(ev.created_at).toLocaleString("fi-FI")} ${ev.status}: ${ev.message || ""}`)
+        .join("\n");
+      log.innerHTML = `
+        <pre>${events}</pre>
+        ${detail.job.stdout ? `<pre>${detail.job.stdout}</pre>` : ""}
+        ${detail.job.stderr ? `<pre>${detail.job.stderr}</pre>` : ""}
+        ${detail.job.error_message ? `<pre>${detail.job.error_message}</pre>` : ""}
+      `;
+      button.parentElement.appendChild(log);
+      button.disabled = true;
+    } catch (err) {
+      setHint(demoSeedResult, err.message, true);
+    }
+  });
+}
+
+const budgetImportForm = document.getElementById("budget-import-form");
+budgetImportForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = new FormData(budgetImportForm);
+  const result = document.getElementById("budget-import-result");
+  const file = document.getElementById("budget-file").files[0];
+  if (!file) {
+    setHint(result, "Valitse CSV-tiedosto.", true);
+    return;
+  }
+
+  try {
+    if (!budgetCsvData) {
+      throw new Error("CSV ei ole ladattuna esikatseluun.");
+    }
+    const { headers, rows } = budgetCsvData;
+    const mapping = {
+      litteraCode: mappingSelects.litteraCode.value,
+      litteraTitle: mappingSelects.litteraTitle.value,
+      labor: mappingSelects.labor.value,
+      material: mappingSelects.material.value,
+      subcontract: mappingSelects.subcontract.value,
+      rental: mappingSelects.rental.value,
+      other: mappingSelects.other.value,
+    };
+    if (!mapping.litteraCode) {
+      throw new Error("Litterakoodi-sarakkeen mappaus puuttuu.");
+    }
+    const costColumns = [mapping.labor, mapping.material, mapping.subcontract, mapping.rental, mapping.other].filter(Boolean);
+    if (costColumns.length === 0) {
+      throw new Error("Vähintään yksi kustannussarake pitää mapata.");
+    }
+
+    const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
+    const outHeaders = [
+      "Litterakoodi",
+      "Litteraselite",
+      "Työ €",
+      "Aine €",
+      "Alih €",
+      "Vmiehet €",
+      "Muu €",
+    ];
+    const outputRows = [outHeaders];
+    rows.forEach((row) => {
+      const code = (row[headerIndex[mapping.litteraCode]] || "").trim();
+      if (!code) {
+        return;
+      }
+      const title = mapping.litteraTitle ? row[headerIndex[mapping.litteraTitle]] || "" : "";
+      const labor = mapping.labor ? row[headerIndex[mapping.labor]] || "" : "0";
+      const material = mapping.material ? row[headerIndex[mapping.material]] || "" : "0";
+      const subcontract = mapping.subcontract ? row[headerIndex[mapping.subcontract]] || "" : "0";
+      const rental = mapping.rental ? row[headerIndex[mapping.rental]] || "" : "0";
+      const other = mapping.other ? row[headerIndex[mapping.other]] || "" : "0";
+      outputRows.push([code, title, labor, material, subcontract, rental, other]);
+    });
+    const csvText = outputRows.map((r) => r.map(csvEscape).join(";")).join("\n");
+    const payload = {
+      projectId: form.get("projectId"),
+      importedBy: form.get("importedBy"),
+      filename: file.name,
+      csvText,
+      dryRun: form.get("dryRun") === "on",
+    };
+    if (form.get("saveMapping") === "on") {
+      await fetchJson("/api/import-mappings", {
+        method: "PUT",
+        body: JSON.stringify({
+          projectId: payload.projectId,
+          type: "BUDGET",
+          mapping,
+          createdBy: payload.importedBy,
+        }),
+      });
+    }
+    const res = await fetchJson("/api/budget-import", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setHint(result, `Tuonti käynnistetty. import_job_id=${res.import_job_id}`);
+    budgetImportForm.reset();
+    budgetCsvData = null;
+    budgetPreviewTable.innerHTML = "";
+    budgetPreviewNote.textContent = "Valitse CSV nähdäksesi esikatselun.";
+    if (budgetValidation) {
+      budgetValidation.textContent = "";
+    }
+    await loadBudgetJobs(payload.projectId);
+
+    const poll = async () => {
+      const detail = await fetchJson(`/api/import-jobs/${res.import_job_id}`);
+      if (detail.job.status === "SUCCESS") {
+        setHint(
+          result,
+          detail.job.import_batch_id
+            ? `Tuonti valmis. import_batch_id=${detail.job.import_batch_id}`
+            : "Tuonti valmis."
+        );
+        await loadBudgetJobs(payload.projectId);
+        return;
+      }
+      if (detail.job.status === "FAILED") {
+        setHint(result, detail.job.error_message || "Tuonti epäonnistui.", true);
+        await loadBudgetJobs(payload.projectId);
+        return;
+      }
+      setTimeout(poll, 2000);
+    };
+    setTimeout(poll, 2000);
+  } catch (err) {
+    setHint(result, err.message, true);
+  }
+});
+
+const jydaImportForm = document.getElementById("jyda-import-form");
+jydaImportForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = new FormData(jydaImportForm);
+  const result = document.getElementById("jyda-import-result");
+  const file = document.getElementById("jyda-file").files[0];
+  if (!file) {
+    setHint(result, "Valitse CSV-tiedosto.", true);
+    return;
+  }
+
+  try {
+    const metricMap = [
+      { key: "committed", metric: "JYDA.COMMITTED_COST", header: "Sidottu kustannus", check: "committed" },
+      { key: "actual", metric: "JYDA.ACTUAL_COST", header: "Toteutunut kustannus", check: "actual" },
+      {
+        key: "actualUnapproved",
+        metric: "JYDA.ACTUAL_COST_INCL_UNAPPROVED",
+        header: "Toteutunut kustannus (sis. hyväksymätt.)",
+        check: "actualUnapproved",
+      },
+      { key: "forecast", metric: "JYDA.FORECAST_COST", header: "Ennustettu kustannus", check: "forecast" },
+      { key: "target", metric: "JYDA.TARGET_COST", header: "Tavoitekustannus", check: "target" },
+    ];
+
+    let payload = {
+      projectId: form.get("projectId"),
+      importedBy: form.get("importedBy"),
+      filename: file.name,
+      dryRun: form.get("dryRun") === "on",
+      includeZeros: form.get("includeZeros") === "on",
+      occurredOn: form.get("occurredOn"),
+    };
+
+    if (jydaFileMode === "excel") {
+      const selectedMetrics = metricMap.filter((m) => jydaMetricChecks[m.check]?.checked);
+      if (selectedMetrics.length === 0) {
+        throw new Error("Valitse vähintään yksi kustannussarake.");
+      }
+      if (!jydaFileData) {
+        throw new Error("Excel-tiedostoa ei ole ladattu.");
+      }
+      payload = {
+        ...payload,
+        fileData: jydaFileData,
+        metrics: selectedMetrics.map((m) => m.metric),
+      };
+    } else {
+      if (!jydaCsvData) {
+        throw new Error("CSV ei ole ladattuna esikatseluun.");
+      }
+      const { headers, rows } = jydaCsvData;
+      const mapping = {
+        code: jydaMappingSelects.code.value,
+        name: jydaMappingSelects.name.value,
+        committed: jydaMappingSelects.committed.value,
+        actual: jydaMappingSelects.actual.value,
+        actualUnapproved: jydaMappingSelects.actualUnapproved.value,
+        forecast: jydaMappingSelects.forecast.value,
+        target: jydaMappingSelects.target.value,
+      };
+      if (!mapping.code) {
+        throw new Error("Koodi-sarakkeen mappaus puuttuu.");
+      }
+
+      const selectedMetrics = metricMap.filter((m) => mapping[m.key]);
+      if (selectedMetrics.length === 0) {
+        throw new Error("Valitse vähintään yksi kustannussarake.");
+      }
+
+      const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
+      const outHeaders = ["Koodi", "Nimi", ...selectedMetrics.map((m) => m.header)];
+      const outputRows = [outHeaders];
+
+      rows.forEach((row) => {
+        const code = (row[headerIndex[mapping.code]] || "").trim();
+        if (!code) {
+          return;
+        }
+        const name = mapping.name ? row[headerIndex[mapping.name]] || "" : "";
+        const metricValues = selectedMetrics.map((m) => row[headerIndex[mapping[m.key]]] || "");
+        outputRows.push([code, name, ...metricValues]);
+      });
+
+      const csvText = outputRows.map((r) => r.map((v) => csvEscape(v, ",")).join(",")).join("\n");
+      payload = {
+        ...payload,
+        csvText,
+        metrics: selectedMetrics.map((m) => m.metric),
+      };
+
+      if (form.get("saveMapping") === "on") {
+        await fetchJson("/api/import-mappings", {
+          method: "PUT",
+          body: JSON.stringify({
+            projectId: payload.projectId,
+            type: "JYDA",
+            mapping,
+            createdBy: payload.importedBy,
+          }),
+        });
+      }
+    }
+
+    const res = await fetchJson("/api/jyda-import", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    setHint(result, `Tuonti käynnistetty. import_job_id=${res.import_job_id}`);
+    jydaImportForm.reset();
+    jydaCsvData = null;
+    jydaFileData = null;
+    jydaFileMode = "csv";
+    jydaPreviewTable.innerHTML = "";
+    jydaPreviewNote.textContent = "Valitse CSV nähdäksesi esikatselun.";
+    if (jydaValidation) {
+      jydaValidation.textContent = "";
+    }
+    await loadBudgetJobs(payload.projectId);
+
+    const poll = async () => {
+      const detail = await fetchJson(`/api/import-jobs/${res.import_job_id}`);
+      if (detail.job.status === "SUCCESS") {
+        setHint(
+          result,
+          detail.job.import_batch_id
+            ? `Tuonti valmis. import_batch_id=${detail.job.import_batch_id}`
+            : "Tuonti valmis."
+        );
+        await loadBudgetJobs(payload.projectId);
+        return;
+      }
+      if (detail.job.status === "FAILED") {
+        setHint(result, detail.job.error_message || "Tuonti epäonnistui.", true);
+        await loadBudgetJobs(payload.projectId);
+        return;
+      }
+      setTimeout(poll, 2000);
+    };
+    setTimeout(poll, 2000);
   } catch (err) {
     setHint(result, err.message, true);
   }
