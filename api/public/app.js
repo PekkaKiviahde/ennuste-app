@@ -14,6 +14,7 @@ const litteraSelects = {
   forecast: document.getElementById("forecast-littera"),
   mappingWork: document.getElementById("mapping-work-littera"),
   mappingTarget: document.getElementById("mapping-target-littera"),
+  mappingCorrectionTarget: document.getElementById("mapping-correction-target-littera"),
   report: document.getElementById("report-littera"),
   history: document.getElementById("history-littera"),
 };
@@ -22,6 +23,13 @@ const historyOutput = document.getElementById("history-output");
 const reportOutput = document.getElementById("report-output");
 const mappingVersionSelect = document.getElementById("mapping-version");
 const mappingVersionActivateSelect = document.getElementById("mapping-version-activate");
+const mappingCorrectionVersionSelect = document.getElementById("mapping-correction-version");
+const mappingCorrectionLineSelect = document.getElementById("mapping-correction-line");
+const mappingCorrectionCostType = document.getElementById("mapping-correction-cost-type");
+const mappingCorrectionRule = document.getElementById("mapping-correction-allocation-rule");
+const mappingCorrectionValue = document.getElementById("mapping-correction-allocation-value");
+const mappingCorrectionNote = document.getElementById("mapping-correction-note");
+const mappingCorrectionResult = document.getElementById("mapping-correction-result");
 const demoSeedResult = document.getElementById("demo-seed-result");
 const budgetPreviewNote = document.getElementById("budget-preview-note");
 const budgetPreviewTable = document.getElementById("budget-preview-table");
@@ -71,6 +79,8 @@ let savedJydaMapping = null;
 let jydaFileMode = "csv";
 let jydaFileData = null;
 let lastImportJobs = [];
+let mappingCorrectionLines = new Map();
+let litteraById = new Map();
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, {
@@ -630,6 +640,7 @@ async function loadLitteras(projectId) {
   }
 
   const litteras = await fetchJson(`/api/projects/${projectId}/litteras`);
+  litteraById = new Map(litteras.map((l) => [l.littera_id, l]));
   const entries = litteras.map((l) => ({
     label: `${l.code} ${l.title || ""}`.trim(),
     value: l.littera_id,
@@ -643,7 +654,7 @@ async function loadLitteras(projectId) {
 }
 
 async function loadMappingVersions(projectId) {
-  const selects = [mappingVersionSelect, mappingVersionActivateSelect];
+  const selects = [mappingVersionSelect, mappingVersionActivateSelect, mappingCorrectionVersionSelect];
   selects.forEach((select) => {
     select.innerHTML = "";
     select.appendChild(option("Valitse mapping-versio", ""));
@@ -656,7 +667,37 @@ async function loadMappingVersions(projectId) {
   const versions = await fetchJson(`/api/mapping-versions?projectId=${projectId}`);
   versions.forEach((v) => {
     const label = `${v.status} ${v.valid_from}${v.valid_to ? `–${v.valid_to}` : ""} (${v.reason})`;
-    selects.forEach((select) => select.appendChild(option(label, v.mapping_version_id)));
+    if (mappingVersionSelect) {
+      mappingVersionSelect.appendChild(option(label, v.mapping_version_id));
+    }
+    if (mappingVersionActivateSelect) {
+      mappingVersionActivateSelect.appendChild(option(label, v.mapping_version_id));
+    }
+    if (mappingCorrectionVersionSelect && v.status === "ACTIVE") {
+      mappingCorrectionVersionSelect.appendChild(option(label, v.mapping_version_id));
+    }
+  });
+}
+
+async function loadMappingLinesForCorrection(projectId, mappingVersionId) {
+  if (!mappingCorrectionLineSelect) {
+    return;
+  }
+  mappingCorrectionLineSelect.innerHTML = "";
+  mappingCorrectionLineSelect.appendChild(option("Valitse rivi", ""));
+  mappingCorrectionLines = new Map();
+  if (!mappingVersionId) {
+    return;
+  }
+  const lines = await fetchJson(`/api/mapping-lines?projectId=${projectId}&mappingVersionId=${mappingVersionId}`);
+  lines.forEach((line) => {
+    const work = litteraById.get(line.work_littera_id);
+    const target = litteraById.get(line.target_littera_id);
+    const label = `${work ? work.code : line.work_littera_id} → ${target ? target.code : line.target_littera_id} ${
+      line.cost_type || "ALL"
+    }`;
+    mappingCorrectionLines.set(line.mapping_line_id, line);
+    mappingCorrectionLineSelect.appendChild(option(label, line.mapping_line_id));
   });
 }
 
@@ -776,8 +817,40 @@ projectSelects.forecast.addEventListener("change", async (e) => {
 projectSelects.mapping.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
   await loadMappingVersions(e.target.value);
+  await loadMappingLinesForCorrection(e.target.value, mappingCorrectionVersionSelect.value);
   applyRoleUi();
 });
+
+if (mappingCorrectionVersionSelect) {
+  mappingCorrectionVersionSelect.addEventListener("change", async (e) => {
+    const projectId = projectSelects.mapping.value;
+    await loadMappingLinesForCorrection(projectId, e.target.value);
+  });
+}
+
+if (mappingCorrectionLineSelect) {
+  mappingCorrectionLineSelect.addEventListener("change", () => {
+    const line = mappingCorrectionLines.get(mappingCorrectionLineSelect.value);
+    if (!line) {
+      return;
+    }
+    if (litteraSelects.mappingCorrectionTarget) {
+      litteraSelects.mappingCorrectionTarget.value = line.target_littera_id;
+    }
+    if (mappingCorrectionCostType) {
+      mappingCorrectionCostType.value = line.cost_type || "";
+    }
+    if (mappingCorrectionRule) {
+      mappingCorrectionRule.value = line.allocation_rule;
+    }
+    if (mappingCorrectionValue) {
+      mappingCorrectionValue.value = String(line.allocation_value ?? "");
+    }
+    if (mappingCorrectionNote) {
+      mappingCorrectionNote.value = line.note || "";
+    }
+  });
+}
 
 projectSelects.report.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
@@ -1389,6 +1462,36 @@ mappingActivateForm.addEventListener("submit", async (e) => {
     setHint(result, err.message, true);
   }
 });
+
+const mappingCorrectionForm = document.getElementById("mapping-correction-form");
+if (mappingCorrectionForm) {
+  mappingCorrectionForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(mappingCorrectionForm);
+    const payload = Object.fromEntries(form.entries());
+    if (!payload.projectId) {
+      payload.projectId = projectSelects.mapping.value;
+    }
+    if (!payload.mappingLineId) {
+      payload.mappingLineId = mappingCorrectionLineSelect.value;
+    }
+
+    try {
+      await fetchJson("/api/mapping-corrections", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(mappingCorrectionResult, "Korjausversio luotu ja aktivoitu.");
+      mappingCorrectionForm.reset();
+      if (payload.projectId) {
+        await loadMappingVersions(payload.projectId);
+        await loadMappingLinesForCorrection(payload.projectId, "");
+      }
+    } catch (err) {
+      setHint(mappingCorrectionResult, err.message, true);
+    }
+  });
+}
 
 const forecastForm = document.getElementById("forecast-form");
 forecastForm.addEventListener("submit", async (e) => {

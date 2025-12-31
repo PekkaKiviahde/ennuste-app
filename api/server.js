@@ -140,6 +140,13 @@ async function logMappingEvent({ projectId, actor, action, payload }) {
   );
 }
 
+async function logMappingEventWithClient(client, { projectId, actor, action, payload }) {
+  await client.query(
+    "INSERT INTO mapping_event_log (project_id, actor, action, payload) VALUES ($1,$2,$3,$4)",
+    [projectId, actor, action, payload || {}]
+  );
+}
+
 const execFileAsync = promisify(execFile);
 
 function trimLog(text, limit = 8000) {
@@ -827,6 +834,150 @@ app.post("/api/mapping-activate", async (req, res, next) => {
     });
 
     res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/mapping-corrections", async (req, res, next) => {
+  try {
+    const {
+      projectId,
+      mappingLineId,
+      reason,
+      approvedBy,
+      newTargetLitteraId,
+      newCostType,
+      allocationRule,
+      allocationValue,
+      note,
+    } = req.body;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+    if (!projectId || !mappingLineId) {
+      return badRequest(res, "projectId ja mappingLineId puuttuu.");
+    }
+    if (!reason || String(reason).trim() === "") {
+      return badRequest(res, "reason puuttuu.");
+    }
+    if (!approvedBy || String(approvedBy).trim() === "") {
+      return badRequest(res, "approvedBy puuttuu.");
+    }
+
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      const { rows } = await client.query(
+        `SELECT ml.mapping_line_id, ml.work_littera_id, ml.target_littera_id, ml.allocation_rule,
+                ml.allocation_value, ml.cost_type, ml.note,
+                mv.mapping_version_id, mv.status, mv.valid_from, mv.valid_to
+         FROM mapping_lines ml
+         JOIN mapping_versions mv ON mv.mapping_version_id = ml.mapping_version_id
+         WHERE ml.mapping_line_id=$1 AND ml.project_id=$2`,
+        [mappingLineId, projectId]
+      );
+      if (rows.length === 0) {
+        await client.query("ROLLBACK");
+        res.status(404).json({ error: "Mapping-riviä ei löytynyt." });
+        return;
+      }
+      const line = rows[0];
+      if (line.status !== "ACTIVE") {
+        await client.query("ROLLBACK");
+        res.status(409).json({ error: "Vain ACTIVE-mappingia voi korjata." });
+        return;
+      }
+
+      const reasonText = `Korjaus: ${String(reason).trim()}`;
+      const { rows: versionRows } = await client.query(
+        `INSERT INTO mapping_versions (project_id, valid_from, valid_to, reason, created_by)
+         VALUES ($1,$2,$3,$4,$5)
+         RETURNING mapping_version_id`,
+        [projectId, line.valid_from, line.valid_to, reasonText, String(approvedBy).trim()]
+      );
+      const newVersionId = versionRows[0].mapping_version_id;
+
+      await logMappingEventWithClient(client, {
+        projectId,
+        actor: String(approvedBy).trim(),
+        action: "CREATE_VERSION",
+        payload: { mapping_version_id: newVersionId, reason: reasonText },
+      });
+
+      await client.query(
+        `INSERT INTO mapping_lines
+          (project_id, mapping_version_id, work_littera_id, target_littera_id,
+           allocation_rule, allocation_value, cost_type, note, created_by)
+         SELECT project_id, $1, work_littera_id, target_littera_id,
+                allocation_rule, allocation_value, cost_type, note, $2
+         FROM mapping_lines
+         WHERE mapping_version_id=$3 AND mapping_line_id <> $4`,
+        [newVersionId, String(approvedBy).trim(), line.mapping_version_id, mappingLineId]
+      );
+
+      await client.query(
+        `INSERT INTO mapping_lines
+          (project_id, mapping_version_id, work_littera_id, target_littera_id,
+           allocation_rule, allocation_value, cost_type, note, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [
+          projectId,
+          newVersionId,
+          line.work_littera_id,
+          newTargetLitteraId || line.target_littera_id,
+          allocationRule || line.allocation_rule,
+          allocationValue === undefined || allocationValue === null || allocationValue === ""
+            ? line.allocation_value
+            : toNumber(allocationValue),
+          newCostType || line.cost_type,
+          note || line.note,
+          String(approvedBy).trim(),
+        ]
+      );
+
+      await logMappingEventWithClient(client, {
+        projectId,
+        actor: String(approvedBy).trim(),
+        action: "EDIT_DRAFT",
+        payload: { mapping_version_id: newVersionId, corrected_from: line.mapping_version_id },
+      });
+
+      await client.query(
+        `UPDATE mapping_versions
+         SET status='RETIRED'
+         WHERE mapping_version_id=$1`,
+        [line.mapping_version_id]
+      );
+      await logMappingEventWithClient(client, {
+        projectId,
+        actor: String(approvedBy).trim(),
+        action: "RETIRE",
+        payload: { mapping_version_id: line.mapping_version_id },
+      });
+
+      await client.query(
+        `UPDATE mapping_versions
+         SET status='ACTIVE', approved_at=now(), approved_by=$2
+         WHERE mapping_version_id=$1`,
+        [newVersionId, String(approvedBy).trim()]
+      );
+      await logMappingEventWithClient(client, {
+        projectId,
+        actor: String(approvedBy).trim(),
+        action: "ACTIVATE",
+        payload: { mapping_version_id: newVersionId },
+      });
+
+      await logMappingEventWithClient(client, {
+        projectId,
+        actor: String(approvedBy).trim(),
+        action: "APPLY_RETROACTIVE",
+        payload: { mapping_version_id: newVersionId, note: "Reprocess pending (MVP stub)." },
+      });
+
+      await client.query("COMMIT");
+      res.json({ ok: true, mapping_version_id: newVersionId });
+    });
   } catch (err) {
     next(err);
   }

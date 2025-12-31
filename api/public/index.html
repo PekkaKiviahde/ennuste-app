@@ -409,6 +409,60 @@
           <button type="submit">Aktivoi mapping-versio</button>
           <div class="hint" id="mapping-activate-result"></div>
         </form>
+
+        <form id="mapping-correction-form" class="stack" data-guard="project:manager">
+          <h3>Korjaa mapping-rivi (uusi versio)</h3>
+          <label>
+            Mapping-versio (ACTIVE)
+            <select name="mappingVersionId" id="mapping-correction-version" required></select>
+          </label>
+          <label>
+            Rivi
+            <select name="mappingLineId" id="mapping-correction-line" required></select>
+          </label>
+          <label>
+            Uusi tavoitearvio-littera
+            <select name="newTargetLitteraId" id="mapping-correction-target-littera" required></select>
+          </label>
+          <div class="grid-2">
+            <label>
+              Kustannuslaji
+              <select name="newCostType" id="mapping-correction-cost-type">
+                <option value="">(kaikki)</option>
+                <option value="LABOR">Työ</option>
+                <option value="MATERIAL">Aine</option>
+                <option value="SUBCONTRACT">Alihankinta</option>
+                <option value="RENTAL">Vuokra</option>
+                <option value="OTHER">Muu</option>
+              </select>
+            </label>
+            <label>
+              Allokointisääntö
+              <select name="allocationRule" id="mapping-correction-allocation-rule">
+                <option value="FULL">FULL</option>
+                <option value="PERCENT">PERCENT</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Allokointiarvo
+            <input name="allocationValue" id="mapping-correction-allocation-value" placeholder="1.0" />
+          </label>
+          <label>
+            Muistiinpano
+            <input name="note" id="mapping-correction-note" placeholder="Korjauksen syy / huomio" />
+          </label>
+          <label>
+            Korjauksen syy
+            <input name="reason" placeholder="Miksi mapping korjataan?" required />
+          </label>
+          <label>
+            Hyväksyjä
+            <input name="approvedBy" placeholder="Tuotantojohtaja" required />
+          </label>
+          <button type="submit">Luo korjausversio</button>
+          <div class="hint" id="mapping-correction-result"></div>
+        </form>
       </section>
 
       <section class="card" data-page="forecast">
