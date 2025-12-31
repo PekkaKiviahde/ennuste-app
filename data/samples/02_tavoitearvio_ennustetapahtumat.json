@@ -1,0 +1,26 @@
+{
+  "scenario": "tavoitearvio-littera, jolla on 2–3 ennustetapahtumaa",
+  "target_littera": {
+    "code": "1600",
+    "title": "Talotekniikka",
+    "group_code": 6
+  },
+  "forecast_events": [
+    {
+      "event_time": "2025-01-10",
+      "comment": "Ensimmäinen ennuste",
+      "kpi_value": 0.82
+    },
+    {
+      "event_time": "2025-02-07",
+      "comment": "Päivitys: lisätyöt",
+      "kpi_value": 0.78
+    },
+    {
+      "event_time": "2025-03-05",
+      "comment": "Lukitus ennen raportointia",
+      "kpi_value": 0.80
+    }
+  ],
+  "expected": "Ennustetapahtumat tallentuvat append-only lokiin ja raporteissa näkyy viimeisin tila."
+}
