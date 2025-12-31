@@ -37,10 +37,9 @@ except ImportError as e:
     raise SystemExit("Missing dependency: openpyxl. Install with: pip install -r tools/scripts/requirements.txt") from e
 
 try:
-    import psycopg2
-    import psycopg2.extras
+    import psycopg
 except ImportError as e:
-    raise SystemExit("Missing dependency: psycopg2-binary. Install with: pip install -r tools/scripts/requirements.txt") from e
+    raise SystemExit("Missing dependency: psycopg. Install with: pip install -r tools/scripts/requirements.txt") from e
 
 
 CODE_RE = re.compile(r"^\d{4}$")
@@ -221,7 +220,7 @@ def read_jyda_from_csv(path: Path, metrics: List[str]) -> List[JydaRow]:
 
 
 def connect(db_url: str):
-    return psycopg2.connect(db_url)
+    return psycopg.connect(db_url)
 
 
 def ensure_project_exists(cur, project_id: str) -> None:

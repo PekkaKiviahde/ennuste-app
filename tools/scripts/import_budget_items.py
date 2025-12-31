@@ -39,9 +39,9 @@ except ImportError as e:
     raise SystemExit("Missing dependency: openpyxl. Install with: pip install -r tools/scripts/requirements.txt") from e
 
 try:
-    import psycopg2
+    import psycopg
 except ImportError as e:
-    raise SystemExit("Missing dependency: psycopg2-binary. Install with: pip install -r tools/scripts/requirements.txt") from e
+    raise SystemExit("Missing dependency: psycopg. Install with: pip install -r tools/scripts/requirements.txt") from e
 
 
 CODE4_RE = re.compile(r"^\d{4}$")
@@ -108,7 +108,7 @@ def _to_dec(v) -> Optional[Decimal]:
 
 
 def connect(db_url: str):
-    return psycopg2.connect(db_url)
+    return psycopg.connect(db_url)
 
 
 def ensure_project(cur, project_id: str):
