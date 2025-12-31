@@ -1,0 +1,13 @@
+{
+  "scenario": "uusi tavoitearvio-littera ilman historiaa",
+  "target_littera": {
+    "code": "1500",
+    "title": "Piha-alueet",
+    "group_code": 4
+  },
+  "planning": {
+    "summary": "Uusi tavoitearvio ilman ennustehistoriaa",
+    "risks": "Urakkarajan epäselvyys"
+  },
+  "expected": "Luodaan uusi tavoitearvio-littera ja suunnitelma ilman aiempia ennustetapahtumia."
+}
