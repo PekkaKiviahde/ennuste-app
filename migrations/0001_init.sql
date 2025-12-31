@@ -120,7 +120,7 @@ DO $$ BEGIN
     ADD CONSTRAINT mapping_versions_no_overlap_active
     EXCLUDE USING gist (project_id WITH =, valid_range WITH &&)
     WHERE (status = 'ACTIVE');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object OR duplicate_table THEN NULL; END $$;
 
 CREATE INDEX IF NOT EXISTS mapping_versions_project_status_idx
   ON mapping_versions(project_id, status, valid_from DESC);
@@ -482,4 +482,3 @@ DO $$ BEGIN
     BEFORE INSERT ON forecast_events
     FOR EACH ROW EXECUTE FUNCTION enforce_plan_before_forecast();
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
