@@ -41,6 +41,26 @@ Jyda-ajo -välilehden otsikot (rivi 1) ovat:
 
 Tässä importissa keskitytään kustannuksiin (C/D/E/F/G).
 
+CSV-esimerkki:
+- `excel/Jyda-ajo Kaarnatien Kaarna.csv`
+  - delimiter: `;`
+  - encoding: UTF-8 (voi sisältää merkistöpoikkeamia, esim. "hyväksymätt")
+  - header:
+    - Koodi
+    - Nimi
+    - Tavoitekustannus
+    - Sidottu kustannus
+    - Toteutunut kustannus
+    - Toteutunut kustannus (sis. hyväksymätt.)
+    - Ennustettu kustannus
+    - Tav.kust. - Enn.kust.
+    - Tav.kust. - Tot.kust.
+    - Enn.kust. - Tot.kust.
+    - Kust.valm.aste-%
+    - Tavoitetuotto
+    - Toteutunut tuotto
+    - Ennustettu tuotto
+
 ---
 
 ## 2. Rivisuodatus (mitkä rivit tuodaan)
@@ -143,9 +163,50 @@ Ilman tätä toistuvat importit **tuplaavat** toteumat.
 
 ---
 
-## 7. Suositus jatkoon (seuraavat importit)
+## 7. Sarakemappaus (MVP, joustava)
+
+MVP:ssa tuonti sallii sarakemappauksen, jotta eri Jyda-formaatit voidaan ottaa sisaan.
+Pakolliset kentat:
+- koodi (4 numeroa)
+- nimi (valinnainen)
+- ainakin yksi kustannusmetriikka (esim. actual)
+
+Suositeltu mappauskonfiguraatio:
+- sheet_name
+- header_row
+- column_map:
+  - code
+  - name
+  - target_cost (optional)
+  - committed_cost (optional)
+  - actual_cost
+  - actual_cost_incl_unapproved (optional)
+  - forecast_cost (optional)
+
+Validointi:
+- code tulee normalisoida muotoon 4 numeroa
+- metrika-arvot ovat numeric (>= 0)
+- tuntemattomat sarakkeet ohitetaan
+- jos yksikaan metriikka ei kelpaa, import keskeytetaan
+- encodingissa korvaa tuntemattomat merkit (esim. Ã¤ -> ä)
+
+Virheilmoitukset:
+- ilmoita rivit, joissa code puuttuu tai muoto virheellinen
+- ilmoita rivit, joissa arvot eivat ole numeroita
+
+---
+
+## 8. Suositus jatkoon (seuraavat importit)
 
 Kun tämä toimii:
 - tuo `budget_lines` Jyda-ajo sarakkeesta C (tai Tavo_Ennuste-taulusta, jos se on tarkempi)
 - tuo “tavoitearvio-litterat” myös Tavo_Ennuste:sta `litteras`-tauluun (koska target-koodit voivat puuttua Jyda-ajosta)
 
+## Mita muuttui
+- Lisatty CSV-esimerkin otsikot, delimiter ja encoding-ohje.
+
+## Miksi
+- Eri Jyda-formaateissa sarakepaikat vaihtelevat; joustava mappaus nopeuttaa integraatiotestausta.
+
+## Miten testataan (manuaali)
+- Tee import joustavalla mappauksella ja varmista, etta pakolliset kentat tulevat sisaan.

@@ -32,6 +32,27 @@ Tämä dokumentti kokoaa roolit ja oikeudet “yhdelle sivulle”, jotta:
 
 ---
 
+## 1.1 Alias-mappaus (tyomaa-roolit -> tekniset roolit)
+
+Tyoaikaiset roolit mapataan teknisiin rooleihin, jotta SaaS-oikeudet pysyvat selkeina.
+
+| Tyomaa rooli | Tekninen rooli (oletus) | Huomio |
+|---|---|---|
+| Tyonjohtaja | Tuotannon käyttäjä | Kirjaa viikko/ghost/toteumat |
+| Vastaavamestari | PM | Valvoo työpaketteja ja lukituksia |
+| Tyopäällikkö | PM / Tuotantojohtaja | Voi toimia tuotantojohtajana |
+| Tuotantojohtaja | Tuotantojohtaja | Hyvaksyy lukitukset/korjaukset |
+| Tyomaainsinoori | Tuotannon käyttäjä | Valmistelee dataa |
+| Hankintapaallikko | Katselija | Raporttien luku |
+| Yksikon johto | Talousjohtaja / katselija | Hyvaksyy korjaukset |
+
+### Acting role (tilapainen roolinkorotus)
+- MVP:ssa sallitaan tilapainen roolinkorotus (acting role).
+- Acting role ei muuta perusroolia, vaan antaa oikeudet maaritellyksi ajaksi.
+- Jokainen acting-role kirjaus auditoidaan.
+
+---
+
 ## 2) Oikeudet (yhteenveto)
 
 Legend:
@@ -82,3 +103,12 @@ Legend:
 | Päivitä banneriteksti | ✅ | — | — |
 | Incident-tiketti (ulkoinen) | — | ✅ | ✅ |
 | Hotfix PR | — | — | ✅ |
+
+## Mita muuttui
+- Lisatty alias-mappaus tyomaa-rooleille ja acting role -periaate.
+
+## Miksi
+- Todelliset roolit vaihtelevat yrityksittain; alias-mappaus tukee SaaS-oikeuksia.
+
+## Miten testataan (manuaali)
+- Tarkista, etta acting role antaa oikeudet ajaksi ja kirjautuu audit-logiin.

@@ -54,3 +54,25 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Data EU/ETA-alueella.
 - Importit eivät sisällä henkilötietoa.
 - Käyttäjän poisto = anonymisointi, audit säilyy pseudonymisoituna.
+
+---
+
+## 2025-12-31 – MVP-työnkulkujen siirto
+- MVP-polku: projekti -> budjetti -> JYDA -> mapping -> tyopaketin taloudellinen suunnittelu -> ennustetapahtuma -> raportti.
+- Viikkopaivitys (ghost + % + memo) on oma polku.
+- M1_READY_TO_SEND mukana month close -polussa ja korjaus vaatii hyväksynnän.
+- Terminologia/i18n UI-muokkaus mukana.
+- Roolit teknisina + alias-mappaus; acting role sallitaan.
+- Importeissa joustava sarakemappaus.
+- Laskenta: AC/EV/CPI/SPI + EAC/BAC jos specissä.
+- Exportit: PDF + Excel (ei PPT MVP:ssa).
+- Append-only pakotetaan kaikkiin kirjoittaviin tapahtumiin.
+
+## Mitä muuttui
+- Lisätty päätökset MVP-työnkulkujen siirrosta ja integraatiopolusta.
+
+## Miksi
+- Tarvitaan yhteinen totuus integraatiotestaukseen ja toteutukseen.
+
+## Miten testataan (manuaali)
+- Aja MVP-polku end-to-end ja tarkista audit-loki sekä lukitukset.
