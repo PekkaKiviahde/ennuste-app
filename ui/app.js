@@ -25,6 +25,10 @@ const state = {
   reportPackages: [],
   reportPackagesMonth: '',
   reportPackagesQuery: '',
+  importMappingBudgetText: '',
+  importMappingJydaText: '',
+  importMappingBudgetStatus: '',
+  importMappingJydaStatus: '',
   litteras: [],
 };
 
@@ -686,6 +690,9 @@ function renderProjectView() {
     `
     : `<div class="empty">${t('ui.loading')}</div>`;
 
+  const budgetMappingText = state.importMappingBudgetText || '';
+  const jydaMappingText = state.importMappingJydaText || '';
+
   return `
     <div class="section">
       <h2>${t('ui.section.project_reports')}</h2>
@@ -725,6 +732,29 @@ function renderProjectView() {
       <button id="report-packages-load" type="button">${t('ui.action.load_report_packages')}</button>
       <div class="status" id="report-packages-status"></div>
       ${reportPackages}
+    </div>
+
+    <div class="section">
+      <h3>${t('ui.section.import_mappings')}</h3>
+      <div class="form-row">
+        <label>${t('ui.section.import_mapping_budget')}</label>
+        <textarea id="import-mapping-budget" rows="8" placeholder="{}">${budgetMappingText}</textarea>
+      </div>
+      <div class="button-row">
+        <button id="import-mapping-budget-load" type="button">${t('ui.action.load_mapping')}</button>
+        <button id="import-mapping-budget-save" type="button">${t('ui.action.save_mapping')}</button>
+      </div>
+      <div class="status" id="import-mapping-budget-status">${state.importMappingBudgetStatus}</div>
+
+      <div class="form-row">
+        <label>${t('ui.section.import_mapping_jyda')}</label>
+        <textarea id="import-mapping-jyda" rows="10" placeholder="{}">${jydaMappingText}</textarea>
+      </div>
+      <div class="button-row">
+        <button id="import-mapping-jyda-load" type="button">${t('ui.action.load_mapping')}</button>
+        <button id="import-mapping-jyda-save" type="button">${t('ui.action.save_mapping')}</button>
+      </div>
+      <div class="status" id="import-mapping-jyda-status">${state.importMappingJydaStatus}</div>
     </div>
 
     <div class="section">
@@ -1233,6 +1263,10 @@ async function refreshProjectData() {
   state.reportPackages = [];
   state.reportPackagesMonth = defaultReportMonth();
   state.reportPackagesQuery = '';
+  state.importMappingBudgetText = '';
+  state.importMappingJydaText = '';
+  state.importMappingBudgetStatus = '';
+  state.importMappingJydaStatus = '';
   state.workPhases = workPhases.workPhases;
   state.targetBatches = batches.batches;
   state.selvitettavat = selvitettavat.selvitettavat;
@@ -1294,6 +1328,90 @@ async function loadReportPackages() {
   }
 }
 
+async function loadImportMapping(type) {
+  if (!state.currentProjectId) {
+    return;
+  }
+  const statusEl =
+    type === 'BUDGET'
+      ? document.getElementById('import-mapping-budget-status')
+      : document.getElementById('import-mapping-jyda-status');
+  if (statusEl) {
+    statusEl.textContent = t('ui.status.loading');
+  }
+  try {
+    const mapping = await fetchJSON(
+      `/api/import-mappings?projectId=${state.currentProjectId}&type=${type}`
+    );
+    const text = mapping?.mapping ? JSON.stringify(mapping.mapping, null, 2) : '';
+    if (type === 'BUDGET') {
+      state.importMappingBudgetText = text;
+    } else {
+      state.importMappingJydaText = text;
+    }
+    if (statusEl) {
+      statusEl.textContent = mapping ? t('ui.status.loaded') : t('ui.status.empty');
+    }
+    renderDetail();
+  } catch (error) {
+    if (statusEl) {
+      statusEl.textContent = formatErrorMessage(error);
+    }
+  }
+}
+
+async function saveImportMapping(type) {
+  if (!state.currentProjectId) {
+    return;
+  }
+  const textarea =
+    type === 'BUDGET'
+      ? document.getElementById('import-mapping-budget')
+      : document.getElementById('import-mapping-jyda');
+  const statusEl =
+    type === 'BUDGET'
+      ? document.getElementById('import-mapping-budget-status')
+      : document.getElementById('import-mapping-jyda-status');
+  const raw = textarea?.value || '';
+  let mappingPayload = {};
+  if (raw.trim()) {
+    try {
+      mappingPayload = JSON.parse(raw);
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = t('ui.error.invalid_json');
+      }
+      return;
+    }
+  }
+  if (statusEl) {
+    statusEl.textContent = t('ui.status.saving');
+  }
+  try {
+    await fetchJSON('/api/import-mappings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        projectId: state.currentProjectId,
+        type,
+        createdBy: state.user?.username || state.user?.display_name || 'user',
+        mapping: mappingPayload,
+      }),
+    });
+    if (type === 'BUDGET') {
+      state.importMappingBudgetText = JSON.stringify(mappingPayload, null, 2);
+    } else {
+      state.importMappingJydaText = JSON.stringify(mappingPayload, null, 2);
+    }
+    if (statusEl) {
+      statusEl.textContent = t('ui.status.saved');
+    }
+  } catch (error) {
+    if (statusEl) {
+      statusEl.textContent = formatErrorMessage(error);
+    }
+  }
+}
+
 function bindProjectActions() {
   const loadButton = document.getElementById('report-packages-load');
   if (loadButton) {
@@ -1306,6 +1424,30 @@ function bindProjectActions() {
     filterInput.addEventListener('input', () => {
       state.reportPackagesQuery = filterInput.value.trim();
       renderDetail();
+    });
+  }
+  const budgetLoad = document.getElementById('import-mapping-budget-load');
+  if (budgetLoad) {
+    budgetLoad.addEventListener('click', async () => {
+      await loadImportMapping('BUDGET');
+    });
+  }
+  const budgetSave = document.getElementById('import-mapping-budget-save');
+  if (budgetSave) {
+    budgetSave.addEventListener('click', async () => {
+      await saveImportMapping('BUDGET');
+    });
+  }
+  const jydaLoad = document.getElementById('import-mapping-jyda-load');
+  if (jydaLoad) {
+    jydaLoad.addEventListener('click', async () => {
+      await loadImportMapping('JYDA');
+    });
+  }
+  const jydaSave = document.getElementById('import-mapping-jyda-save');
+  if (jydaSave) {
+    jydaSave.addEventListener('click', async () => {
+      await saveImportMapping('JYDA');
     });
   }
 }
