@@ -1268,13 +1268,17 @@ async function loadReportPackages() {
     );
     state.reportPackages = packages;
     if (status) {
-      status.textContent = t('ui.status.loaded');
+      status.textContent = packages.length ? t('ui.status.loaded') : t('ui.status.empty');
     }
     renderDetail();
   } catch (error) {
     state.reportPackages = [];
     if (status) {
-      status.textContent = formatErrorMessage(error);
+      if (error.status === 403) {
+        status.textContent = t('ui.error.no_permission');
+      } else {
+        status.textContent = formatErrorMessage(error);
+      }
     }
     renderDetail();
   }

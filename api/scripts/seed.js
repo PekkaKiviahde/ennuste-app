@@ -487,6 +487,7 @@ async function ensureTerminology() {
     { key: 'ui.status.saving', fi: 'Tallennetaan...', en: 'Saving...' },
     { key: 'ui.status.saved', fi: 'Tallennettu', en: 'Saved' },
     { key: 'ui.status.loaded', fi: 'Ladattu', en: 'Loaded' },
+    { key: 'ui.status.empty', fi: 'Ei tuloksia', en: 'No results' },
     { key: 'ui.status.error', fi: 'Virhe', en: 'Error' },
     { key: 'ui.error.required', fi: 'Pakollinen', en: 'Required' },
     { key: 'ui.error.no_permission', fi: 'Ei oikeutta', en: 'No permission' },
