@@ -22,6 +22,7 @@ import argparse
 import csv
 import getpass
 import hashlib
+import json
 import os
 import re
 import sys
@@ -58,6 +59,22 @@ METRIC_TO_COLUMN_LETTER = {
     "JYDA.ACTUAL_COST": "E",
     "JYDA.ACTUAL_COST_INCL_UNAPPROVED": "F",
     "JYDA.FORECAST_COST": "G",
+}
+
+DEFAULT_JYDA_MAPPING = {
+    "sheet_name": "Jyda-ajo",
+    "code_column": "A",
+    "name_column": "B",
+    "metrics": METRIC_TO_COLUMN_LETTER,
+    "csv_code_header": "Koodi",
+    "csv_name_header": "Nimi",
+    "csv_headers": {
+        "JYDA.TARGET_COST": "Tavoitekustannus",
+        "JYDA.COMMITTED_COST": "Sidottu kustannus",
+        "JYDA.ACTUAL_COST": "Toteutunut kustannus",
+        "JYDA.ACTUAL_COST_INCL_UNAPPROVED": "Toteutunut kustannus (sis. hyväksymätt.)",
+        "JYDA.FORECAST_COST": "Ennustettu kustannus",
+    },
 }
 
 
@@ -141,7 +158,63 @@ def _excel_col_letter_to_index(letter: str) -> int:
     return n
 
 
-def read_jyda_from_excel(path: Path, sheet_name: str, metrics: List[str]) -> List[JydaRow]:
+def normalize_mapping(raw_mapping: Optional[Dict]) -> Dict[str, object]:
+    if raw_mapping is None:
+        raw_mapping = {}
+    if "mapping" in raw_mapping and isinstance(raw_mapping["mapping"], dict):
+        raw_mapping = raw_mapping["mapping"]
+    mapping = {
+        "sheet_name": DEFAULT_JYDA_MAPPING["sheet_name"],
+        "code_column": DEFAULT_JYDA_MAPPING["code_column"],
+        "name_column": DEFAULT_JYDA_MAPPING["name_column"],
+        "metrics": dict(DEFAULT_JYDA_MAPPING["metrics"]),
+        "csv_code_header": DEFAULT_JYDA_MAPPING["csv_code_header"],
+        "csv_name_header": DEFAULT_JYDA_MAPPING["csv_name_header"],
+        "csv_headers": dict(DEFAULT_JYDA_MAPPING["csv_headers"]),
+    }
+    if isinstance(raw_mapping.get("sheet_name"), str) and raw_mapping["sheet_name"].strip():
+        mapping["sheet_name"] = raw_mapping["sheet_name"].strip()
+    if isinstance(raw_mapping.get("code_column"), str) and raw_mapping["code_column"].strip():
+        mapping["code_column"] = raw_mapping["code_column"].strip()
+    if isinstance(raw_mapping.get("name_column"), str) and raw_mapping["name_column"].strip():
+        mapping["name_column"] = raw_mapping["name_column"].strip()
+    if isinstance(raw_mapping.get("metrics"), dict):
+        for key, value in raw_mapping["metrics"].items():
+            if isinstance(value, str) and value.strip():
+                mapping["metrics"][key] = value.strip().upper()
+    if isinstance(raw_mapping.get("csv_code_header"), str) and raw_mapping["csv_code_header"].strip():
+        mapping["csv_code_header"] = raw_mapping["csv_code_header"].strip()
+    if isinstance(raw_mapping.get("csv_name_header"), str) and raw_mapping["csv_name_header"].strip():
+        mapping["csv_name_header"] = raw_mapping["csv_name_header"].strip()
+    if isinstance(raw_mapping.get("csv_headers"), dict):
+        for key, value in raw_mapping["csv_headers"].items():
+            if isinstance(value, str) and value.strip():
+                mapping["csv_headers"][key] = value.strip()
+    return mapping
+
+
+def load_mapping_from_db(conn, project_id: str) -> Optional[Dict[str, object]]:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT mapping FROM import_mappings WHERE project_id=%s AND import_type='JYDA'",
+            (project_id,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        if isinstance(row[0], dict):
+            return row[0]
+        return None
+
+
+def read_jyda_from_excel(
+    path: Path,
+    sheet_name: str,
+    metrics: List[str],
+    metric_to_column: Dict[str, str],
+    code_column: str,
+    name_column: str,
+) -> List[JydaRow]:
     wb = openpyxl.load_workbook(str(path), data_only=True, read_only=True)
     if sheet_name not in wb.sheetnames:
         raise ValueError(f"Sheet '{sheet_name}' not found. Sheets: {wb.sheetnames}")
@@ -156,17 +229,20 @@ def read_jyda_from_excel(path: Path, sheet_name: str, metrics: List[str]) -> Lis
     rows: List[JydaRow] = []
     max_row = ws.max_row or 0
 
+    code_col_idx = _excel_col_letter_to_index(code_column)
+    name_col_idx = _excel_col_letter_to_index(name_column)
+
     # Precompute metric->column index
     metric_cols: Dict[str, int] = {}
     for m in metrics:
-        col_letter = METRIC_TO_COLUMN_LETTER.get(m)
+        col_letter = metric_to_column.get(m)
         if not col_letter:
             raise ValueError(f"Unknown metric '{m}'. Known: {sorted(METRIC_TO_COLUMN_LETTER.keys())}")
         metric_cols[m] = _excel_col_letter_to_index(col_letter)
 
     for r in range(2, max_row + 1):
-        raw_code = ws.cell(row=r, column=1).value
-        raw_name = ws.cell(row=r, column=2).value
+        raw_code = ws.cell(row=r, column=code_col_idx).value
+        raw_name = ws.cell(row=r, column=name_col_idx).value
 
         code = _to_code(raw_code)
         if code is None:
@@ -188,27 +264,31 @@ def read_jyda_from_excel(path: Path, sheet_name: str, metrics: List[str]) -> Lis
     return rows
 
 
-def read_jyda_from_csv(path: Path, metrics: List[str]) -> List[JydaRow]:
+def read_jyda_from_csv(
+    path: Path,
+    metrics: List[str],
+    metric_to_header: Dict[str, str],
+    code_header: str,
+    name_header: str,
+) -> List[JydaRow]:
     """
     CSV input option. Expects columns matching Jyda-ajo headers:
     Koodi, Nimi, Tavoitekustannus, Sidottu kustannus, Toteutunut kustannus, ...
     """
-    metric_to_header = {
-        "JYDA.TARGET_COST": "Tavoitekustannus",
-        "JYDA.COMMITTED_COST": "Sidottu kustannus",
-        "JYDA.ACTUAL_COST": "Toteutunut kustannus",
-        "JYDA.ACTUAL_COST_INCL_UNAPPROVED": "Toteutunut kustannus (sis. hyväksymätt.)",
-        "JYDA.FORECAST_COST": "Ennustettu kustannus",
-    }
-
     rows: List[JydaRow] = []
     with path.open("r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f, delimiter=",")
+        if reader.fieldnames is None:
+            raise ValueError("CSV has no header row.")
+        required_headers = [code_header, name_header] + [metric_to_header[m] for m in metrics if m in metric_to_header]
+        missing_headers = [h for h in required_headers if h not in reader.fieldnames]
+        if missing_headers:
+            raise ValueError(f"CSV missing required columns: {missing_headers}")
         for rec in reader:
-            code = _to_code(rec.get("Koodi"))
+            code = _to_code(rec.get(code_header))
             if code is None or not CODE_RE.match(code):
                 continue
-            name = (rec.get("Nimi") or "").strip()
+            name = (rec.get(name_header) or "").strip()
             values: Dict[str, Optional[Decimal]] = {}
             for m in metrics:
                 hdr = metric_to_header.get(m)
@@ -288,6 +368,14 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     p.add_argument("--imported-by", default=os.environ.get("IMPORTED_BY", getpass.getuser()), help="Name of importer (audit)")
     p.add_argument("--occurred-on", default=os.environ.get("OCCURRED_ON", ""), help="Snapshot date YYYY-MM-DD (default: today)")
     p.add_argument("--metrics", nargs="*", default=DEFAULT_METRICS, help=f"Metrics to import. Default: {DEFAULT_METRICS}")
+    p.add_argument("--mapping-file", help="Path to JSON mapping file (optional).")
+    p.add_argument("--mapping-json", help="Inline JSON mapping (optional).")
+    p.add_argument(
+        "--mapping-source",
+        choices=["auto", "db", "none"],
+        default="auto",
+        help="Mapping source: auto (file/json -> db -> default), db, or none (defaults only).",
+    )
     p.add_argument("--include-zeros", action="store_true", help="Insert rows even if amount=0.00 (default: skip zeros).")
     p.add_argument("--dry-run", action="store_true", help="Run validations and print summary but ROLLBACK at end.")
     return p.parse_args(argv)
@@ -310,19 +398,65 @@ def main(argv: List[str]) -> int:
     else:
         occurred_on = date.today()
 
-    # Compute signature: sha256(file bytes) + sheet name + metrics list (so same file+metrics is deduped)
-    file_hash = _sha256_file(file_path)
-    signature = hashlib.sha256((file_hash + "|" + args.sheet + "|" + ",".join(args.metrics)).encode("utf-8")).hexdigest()
-
-    # Read rows
+    conn = connect(args.db_url)
+    conn.autocommit = False
     try:
-        if file_path.suffix.lower() == ".csv":
-            jyda_rows = read_jyda_from_csv(file_path, metrics=args.metrics)
-        else:
-            jyda_rows = read_jyda_from_excel(file_path, sheet_name=args.sheet, metrics=args.metrics)
-    except Exception as e:
-        print(f"ERROR reading source: {e}", file=sys.stderr)
-        return 2
+        raw_mapping: Optional[Dict[str, object]] = None
+        if args.mapping_source in ("auto", "db"):
+            raw_mapping = load_mapping_from_db(conn, args.project_id)
+        if args.mapping_file:
+            try:
+                raw_mapping = json.loads(Path(args.mapping_file).read_text(encoding="utf-8"))
+            except Exception as e:
+                print(f"ERROR reading mapping file: {e}", file=sys.stderr)
+                return 2
+        if args.mapping_json:
+            try:
+                raw_mapping = json.loads(args.mapping_json)
+            except Exception as e:
+                print(f"ERROR parsing mapping JSON: {e}", file=sys.stderr)
+                return 2
+        mapping = normalize_mapping(raw_mapping)
+
+        effective_sheet = args.sheet if args.sheet != "Jyda-ajo" else mapping["sheet_name"]
+        metric_to_column = mapping["metrics"]
+        code_column = mapping["code_column"]
+        name_column = mapping["name_column"]
+        csv_headers = mapping["csv_headers"]
+        csv_code_header = mapping["csv_code_header"]
+        csv_name_header = mapping["csv_name_header"]
+
+        # Compute signature: sha256(file bytes) + sheet name + metrics list + mapping fingerprint
+        file_hash = _sha256_file(file_path)
+        mapping_fingerprint = json.dumps(mapping, sort_keys=True)
+        signature = hashlib.sha256(
+            (file_hash + "|" + effective_sheet + "|" + ",".join(args.metrics) + "|" + mapping_fingerprint).encode("utf-8")
+        ).hexdigest()
+
+        # Read rows
+        try:
+            if file_path.suffix.lower() == ".csv":
+                jyda_rows = read_jyda_from_csv(
+                    file_path,
+                    metrics=args.metrics,
+                    metric_to_header=csv_headers,
+                    code_header=csv_code_header,
+                    name_header=csv_name_header,
+                )
+            else:
+                jyda_rows = read_jyda_from_excel(
+                    file_path,
+                    sheet_name=str(effective_sheet),
+                    metrics=args.metrics,
+                    metric_to_column=metric_to_column,
+                    code_column=str(code_column),
+                    name_column=str(name_column),
+                )
+        except Exception as e:
+            print(f"ERROR reading source: {e}", file=sys.stderr)
+            return 2
+    finally:
+        conn.close()
 
     if not jyda_rows:
         print("No rows found to import (after filtering).", file=sys.stderr)
@@ -340,7 +474,7 @@ def main(argv: List[str]) -> int:
                 conn.rollback()
                 return 0
 
-            notes = f"JYDA snapshot import from {file_path.name} (sheet={args.sheet}, metrics={args.metrics})"
+            notes = f"JYDA snapshot import from {file_path.name} (sheet={effective_sheet}, metrics={args.metrics})"
             import_batch_id = insert_import_batch(cur, args.project_id, args.imported_by, signature, notes)
 
             littera_count = 0
