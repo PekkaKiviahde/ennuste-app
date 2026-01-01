@@ -77,11 +77,18 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Onboarding-linkit ovat kertakäyttöisiä ja idempotentteja.
 - Smoke-testit varmistavat tenant-eristyksen, rooligatingin ja audit-eventit.
 
+## 2026-01-01 – Importit + mapping (scope, malli, oikeudet, evidence)
+- MVP: budjetti + JYDA.
+- Importit: import_job + event-loki + mapping_versions (append-only).
+- Oikeudet: import admin/PM/talous; mapping-korjaus admin/manager.
+- Retry + validointiraportti käytössä.
+- Smoke-testit + invariantit (ei duplikaatteja, ACTIVE-mapping).
+
 ## Mitä muuttui
-- Lisätty päätös onboarding + RBAC -scopesta ja kontrollitasosta.
+- Lisätty päätös importtien ja mappingin scopesta, mallista, oikeuksista ja evidencestä.
 
 ## Miksi
-- Tarvitaan yhteinen totuus onboardingin laajuudesta, kontrolloista ja testivaatimuksista.
+- Tarvitaan yhteinen totuus importtien ja mappingin toteutusmallista ja testivaatimuksista.
 
 ## Miten testataan (manuaali)
-- Aja onboarding + RBAC -polku: linkin kertakäyttöisyys, idempotentti submit, rooligating ja audit-eventit.
+- Aja import-polku: budjetti + JYDA, tarkista import-jobit, mapping-versio ja invariantit.

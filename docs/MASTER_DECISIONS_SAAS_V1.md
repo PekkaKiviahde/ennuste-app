@@ -124,3 +124,9 @@ Huom: normalisointi voidaan tehdä myöhemmin, jos raportointi/validointi vaatii
 Päätös: Onboarding + RBAC toteutetaan laajalla scopella, mutta onboarding-data säilytetään JSONB-kentissä MVP:ssä; API on RBAC-gatingin totuus (UI vain näyttää), onboarding-linkit ovat kertakäyttöisiä ja idempotentteja, ja smoke-testit varmistavat tenant-eristyksen, rooligatingin ja audit-eventit.
 
 Peruste: docs/api/security.md (RBAC + tenant isolation + audit), docs/workflows/rbac-matrix.md (roolit), docs/workflows/nappipolut.md (onboarding-polku), migrations/0018_tenant_onboarding.sql (JSONB-kentät).
+
+## D-031 (LUKITTU) Importit + mapping (scope, malli, oikeudet, evidence)
+
+Päätös: MVP:hen kuuluu budjetti- ja JYDA-importit; importit tallennetaan import_job + event-loki + mapping_versions -mallilla (append-only); importoikeus admin/PM/talous, mapping-korjaus admin/manager; retry + validointiraportti käytössä; smoke-testit varmistavat invariantit (ei duplikaatteja, ACTIVE-mapping).
+
+Peruste: D-012 append-only-periaate, migrations/0019_import_jobs.sql, migrations/0020_import_mappings.sql, F-001 mapping-ketjun varmennus.
