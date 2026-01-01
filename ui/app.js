@@ -636,6 +636,7 @@ function renderProjectView() {
             <th>${t('ui.field.sent_at')}</th>
             <th>${t('ui.field.artifact_type')}</th>
             <th>${t('ui.field.checksum')}</th>
+            <th>${t('ui.field.files')}</th>
             <th>${t('ui.field.actions')}</th>
           </tr>
         </thead>
@@ -648,6 +649,15 @@ function renderProjectView() {
               <td>${pkg.sent_at ? new Date(pkg.sent_at).toLocaleString('fi-FI') : '—'}</td>
               <td>${pkg.artifact_type}</td>
               <td class="mono">${pkg.checksum || '—'}</td>
+              <td>
+                <a href="/api/report-packages/${pkg.package_id}/download?file=report.pdf" target="_blank" rel="noopener">
+                  PDF
+                </a>
+                |
+                <a href="/api/report-packages/${pkg.package_id}/download?file=report.csv" target="_blank" rel="noopener">
+                  CSV
+                </a>
+              </td>
               <td>
                 <a href="/api/report-packages/${pkg.package_id}/download" target="_blank" rel="noopener">
                   ${t('ui.action.open_report_metadata')}

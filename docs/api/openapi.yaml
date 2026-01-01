@@ -711,10 +711,24 @@ paths:
       summary: Download report package artifact (or get signed URL)
       parameters:
         - $ref: '#/components/parameters/PackageId'
+        - name: file
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Optional file name (report.pdf or report.csv)"
       responses:
         "200":
           description: OK (MVP file-based)
           content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
             application/json:
               schema:
                 type: object

@@ -2146,6 +2146,20 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
     if (row.artifact_type === "LINK" && row.artifact_uri.startsWith("file://")) {
       const dir = row.artifact_uri.slice("file://".length);
       const files = await fs.readdir(dir).catch(() => []);
+      const requestedFile = req.query.file ? String(req.query.file) : "";
+      if (requestedFile) {
+        if (!files.includes(requestedFile)) {
+          return res.status(404).json({ error: "Tiedostoa ei löytynyt." });
+        }
+        const filePath = path.join(dir, requestedFile);
+        if (requestedFile.endsWith(".pdf")) {
+          res.type("application/pdf");
+        } else if (requestedFile.endsWith(".csv")) {
+          res.type("text/csv");
+        }
+        fsSync.createReadStream(filePath).pipe(res);
+        return;
+      }
       res.json({ ...row, files });
       return;
     }

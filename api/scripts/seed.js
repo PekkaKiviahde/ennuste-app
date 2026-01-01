@@ -451,6 +451,7 @@ async function ensureTerminology() {
     { key: 'ui.field.sent_at', fi: 'Lähetetty', en: 'Sent at' },
     { key: 'ui.field.artifact_type', fi: 'Tyyppi', en: 'Type' },
     { key: 'ui.field.checksum', fi: 'Checksum', en: 'Checksum' },
+    { key: 'ui.field.files', fi: 'Tiedostot', en: 'Files' },
     { key: 'ui.field.work_phase', fi: 'Työvaihe', en: 'Work phase' },
     { key: 'ui.field.main_group', fi: 'Pääryhmä', en: 'Main group' },
     { key: 'ui.field.budget_total', fi: 'Budjetti €', en: 'Budget €' },
