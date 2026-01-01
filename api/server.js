@@ -20,6 +20,20 @@ const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && origin.includes(".app.github.dev")) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+  }
+  next();
+});
 app.use("/api", (req, res, next) => {
   if (!requireAuth(req, res)) {
     return;
