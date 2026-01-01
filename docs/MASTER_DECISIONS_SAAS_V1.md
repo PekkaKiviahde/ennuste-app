@@ -30,6 +30,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** viikkopäivitys on event-loki, ghostit eivät päivity, vaan kuittaus tehdään settlementilla ja lukitus estää muokkauksen.
 - **D-028 (LUKITTU)** Kuukausiraportointi on append-only report-package-ketju checksumilla; M1_READY_TO_SEND käytössä; lähetys lukitsee kuukauden; korjaus luo uuden report-package-version; smoke-testi varmistaa ketjun.  
   **Tulkinta:** raportit eivät ylikirjoitu, lukitus ja korjaus ovat tilasiirtymiä, ja audit on todennettu.
+- **D-033 (LUKITTU)** Raportin “totuus” säilytetään snapshot-tauluissa (append-only), ja PDF/CSV generoidaan on-demand snapshotista; kaikki versiot säilytetään; generointi ja lataus vaativat RBAC + tenant-eristys + audit-eventit; smoke-testit todentavat tenant/RBAC/on-demand/audit.  
+  **Tulkinta:** raporttidata ei katoa, tiedostot ovat esitysmuotoja, ja audit on kattava.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
@@ -100,16 +102,15 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 ---
 
 ## Mitä muuttui
-- Lukittiin onboardingin JSONB-tallennusmalli päätökseksi D-029.
-- Lukittiin onboarding + RBAC scope ja kontrollit päätökseksi D-030.
+- Lukittiin raporttien snapshot-on-demand -malli päätökseksi D-033.
 
 ## Miksi
-- Tarvitaan yhteinen ja eksplisiittinen linjaus onboardingin datamallista, rooligatingista ja auditista.
+- Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
 
 ## Miten testataan (manuaali)
-- Tarkista, että onboarding-linkki on kertakäyttöinen ja submit idempotentti.
-- Varmista API:ssa rooligating + tenant-eristys write-endpointeissa.
-- Varmista, että audit-eventit syntyvät onboarding- ja roolimuutoksista.
+- Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.
+- Lataa PDF/CSV on-demand ja varmista, että audit-eventit kirjautuvat.
+- Varmista tenant-eristys ja RBAC (vain sallittu rooli voi generoida ja ladata).
 
 ## D-029 (LUKITTU) Onboarding tallennusmalli (JSONB)
 

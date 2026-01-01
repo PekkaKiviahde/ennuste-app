@@ -91,6 +91,13 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Manuaalinen send-reports; versiointi report-package-ketjuna.
 - Smoke-testit: ketju + checksum + lukitus + korjausversio.
 
+## 2026-01-01 – Raporttien snapshot-on-demand
+- Raportin “totuus” säilytetään snapshot-tauluissa (append-only).
+- PDF/CSV generoidaan pyynnöstä snapshotista (on-demand), ei pysyvää tiedostovarastoa.
+- Kaikki versiot säilytetään; korjaus luo uuden snapshot-version.
+- RBAC + tenant-eristys + audit-eventit koskevat generointia ja latausta.
+- Smoke-testit: tenant-eristys + RBAC + on-demand generointi + audit.
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 
