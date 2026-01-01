@@ -137,18 +137,24 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - API-gating + audit kaikista import/mapping-kirjoituksista.
 - Todennus: smoke-testit (tenant-eristys, rooligating, idempotentti submit, audit-eventit).
 
+## 2026-01-01 – Importit + mapping (vahvistus)
+- Vahvistettu: import_job + event-loki + mapping_versions, API-gating, audit ja smoke-testit.
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 - Lisätty onboarding + RBAC minimipäätös (gating, linkki, smoke).
 - Lisätty importit + mapping minimipäätös (rakenne, oikeudet, smoke).
 - Lisätty raportointi + export minimipäätös (oikeus, arkistointi, smoke).
+- Lisätty vahvistusmerkintä importit + mapping -päätöksestä.
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
 - Tarvitaan minimivarmistus onboarding-polun turvallisuudesta ja toistettavuudesta.
 - Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
 - Tarvitaan minimivarmistus raporttien luovutuksesta ja auditoinnista.
+- Päätöksen vahvistus halutaan näkyvästi myös decision-logissa.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.
 - Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
+- Tarkista, että vahvistus näkyy decision-logissa eikä ristiriitaa MASTERissa ole.
