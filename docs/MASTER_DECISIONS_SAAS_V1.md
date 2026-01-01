@@ -103,3 +103,11 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 
 ## Miten testataan (manuaali)
 - Ei testattavaa; dokumentaatiopäivitys.
+
+## D-0XX (LUKITTU) Onboarding tallennusmalli (JSONB)
+
+Päätös: MVP-onboarding-tiedot tallennetaan JSONB-kenttiin: tenants.company_details jsonb ja projects.project_details jsonb.
+
+Peruste: migrations/0018_tenant_onboarding.sql (company_details, project_details), migrations/0001_init.sql (planning_events.attachments jsonb).
+
+Huom: normalisointi voidaan tehdä myöhemmin, jos raportointi/validointi vaatii.
