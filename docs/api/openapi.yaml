@@ -586,7 +586,7 @@ paths:
       tags: [MonthClose]
       summary: Send monthly reports and lock month (Month close)
       description: >
-        Atominen operaatio: generoi raportit, arkistoi report package, lähettää emailit ja lukitsee kuukauden (M2_SENT_LOCKED).
+        Atominen operaatio: arkistoi report package (MVP: metadata-only), ja lukitsee kuukauden (M2_SENT_LOCKED).
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - $ref: '#/components/parameters/Month'
@@ -713,12 +713,19 @@ paths:
         - $ref: '#/components/parameters/PackageId'
       responses:
         "200":
-          description: OK
+          description: OK (MVP metadata-only)
           content:
-            application/octet-stream:
+            application/json:
               schema:
-                type: string
-                format: binary
+                type: object
+                properties:
+                  package_id: { type: string, format: uuid }
+                  artifact_type:
+                    type: string
+                    enum: [LINK]
+                  artifact_uri: { type: string }
+                  checksum: { type: string }
+                required: [package_id, artifact_type, artifact_uri, checksum]
         "401":
           $ref: '#/components/responses/Unauthorized'
         "403":
@@ -1250,12 +1257,20 @@ components:
     SendReportsRequest:
       type: object
       properties:
-        dry_run:
-          type: boolean
-          default: false
+        sentBy:
+          type: string
+          description: "User id (actor)"
+        recipients:
+          type: array
+          items: { type: string, format: email }
+        artifactType:
+          type: string
+          enum: [LINK]
+          description: "MVP metadata-only"
         note:
           type: string
           nullable: true
+      required: [sentBy]
 
     SendReportsResponse:
       type: object

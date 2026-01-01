@@ -1795,12 +1795,12 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
       return;
     }
     const { projectId, month } = req.params;
-    const { recipients, sentBy, artifactType } = req.body;
+    const { recipients, sentBy } = req.body;
     if (!sentBy || String(sentBy).trim() === "") {
       return badRequest(res, "sentBy puuttuu.");
     }
     const recips = Array.isArray(recipients) ? recipients : [];
-    const artifact = artifactType || "LINK";
+    const artifact = "LINK";
     await withClient(async (client) => {
       await client.query("BEGIN");
       try {
@@ -1823,7 +1823,7 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
           `INSERT INTO report_packages
             (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum)
            VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7)
-           RETURNING package_id, sent_at, checksum`,
+           RETURNING package_id, sent_at, checksum, artifact_type, artifact_uri`,
           [
             projectId,
             month,
@@ -2080,7 +2080,7 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
   try {
     const { packageId } = req.params;
     const { rows } = await query(
-      `SELECT package_id, artifact_uri, checksum
+      `SELECT package_id, artifact_type, artifact_uri, checksum
        FROM report_packages
        WHERE package_id=$1`,
       [packageId]
