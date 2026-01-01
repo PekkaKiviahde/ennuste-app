@@ -34,6 +34,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** raporttidata ei katoa, tiedostot ovat esitysmuotoja, ja audit on kattava.
 - **D-034 (LUKITTU)** Onboarding + RBAC: projektin roolit = viewer/editor/manager/owner; järjestelmäroolit = superadmin/admin/director/seller; acting role sallitaan (owner/superadmin, TTL 7pv/30pv, audit); director on read-only; seller saa stub+onboarding-linkki, mutta myyjille on erillinen demo-tenant esitäytettynä; onboarding-linkki kertakäyttöinen (TTL 7pv); pakolliset kentät = nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu); kutsu = sähköposti + kertakäyttöinen linkki + PIN/OTP; oletusrooli viewer; audit kaikki kirjoitukset + roolimuutokset + hyväksynnät; API on gatingin totuus; tenant-eristys pakollinen; break-glass vain superadmin (audit+syy); roolit poistuvat poistossa.  
   **Tulkinta:** roolimalli on standardi, turvallinen ja käyttöönotto pysyy helppona.
+- **D-035 (LUKITTU)** Importit + mapping: MVP sisältää budjetti + JYDA; importien sarakemappaus on joustava per projekti (import_mappings JSONB); mapping-korjaukset versionoidaan aina (uusi mapping_version); mapping-korjaukset vain admin/manager.  
+  **Tulkinta:** data pipeline on laajennettava ilman koodimuutoksia ja audit säilyy.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
@@ -106,10 +108,12 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 ## Mitä muuttui
 - Lukittiin raporttien snapshot-on-demand -malli päätökseksi D-033.
 - Lukittiin onboarding + RBAC -tarkennukset päätökseksi D-034.
+- Lukittiin importit + mapping -tarkennukset päätökseksi D-035.
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
 - Tarvitaan uskottava ja helppo roolimalli (SaaS-standardit) ennen laajaa käyttöönottoa.
+- Tarvitaan laajennettava import-malli, koska asiakkaiden aineistot vaihtelevat.
 
 ## Miten testataan (manuaali)
 - Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.
@@ -117,6 +121,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Varmista tenant-eristys ja RBAC (vain sallittu rooli voi generoida ja ladata).
 - Luo käyttäjä onboarding-linkillä, tarkista kertakäyttö + TTL ja oletusrooli viewer.
 - Varmista acting role TTL + audit, ja break-glass vain superadminille.
+- Aja importit eri sarakejärjestyksillä ja varmista import_mappingsin toiminta.
+- Tee mapping-korjaus ja varmista uuden mapping_versionin synty sekä RBAC.
 
 ## D-029 (LUKITTU) Onboarding tallennusmalli (JSONB)
 

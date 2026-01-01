@@ -97,6 +97,12 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Retry + validointiraportti käytössä.
 - Smoke-testit + invariantit (ei duplikaatteja, ACTIVE-mapping).
 
+## 2026-01-01 – Importit + mapping (tarkennukset)
+- MVP sisältää budjetti + JYDA; laajennusvara avoin.
+- Import-mapping on joustava per projekti (import_mappings JSONB).
+- Mapping-korjaukset aina uusina versioina (append-only).
+- Mapping-korjauksia saa tehdä vain admin/manager.
+
 ## 2026-01-01 – Raportointi + export (scope, malli, oikeudet, evidence)
 - MVP: kuukausiraportti + PDF + CSV (ei XLSX).
 - Raporttipaketti snapshot + checksum + append-only.
