@@ -458,6 +458,7 @@ async function ensureTerminology() {
     { key: 'ui.field.variance_eur', fi: 'Poikkeama €', en: 'Variance €' },
     { key: 'ui.field.work_phases_updated', fi: 'Päivittyneet työvaiheet', en: 'Updated work phases' },
     { key: 'ui.field.month_key', fi: 'Kuukausi', en: 'Month' },
+    { key: 'ui.field.search', fi: 'Haku', en: 'Search' },
     { key: 'ui.field.target_total', fi: 'Tavoite €', en: 'Target €' },
     { key: 'ui.field.forecast_total', fi: 'Ennuste €', en: 'Forecast €' },
     { key: 'ui.field.overrun_eur', fi: 'Ylitys €', en: 'Overrun €' },

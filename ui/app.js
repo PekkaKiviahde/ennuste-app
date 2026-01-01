@@ -24,6 +24,7 @@ const state = {
   projectOverlap: [],
   reportPackages: [],
   reportPackagesMonth: '',
+  reportPackagesQuery: '',
   litteras: [],
 };
 
@@ -619,7 +620,14 @@ function renderProjectView() {
     : '';
 
   const monthValue = state.reportPackagesMonth || defaultReportMonth();
-  const reportPackages = state.reportPackages.length
+  const filteredReportPackages = state.reportPackagesQuery
+    ? state.reportPackages.filter((pkg) =>
+        String(pkg.checksum || '')
+          .toLowerCase()
+          .includes(state.reportPackagesQuery.toLowerCase())
+      )
+    : state.reportPackages;
+  const reportPackages = filteredReportPackages.length
     ? `
       <table>
         <thead>
@@ -632,7 +640,7 @@ function renderProjectView() {
           </tr>
         </thead>
         <tbody>
-          ${state.reportPackages
+          ${filteredReportPackages
             .map(
               (pkg) => `
             <tr>
@@ -694,6 +702,15 @@ function renderProjectView() {
       <div class="form-row">
         <label>${t('ui.field.month_key')}</label>
         <input id="report-packages-month" type="month" value="${monthValue}" />
+      </div>
+      <div class="form-row">
+        <label>${t('ui.field.search')}</label>
+        <input
+          id="report-packages-filter"
+          type="search"
+          value="${state.reportPackagesQuery}"
+          placeholder="${t('ui.field.checksum')}"
+        />
       </div>
       <button id="report-packages-load" type="button">${t('ui.action.load_report_packages')}</button>
       <div class="status" id="report-packages-status"></div>
@@ -1205,6 +1222,7 @@ async function refreshProjectData() {
   state.projectOverlap = reportOverlap.rows;
   state.reportPackages = [];
   state.reportPackagesMonth = defaultReportMonth();
+  state.reportPackagesQuery = '';
   state.workPhases = workPhases.workPhases;
   state.targetBatches = batches.batches;
   state.selvitettavat = selvitettavat.selvitettavat;
@@ -1267,6 +1285,13 @@ function bindProjectActions() {
   if (loadButton) {
     loadButton.addEventListener('click', async () => {
       await loadReportPackages();
+    });
+  }
+  const filterInput = document.getElementById('report-packages-filter');
+  if (filterInput) {
+    filterInput.addEventListener('input', () => {
+      state.reportPackagesQuery = filterInput.value.trim();
+      renderDetail();
     });
   }
 }
