@@ -3,6 +3,7 @@ const projectSelects = {
   budget: document.getElementById("budget-project"),
   jyda: document.getElementById("jyda-project"),
   planning: document.getElementById("planning-project"),
+  weekly: document.getElementById("weekly-project"),
   forecast: document.getElementById("forecast-project"),
   mapping: document.getElementById("mapping-project"),
   report: document.getElementById("report-project"),
@@ -52,6 +53,11 @@ const ghostAmount = document.getElementById("ghost-amount");
 const ghostNote = document.getElementById("ghost-note");
 const ghostAdd = document.getElementById("ghost-add");
 const ghostList = document.getElementById("ghost-list");
+const weeklyProjectSelect = document.getElementById("weekly-project");
+const weeklyWorkPhaseSelect = document.getElementById("weekly-work-phase");
+const ghostWorkPhaseSelect = document.getElementById("ghost-work-phase");
+const ghostOpenSelect = document.getElementById("ghost-open-select");
+const ghostOpenList = document.getElementById("ghost-open-list");
 const budgetPreviewNote = document.getElementById("budget-preview-note");
 const budgetPreviewTable = document.getElementById("budget-preview-table");
 const budgetValidation = document.getElementById("budget-validation");
@@ -90,7 +96,7 @@ const systemRoleSelect = document.getElementById("system-role-select");
 const projectRoleSelect = document.getElementById("project-role-select");
 const ROLE_RANK = { viewer: 1, editor: 2, manager: 3, owner: 4 };
 let knownProjectIds = [];
-const pages = ["setup", "mapping", "planning", "forecast", "report", "history"];
+const pages = ["setup", "mapping", "planning", "weekly", "forecast", "report", "history"];
 const tabHint = document.getElementById("tab-hint");
 const quickActions = document.querySelector(".quick-actions");
 let budgetCsvData = null;
@@ -514,6 +520,7 @@ function selectedProjectId() {
     projectSelects.mapping.value ||
     projectSelects.jyda.value ||
     projectSelects.budget.value ||
+    projectSelects.weekly.value ||
     projectSelects.planning.value ||
     projectSelects.forecast.value ||
     projectSelects.history.value ||
@@ -614,6 +621,9 @@ async function loadProjects() {
   }));
 
   Object.values(projectSelects).forEach((select) => {
+    if (!select) {
+      return;
+    }
     select.innerHTML = "";
     select.appendChild(option("Valitse projekti", ""));
     entries.forEach((entry) => select.appendChild(option(entry.label, entry.value)));
@@ -673,6 +683,30 @@ async function loadTenantProjects(tenantId) {
     select.innerHTML = "";
     select.appendChild(option("Valitse projekti", ""));
     options.forEach((opt) => select.appendChild(option(opt.label, opt.value)));
+  });
+}
+
+async function loadWorkPhases(projectId) {
+  const selects = [weeklyWorkPhaseSelect, ghostWorkPhaseSelect];
+  selects.forEach((select) => {
+    if (!select) {
+      return;
+    }
+    select.innerHTML = "";
+    select.appendChild(option("Valitse työvaihe", ""));
+  });
+  if (!projectId) {
+    return;
+  }
+  const phases = await fetchJson(`/api/work-phases?projectId=${projectId}`);
+  phases.forEach((p) => {
+    const label = `${p.name} (${p.status})`;
+    selects.forEach((select) => {
+      if (!select) {
+        return;
+      }
+      select.appendChild(option(label, p.work_phase_id));
+    });
   });
 }
 
@@ -934,6 +968,11 @@ projectSelects.planning.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
 });
 
+projectSelects.weekly.addEventListener("change", async (e) => {
+  await loadWorkPhases(e.target.value);
+  applyRoleUi();
+});
+
 projectSelects.forecast.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
 });
@@ -973,6 +1012,18 @@ if (mappingCorrectionLineSelect) {
     if (mappingCorrectionNote) {
       mappingCorrectionNote.value = line.note || "";
     }
+  });
+}
+
+if (weeklyWorkPhaseSelect) {
+  weeklyWorkPhaseSelect.addEventListener("change", async () => {
+    await loadGhostOpen(projectSelects.weekly.value, weeklyWorkPhaseSelect.value);
+  });
+}
+
+if (ghostWorkPhaseSelect) {
+  ghostWorkPhaseSelect.addEventListener("change", async () => {
+    await loadGhostOpen(projectSelects.weekly.value, ghostWorkPhaseSelect.value);
   });
 }
 
@@ -1060,6 +1111,33 @@ if (ghostList) {
     }
   });
   renderGhostEntries();
+}
+
+async function loadGhostOpen(projectId, workPhaseId) {
+  if (!ghostOpenList || !ghostOpenSelect) {
+    return;
+  }
+  ghostOpenList.textContent = "Valitse työvaihe nähdäksesi avoimet ghostit.";
+  ghostOpenSelect.innerHTML = "";
+  ghostOpenSelect.appendChild(option("Valitse ghost", ""));
+  if (!projectId || !workPhaseId) {
+    return;
+  }
+  const rows = await fetchJson(`/api/work-phases/${workPhaseId}/ghosts?projectId=${projectId}`);
+  ghostOpenList.innerHTML = "";
+  if (rows.length === 0) {
+    ghostOpenList.textContent = "Ei avoimia ghosteja.";
+    return;
+  }
+  rows.forEach((row) => {
+    const label = `${row.week_ending} ${row.cost_type} open ${row.open_amount}`;
+    ghostOpenSelect.appendChild(option(label, row.ghost_cost_entry_id));
+    const item = document.createElement("div");
+    item.className = "history-item";
+    item.innerHTML = `<strong>${row.week_ending}</strong> ${row.cost_type} — open ${row.open_amount} €
+      <div>Kirjattu ${row.entered_amount} €, kuitattu ${row.settled_amount} €</div>`;
+    ghostOpenList.appendChild(item);
+  });
 }
 
 const projectForm = document.getElementById("project-form");
@@ -2176,9 +2254,10 @@ window.addEventListener("keydown", (event) => {
     Digit1: "setup",
     Digit2: "mapping",
     Digit3: "planning",
-    Digit4: "forecast",
-    Digit5: "report",
-    Digit6: "history",
+    Digit4: "weekly",
+    Digit5: "forecast",
+    Digit6: "report",
+    Digit7: "history",
   };
   const target = map[event.code];
   if (!target) {
@@ -2193,4 +2272,89 @@ if (savedPage && pages.includes(savedPage)) {
   setActivePage(savedPage, false);
 } else {
   setActivePage(pageFromPath(), false);
+}
+const workPhaseForm = document.getElementById("work-phase-form");
+if (workPhaseForm) {
+  workPhaseForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(workPhaseForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("work-phase-result");
+    try {
+      await fetchJson("/api/work-phases", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Työvaihe luotu.");
+      workPhaseForm.reset();
+      await loadWorkPhases(payload.projectId);
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const weeklyUpdateForm = document.getElementById("weekly-update-form");
+if (weeklyUpdateForm) {
+  weeklyUpdateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(weeklyUpdateForm);
+    const payload = Object.fromEntries(form.entries());
+    payload.projectId = projectSelects.weekly.value;
+    const result = document.getElementById("weekly-update-result");
+    try {
+      await fetchJson(`/api/work-phases/${payload.workPhaseId}/weekly-updates`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Viikkopäivitys tallennettu.");
+      weeklyUpdateForm.reset();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const ghostEntryForm = document.getElementById("ghost-entry-form");
+if (ghostEntryForm) {
+  ghostEntryForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(ghostEntryForm);
+    const payload = Object.fromEntries(form.entries());
+    payload.projectId = projectSelects.weekly.value;
+    const result = document.getElementById("ghost-entry-result");
+    try {
+      await fetchJson(`/api/work-phases/${payload.workPhaseId}/ghosts`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Ghost-kulu lisätty.");
+      ghostEntryForm.reset();
+      await loadGhostOpen(payload.projectId, payload.workPhaseId);
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const ghostSettlementForm = document.getElementById("ghost-settlement-form");
+if (ghostSettlementForm) {
+  ghostSettlementForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(ghostSettlementForm);
+    const payload = Object.fromEntries(form.entries());
+    payload.projectId = projectSelects.weekly.value;
+    const result = document.getElementById("ghost-settlement-result");
+    try {
+      await fetchJson(`/api/ghosts/${payload.ghostId}/settlements`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Ghost kuitattu.");
+      ghostSettlementForm.reset();
+      await loadGhostOpen(payload.projectId, ghostWorkPhaseSelect.value);
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
 }

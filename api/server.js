@@ -635,6 +635,220 @@ app.get("/api/projects/:projectId/litteras", async (req, res, next) => {
   }
 });
 
+app.get("/api/work-phases", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
+      return;
+    }
+    const { projectId } = req.query;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    const { rows } = await query(
+      `SELECT work_phase_id, name, status, owner, lead_littera_id
+       FROM work_phases
+       WHERE project_id=$1
+       ORDER BY created_at DESC`,
+      [projectId]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/work-phases", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
+      return;
+    }
+    const { projectId, name, description, owner, leadLitteraId, createdBy } = req.body;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!name || String(name).trim() === "") {
+      return badRequest(res, "name puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const { rows } = await query(
+      `INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING work_phase_id`,
+      [
+        projectId,
+        String(name).trim(),
+        description ? String(description).trim() : null,
+        owner ? String(owner).trim() : null,
+        leadLitteraId || null,
+        String(createdBy).trim(),
+      ]
+    );
+    res.status(201).json({ work_phase_id: rows[0].work_phase_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
+      return;
+    }
+    const { workPhaseId } = req.params;
+    const { projectId } = req.query;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    const { rows } = await query(
+      `SELECT work_phase_weekly_update_id, week_ending, percent_complete, progress_notes, risks, created_by, created_at
+       FROM work_phase_weekly_updates
+       WHERE project_id=$1 AND work_phase_id=$2
+       ORDER BY week_ending DESC, created_at DESC`,
+      [projectId, workPhaseId]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
+      return;
+    }
+    const { workPhaseId } = req.params;
+    const { projectId, weekEnding, percentComplete, progressNotes, risks, createdBy } = req.body;
+    if (!projectId || !weekEnding) {
+      return badRequest(res, "projectId ja weekEnding puuttuu.");
+    }
+    if (percentComplete === null || percentComplete === undefined || percentComplete === "") {
+      return badRequest(res, "percentComplete puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const { rows } = await query(
+      `INSERT INTO work_phase_weekly_updates
+        (project_id, work_phase_id, week_ending, percent_complete, progress_notes, risks, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING work_phase_weekly_update_id`,
+      [
+        projectId,
+        workPhaseId,
+        weekEnding,
+        toNumber(percentComplete),
+        progressNotes ? String(progressNotes).trim() : null,
+        risks ? String(risks).trim() : null,
+        String(createdBy).trim(),
+      ]
+    );
+    res.status(201).json({ work_phase_weekly_update_id: rows[0].work_phase_weekly_update_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
+      return;
+    }
+    const { projectId } = req.query;
+    const { workPhaseId } = req.params;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    const { rows } = await query(
+      `SELECT ghost_cost_entry_id, week_ending, cost_type, entered_amount, settled_amount, open_amount
+       FROM v_ghost_open_entries
+       WHERE project_id=$1 AND work_phase_id=$2
+       ORDER BY week_ending DESC`,
+      [projectId, workPhaseId]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
+      return;
+    }
+    const { workPhaseId } = req.params;
+    const { projectId, weekEnding, costType, amount, description, createdBy } = req.body;
+    if (!projectId || !weekEnding) {
+      return badRequest(res, "projectId ja weekEnding puuttuu.");
+    }
+    if (!costType) {
+      return badRequest(res, "costType puuttuu.");
+    }
+    if (amount === null || amount === undefined || amount === "") {
+      return badRequest(res, "amount puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const { rows } = await query(
+      `INSERT INTO ghost_cost_entries
+        (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING ghost_cost_entry_id`,
+      [
+        projectId,
+        workPhaseId,
+        weekEnding,
+        String(costType).toUpperCase(),
+        toNumber(amount),
+        description ? String(description).trim() : null,
+        String(createdBy).trim(),
+      ]
+    );
+    res.status(201).json({ ghost_cost_entry_id: rows[0].ghost_cost_entry_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/ghosts/:ghostId/settlements", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "manager")) {
+      return;
+    }
+    const { ghostId } = req.params;
+    const { projectId, settledAmount, settledBy, notes } = req.body;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (settledAmount === null || settledAmount === undefined || settledAmount === "") {
+      return badRequest(res, "settledAmount puuttuu.");
+    }
+    if (!settledBy || String(settledBy).trim() === "") {
+      return badRequest(res, "settledBy puuttuu.");
+    }
+    const { rows } = await query(
+      "SELECT ghost_cost_entry_id FROM ghost_cost_entries WHERE ghost_cost_entry_id=$1 AND project_id=$2",
+      [ghostId, projectId]
+    );
+    if (rows.length === 0) {
+      return badRequest(res, "Ghost-kirjausta ei löydy.");
+    }
+    const { rows: insertRows } = await query(
+      `INSERT INTO ghost_cost_settlements
+        (ghost_cost_entry_id, settled_amount, settled_by, notes)
+       VALUES ($1,$2,$3,$4)
+       RETURNING ghost_cost_settlement_id`,
+      [ghostId, toNumber(settledAmount), String(settledBy).trim(), notes ? String(notes).trim() : null]
+    );
+    res.status(201).json({ ghost_cost_settlement_id: insertRows[0].ghost_cost_settlement_id });
+  } catch (err) {
+    next(err);
+  }
+});
 app.post("/api/litteras", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
@@ -1568,7 +1782,7 @@ app.use((err, _req, res, _next) => {
 });
 
 app.get(
-  ["/", "/setup", "/mapping", "/planning", "/forecast", "/report", "/history"],
+  ["/", "/setup", "/mapping", "/planning", "/weekly", "/forecast", "/report", "/history"],
   (_req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
   }

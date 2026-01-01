@@ -47,6 +47,7 @@
         <a href="/setup" data-page="setup">Setup</a>
         <a href="/mapping" data-page="mapping">Mapping</a>
         <a href="/planning" data-page="planning">Työtavoite</a>
+        <a href="/weekly" data-page="weekly">Viikko</a>
         <a href="/forecast" data-page="forecast">Ennuste</a>
         <a href="/report" data-page="report">Raportti</a>
         <a href="/history" data-page="history">Historia</a>
@@ -629,6 +630,121 @@
           <button type="submit">Luo korjausversio</button>
           <div class="hint" id="mapping-correction-result"></div>
         </form>
+      </section>
+
+      <section class="card" data-page="weekly">
+        <h2>6A. Viikkopäivitys</h2>
+        <form id="work-phase-form" class="stack" data-guard="project:editor">
+          <label>
+            Projekti
+            <select name="projectId" id="weekly-project" required></select>
+          </label>
+          <label>
+            Työvaiheen nimi
+            <input name="name" placeholder="Perustukset" required />
+          </label>
+          <label>
+            Kuvaus
+            <input name="description" placeholder="Lyhyt kuvaus" />
+          </label>
+          <label>
+            Omistaja
+            <input name="owner" placeholder="Työnjohtaja" />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <button type="submit">Luo työvaihe</button>
+          <div class="hint" id="work-phase-result"></div>
+        </form>
+
+        <form id="weekly-update-form" class="stack" data-guard="project:editor">
+          <label>
+            Työvaihe
+            <select name="workPhaseId" id="weekly-work-phase" required></select>
+          </label>
+          <label>
+            Viikon päättymispäivä
+            <input type="date" name="weekEnding" required />
+          </label>
+          <label>
+            Valmiusaste %
+            <input name="percentComplete" placeholder="55" required />
+          </label>
+          <label>
+            Tilannekuva
+            <textarea name="progressNotes" placeholder="Mitä tehtiin?"></textarea>
+          </label>
+          <label>
+            Riskit
+            <textarea name="risks" placeholder="Poikkeamat / riskit"></textarea>
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <button type="submit">Tallenna viikkopäivitys</button>
+          <div class="hint" id="weekly-update-result"></div>
+        </form>
+
+        <form id="ghost-entry-form" class="stack" data-guard="project:editor">
+          <label>
+            Työvaihe
+            <select name="workPhaseId" id="ghost-work-phase" required></select>
+          </label>
+          <label>
+            Viikon päättymispäivä
+            <input type="date" name="weekEnding" required />
+          </label>
+          <label>
+            Kustannuslaji
+            <select name="costType" required>
+              <option value="LABOR">Työ</option>
+              <option value="MATERIAL">Aine</option>
+              <option value="SUBCONTRACT">Alihankinta</option>
+              <option value="RENTAL">Vuokra</option>
+              <option value="OTHER">Muu</option>
+            </select>
+          </label>
+          <label>
+            Summa €
+            <input name="amount" placeholder="0,00" required />
+          </label>
+          <label>
+            Selite
+            <input name="description" placeholder="Mistä kulu syntyi?" />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Työnjohtaja" required />
+          </label>
+          <button type="submit">Lisää ghost-kulu</button>
+          <div class="hint" id="ghost-entry-result"></div>
+        </form>
+
+        <form id="ghost-settlement-form" class="stack" data-guard="project:manager">
+          <label>
+            Avoin ghost
+            <select name="ghostId" id="ghost-open-select" required></select>
+          </label>
+          <label>
+            Kuittaus €
+            <input name="settledAmount" placeholder="0,00" required />
+          </label>
+          <label>
+            Kuittaaja
+            <input name="settledBy" placeholder="Työpäällikkö" required />
+          </label>
+          <label>
+            Huomio
+            <input name="notes" placeholder="Toteuma tullut laskulle" />
+          </label>
+          <button type="submit">Kuittaa ghost</button>
+          <div class="hint" id="ghost-settlement-result"></div>
+        </form>
+
+        <div class="history" id="ghost-open-list">Valitse työvaihe nähdäksesi avoimet ghostit.</div>
       </section>
 
       <section class="card" data-page="forecast">
