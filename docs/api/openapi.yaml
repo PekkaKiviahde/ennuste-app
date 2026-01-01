@@ -581,7 +581,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /projects/{project_id}/months/{month}:send-reports:
+  /projects/{project_id}/months/{month}/send-reports:
     post:
       tags: [MonthClose]
       summary: Send monthly reports and lock month (Month close)
@@ -614,7 +614,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /projects/{project_id}/months/{month}/corrections:request:
+  /projects/{project_id}/months/{month}/corrections/request:
     post:
       tags: [MonthClose]
       summary: Request correction after lock (TJ only)
@@ -639,7 +639,7 @@ paths:
         "403":
           $ref: '#/components/responses/Forbidden'
 
-  /projects/{project_id}/months/{month}/corrections/{correction_id}:approve:
+  /projects/{project_id}/months/{month}/corrections/{correction_id}/approve:
     post:
       tags: [MonthClose]
       summary: Approve correction (Unit head only)
@@ -665,7 +665,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /projects/{project_id}/months/{month}/corrections/{correction_id}:reject:
+  /projects/{project_id}/months/{month}/corrections/{correction_id}/reject:
     post:
       tags: [MonthClose]
       summary: Reject correction
@@ -1351,4 +1351,3 @@ components:
           required: [current_step]
         members_count: { type: integer, minimum: 0 }
       required: [wp, approvals, members_count]
-

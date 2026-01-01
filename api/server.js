@@ -236,6 +236,37 @@ function hashToken(token) {
   return createHash("sha256").update(token).digest("hex");
 }
 
+async function getOrCreateMonth(client, projectId, month) {
+  const { rows } = await client.query(
+    "SELECT month_state FROM months WHERE project_id=$1 AND month=$2",
+    [projectId, month]
+  );
+  if (rows.length > 0) {
+    return rows[0].month_state;
+  }
+  await client.query(
+    "INSERT INTO months (project_id, month, month_state) VALUES ($1,$2,'M0_OPEN_DRAFT')",
+    [projectId, month]
+  );
+  return "M0_OPEN_DRAFT";
+}
+
+async function setMonthState(client, { projectId, month, fromState, toState, actor, reason }) {
+  await client.query(
+    `UPDATE months
+     SET month_state=$3::month_state,
+         lock_applied_at=CASE WHEN $3::month_state='M2_SENT_LOCKED'::month_state THEN now() ELSE lock_applied_at END,
+         updated_at=now()
+     WHERE project_id=$1 AND month=$2`,
+    [projectId, month, toState]
+  );
+  await client.query(
+    `INSERT INTO month_state_events (project_id, month, from_state, to_state, actor_user_id, reason)
+     VALUES ($1,$2,$3::month_state,$4::month_state,$5,$6)`,
+    [projectId, month, fromState, toState, actor || null, reason || null]
+  );
+}
+
 async function logImportJobEvent({ jobId, status, message }) {
   await query(
     "INSERT INTO import_job_events (import_job_id, status, message) VALUES ($1,$2,$3)",
@@ -1706,6 +1737,358 @@ app.post("/api/forecast-events", async (req, res, next) => {
     });
 
     res.status(201).json({ forecast_event_id: result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.put("/api/projects/:projectId/months/:month/forecast", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.params.projectId, "editor")) {
+      return;
+    }
+    const { projectId, month } = req.params;
+    const { forecastTotalEur, note, updatedBy } = req.body;
+    if (!forecastTotalEur && forecastTotalEur !== 0) {
+      return badRequest(res, "forecastTotalEur puuttuu.");
+    }
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const state = await getOrCreateMonth(client, projectId, month);
+        if (["M2_SENT_LOCKED", "M3_CORRECTION_PENDING", "M4_CORRECTED_LOCKED"].includes(state)) {
+          await client.query("ROLLBACK");
+          res.status(409).json({ error: "Kuukausi on lukittu." });
+          return;
+        }
+        await client.query(
+          `INSERT INTO month_forecast_events (project_id, month, forecast_total_eur, note, created_by)
+           VALUES ($1,$2,$3,$4,$5)`,
+          [projectId, month, toNumber(forecastTotalEur), note ? String(note).trim() : null, String(updatedBy).trim()]
+        );
+        await client.query(
+          `INSERT INTO month_forecasts (project_id, month, forecast_total_eur, note, updated_by)
+           VALUES ($1,$2,$3,$4,$5)
+           ON CONFLICT (project_id, month)
+           DO UPDATE SET forecast_total_eur=$3, note=$4, updated_at=now(), updated_by=$5`,
+          [projectId, month, toNumber(forecastTotalEur), note ? String(note).trim() : null, String(updatedBy).trim()]
+        );
+        await client.query("COMMIT");
+        res.json({ project_id: projectId, month, forecast_total_eur: toNumber(forecastTotalEur), note: note || "" });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.params.projectId, "manager")) {
+      return;
+    }
+    const { projectId, month } = req.params;
+    const { recipients, sentBy, artifactType } = req.body;
+    if (!sentBy || String(sentBy).trim() === "") {
+      return badRequest(res, "sentBy puuttuu.");
+    }
+    const recips = Array.isArray(recipients) ? recipients : [];
+    const artifact = artifactType || "LINK";
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const state = await getOrCreateMonth(client, projectId, month);
+        if (!["M0_OPEN_DRAFT", "M1_READY_TO_SEND"].includes(state)) {
+          await client.query("ROLLBACK");
+          res.status(409).json({ error: "Kuukausi ei ole avoin." });
+          return;
+        }
+        const payload = {
+          projectId,
+          month,
+          recipients: recips,
+          sentBy: String(sentBy).trim(),
+          generatedAt: new Date().toISOString(),
+        };
+        const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+        const recipientsJson = JSON.stringify(recips);
+        const { rows } = await client.query(
+          `INSERT INTO report_packages
+            (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum)
+           VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7)
+           RETURNING package_id, sent_at, checksum`,
+          [
+            projectId,
+            month,
+            String(sentBy).trim(),
+            recipientsJson,
+            artifact,
+            `report://${projectId}/${month}/${checksum}`,
+            checksum,
+          ]
+        );
+        await setMonthState(client, {
+          projectId,
+          month,
+          fromState: state,
+          toState: "M2_SENT_LOCKED",
+          actor: String(sentBy).trim(),
+          reason: "Reports sent",
+        });
+        await client.query("COMMIT");
+        res.json({ month_state: "M2_SENT_LOCKED", report_package: rows[0] });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/projects/:projectId/months/:month/corrections/request", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.params.projectId, "manager")) {
+      return;
+    }
+    const { projectId, month } = req.params;
+    const { reason, patch, requestedBy } = req.body;
+    if (!reason || String(reason).trim() === "") {
+      return badRequest(res, "reason puuttuu.");
+    }
+    if (!patch || typeof patch !== "object") {
+      return badRequest(res, "patch puuttuu.");
+    }
+    if (!requestedBy || String(requestedBy).trim() === "") {
+      return badRequest(res, "requestedBy puuttuu.");
+    }
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const state = await getOrCreateMonth(client, projectId, month);
+        if (state !== "M2_SENT_LOCKED") {
+          await client.query("ROLLBACK");
+          res.status(409).json({ error: "Korjaus sallittu vain lukitun kuukauden jälkeen." });
+          return;
+        }
+        const { rows } = await client.query(
+          `INSERT INTO month_corrections
+            (project_id, month, state, requested_by_user_id, reason, patch)
+           VALUES ($1,$2,'REQUESTED',$3,$4,$5)
+           RETURNING correction_id`,
+          [projectId, month, String(requestedBy).trim(), String(reason).trim(), patch]
+        );
+        await client.query(
+          `INSERT INTO month_correction_events
+            (correction_id, project_id, month, state, actor_user_id, reason)
+           VALUES ($1,$2,$3,'REQUESTED',$4,$5)`,
+          [rows[0].correction_id, projectId, month, String(requestedBy).trim(), "Correction requested"]
+        );
+        await setMonthState(client, {
+          projectId,
+          month,
+          fromState: state,
+          toState: "M3_CORRECTION_PENDING",
+          actor: String(requestedBy).trim(),
+          reason: "Correction requested",
+        });
+        await client.query("COMMIT");
+        res.status(201).json({ correction_id: rows[0].correction_id, state: "REQUESTED" });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post(
+  "/api/projects/:projectId/months/:month/corrections/:correctionId/approve",
+  async (req, res, next) => {
+    try {
+      if (!requireProjectAccess(req, res, req.params.projectId, "manager")) {
+        return;
+      }
+      const { projectId, month, correctionId } = req.params;
+      const { approvedBy } = req.body;
+      if (!approvedBy || String(approvedBy).trim() === "") {
+        return badRequest(res, "approvedBy puuttuu.");
+      }
+      await withClient(async (client) => {
+        await client.query("BEGIN");
+        try {
+          const { rows } = await client.query(
+            "SELECT state FROM month_corrections WHERE correction_id=$1 AND project_id=$2",
+            [correctionId, projectId]
+          );
+          if (rows.length === 0) {
+            await client.query("ROLLBACK");
+            res.status(404).json({ error: "Korjausta ei löytynyt." });
+            return;
+          }
+          if (rows[0].state !== "REQUESTED") {
+            await client.query("ROLLBACK");
+            res.status(409).json({ error: "Korjaus ei ole odotustilassa." });
+            return;
+          }
+          await client.query(
+            `UPDATE month_corrections
+             SET state='APPROVED', approved_by_user_id=$2, updated_at=now()
+             WHERE correction_id=$1`,
+            [correctionId, String(approvedBy).trim()]
+          );
+          await client.query(
+            `INSERT INTO month_correction_events
+              (correction_id, project_id, month, state, actor_user_id, reason)
+             VALUES ($1,$2,$3,'APPROVED',$4,$5)`,
+            [correctionId, projectId, month, String(approvedBy).trim(), "Correction approved"]
+          );
+          const payload = { projectId, month, correctionId, approvedBy: String(approvedBy).trim() };
+          const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+          const recipientsJson = JSON.stringify([]);
+          const { rows: pkgRows } = await client.query(
+            `INSERT INTO report_packages
+              (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum, correction_id)
+             VALUES ($1,$2,$3,$4::jsonb,$5,$6,$7,$8)
+             RETURNING package_id, sent_at, checksum`,
+            [
+              projectId,
+              month,
+              String(approvedBy).trim(),
+              recipientsJson,
+              "LINK",
+              `report://${projectId}/${month}/${checksum}`,
+              checksum,
+              correctionId,
+            ]
+          );
+          const state = await getOrCreateMonth(client, projectId, month);
+          await setMonthState(client, {
+            projectId,
+            month,
+            fromState: state,
+            toState: "M4_CORRECTED_LOCKED",
+            actor: String(approvedBy).trim(),
+            reason: "Correction approved",
+          });
+          await client.query("COMMIT");
+          res.json({ correction_id: correctionId, state: "APPROVED", report_package: pkgRows[0] });
+        } catch (err) {
+          await client.query("ROLLBACK");
+          throw err;
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.post(
+  "/api/projects/:projectId/months/:month/corrections/:correctionId/reject",
+  async (req, res, next) => {
+    try {
+      if (!requireProjectAccess(req, res, req.params.projectId, "manager")) {
+        return;
+      }
+      const { projectId, month, correctionId } = req.params;
+      const { rejectedBy } = req.body;
+      if (!rejectedBy || String(rejectedBy).trim() === "") {
+        return badRequest(res, "rejectedBy puuttuu.");
+      }
+      await withClient(async (client) => {
+        await client.query("BEGIN");
+        try {
+          const { rows } = await client.query(
+            "SELECT state FROM month_corrections WHERE correction_id=$1 AND project_id=$2",
+            [correctionId, projectId]
+          );
+          if (rows.length === 0) {
+            await client.query("ROLLBACK");
+            res.status(404).json({ error: "Korjausta ei löytynyt." });
+            return;
+          }
+          if (rows[0].state !== "REQUESTED") {
+            await client.query("ROLLBACK");
+            res.status(409).json({ error: "Korjaus ei ole odotustilassa." });
+            return;
+          }
+          await client.query(
+            `UPDATE month_corrections
+             SET state='REJECTED', approved_by_user_id=$2, updated_at=now()
+             WHERE correction_id=$1`,
+            [correctionId, String(rejectedBy).trim()]
+          );
+          await client.query(
+            `INSERT INTO month_correction_events
+              (correction_id, project_id, month, state, actor_user_id, reason)
+             VALUES ($1,$2,$3,'REJECTED',$4,$5)`,
+            [correctionId, projectId, month, String(rejectedBy).trim(), "Correction rejected"]
+          );
+          const state = await getOrCreateMonth(client, projectId, month);
+          await setMonthState(client, {
+            projectId,
+            month,
+            fromState: state,
+            toState: "M2_SENT_LOCKED",
+            actor: String(rejectedBy).trim(),
+            reason: "Correction rejected",
+          });
+          await client.query("COMMIT");
+          res.json({ correction_id: correctionId, state: "REJECTED" });
+        } catch (err) {
+          await client.query("ROLLBACK");
+          throw err;
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+app.get("/api/projects/:projectId/months/:month/report-packages", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.params.projectId, "viewer")) {
+      return;
+    }
+    const { projectId, month } = req.params;
+    const { rows } = await query(
+      `SELECT package_id, project_id, month, sent_at, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum
+       FROM report_packages
+       WHERE project_id=$1 AND month=$2
+       ORDER BY sent_at DESC`,
+      [projectId, month]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
+  try {
+    const { packageId } = req.params;
+    const { rows } = await query(
+      `SELECT package_id, artifact_uri, checksum
+       FROM report_packages
+       WHERE package_id=$1`,
+      [packageId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Report packagea ei löytynyt." });
+    }
+    res.json(rows[0]);
   } catch (err) {
     next(err);
   }

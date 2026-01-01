@@ -169,7 +169,7 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - `PUT  /api/projects/{project_id}/months/{YYYY-MM}/lock-candidates` → (valinn.) READY_TO_SEND (M1)
 
 **Lähetä raportit (= Month close):**
-- `POST /api/projects/{project_id}/months/{YYYY-MM}:send-reports`  
+- `POST /api/projects/{project_id}/months/{YYYY-MM}/send-reports`  
   Tekee atomisesti:
   1) generate raportit
   2) lähettää emailit
@@ -177,9 +177,9 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
   4) asettaa tilan M2_SENT_LOCKED
 
 **Korjaus lukon jälkeen:**
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections:request` *(TJ)* → M3
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}:approve` *(yksikön johtaja)* → M4
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}:reject` → takaisin M2
+- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/request` *(TJ)* → M3
+- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}/approve` *(yksikön johtaja)* → M4
+- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}/reject` → takaisin M2
 
 **Report package (arkisto):**
 - `GET  /api/projects/{project_id}/months/{YYYY-MM}/report-packages` → listaa arkistot
@@ -217,4 +217,3 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - Unit: state transitions + “allowed fields” (korjaus)
 - Integration: DB gate (lukitukset, immutability), näkymät compile
 - E2E: 1) send-reports locks month 2) correction after lock requires approvals
-
