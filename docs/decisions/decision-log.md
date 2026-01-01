@@ -70,11 +70,18 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Viikkopäivitys: append-only event + ghost settlement; lukitus estää muokkaukset, korjaus correction-polulla.
 - Month close: M0→M1→M2; korjaus luo uuden report-package-version.
 
+## 2026-01-01 – Onboarding + RBAC (scope ja kontrollit)
+- Onboarding toteutetaan laajalla scopella (täysi roolipinta ja hallinnollinen polku).
+- Onboarding-data pysyy JSONB-kentissä MVP:ssä.
+- API on RBAC-gatingin totuus (UI vain näyttää).
+- Onboarding-linkit ovat kertakäyttöisiä ja idempotentteja.
+- Smoke-testit varmistavat tenant-eristyksen, rooligatingin ja audit-eventit.
+
 ## Mitä muuttui
-- Lisätty päätökset MVP-työnkulkujen siirrosta ja integraatiopolusta.
+- Lisätty päätös onboarding + RBAC -scopesta ja kontrollitasosta.
 
 ## Miksi
-- Tarvitaan yhteinen totuus integraatiotestaukseen ja toteutukseen.
+- Tarvitaan yhteinen totuus onboardingin laajuudesta, kontrolloista ja testivaatimuksista.
 
 ## Miten testataan (manuaali)
-- Aja MVP-polku end-to-end ja tarkista audit-loki sekä lukitukset.
+- Aja onboarding + RBAC -polku: linkin kertakäyttöisyys, idempotentti submit, rooligating ja audit-eventit.

@@ -100,18 +100,27 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 ---
 
 ## Mitä muuttui
-- Vahvistettiin NPSS/cutover-päätösten listaus (D-012, D-013, D-015–D-016, D-022, D-024–D-026) ja päivitettiin aikaleima.
+- Lukittiin onboardingin JSONB-tallennusmalli päätökseksi D-029.
+- Lukittiin onboarding + RBAC scope ja kontrollit päätökseksi D-030.
 
 ## Miksi
-- Päätösten, varmennusten ja toteutuslinjausten erottelu ja tulkinta estävät sekoittamasta UI-bugia data-pipeline -puutteeseen.
+- Tarvitaan yhteinen ja eksplisiittinen linjaus onboardingin datamallista, rooligatingista ja auditista.
 
 ## Miten testataan (manuaali)
-- Ei testattavaa; dokumentaatiopäivitys.
+- Tarkista, että onboarding-linkki on kertakäyttöinen ja submit idempotentti.
+- Varmista API:ssa rooligating + tenant-eristys write-endpointeissa.
+- Varmista, että audit-eventit syntyvät onboarding- ja roolimuutoksista.
 
-## D-0XX (LUKITTU) Onboarding tallennusmalli (JSONB)
+## D-029 (LUKITTU) Onboarding tallennusmalli (JSONB)
 
 Päätös: MVP-onboarding-tiedot tallennetaan JSONB-kenttiin: tenants.company_details jsonb ja projects.project_details jsonb.
 
 Peruste: migrations/0018_tenant_onboarding.sql (company_details, project_details), migrations/0001_init.sql (planning_events.attachments jsonb).
 
 Huom: normalisointi voidaan tehdä myöhemmin, jos raportointi/validointi vaatii.
+
+## D-030 (LUKITTU) Onboarding + RBAC scope ja kontrollit
+
+Päätös: Onboarding + RBAC toteutetaan laajalla scopella, mutta onboarding-data säilytetään JSONB-kentissä MVP:ssä; API on RBAC-gatingin totuus (UI vain näyttää), onboarding-linkit ovat kertakäyttöisiä ja idempotentteja, ja smoke-testit varmistavat tenant-eristyksen, rooligatingin ja audit-eventit.
+
+Peruste: docs/api/security.md (RBAC + tenant isolation + audit), docs/workflows/rbac-matrix.md (roolit), docs/workflows/nappipolut.md (onboarding-polku), migrations/0018_tenant_onboarding.sql (JSONB-kentät).
