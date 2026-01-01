@@ -40,6 +40,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** UI ei yksinään vartioi oikeuksia, kutsut ovat jäljitettävissä ja minimivarmistus on toistettava.
 - **D-037 (LUKITTU)** Importit + mapping (minimi): rakenne on import_job + event-loki + mapping_versions; API tekee rooligatingin ja kaikki import/mapping-kirjoitukset auditoidaan; varmistus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
   **Tulkinta:** import-ketju on append-only, oikeudet eivät ole UI:n varassa ja minimivarmistus on toistettava.
+- **D-038 (LUKITTU)** Raportointi + export (minimi): export-oikeus on PM/johto ja kaikki exportit auditoidaan; report-package snapshotit arkistoidaan append-only; varmistus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
+  **Tulkinta:** raporttien luovutus on rajattu rooleille, versiot ovat muuttumattomia ja minimivarmistus on toistettava.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
@@ -115,6 +117,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Lukittiin importit + mapping -tarkennukset päätökseksi D-035.
 - Lukittiin onboarding + RBAC minimipäätökset (gating, linkki, smoke) päätökseksi D-036.
 - Lukittiin importit + mapping minimipäätökset (rakenne, oikeudet, smoke) päätökseksi D-037.
+- Lukittiin raportointi + export minimipäätökset (oikeus, arkistointi, smoke) päätökseksi D-038.
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
@@ -122,6 +125,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Tarvitaan laajennettava import-malli, koska asiakkaiden aineistot vaihtelevat.
 - Tarvitaan minimigating ja toistettava varmennus ennen onboarding-polun laajentamista.
 - Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
+- Tarvitaan minimivarmistus raporttien luovutuksesta ja auditoinnista.
 
 ## Miten testataan (manuaali)
 - Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.

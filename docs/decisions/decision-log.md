@@ -127,15 +127,22 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - API tekee rooligatingin ja kaikki import/mapping-kirjoitukset auditoidaan.
 - Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 
+## 2026-01-01 – Raportointi + export (minimi)
+- Export-oikeus: PM/johto; audit kaikista exporteista.
+- Report-package snapshotit arkistoidaan append-only.
+- Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 - Lisätty onboarding + RBAC minimipäätös (gating, linkki, smoke).
 - Lisätty importit + mapping minimipäätös (rakenne, oikeudet, smoke).
+- Lisätty raportointi + export minimipäätös (oikeus, arkistointi, smoke).
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
 - Tarvitaan minimivarmistus onboarding-polun turvallisuudesta ja toistettavuudesta.
 - Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
+- Tarvitaan minimivarmistus raporttien luovutuksesta ja auditoinnista.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.
