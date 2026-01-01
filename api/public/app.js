@@ -8,6 +8,18 @@ const projectSelects = {
   report: document.getElementById("report-project"),
   history: document.getElementById("history-project"),
 };
+const tenantSelects = {
+  tenant: document.getElementById("tenant-select"),
+  onboardingTenant: document.getElementById("onboarding-tenant-select"),
+  companyTenant: document.getElementById("company-tenant-select"),
+  onboardingCompleteTenant: document.getElementById("onboarding-complete-tenant"),
+};
+const tenantProjectSelects = {
+  onboardingProject: document.getElementById("onboarding-project-select"),
+  projectDetails: document.getElementById("project-details-select"),
+  projectActivate: document.getElementById("project-activate-select"),
+  projectArchive: document.getElementById("project-archive-select"),
+};
 
 const litteraSelects = {
   planning: document.getElementById("planning-littera"),
@@ -92,6 +104,7 @@ let mappingCorrectionLines = new Map();
 let litteraById = new Map();
 let planningAttachments = [];
 let ghostEntries = [];
+let tenants = [];
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, {
@@ -482,6 +495,9 @@ function canSystem(role, required) {
   if (required === "director") {
     return role === "director" || role === "admin" || role === "superadmin";
   }
+  if (required === "seller") {
+    return role === "seller" || role === "admin" || role === "superadmin";
+  }
   return role === required;
 }
 
@@ -611,6 +627,53 @@ async function loadProjects() {
   });
   saveAuthState(state);
   applyRoleUi();
+}
+
+async function loadTenants() {
+  try {
+    tenants = await fetchJson("/api/tenants");
+  } catch (err) {
+    tenants = [];
+  }
+  const tenantOptions = tenants.map((t) => ({
+    label: `${t.name} (${t.onboarding_state})`,
+    value: t.tenant_id,
+  }));
+
+  Object.values(tenantSelects).forEach((select) => {
+    if (!select) {
+      return;
+    }
+    select.innerHTML = "";
+    select.appendChild(option("Valitse tenant", ""));
+    tenantOptions.forEach((opt) => select.appendChild(option(opt.label, opt.value)));
+  });
+}
+
+async function loadTenantProjects(tenantId) {
+  if (!tenantId) {
+    Object.values(tenantProjectSelects).forEach((select) => {
+      if (!select) {
+        return;
+      }
+      select.innerHTML = "";
+      select.appendChild(option("Valitse projekti", ""));
+    });
+    return;
+  }
+  const projects = await fetchJson(`/api/tenants/${tenantId}/projects`);
+  const options = projects.map((p) => ({
+    label: `${p.name} (${p.project_state})`,
+    value: p.project_id,
+  }));
+  Object.values(tenantProjectSelects).forEach((select) => {
+    if (!select) {
+      return;
+    }
+    select.innerHTML = "";
+    select.appendChild(option("Valitse projekti", ""));
+    options.forEach((opt) => select.appendChild(option(opt.label, opt.value)));
+  });
 }
 
 async function loadBudgetJobs(projectId) {
@@ -923,6 +986,22 @@ projectSelects.history.addEventListener("change", async (e) => {
   applyRoleUi();
 });
 
+Object.values(tenantSelects).forEach((select) => {
+  if (!select) {
+    return;
+  }
+  select.addEventListener("change", async (e) => {
+    if (
+      e.target === tenantSelects.tenant ||
+      e.target === tenantSelects.onboardingTenant ||
+      e.target === tenantSelects.companyTenant ||
+      e.target === tenantSelects.onboardingCompleteTenant
+    ) {
+      await loadTenantProjects(e.target.value);
+    }
+  });
+});
+
 if (planningAttachmentAdd) {
   planningAttachmentAdd.addEventListener("click", () => {
     const title = planningAttachmentTitle.value.trim();
@@ -1008,6 +1087,189 @@ projectForm.addEventListener("submit", async (e) => {
     setHint(result, err.message, true);
   }
 });
+
+const tenantForm = document.getElementById("tenant-form");
+if (tenantForm) {
+  tenantForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(tenantForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("tenant-result");
+    try {
+      await fetchJson("/api/seller/tenants", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Tenant luotu.");
+      tenantForm.reset();
+      await loadTenants();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const sellerProjectForm = document.getElementById("seller-project-form");
+if (sellerProjectForm) {
+  sellerProjectForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(sellerProjectForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("seller-project-result");
+    try {
+      await fetchJson("/api/seller/projects", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Project stub luotu.");
+      sellerProjectForm.reset();
+      await loadTenants();
+      if (payload.tenantId) {
+        await loadTenantProjects(payload.tenantId);
+      }
+      await loadProjects();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const onboardingLinkForm = document.getElementById("onboarding-link-form");
+if (onboardingLinkForm) {
+  onboardingLinkForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(onboardingLinkForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("onboarding-link-result");
+    try {
+      const res = await fetchJson("/api/seller/onboarding-links", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, `Linkki luotu: ${res.onboarding_url}`);
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const companyDetailsForm = document.getElementById("company-details-form");
+if (companyDetailsForm) {
+  companyDetailsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(companyDetailsForm);
+    const payload = {
+      tenantId: form.get("tenantId"),
+      updatedBy: form.get("updatedBy"),
+      details: {
+        companyName: form.get("companyName"),
+        businessId: form.get("businessId"),
+        adminEmail: form.get("adminEmail"),
+      },
+    };
+    const result = document.getElementById("company-details-result");
+    try {
+      await fetchJson(`/api/admin/tenants/${payload.tenantId}/onboarding/company`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Yritystiedot tallennettu.");
+      await loadTenants();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const projectDetailsForm = document.getElementById("project-details-form");
+if (projectDetailsForm) {
+  projectDetailsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(projectDetailsForm);
+    const payload = {
+      projectId: form.get("projectId"),
+      updatedBy: form.get("updatedBy"),
+      details: {
+        address: form.get("address"),
+        startDate: form.get("startDate"),
+        endDate: form.get("endDate"),
+      },
+    };
+    const result = document.getElementById("project-details-result");
+    try {
+      await fetchJson(`/api/admin/projects/${payload.projectId}/onboarding/project`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(result, "Projektitiedot tallennettu.");
+      await loadProjects();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const onboardingCompleteForm = document.getElementById("onboarding-complete-form");
+if (onboardingCompleteForm) {
+  onboardingCompleteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(onboardingCompleteForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("onboarding-complete-result");
+    try {
+      await fetchJson(`/api/admin/tenants/${payload.tenantId}/onboarding/complete`, {
+        method: "POST",
+        body: JSON.stringify({ updatedBy: payload.updatedBy }),
+      });
+      setHint(result, "Onboarding valmis.");
+      await loadTenants();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const projectActivateForm = document.getElementById("project-activate-form");
+if (projectActivateForm) {
+  projectActivateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(projectActivateForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("project-activate-result");
+    try {
+      await fetchJson(`/api/projects/${payload.projectId}/activate`, {
+        method: "POST",
+        body: JSON.stringify({ updatedBy: payload.updatedBy }),
+      });
+      setHint(result, "Projekti aktivoitu.");
+      await loadTenants();
+      await loadProjects();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
+
+const projectArchiveForm = document.getElementById("project-archive-form");
+if (projectArchiveForm) {
+  projectArchiveForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(projectArchiveForm);
+    const payload = Object.fromEntries(form.entries());
+    const result = document.getElementById("project-archive-result");
+    try {
+      await fetchJson(`/api/projects/${payload.projectId}/archive`, {
+        method: "POST",
+        body: JSON.stringify({ updatedBy: payload.updatedBy }),
+      });
+      setHint(result, "Projekti arkistoitu.");
+      await loadTenants();
+      await loadProjects();
+    } catch (err) {
+      setHint(result, err.message, true);
+    }
+  });
+}
 
 function readFileAsText(file) {
   return new Promise((resolve, reject) => {
@@ -1706,9 +1968,11 @@ document.getElementById("history-refresh").addEventListener("click", (e) => {
   });
 });
 
-loadProjects().catch((err) => {
-  historyOutput.textContent = err.message;
-});
+loadProjects()
+  .then(loadTenants)
+  .catch((err) => {
+    historyOutput.textContent = err.message;
+  });
 
 async function seedDemoData() {
   setHint(demoSeedResult, "Luodaan esimerkkidata...");

@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { createHash, randomBytes } from "crypto";
 import dotenv from "dotenv";
 import { query, withClient } from "./db.js";
 
@@ -46,7 +47,7 @@ function groupCodeFromLittera(code) {
   return Number(s[0]);
 }
 
-const SYSTEM_ROLES = ["superadmin", "admin", "director"];
+const SYSTEM_ROLES = ["superadmin", "admin", "director", "seller"];
 const PROJECT_ROLES = ["viewer", "editor", "manager", "owner"];
 const PROJECT_ROLE_RANK = {
   viewer: 1,
@@ -231,6 +232,10 @@ function decodeFileData(fileData) {
   return Buffer.from(base64, "base64");
 }
 
+function hashToken(token) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 async function logImportJobEvent({ jobId, status, message }) {
   await query(
     "INSERT INTO import_job_events (import_job_id, status, message) VALUES ($1,$2,$3)",
@@ -240,6 +245,37 @@ async function logImportJobEvent({ jobId, status, message }) {
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/api/tenants", async (_req, res, next) => {
+  try {
+    const user = _req.user;
+    if (!user || !["admin", "superadmin", "director", "seller"].includes(user.systemRole)) {
+      return res.status(403).json({ error: "Ei oikeuksia tähän toimintoon." });
+    }
+    const { rows } = await query(
+      "SELECT tenant_id, name, onboarding_state, created_at FROM tenants ORDER BY created_at DESC"
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/tenants/:tenantId/projects", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["superadmin", "admin", "director", "seller"])) {
+      return;
+    }
+    const { tenantId } = req.params;
+    const { rows } = await query(
+      "SELECT project_id, name, customer, project_state, created_at FROM projects WHERE tenant_id=$1 ORDER BY created_at DESC",
+      [tenantId]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.get("/api/projects", async (_req, res, next) => {
@@ -287,6 +323,297 @@ app.post("/api/projects", async (req, res, next) => {
       [String(name).trim(), customer ? String(customer).trim() : null]
     );
     res.status(201).json({ project_id: rows[0].project_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/seller/tenants", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["seller", "admin", "superadmin"])) {
+      return;
+    }
+    const { name, createdBy } = req.body;
+    if (!name || String(name).trim() === "") {
+      return badRequest(res, "Nimi puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const { rows } = await query(
+      "INSERT INTO tenants (name, created_by) VALUES ($1,$2) RETURNING tenant_id",
+      [String(name).trim(), String(createdBy).trim()]
+    );
+    res.status(201).json({ tenant_id: rows[0].tenant_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/seller/projects", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["seller", "admin", "superadmin"])) {
+      return;
+    }
+    const { tenantId, name, customer, createdBy } = req.body;
+    if (!tenantId) {
+      return badRequest(res, "tenantId puuttuu.");
+    }
+    if (!name || String(name).trim() === "") {
+      return badRequest(res, "Nimi puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const { rows } = await query(
+      "INSERT INTO projects (tenant_id, name, customer) VALUES ($1,$2,$3) RETURNING project_id",
+      [tenantId, String(name).trim(), customer ? String(customer).trim() : null]
+    );
+    await query(
+      "INSERT INTO project_state_events (project_id, from_state, to_state, actor_user_id, reason) VALUES ($1,$2,$3,$4,$5)",
+      [rows[0].project_id, null, "P0_PROJECT_DRAFT", String(createdBy).trim(), "Seller stub"]
+    );
+    res.status(201).json({ project_id: rows[0].project_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/seller/onboarding-links", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["seller", "admin", "superadmin"])) {
+      return;
+    }
+    const { tenantId, projectId, createdBy, expiresAt } = req.body;
+    if (!tenantId) {
+      return badRequest(res, "tenantId puuttuu.");
+    }
+    if (!createdBy || String(createdBy).trim() === "") {
+      return badRequest(res, "createdBy puuttuu.");
+    }
+    const token = randomBytes(24).toString("hex");
+    const tokenHash = hashToken(token);
+    const expiry = expiresAt ? new Date(expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const { rows: stateRows } = await query(
+      "SELECT onboarding_state FROM tenants WHERE tenant_id=$1",
+      [tenantId]
+    );
+    if (stateRows.length === 0) {
+      return badRequest(res, "Tenantia ei löydy.");
+    }
+    const fromState = stateRows[0].onboarding_state;
+
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        `INSERT INTO onboarding_links
+          (tenant_id, project_id, token_hash, expires_at, created_by)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [tenantId, projectId || null, tokenHash, expiry.toISOString(), String(createdBy).trim()]
+      );
+      await client.query(
+        "UPDATE tenants SET onboarding_state='C1_ONBOARDING_LINK_SENT' WHERE tenant_id=$1",
+        [tenantId]
+      );
+      await client.query(
+        `INSERT INTO tenant_state_events (tenant_id, from_state, to_state, actor_user_id, reason)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [tenantId, fromState, "C1_ONBOARDING_LINK_SENT", String(createdBy).trim(), "Onboarding link sent"]
+      );
+      await client.query("COMMIT");
+    });
+
+    res.status(201).json({
+      token,
+      expires_at: expiry.toISOString(),
+      onboarding_url: `/onboarding?token=${token}`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/tenants/:tenantId/onboarding/company", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { tenantId } = req.params;
+    const { details, updatedBy } = req.body;
+    if (!details || typeof details !== "object") {
+      return badRequest(res, "details puuttuu.");
+    }
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+    const { rows: stateRows } = await query(
+      "SELECT onboarding_state FROM tenants WHERE tenant_id=$1",
+      [tenantId]
+    );
+    if (stateRows.length === 0) {
+      return badRequest(res, "Tenantia ei löydy.");
+    }
+    const fromState = stateRows[0].onboarding_state;
+
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE tenants SET company_details=$2, onboarding_state='C2_ONBOARDING_IN_PROGRESS' WHERE tenant_id=$1",
+        [tenantId, details]
+      );
+      await client.query(
+        `INSERT INTO tenant_state_events (tenant_id, from_state, to_state, actor_user_id, reason)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [tenantId, fromState, "C2_ONBOARDING_IN_PROGRESS", String(updatedBy).trim(), "Company details saved"]
+      );
+      await client.query("COMMIT");
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/projects/:projectId/onboarding/project", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { projectId } = req.params;
+    const { details, updatedBy } = req.body;
+    if (!details || typeof details !== "object") {
+      return badRequest(res, "details puuttuu.");
+    }
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+    await query("UPDATE projects SET project_details=$2 WHERE project_id=$1", [projectId, details]);
+    await query(
+      `INSERT INTO project_state_events (project_id, from_state, to_state, actor_user_id, reason)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [projectId, null, "P0_PROJECT_DRAFT", String(updatedBy).trim(), "Project details saved"]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/tenants/:tenantId/onboarding/complete", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { tenantId } = req.params;
+    const { updatedBy } = req.body;
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+    const { rows: stateRows } = await query(
+      "SELECT onboarding_state FROM tenants WHERE tenant_id=$1",
+      [tenantId]
+    );
+    if (stateRows.length === 0) {
+      return badRequest(res, "Tenantia ei löydy.");
+    }
+    const fromState = stateRows[0].onboarding_state;
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE tenants SET onboarding_state='C3_READY' WHERE tenant_id=$1",
+        [tenantId]
+      );
+      await client.query(
+        `INSERT INTO tenant_state_events (tenant_id, from_state, to_state, actor_user_id, reason)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [tenantId, fromState, "C3_READY", String(updatedBy).trim(), "Onboarding completed"]
+      );
+      await client.query("COMMIT");
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/projects/:projectId/activate", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { projectId } = req.params;
+    const { updatedBy } = req.body;
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+    const { rows } = await query(
+      `SELECT p.project_state, t.onboarding_state
+       FROM projects p
+       JOIN tenants t ON t.tenant_id = p.tenant_id
+       WHERE p.project_id=$1`,
+      [projectId]
+    );
+    if (rows.length === 0) {
+      return badRequest(res, "Projektia ei löydy.");
+    }
+    const tenantState = rows[0].onboarding_state;
+    if (!["C2_ONBOARDING_IN_PROGRESS", "C3_READY"].includes(tenantState)) {
+      return badRequest(res, "Tenant onboarding ei ole valmis aktivointiin.");
+    }
+    const fromState = rows[0].project_state;
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE projects SET project_state='P1_PROJECT_ACTIVE' WHERE project_id=$1",
+        [projectId]
+      );
+      await client.query(
+        `INSERT INTO project_state_events (project_id, from_state, to_state, actor_user_id, reason)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [projectId, fromState, "P1_PROJECT_ACTIVE", String(updatedBy).trim(), "Project activated"]
+      );
+      await client.query("COMMIT");
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/projects/:projectId/archive", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { projectId } = req.params;
+    const { updatedBy } = req.body;
+    if (!updatedBy || String(updatedBy).trim() === "") {
+      return badRequest(res, "updatedBy puuttuu.");
+    }
+    const { rows } = await query(
+      "SELECT project_state FROM projects WHERE project_id=$1",
+      [projectId]
+    );
+    if (rows.length === 0) {
+      return badRequest(res, "Projektia ei löydy.");
+    }
+    const fromState = rows[0].project_state;
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE projects SET project_state='P2_PROJECT_ARCHIVED' WHERE project_id=$1",
+        [projectId]
+      );
+      await client.query(
+        `INSERT INTO project_state_events (project_id, from_state, to_state, actor_user_id, reason)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [projectId, fromState, "P2_PROJECT_ARCHIVED", String(updatedBy).trim(), "Project archived"]
+      );
+      await client.query("COMMIT");
+    });
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

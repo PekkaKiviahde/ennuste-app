@@ -20,6 +20,7 @@
             Järjestelmärooli
             <select id="system-role-select">
               <option value="">(ei)</option>
+              <option value="seller">seller</option>
               <option value="superadmin">superadmin</option>
               <option value="admin">admin</option>
               <option value="director">director</option>
@@ -77,6 +78,156 @@
           </label>
           <button type="submit">Luo projekti</button>
           <div class="hint" id="project-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>1A. Seller / onboarding</h2>
+        <form id="tenant-form" class="stack" data-guard="system:seller">
+          <label>
+            Tenantin nimi
+            <input name="name" placeholder="Pajala Oy" required />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Myyjä" required />
+          </label>
+          <button type="submit">Luo tenant</button>
+          <div class="hint" id="tenant-result"></div>
+        </form>
+
+        <form id="seller-project-form" class="stack" data-guard="system:seller">
+          <label>
+            Tenant
+            <select name="tenantId" id="tenant-select" required></select>
+          </label>
+          <label>
+            Projektin nimi
+            <input name="name" placeholder="Kaarnatie" required />
+          </label>
+          <label>
+            Asiakas
+            <input name="customer" placeholder="Kaarna Oy" />
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Myyjä" required />
+          </label>
+          <button type="submit">Luo project stub</button>
+          <div class="hint" id="seller-project-result"></div>
+        </form>
+
+        <form id="onboarding-link-form" class="stack" data-guard="system:seller">
+          <label>
+            Tenant
+            <select name="tenantId" id="onboarding-tenant-select" required></select>
+          </label>
+          <label>
+            Projekti (optional)
+            <select name="projectId" id="onboarding-project-select"></select>
+          </label>
+          <label>
+            Tekijä
+            <input name="createdBy" placeholder="Myyjä" required />
+          </label>
+          <label>
+            Vanhenee (optional)
+            <input type="date" name="expiresAt" />
+          </label>
+          <button type="submit">Luo onboarding-linkki</button>
+          <div class="hint" id="onboarding-link-result"></div>
+        </form>
+      </section>
+
+      <section class="card" data-page="setup">
+        <h2>1B. Onboarding (admin)</h2>
+        <form id="company-details-form" class="stack" data-guard="system:admin">
+          <label>
+            Tenant
+            <select name="tenantId" id="company-tenant-select" required></select>
+          </label>
+          <label>
+            Yrityksen nimi
+            <input name="companyName" placeholder="Pajala Oy" required />
+          </label>
+          <label>
+            Y‑tunnus
+            <input name="businessId" placeholder="1234567-8" />
+          </label>
+          <label>
+            Pääkäyttäjän email
+            <input name="adminEmail" placeholder="admin@pajala.fi" />
+          </label>
+          <label>
+            Päivittäjä
+            <input name="updatedBy" placeholder="Yritysadmin" required />
+          </label>
+          <button type="submit">Tallenna yritystiedot</button>
+          <div class="hint" id="company-details-result"></div>
+        </form>
+
+        <form id="project-details-form" class="stack" data-guard="system:admin">
+          <label>
+            Projekti
+            <select name="projectId" id="project-details-select" required></select>
+          </label>
+          <label>
+            Osoite
+            <input name="address" placeholder="Katu 1, Kaupunki" />
+          </label>
+          <label>
+            Alku
+            <input type="date" name="startDate" />
+          </label>
+          <label>
+            Loppu
+            <input type="date" name="endDate" />
+          </label>
+          <label>
+            Päivittäjä
+            <input name="updatedBy" placeholder="Yritysadmin" required />
+          </label>
+          <button type="submit">Tallenna projektitiedot</button>
+          <div class="hint" id="project-details-result"></div>
+        </form>
+
+        <form id="onboarding-complete-form" class="stack" data-guard="system:admin">
+          <label>
+            Tenant
+            <select name="tenantId" id="onboarding-complete-tenant" required></select>
+          </label>
+          <label>
+            Päivittäjä
+            <input name="updatedBy" placeholder="Yritysadmin" required />
+          </label>
+          <button type="submit">Merkitse valmiiksi (C3)</button>
+          <div class="hint" id="onboarding-complete-result"></div>
+        </form>
+
+        <form id="project-activate-form" class="stack" data-guard="system:admin">
+          <label>
+            Projekti
+            <select name="projectId" id="project-activate-select" required></select>
+          </label>
+          <label>
+            Päivittäjä
+            <input name="updatedBy" placeholder="Yritysadmin" required />
+          </label>
+          <button type="submit">Aktivoi projekti</button>
+          <div class="hint" id="project-activate-result"></div>
+        </form>
+
+        <form id="project-archive-form" class="stack" data-guard="system:admin">
+          <label>
+            Projekti
+            <select name="projectId" id="project-archive-select" required></select>
+          </label>
+          <label>
+            Päivittäjä
+            <input name="updatedBy" placeholder="Yritysadmin" required />
+          </label>
+          <button type="submit">Arkistoi projekti</button>
+          <div class="hint" id="project-archive-result"></div>
         </form>
       </section>
 
