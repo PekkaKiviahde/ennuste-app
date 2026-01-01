@@ -49,6 +49,7 @@ function groupCodeFromLittera(code) {
 
 const SYSTEM_ROLES = ["superadmin", "admin", "director", "seller"];
 const PROJECT_ROLES = ["viewer", "editor", "manager", "owner"];
+const IMPORT_TYPES = ["BUDGET", "JYDA"];
 const PROJECT_ROLE_RANK = {
   viewer: 1,
   editor: 2,
@@ -132,6 +133,104 @@ function requireSystemRole(req, res, allowedRoles) {
     return false;
   }
   return true;
+}
+
+function normalizeImportType(value) {
+  if (!value || typeof value !== "string") {
+    return null;
+  }
+  const upper = value.toUpperCase().trim();
+  return IMPORT_TYPES.includes(upper) ? upper : null;
+}
+
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function validateBudgetImportMapping(mapping) {
+  if (!mapping || typeof mapping !== "object") {
+    return "mapping puuttuu tai on virheellinen.";
+  }
+  const source = mapping.columns && typeof mapping.columns === "object" ? mapping.columns : mapping;
+  const fields = [
+    "littera_code",
+    "littera_title",
+    "labor_eur",
+    "material_eur",
+    "subcontract_eur",
+    "rental_eur",
+    "other_eur",
+    "sum_eur",
+  ];
+  let found = false;
+  for (const key of fields) {
+    if (key in source) {
+      found = true;
+      if (!isNonEmptyString(source[key])) {
+        return `mapping.${key} täytyy olla merkkijono.`;
+      }
+    }
+  }
+  if (!found) {
+    return "mapping ei sisällä tunnettuja budjettiavaimia.";
+  }
+  return null;
+}
+
+function validateJydaImportMapping(mapping) {
+  if (!mapping || typeof mapping !== "object") {
+    return "mapping puuttuu tai on virheellinen.";
+  }
+  const source = mapping.mapping && typeof mapping.mapping === "object" ? mapping.mapping : mapping;
+  const keys = [
+    "sheet_name",
+    "code_column",
+    "name_column",
+    "metrics",
+    "csv_code_header",
+    "csv_name_header",
+    "csv_headers",
+  ];
+  const hasKnownKey = keys.some((key) => key in source);
+  if (!hasKnownKey) {
+    return "mapping ei sisällä tunnettuja JYDA-avaimia.";
+  }
+  if (source.sheet_name && !isNonEmptyString(source.sheet_name)) {
+    return "mapping.sheet_name täytyy olla merkkijono.";
+  }
+  if (source.code_column && !/^[A-Z]+$/.test(String(source.code_column))) {
+    return "mapping.code_column täytyy olla Excel-sarakkeen kirjain (esim. A).";
+  }
+  if (source.name_column && !/^[A-Z]+$/.test(String(source.name_column))) {
+    return "mapping.name_column täytyy olla Excel-sarakkeen kirjain (esim. B).";
+  }
+  if (source.metrics) {
+    if (typeof source.metrics !== "object") {
+      return "mapping.metrics täytyy olla objekti.";
+    }
+    for (const value of Object.values(source.metrics)) {
+      if (!/^[A-Z]+$/.test(String(value))) {
+        return "mapping.metrics arvot täytyy olla Excel-sarakkeen kirjaimia (esim. C).";
+      }
+    }
+  }
+  if (source.csv_code_header && !isNonEmptyString(source.csv_code_header)) {
+    return "mapping.csv_code_header täytyy olla merkkijono.";
+  }
+  if (source.csv_name_header && !isNonEmptyString(source.csv_name_header)) {
+    return "mapping.csv_name_header täytyy olla merkkijono.";
+  }
+  if (source.csv_headers) {
+    if (typeof source.csv_headers !== "object") {
+      return "mapping.csv_headers täytyy olla objekti.";
+    }
+    for (const value of Object.values(source.csv_headers)) {
+      if (!isNonEmptyString(value)) {
+        return "mapping.csv_headers arvot täytyy olla merkkijonoja.";
+      }
+    }
+  }
+  return null;
 }
 
 async function logMappingEvent({ projectId, actor, action, payload }) {
@@ -1362,6 +1461,10 @@ app.get("/api/import-mappings", async (req, res, next) => {
     if (!projectId || !type) {
       return badRequest(res, "projectId ja type puuttuu.");
     }
+    const importType = normalizeImportType(type);
+    if (!importType) {
+      return badRequest(res, "Tuntematon import-tyyppi.");
+    }
     if (!requireProjectAccess(req, res, projectId, "manager")) {
       return;
     }
@@ -1369,7 +1472,7 @@ app.get("/api/import-mappings", async (req, res, next) => {
       `SELECT mapping, updated_at, created_by
        FROM import_mappings
        WHERE project_id=$1 AND import_type=$2`,
-      [projectId, type]
+      [projectId, importType]
     );
     res.json(rows[0] || null);
   } catch (err) {
@@ -1386,6 +1489,17 @@ app.put("/api/import-mappings", async (req, res, next) => {
     if (!mapping || typeof mapping !== "object") {
       return badRequest(res, "mapping puuttuu.");
     }
+    const importType = normalizeImportType(type);
+    if (!importType) {
+      return badRequest(res, "Tuntematon import-tyyppi.");
+    }
+    const validationError =
+      importType === "BUDGET"
+        ? validateBudgetImportMapping(mapping)
+        : validateJydaImportMapping(mapping);
+    if (validationError) {
+      return badRequest(res, validationError);
+    }
     if (!createdBy || String(createdBy).trim() === "") {
       return badRequest(res, "createdBy puuttuu.");
     }
@@ -1398,7 +1512,7 @@ app.put("/api/import-mappings", async (req, res, next) => {
        ON CONFLICT (project_id, import_type)
        DO UPDATE SET mapping=$3, updated_at=now(), created_by=$4
        RETURNING import_mapping_id`,
-      [projectId, type, mapping, String(createdBy).trim()]
+      [projectId, importType, mapping, String(createdBy).trim()]
     );
     res.json({ ok: true, import_mapping_id: rows[0].import_mapping_id });
   } catch (err) {

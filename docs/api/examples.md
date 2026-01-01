@@ -76,3 +76,62 @@ curl -X PUT /api/superadmin/incident-banner \
   -H "Content-Type: application/json" \
   -d '{"state":"I1_INVESTIGATING","severity":"SEV1","title":"Häiriö: raportit","message":"Selvitämme","affects":["REPORTS"],"next_update_at":"2025-12-30T12:00:00Z"}'
 ```
+
+## Set import mapping (budget)
+```bash
+curl -X PUT /api/import-mappings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "<project_id>",
+    "type": "BUDGET",
+    "createdBy": "admin",
+    "mapping": {
+      "columns": {
+        "littera_code": "Litterakoodi",
+        "littera_title": "Litteraselite",
+        "labor_eur": "Työ €",
+        "material_eur": "Aine €",
+        "subcontract_eur": "Alih €",
+        "rental_eur": "Vmiehet €",
+        "other_eur": "Muu €",
+        "sum_eur": "Summa"
+      }
+    }
+  }'
+```
+
+## Set import mapping (JYDA)
+```bash
+curl -X PUT /api/import-mappings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "<project_id>",
+    "type": "JYDA",
+    "createdBy": "admin",
+    "mapping": {
+      "mapping": {
+        "sheet_name": "Jyda-ajo",
+        "code_column": "A",
+        "name_column": "B",
+        "metrics": {
+          "JYDA.TARGET_COST": "C",
+          "JYDA.COMMITTED_COST": "D",
+          "JYDA.ACTUAL_COST": "E",
+          "JYDA.ACTUAL_COST_INCL_UNAPPROVED": "F",
+          "JYDA.FORECAST_COST": "G"
+        },
+        "csv_code_header": "Koodi",
+        "csv_name_header": "Nimi",
+        "csv_headers": {
+          "JYDA.TARGET_COST": "Tavoitekustannus",
+          "JYDA.COMMITTED_COST": "Sidottu kustannus",
+          "JYDA.ACTUAL_COST": "Toteutunut kustannus",
+          "JYDA.ACTUAL_COST_INCL_UNAPPROVED": "Toteutunut kustannus (sis. hyväksymätt.)",
+          "JYDA.FORECAST_COST": "Ennustettu kustannus"
+        }
+      }
+    }
+  }'
+```
