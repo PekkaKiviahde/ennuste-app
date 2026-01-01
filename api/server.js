@@ -860,13 +860,13 @@ app.get("/api/projects", async (_req, res, next) => {
       const { rows } = await query(
         "SELECT project_id, name, customer, created_at FROM projects ORDER BY created_at DESC"
       );
-      res.json(rows);
+      res.json({ projects: rows });
       return;
     }
 
     const projectIds = Object.keys(user.projectRoles || {});
     if (projectIds.length === 0) {
-      res.json([]);
+      res.json({ projects: [] });
       return;
     }
 
@@ -874,7 +874,7 @@ app.get("/api/projects", async (_req, res, next) => {
       "SELECT project_id, name, customer, created_at FROM projects WHERE project_id = ANY($1) ORDER BY created_at DESC",
       [projectIds]
     );
-    res.json(rows);
+    res.json({ projects: rows });
   } catch (err) {
     next(err);
   }
