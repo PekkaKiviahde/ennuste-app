@@ -34,7 +34,12 @@ app.use((req, res, next) => {
   }
   next();
 });
+const PUBLIC_API_PATHS = new Set(["/terminology/dictionary", "/users", "/login"]);
+
 app.use("/api", (req, res, next) => {
+  if (PUBLIC_API_PATHS.has(req.path)) {
+    return next();
+  }
   if (!requireAuth(req, res)) {
     return;
   }
@@ -70,6 +75,14 @@ const PROJECT_ROLE_RANK = {
   manager: 3,
   owner: 4,
 };
+const ROLE_CODE_TO_PROJECT_ROLE = {
+  SITE_FOREMAN: "editor",
+  GENERAL_FOREMAN: "editor",
+  PROJECT_MANAGER: "manager",
+  PRODUCTION_MANAGER: "owner",
+  PROCUREMENT: "viewer",
+  EXEC_READONLY: "viewer",
+};
 
 function parseToken(req) {
   const auth = req.header("authorization") || "";
@@ -93,6 +106,62 @@ function parseToken(req) {
   } catch (err) {
     return null;
   }
+}
+
+function hashPin(pin) {
+  const salt = process.env.PIN_SALT || "dev-salt";
+  return createHash("sha256").update(`${pin}${salt}`).digest("hex");
+}
+
+function encodeToken(payload) {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
+}
+
+function selectHigherProjectRole(currentRole, nextRole) {
+  if (!currentRole) {
+    return nextRole;
+  }
+  return PROJECT_ROLE_RANK[nextRole] > PROJECT_ROLE_RANK[currentRole]
+    ? nextRole
+    : currentRole;
+}
+
+async function loadUserOrganizations(userId) {
+  const { rows } = await query(
+    `SELECT o.organization_id, o.slug, o.name
+     FROM organization_memberships m
+     JOIN organizations o ON o.organization_id = m.organization_id
+     WHERE m.user_id=$1 AND m.left_at IS NULL
+     ORDER BY o.name`,
+    [userId]
+  );
+  return rows;
+}
+
+async function loadProjectRoles(userId, organizationId) {
+  const params = [userId];
+  let orgFilter = "";
+  if (organizationId) {
+    params.push(organizationId);
+    orgFilter = "AND p.organization_id = $2";
+  }
+  const { rows } = await query(
+    `SELECT pra.project_id, pra.role_code
+     FROM project_role_assignments pra
+     JOIN projects p ON p.project_id = pra.project_id
+     WHERE pra.user_id=$1 AND pra.revoked_at IS NULL ${orgFilter}`,
+    params
+  );
+  const projectRoles = {};
+  for (const row of rows) {
+    const mapped = ROLE_CODE_TO_PROJECT_ROLE[row.role_code];
+    if (!mapped) {
+      continue;
+    }
+    const currentRole = projectRoles[row.project_id];
+    projectRoles[row.project_id] = selectHigherProjectRole(currentRole, mapped);
+  }
+  return projectRoles;
 }
 
 function requireAuth(req, res) {
@@ -567,6 +636,186 @@ async function logImportJobEvent({ jobId, status, message }) {
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/api/terminology/dictionary", async (req, res, next) => {
+  try {
+    const locale =
+      typeof req.query.locale === "string" && req.query.locale.trim() !== ""
+        ? req.query.locale.trim()
+        : "fi";
+    const fallback =
+      typeof req.query.fallback === "string" && req.query.fallback.trim() !== ""
+        ? req.query.fallback.trim()
+        : "en";
+    const orgId =
+      typeof req.query.orgId === "string" && req.query.orgId.trim() !== ""
+        ? req.query.orgId.trim()
+        : null;
+
+    let organizationId = null;
+    if (orgId) {
+      const token = parseToken(req);
+      if (!token) {
+        return res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
+      }
+      const membership = await query(
+        `SELECT 1
+         FROM organization_memberships
+         WHERE organization_id=$1 AND user_id=$2 AND left_at IS NULL`,
+        [orgId, token.userId]
+      );
+      if (membership.rowCount === 0) {
+        return res.status(403).json({ error: "Ei oikeuksia tähän organisaatioon." });
+      }
+      organizationId = orgId;
+    }
+
+    const { rows } = await query(
+      "SELECT term_key, label, description, locale_used, source FROM terminology_get_dictionary($1,$2,$3)",
+      [organizationId, locale, fallback]
+    );
+    res.json({ terms: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/users", async (_req, res, next) => {
+  try {
+    const { rows } = await query(
+      `SELECT username, display_name
+       FROM users
+       WHERE is_active = true
+       ORDER BY COALESCE(display_name, username), username`
+    );
+    res.json({ users: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/login", async (req, res, next) => {
+  try {
+    const { username, pin } = req.body || {};
+    if (!username || !pin) {
+      return badRequest(res, "username ja pin vaaditaan.");
+    }
+    const { rows } = await query(
+      `SELECT user_id, username, pin_hash
+       FROM users
+       WHERE username=$1 AND is_active=true`,
+      [String(username).trim()]
+    );
+    if (rows.length === 0 || !rows[0].pin_hash) {
+      return res.status(401).json({ error: "Virheellinen käyttäjä tai PIN." });
+    }
+    const pinHash = hashPin(String(pin).trim());
+    if (rows[0].pin_hash !== pinHash) {
+      return res.status(401).json({ error: "Virheellinen käyttäjä tai PIN." });
+    }
+
+    const userId = rows[0].user_id;
+    const organizations = await loadUserOrganizations(userId);
+    const currentOrganizationId = organizations[0]?.organization_id || null;
+    const projectRoles = await loadProjectRoles(userId, currentOrganizationId);
+
+    const token = encodeToken({
+      userId,
+      organizationId: currentOrganizationId,
+      systemRole: null,
+      projectRoles,
+    });
+
+    res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/me", async (req, res, next) => {
+  try {
+    const token = req.user;
+    if (!token?.userId) {
+      return res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
+    }
+
+    const { rows: userRows } = await query(
+      `SELECT user_id, username, display_name
+       FROM users
+       WHERE user_id=$1 AND is_active=true`,
+      [token.userId]
+    );
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: "Käyttäjää ei löydy." });
+    }
+
+    const orgRows = await loadUserOrganizations(token.userId);
+
+    const currentOrganizationId = orgRows.find(
+      (org) => org.organization_id === token.organizationId
+    )
+      ? token.organizationId
+      : orgRows[0]?.organization_id || null;
+    res.json({
+      user: {
+        user_id: userRows[0].user_id,
+        username: userRows[0].username,
+        display_name: userRows[0].display_name,
+        system_role: token.systemRole || null,
+      },
+      organizations: orgRows,
+      current_organization_id: currentOrganizationId,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/organizations", async (req, res, next) => {
+  try {
+    const token = req.user;
+    if (!token?.userId) {
+      return res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
+    }
+    const organizations = await loadUserOrganizations(token.userId);
+    res.json({ organizations });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/session/switch-org", async (req, res, next) => {
+  try {
+    const token = req.user;
+    if (!token?.userId) {
+      return res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
+    }
+    const { organizationId } = req.body || {};
+    if (!organizationId) {
+      return badRequest(res, "organizationId puuttuu.");
+    }
+    const { rowCount } = await query(
+      `SELECT 1
+       FROM organization_memberships
+       WHERE organization_id=$1 AND user_id=$2 AND left_at IS NULL`,
+      [organizationId, token.userId]
+    );
+    if (rowCount === 0) {
+      return res.status(403).json({ error: "Ei oikeuksia tähän organisaatioon." });
+    }
+
+    const projectRoles = await loadProjectRoles(token.userId, organizationId);
+    const nextToken = encodeToken({
+      userId: token.userId,
+      organizationId,
+      systemRole: token.systemRole || null,
+      projectRoles,
+    });
+    res.json({ token: nextToken });
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.get("/api/tenants", async (_req, res, next) => {
