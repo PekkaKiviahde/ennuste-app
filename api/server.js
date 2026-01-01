@@ -1244,6 +1244,48 @@ app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
   }
 });
 
+app.get("/api/work-phases/:workPhaseId", async (req, res, next) => {
+  try {
+    const { workPhaseId } = req.params;
+    const { rows } = await query(
+      `SELECT
+         s.project_id,
+         s.work_phase_id,
+         s.work_phase_name AS name,
+         s.work_phase_status AS status,
+         p.owner,
+         p.lead_littera_id,
+         s.lead_littera_code,
+         s.lead_littera_title,
+         s.current_version_id,
+         s.latest_baseline_id,
+         s.target_import_batch_id,
+         s.bac_total,
+         s.latest_week_ending,
+         s.percent_complete,
+         s.ev_value,
+         s.ghost_open_total,
+         s.ac_total,
+         s.ac_star_total,
+         s.cpi
+       FROM v_work_phase_summary_v16_all s
+       JOIN work_phases p ON p.work_phase_id = s.work_phase_id
+       WHERE s.work_phase_id=$1`,
+      [workPhaseId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+    }
+    if (!requireProjectAccess(req, res, rows[0].project_id, "viewer")) {
+      return;
+    }
+    const { project_id: _projectId, ...workPhase } = rows[0];
+    res.json({ workPhase });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get("/api/work-phases", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
