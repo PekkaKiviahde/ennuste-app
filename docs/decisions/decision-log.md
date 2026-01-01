@@ -68,6 +68,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Exportit: PDF + Excel (ei PPT MVP:ssa).
 - Append-only pakotetaan kaikkiin kirjoittaviin tapahtumiin.
 - Viikkopäivitys: append-only event + ghost settlement; lukitus estää muokkaukset, korjaus correction-polulla.
+- Month close: M0→M1→M2; korjaus luo uuden report-package-version.
 
 ## Mitä muuttui
 - Lisätty päätökset MVP-työnkulkujen siirrosta ja integraatiopolusta.

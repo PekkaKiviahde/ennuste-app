@@ -28,6 +28,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** v1 ei vaadi siistintää eikä muuta KPI-laskentaa.
 - **D-027 (LUKITTU)** Viikkopäivitys tallennetaan append-only eventtinä; ghost-kulut erillisinä tapahtumina ja suljetaan settlement-rivillä; lukitussa kuussa muutokset vain correction-polulla; RBAC: SITE_FOREMAN/GENERAL_FOREMAN luonti, PM/PRODUCTION_MANAGER hyväksyntä.  
   **Tulkinta:** viikkopäivitys on event-loki, ghostit eivät päivity, vaan kuittaus tehdään settlementilla ja lukitus estää muokkauksen.
+- **D-028 (LUKITTU)** Kuukausiraportointi on append-only report-package-ketju checksumilla; M1_READY_TO_SEND käytössä; lähetys lukitsee kuukauden; korjaus luo uuden report-package-version; smoke-testi varmistaa ketjun.  
+  **Tulkinta:** raportit eivät ylikirjoitu, lukitus ja korjaus ovat tilasiirtymiä, ja audit on todennettu.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
