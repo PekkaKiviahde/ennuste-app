@@ -122,13 +122,20 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Onboarding-linkki on kertakäyttöinen, TTL 7 pv, ja kaikki käytöt auditoidaan.
 - Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 
+## 2026-01-01 – Importit + mapping (minimi)
+- Rakenne on import_job + event-loki + mapping_versions (append-only).
+- API tekee rooligatingin ja kaikki import/mapping-kirjoitukset auditoidaan.
+- Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 - Lisätty onboarding + RBAC minimipäätös (gating, linkki, smoke).
+- Lisätty importit + mapping minimipäätös (rakenne, oikeudet, smoke).
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
 - Tarvitaan minimivarmistus onboarding-polun turvallisuudesta ja toistettavuudesta.
+- Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.

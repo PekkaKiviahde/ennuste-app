@@ -38,6 +38,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** data pipeline on laajennettava ilman koodimuutoksia ja audit säilyy.
 - **D-036 (LUKITTU)** Onboarding + RBAC (minimi): API tekee projektitasoisen gatingin rooleilla viewer/editor/manager/owner ja system-roolit ovat erillinen polku; onboarding-linkki on kertakäyttöinen, TTL 7 pv, ja kaikki käytöt auditoidaan; varmistus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
   **Tulkinta:** UI ei yksinään vartioi oikeuksia, kutsut ovat jäljitettävissä ja minimivarmistus on toistettava.
+- **D-037 (LUKITTU)** Importit + mapping (minimi): rakenne on import_job + event-loki + mapping_versions; API tekee rooligatingin ja kaikki import/mapping-kirjoitukset auditoidaan; varmistus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
+  **Tulkinta:** import-ketju on append-only, oikeudet eivät ole UI:n varassa ja minimivarmistus on toistettava.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
@@ -112,12 +114,14 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Lukittiin onboarding + RBAC -tarkennukset päätökseksi D-034.
 - Lukittiin importit + mapping -tarkennukset päätökseksi D-035.
 - Lukittiin onboarding + RBAC minimipäätökset (gating, linkki, smoke) päätökseksi D-036.
+- Lukittiin importit + mapping minimipäätökset (rakenne, oikeudet, smoke) päätökseksi D-037.
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
 - Tarvitaan uskottava ja helppo roolimalli (SaaS-standardit) ennen laajaa käyttöönottoa.
 - Tarvitaan laajennettava import-malli, koska asiakkaiden aineistot vaihtelevat.
 - Tarvitaan minimigating ja toistettava varmennus ennen onboarding-polun laajentamista.
+- Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
 
 ## Miten testataan (manuaali)
 - Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.
@@ -127,6 +131,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Varmista acting role TTL + audit, ja break-glass vain superadminille.
 - Aja importit eri sarakejärjestyksillä ja varmista import_mappingsin toiminta.
 - Tee mapping-korjaus ja varmista uuden mapping_versionin synty sekä RBAC.
+- Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 - Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 
 ## D-029 (LUKITTU) Onboarding tallennusmalli (JSONB)
