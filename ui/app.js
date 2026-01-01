@@ -97,6 +97,28 @@ function formatNumber(value) {
   return Number(value).toFixed(2);
 }
 
+const API_BASE = (() => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  const host = window.location.hostname || '';
+  if (!host.includes('.app.github.dev')) {
+    return '';
+  }
+  const match = host.match(/^(.*)-\d+\.app\.github\.dev$/);
+  if (!match) {
+    return '';
+  }
+  return `https://${match[1]}-3000.app.github.dev`;
+})();
+
+function apiUrl(path) {
+  if (!path.startsWith('/')) {
+    return `${API_BASE}/${path}`;
+  }
+  return `${API_BASE}${path}`;
+}
+
 async function fetchJSON(url, options = {}) {
   const headers = options.headers ? { ...options.headers } : {};
   if (state.token) {
@@ -105,7 +127,7 @@ async function fetchJSON(url, options = {}) {
   if (options.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(apiUrl(url), { ...options, headers });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'UNKNOWN' }));
     throw {
@@ -654,16 +676,16 @@ function renderProjectView() {
               <td>${pkg.artifact_type}</td>
               <td class="mono">${pkg.checksum || '—'}</td>
               <td>
-                <a href="/api/report-packages/${pkg.package_id}/download?file=report.pdf" target="_blank" rel="noopener">
+                <a href="${apiUrl(`/api/report-packages/${pkg.package_id}/download?file=report.pdf`)}" target="_blank" rel="noopener">
                   PDF
                 </a>
                 |
-                <a href="/api/report-packages/${pkg.package_id}/download?file=report.csv" target="_blank" rel="noopener">
+                <a href="${apiUrl(`/api/report-packages/${pkg.package_id}/download?file=report.csv`)}" target="_blank" rel="noopener">
                   CSV
                 </a>
               </td>
               <td>
-                <a href="/api/report-packages/${pkg.package_id}/download" target="_blank" rel="noopener">
+                <a href="${apiUrl(`/api/report-packages/${pkg.package_id}/download`)}" target="_blank" rel="noopener">
                   ${t('ui.action.open_report_metadata')}
                 </a>
               </td>
