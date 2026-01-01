@@ -748,6 +748,59 @@ paths:
         "403":
           $ref: '#/components/responses/Forbidden'
 
+  /import-mappings:
+    get:
+      tags: [Imports]
+      summary: Get import mapping for project/type
+      parameters:
+        - name: projectId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [BUDGET, JYDA]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportMapping'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+    put:
+      tags: [Imports]
+      summary: Set import mapping for project/type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportMappingUpsert'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  import_mapping_id: { type: string, format: uuid }
+                required: [ok, import_mapping_id]
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
   /incident-banner:
     get:
       tags: [Superadmin]
@@ -844,6 +897,11 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
     Forbidden:
       description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Bad request
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -1020,6 +1078,29 @@ components:
         artifact_uri: { type: string }
         checksum: { type: string }
       required: [package_id, project_id, month, sent_at, sent_by_user_id, recipients, artifact_type]
+
+    ImportMapping:
+      type: object
+      properties:
+        mapping:
+          type: object
+          additionalProperties: true
+        updated_at: { type: string, format: date-time }
+        created_by: { type: string }
+      required: [mapping]
+
+    ImportMappingUpsert:
+      type: object
+      properties:
+        projectId: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [BUDGET, JYDA]
+        createdBy: { type: string }
+        mapping:
+          type: object
+          additionalProperties: true
+      required: [projectId, type, createdBy, mapping]
 
     Mapping:
       type: object
