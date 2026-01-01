@@ -11,7 +11,7 @@
     <main class="container">
       <header class="hero">
         <div>
-          <p class="eyebrow">MVP / suunnittelu → ennustetapahtuma</p>
+          <p class="eyebrow">MVP / työtavoitearviosuunnittelu → ennustetapahtuma</p>
           <h1>Ennuste sovelluksena</h1>
           <p class="lead">
             Kirjaa suunnitelma ja tee ennustetapahtuma append-only lokiin. Kaikki tapahtumat jäävät talteen.
@@ -37,7 +37,7 @@
         </div>
         <div class="badge">
           <span>Append-only</span>
-          <span>Suunnitelma ensin</span>
+          <span>Työtavoite ensin</span>
           <span>Tavoitearvio-littera</span>
         </div>
       </header>
@@ -45,7 +45,7 @@
       <nav class="tabs" id="tab-nav">
         <a href="/setup" data-page="setup">Setup</a>
         <a href="/mapping" data-page="mapping">Mapping</a>
-        <a href="/planning" data-page="planning">Suunnitelma</a>
+        <a href="/planning" data-page="planning">Työtavoite</a>
         <a href="/forecast" data-page="forecast">Ennuste</a>
         <a href="/report" data-page="report">Raportti</a>
         <a href="/history" data-page="history">Historia</a>
@@ -278,7 +278,7 @@
       </section>
 
       <section class="card" data-page="planning">
-        <h2>6. Suunnitelma</h2>
+        <h2>6. Työtavoitearviosuunnittelu</h2>
         <form id="planning-form" class="stack" data-guard="project:editor">
           <label>
             Projekti
@@ -316,6 +316,21 @@
             Päätökset
             <textarea name="decisions" placeholder="Mitä päätettiin?"></textarea>
           </label>
+          <div class="lines">
+            <h3>Liitteet</h3>
+            <div class="grid-2">
+              <label>
+                Liitteen nimi
+                <input id="planning-attachment-title" placeholder="Viikkosuunnitelma" />
+              </label>
+              <label>
+                Linkki
+                <input id="planning-attachment-url" placeholder="https://..." />
+              </label>
+            </div>
+            <button type="button" id="planning-attachment-add">Lisää liite</button>
+            <div id="planning-attachment-list" class="history"></div>
+          </div>
           <button type="submit">Tallenna suunnitelma</button>
           <div class="hint" id="planning-result"></div>
         </form>
@@ -526,6 +541,26 @@
               <input placeholder="€" data-field="value" />
               <input placeholder="Perustelu" data-field="memo" />
             </div>
+          </div>
+
+          <div class="lines">
+            <h3>Viikkokohtaiset ghost-kulut</h3>
+            <div class="grid-2">
+              <label>
+                Viikon päättymispäivä
+                <input type="date" id="ghost-week-ending" />
+              </label>
+              <label>
+                Summa €
+                <input id="ghost-amount" placeholder="0,00" />
+              </label>
+              <label>
+                Huomio
+                <input id="ghost-note" placeholder="Mistä kulu syntyi?" />
+              </label>
+            </div>
+            <button type="button" id="ghost-add">Lisää ghost-kulu</button>
+            <div id="ghost-list" class="history"></div>
           </div>
 
           <button type="submit">Tallenna ennuste</button>

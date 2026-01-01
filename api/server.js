@@ -993,7 +993,7 @@ app.get("/api/planning-events", async (req, res, next) => {
       return badRequest(res, "projectId ja targetLitteraId ovat pakollisia.");
     }
     const { rows } = await query(
-      `SELECT planning_event_id, event_time, created_by, status, summary, observations, risks, decisions
+      `SELECT planning_event_id, event_time, created_by, status, summary, observations, risks, decisions, attachments
        FROM planning_events
        WHERE project_id=$1 AND target_littera_id=$2
        ORDER BY event_time DESC`,
@@ -1019,6 +1019,7 @@ app.post("/api/planning-events", async (req, res, next) => {
       observations,
       risks,
       decisions,
+      attachments,
     } = req.body;
 
     if (!projectId || !targetLitteraId) {
@@ -1030,8 +1031,8 @@ app.post("/api/planning-events", async (req, res, next) => {
 
     const { rows } = await query(
       `INSERT INTO planning_events
-        (project_id, target_littera_id, created_by, status, summary, observations, risks, decisions)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (project_id, target_littera_id, created_by, status, summary, observations, risks, decisions, attachments)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING planning_event_id`,
       [
         projectId,
@@ -1042,6 +1043,7 @@ app.post("/api/planning-events", async (req, res, next) => {
         observations ? String(observations).trim() : null,
         risks ? String(risks).trim() : null,
         decisions ? String(decisions).trim() : null,
+        Array.isArray(attachments) ? attachments : null,
       ]
     );
 
@@ -1087,6 +1089,7 @@ app.post("/api/forecast-events", async (req, res, next) => {
       financialProgress,
       kpiValue,
       lines,
+      ghostEntries,
     } = req.body;
 
     if (!projectId || !targetLitteraId) {
@@ -1134,6 +1137,26 @@ app.post("/api/forecast-events", async (req, res, next) => {
             value,
             line.memoGeneral ? String(line.memoGeneral).trim() : null,
           ]
+        );
+      }
+
+      const ghostList = Array.isArray(ghostEntries) ? ghostEntries : [];
+      for (const entry of ghostList) {
+        const weekEnding = entry.weekEnding ? String(entry.weekEnding).trim() : "";
+        const amount = toNumber(entry.amount);
+        if (!weekEnding || amount === null) {
+          continue;
+        }
+        const payload = {
+          weekEnding,
+          amount,
+          note: entry.note ? String(entry.note).trim() : "",
+        };
+        await client.query(
+          `INSERT INTO forecast_row_memos
+            (forecast_event_id, row_key, memo_text)
+           VALUES ($1,$2,$3)`,
+          [forecastEventId, `ghost:${weekEnding}`, JSON.stringify(payload)]
         );
       }
 

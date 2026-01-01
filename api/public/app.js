@@ -31,6 +31,15 @@ const mappingCorrectionValue = document.getElementById("mapping-correction-alloc
 const mappingCorrectionNote = document.getElementById("mapping-correction-note");
 const mappingCorrectionResult = document.getElementById("mapping-correction-result");
 const demoSeedResult = document.getElementById("demo-seed-result");
+const planningAttachmentTitle = document.getElementById("planning-attachment-title");
+const planningAttachmentUrl = document.getElementById("planning-attachment-url");
+const planningAttachmentAdd = document.getElementById("planning-attachment-add");
+const planningAttachmentList = document.getElementById("planning-attachment-list");
+const ghostWeekEnding = document.getElementById("ghost-week-ending");
+const ghostAmount = document.getElementById("ghost-amount");
+const ghostNote = document.getElementById("ghost-note");
+const ghostAdd = document.getElementById("ghost-add");
+const ghostList = document.getElementById("ghost-list");
 const budgetPreviewNote = document.getElementById("budget-preview-note");
 const budgetPreviewTable = document.getElementById("budget-preview-table");
 const budgetValidation = document.getElementById("budget-validation");
@@ -81,6 +90,8 @@ let jydaFileData = null;
 let lastImportJobs = [];
 let mappingCorrectionLines = new Map();
 let litteraById = new Map();
+let planningAttachments = [];
+let ghostEntries = [];
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, {
@@ -251,6 +262,44 @@ function renderPreview(headers, rows) {
     .map((r) => `<tr>${headers.map((_, i) => `<td>${r[i] || ""}</td>`).join("")}</tr>`)
     .join("");
   budgetPreviewTable.innerHTML = `<table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function renderPlanningAttachments() {
+  if (!planningAttachmentList) {
+    return;
+  }
+  planningAttachmentList.innerHTML = "";
+  if (planningAttachments.length === 0) {
+    planningAttachmentList.textContent = "Ei liitteitä.";
+    return;
+  }
+  planningAttachments.forEach((att, idx) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+    const link = att.url ? `<a href="${att.url}" target="_blank" rel="noopener">avaa</a>` : "";
+    item.innerHTML = `<strong>${att.title || "Liite"}</strong> ${link}
+      <button type="button" class="attachment-remove" data-index="${idx}">Poista</button>`;
+    planningAttachmentList.appendChild(item);
+  });
+}
+
+function renderGhostEntries() {
+  if (!ghostList) {
+    return;
+  }
+  ghostList.innerHTML = "";
+  if (ghostEntries.length === 0) {
+    ghostList.textContent = "Ei ghost-kuluja.";
+    return;
+  }
+  ghostEntries.forEach((entry, idx) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+    item.innerHTML = `<strong>${entry.weekEnding}</strong> — ${entry.amount} €
+      <div>${entry.note || ""}</div>
+      <button type="button" class="ghost-remove" data-index="${idx}">Poista</button>`;
+    ghostList.appendChild(item);
+  });
 }
 
 function parseFiNumber(raw) {
@@ -716,10 +765,22 @@ async function refreshHistory() {
 
   const rows = [];
   planning.forEach((p) => {
+    let attachmentText = "";
+    if (Array.isArray(p.attachments) && p.attachments.length > 0) {
+      attachmentText = p.attachments
+        .map((att) => (att.url ? `${att.title || "Liite"}: ${att.url}` : att.title || "Liite"))
+        .join(" | ");
+    }
     rows.push({
-      title: `Suunnitelma (${p.status})`,
+      title: `Työtavoite (${p.status})`,
       time: new Date(p.event_time).toLocaleString("fi-FI"),
-      detail: p.summary || p.observations || p.risks || p.decisions || "(ei tekstiä)",
+      detail:
+        p.summary ||
+        p.observations ||
+        p.risks ||
+        p.decisions ||
+        attachmentText ||
+        "(ei tekstiä)",
     });
   });
   forecast.forEach((f) => {
@@ -861,6 +922,66 @@ projectSelects.history.addEventListener("change", async (e) => {
   await loadLitteras(e.target.value);
   applyRoleUi();
 });
+
+if (planningAttachmentAdd) {
+  planningAttachmentAdd.addEventListener("click", () => {
+    const title = planningAttachmentTitle.value.trim();
+    const url = planningAttachmentUrl.value.trim();
+    if (!title && !url) {
+      return;
+    }
+    planningAttachments.push({ title, url });
+    planningAttachmentTitle.value = "";
+    planningAttachmentUrl.value = "";
+    renderPlanningAttachments();
+  });
+}
+
+if (planningAttachmentList) {
+  planningAttachmentList.addEventListener("click", (e) => {
+    const button = e.target.closest(".attachment-remove");
+    if (!button) {
+      return;
+    }
+    const idx = Number(button.dataset.index);
+    if (Number.isFinite(idx)) {
+      planningAttachments.splice(idx, 1);
+      renderPlanningAttachments();
+    }
+  });
+  renderPlanningAttachments();
+}
+
+if (ghostAdd) {
+  ghostAdd.addEventListener("click", () => {
+    const weekEnding = ghostWeekEnding.value;
+    const amount = ghostAmount.value.trim();
+    const note = ghostNote.value.trim();
+    if (!weekEnding || !amount) {
+      return;
+    }
+    ghostEntries.push({ weekEnding, amount, note });
+    ghostWeekEnding.value = "";
+    ghostAmount.value = "";
+    ghostNote.value = "";
+    renderGhostEntries();
+  });
+}
+
+if (ghostList) {
+  ghostList.addEventListener("click", (e) => {
+    const button = e.target.closest(".ghost-remove");
+    if (!button) {
+      return;
+    }
+    const idx = Number(button.dataset.index);
+    if (Number.isFinite(idx)) {
+      ghostEntries.splice(idx, 1);
+      renderGhostEntries();
+    }
+  });
+  renderGhostEntries();
+}
 
 const projectForm = document.getElementById("project-form");
 projectForm.addEventListener("submit", async (e) => {
@@ -1378,6 +1499,10 @@ planningForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = new FormData(planningForm);
   const payload = Object.fromEntries(form.entries());
+  payload.attachments = planningAttachments.map((att) => ({
+    title: att.title || "",
+    url: att.url || "",
+  }));
 
   const result = document.getElementById("planning-result");
   try {
@@ -1385,8 +1510,10 @@ planningForm.addEventListener("submit", async (e) => {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    setHint(result, "Suunnitelma tallennettu.");
+    setHint(result, "Työtavoite tallennettu.");
     planningForm.reset();
+    planningAttachments = [];
+    renderPlanningAttachments();
   } catch (err) {
     setHint(result, err.message, true);
   }
@@ -1512,6 +1639,11 @@ forecastForm.addEventListener("submit", async (e) => {
     .filter((line) => line.forecastValue !== "");
 
   payload.lines = lines;
+  payload.ghostEntries = ghostEntries.map((entry) => ({
+    weekEnding: entry.weekEnding,
+    amount: entry.amount,
+    note: entry.note || "",
+  }));
 
   const result = document.getElementById("forecast-result");
   try {
@@ -1521,6 +1653,8 @@ forecastForm.addEventListener("submit", async (e) => {
     });
     setHint(result, "Ennuste tallennettu.");
     forecastForm.reset();
+    ghostEntries = [];
+    renderGhostEntries();
   } catch (err) {
     setHint(result, err.message, true);
   }
@@ -1539,7 +1673,7 @@ document.getElementById("report-refresh").addEventListener("click", (e) => {
     .then((data) => {
       const lines = [];
       if (data.planning) {
-        lines.push(`<strong>Suunnitelma:</strong> ${data.planning.status || ""}`);
+        lines.push(`<strong>Työtavoite:</strong> ${data.planning.status || ""}`);
       }
       if (data.forecast) {
         lines.push(`<strong>Ennuste:</strong> ${data.forecast.event_time || ""}`);
@@ -1655,7 +1789,7 @@ async function seedDemoData() {
       targetLitteraId: target.littera_id,
       createdBy: "Työnjohtaja",
       status: "READY_FOR_FORECAST",
-      summary: "Suunnitelma valmis",
+      summary: "Työtavoite valmis",
     }),
   });
 
