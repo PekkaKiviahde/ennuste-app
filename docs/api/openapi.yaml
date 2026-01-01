@@ -586,7 +586,7 @@ paths:
       tags: [MonthClose]
       summary: Send monthly reports and lock month (Month close)
       description: >
-        Atominen operaatio: arkistoi report package (MVP: file-based CSV/PDF), ja lukitsee kuukauden (M2_SENT_LOCKED).
+        Atominen operaatio: arkistoi report package (MVP: file-based PDF+CSV), ja lukitsee kuukauden (M2_SENT_LOCKED).
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - $ref: '#/components/parameters/Month'
@@ -1002,7 +1002,7 @@ components:
           items: { type: string, format: email }
         artifact_type:
           type: string
-          enum: [PDF, XLSX, LINK]
+          enum: [PDF, CSV, LINK]
         artifact_uri: { type: string }
         checksum: { type: string }
       required: [package_id, project_id, month, sent_at, sent_by_user_id, recipients, artifact_type]
