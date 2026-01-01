@@ -1483,6 +1483,109 @@ app.post("/api/work-phases", async (req, res, next) => {
   }
 });
 
+app.post("/api/work-phases/:workPhaseId/version", async (req, res, next) => {
+  try {
+    const { workPhaseId } = req.params;
+    const { notes } = req.body || {};
+    const { rows: phaseRows } = await query(
+      "SELECT project_id FROM work_phases WHERE work_phase_id=$1",
+      [workPhaseId]
+    );
+    if (phaseRows.length === 0) {
+      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+    }
+    const projectId = phaseRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "editor")) {
+      return;
+    }
+    const { rowCount: baselineCount } = await query(
+      "SELECT 1 FROM v_work_phase_latest_baseline WHERE work_phase_id=$1",
+      [workPhaseId]
+    );
+    if (baselineCount > 0) {
+      return res.status(409).json({ error: "BASELINE_ALREADY_LOCKED" });
+    }
+
+    const { rows: userRows } = await query(
+      "SELECT username FROM users WHERE user_id=$1",
+      [req.user?.userId]
+    );
+    const createdBy = userRows[0]?.username || "user";
+
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const { rows: maxRows } = await client.query(
+          "SELECT COALESCE(MAX(version_no), 0) AS max_version FROM work_phase_versions WHERE work_phase_id=$1",
+          [workPhaseId]
+        );
+        const nextVersionNo = Number(maxRows[0]?.max_version || 0) + 1;
+
+        const { rows: currentRows } = await client.query(
+          "SELECT work_phase_version_id FROM v_work_phase_current_version WHERE work_phase_id=$1",
+          [workPhaseId]
+        );
+        const sourceVersionId = currentRows[0]?.work_phase_version_id || null;
+
+        await client.query(
+          "UPDATE work_phase_versions SET status='RETIRED' WHERE work_phase_id=$1 AND status='ACTIVE'",
+          [workPhaseId]
+        );
+
+        const { rows: insertRows } = await client.query(
+          `INSERT INTO work_phase_versions
+             (project_id, work_phase_id, version_no, status, notes, created_by)
+           VALUES ($1,$2,$3,'ACTIVE',$4,$5)
+           RETURNING work_phase_version_id`,
+          [
+            projectId,
+            workPhaseId,
+            nextVersionNo,
+            notes ? String(notes).trim() : null,
+            createdBy,
+          ]
+        );
+        const newVersionId = insertRows[0].work_phase_version_id;
+
+        if (sourceVersionId) {
+          await client.query(
+            `INSERT INTO work_phase_members (
+               project_id,
+               work_phase_version_id,
+               member_type,
+               littera_id,
+               item_code,
+               item_desc,
+               note,
+               created_by
+             )
+             SELECT
+               project_id,
+               $1,
+               member_type,
+               littera_id,
+               item_code,
+               item_desc,
+               note,
+               $2
+             FROM work_phase_members
+             WHERE work_phase_version_id=$3`,
+            [newVersionId, createdBy, sourceVersionId]
+          );
+        }
+
+        await client.query("COMMIT");
+        res.status(201).json({ work_phase_version_id: newVersionId });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
