@@ -708,7 +708,7 @@ paths:
   /report-packages/{package_id}/download:
     get:
       tags: [Reports]
-      summary: Download report package artifact (or get signed URL)
+      summary: Download report package artifact (on-demand)
       parameters:
         - $ref: '#/components/parameters/PackageId'
         - name: file
@@ -719,7 +719,7 @@ paths:
           description: "Optional file name (report.pdf or report.csv)"
       responses:
         "200":
-          description: OK (MVP file-based)
+          description: OK (on-demand snapshot)
           content:
             application/pdf:
               schema:
@@ -736,7 +736,7 @@ paths:
                   package_id: { type: string, format: uuid }
                   artifact_type:
                     type: string
-                    enum: [LINK]
+                    enum: [SNAPSHOT]
                   artifact_uri: { type: string }
                   checksum: { type: string }
                   files:
@@ -1016,7 +1016,7 @@ components:
           items: { type: string, format: email }
         artifact_type:
           type: string
-          enum: [PDF, CSV, LINK]
+          enum: [SNAPSHOT]
         artifact_uri: { type: string }
         checksum: { type: string }
       required: [package_id, project_id, month, sent_at, sent_by_user_id, recipients, artifact_type]

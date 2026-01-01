@@ -2,14 +2,12 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
-import fsSync from "fs";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { createHash, randomBytes } from "crypto";
 import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
-import { finished } from "stream/promises";
 import { query, withClient } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,8 +17,6 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
 const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
-const reportStorageRoot = path.join(__dirname, "storage", "report-packages");
-
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -271,39 +267,182 @@ async function setMonthState(client, { projectId, month, fromState, toState, act
   );
 }
 
-function fileUri(p) {
-  return `file://${p}`;
+function reportSnapshotUri(checksum) {
+  return `snapshot://${checksum}`;
 }
 
-async function writeReportArtifacts({ projectId, month, recipients, checksum }) {
-  const dir = path.join(reportStorageRoot, checksum);
-  await fs.mkdir(dir, { recursive: true });
-  const pdfPath = path.join(dir, "report.pdf");
-  const csvPath = path.join(dir, "report.csv");
+function csvEscape(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  const text = String(value);
+  const escaped = text.replace(/"/g, '""');
+  if (/[",\n]/.test(escaped)) {
+    return `"${escaped}"`;
+  }
+  return escaped;
+}
+
+function formatSnapshotCsv(rows) {
+  if (rows.length === 0) {
+    return "";
+  }
+  const columns = Object.keys(rows[0]).sort();
+  const header = columns.join(",");
+  const lines = rows.map((row) =>
+    columns.map((col) => csvEscape(row[col])).join(",")
+  );
+  return [header, ...lines].join("\n") + "\n";
+}
+
+function buildReportPdf({ projectId, month, checksum, rows }) {
   const doc = new PDFDocument({ size: "A4", margin: 40 });
-  const pdfStream = fsSync.createWriteStream(pdfPath);
-  doc.pipe(pdfStream);
-  doc.fontSize(18).text("Report package", { underline: true });
+  doc.fontSize(18).text("Report package (snapshot)", { underline: true });
   doc.moveDown();
   doc.fontSize(12).text(`Project: ${projectId}`);
   doc.text(`Month: ${month}`);
-  doc.text(`Recipients: ${(recipients || []).join(", ") || "—"}`);
   doc.text(`Checksum: ${checksum}`);
-  doc.end();
-  await finished(pdfStream);
+  doc.moveDown();
+  doc.fontSize(10).text(`Rows: ${rows.length}`);
+  doc.moveDown();
+  rows.slice(0, 200).forEach((row, idx) => {
+    doc.fontSize(9).text(`${idx + 1}. ${JSON.stringify(row)}`);
+  });
+  return doc;
+}
 
-  const csvHeader = "project_id,month,recipients,checksum";
-  const csvRow = [
+async function findMonthColumn(client, viewName) {
+  const candidates = [
+    "month_key",
+    "month",
+    "month_end",
+    "month_start",
+    "period",
+    "year_month",
+    "ym",
+  ];
+  const { rows } = await client.query(
+    `SELECT column_name
+     FROM information_schema.columns
+     WHERE table_name=$1 AND column_name = ANY($2)`,
+    [viewName, candidates]
+  );
+  const found = rows.map((row) => row.column_name);
+  for (const candidate of candidates) {
+    if (found.includes(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+async function viewHasColumn(client, viewName, columnName) {
+  const { rows } = await client.query(
+    `SELECT 1
+     FROM information_schema.columns
+     WHERE table_name=$1 AND column_name=$2
+     LIMIT 1`,
+    [viewName, columnName]
+  );
+  return rows.length > 0;
+}
+
+async function insertSnapshotFromView(
+  client,
+  { packageId, projectId, month, rowType, viewName, monthColumn, monthMatch }
+) {
+  const hasProjectId = await viewHasColumn(client, viewName, "project_id");
+  if (!hasProjectId) {
+    return;
+  }
+  let monthFilter = "";
+  if (monthColumn) {
+    if (monthMatch === "prefix") {
+      monthFilter = `AND v.${monthColumn}::text LIKE $3 || '%'`;
+    } else {
+      monthFilter = `AND v.${monthColumn}::text=$3`;
+    }
+  }
+  await client.query(
+    `INSERT INTO report_package_snapshots (package_id, project_id, month, row_type, row_data)
+     SELECT $1, $2, $3, $4, to_jsonb(v)
+     FROM ${viewName} v
+     WHERE v.project_id=$2 ${monthFilter}`,
+    [packageId, projectId, month, rowType]
+  );
+}
+
+async function insertReportPackageSnapshots(client, { packageId, projectId, month }) {
+  await insertSnapshotFromView(client, {
+    packageId,
     projectId,
     month,
-    `"${(recipients || []).join(";")}"`,
-    checksum,
-  ].join(",");
-  await fs.writeFile(csvPath, `${csvHeader}\n${csvRow}\n`, "utf8");
-  return {
-    artifactType: "LINK",
-    artifactUri: fileUri(dir),
-  };
+    rowType: "work_phase_current",
+    viewName: "v_report_work_phase_current",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "project_current",
+    viewName: "v_report_project_current",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "project_main_group_current",
+    viewName: "v_report_project_main_group_current",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "project_weekly_ev",
+    viewName: "v_report_project_weekly_ev",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "monthly_work_phase",
+    viewName: "v_report_monthly_work_phase",
+    monthColumn: "month_key",
+    monthMatch: "prefix",
+  });
+  const monthColumn = await findMonthColumn(client, "v_report_monthly_target_cost_raw");
+  if (monthColumn) {
+    await insertSnapshotFromView(client, {
+      packageId,
+      projectId,
+      month,
+      rowType: "monthly_target_raw",
+      viewName: "v_report_monthly_target_cost_raw",
+      monthColumn,
+      monthMatch: "prefix",
+    });
+  }
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "top_overruns",
+    viewName: "v_report_top_overruns_work_phases",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "lowest_cpi",
+    viewName: "v_report_lowest_cpi_work_phases",
+  });
+  await insertSnapshotFromView(client, {
+    packageId,
+    projectId,
+    month,
+    rowType: "top_selvitettavat",
+    viewName: "v_report_top_selvitettavat_littera",
+  });
 }
 
 async function logImportJobEvent({ jobId, status, message }) {
@@ -1839,10 +1978,9 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
       return badRequest(res, "sentBy puuttuu.");
     }
     const recips = Array.isArray(recipients) ? recipients : [];
-    const artifact = "LINK";
-    await withClient(async (client) => {
-      await client.query("BEGIN");
-      try {
+        await withClient(async (client) => {
+          await client.query("BEGIN");
+          try {
         const state = await getOrCreateMonth(client, projectId, month);
         if (!["M0_OPEN_DRAFT", "M1_READY_TO_SEND"].includes(state)) {
           await client.query("ROLLBACK");
@@ -1858,12 +1996,6 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
         };
         const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
         const recipientsJson = JSON.stringify(recips);
-        const artifacts = await writeReportArtifacts({
-          projectId,
-          month,
-          recipients: recips,
-          checksum,
-        });
         const { rows } = await client.query(
           `INSERT INTO report_packages
             (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum)
@@ -1874,11 +2006,16 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
             month,
             String(sentBy).trim(),
             recipientsJson,
-            artifacts.artifactType,
-            artifacts.artifactUri,
+            "SNAPSHOT",
+            reportSnapshotUri(checksum),
             checksum,
           ]
         );
+        await insertReportPackageSnapshots(client, {
+          packageId: rows[0].package_id,
+          projectId,
+          month,
+        });
         await setMonthState(client, {
           projectId,
           month,
@@ -2001,12 +2138,6 @@ app.post(
           const payload = { projectId, month, correctionId, approvedBy: String(approvedBy).trim() };
           const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
           const recipientsJson = JSON.stringify([]);
-          const artifacts = await writeReportArtifacts({
-            projectId,
-            month,
-            recipients: [],
-            checksum,
-          });
           const { rows: pkgRows } = await client.query(
             `INSERT INTO report_packages
               (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum, correction_id)
@@ -2017,12 +2148,17 @@ app.post(
               month,
               String(approvedBy).trim(),
               recipientsJson,
-              artifacts.artifactType,
-              artifacts.artifactUri,
+              "SNAPSHOT",
+              reportSnapshotUri(checksum),
               checksum,
               correctionId,
             ]
           );
+          await insertReportPackageSnapshots(client, {
+            packageId: pkgRows[0].package_id,
+            projectId,
+            month,
+          });
           const state = await getOrCreateMonth(client, projectId, month);
           await setMonthState(client, {
             projectId,
@@ -2131,7 +2267,7 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
   try {
     const { packageId } = req.params;
     const { rows } = await query(
-      `SELECT package_id, project_id, artifact_type, artifact_uri, checksum
+      `SELECT package_id, project_id, month, artifact_type, artifact_uri, checksum
        FROM report_packages
        WHERE package_id=$1`,
       [packageId]
@@ -2143,27 +2279,42 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
       return;
     }
     const row = rows[0];
-    if (row.artifact_type === "LINK" && row.artifact_uri.startsWith("file://")) {
-      const dir = row.artifact_uri.slice("file://".length);
-      const files = await fs.readdir(dir).catch(() => []);
-      const requestedFile = req.query.file ? String(req.query.file) : "";
-      if (requestedFile) {
-        if (!files.includes(requestedFile)) {
-          return res.status(404).json({ error: "Tiedostoa ei löytynyt." });
-        }
-        const filePath = path.join(dir, requestedFile);
-        if (requestedFile.endsWith(".pdf")) {
-          res.type("application/pdf");
-        } else if (requestedFile.endsWith(".csv")) {
-          res.type("text/csv");
-        }
-        fsSync.createReadStream(filePath).pipe(res);
+    const { rows: snapshotRows } = await query(
+      `SELECT row_data
+       FROM report_package_snapshots
+       WHERE package_id=$1
+       ORDER BY snapshot_id`,
+      [packageId]
+    );
+    const snapshots = snapshotRows.map((snap) => snap.row_data);
+    const files = snapshots.length > 0 ? ["report.pdf", "report.csv"] : [];
+    const requestedFile = req.query.file ? String(req.query.file) : "";
+
+    if (requestedFile) {
+      if (snapshots.length === 0) {
+        return res.status(409).json({ error: "Snapshot puuttuu." });
+      }
+      if (requestedFile === "report.pdf") {
+        res.type("application/pdf");
+        const doc = buildReportPdf({
+          projectId: row.project_id,
+          month: row.month,
+          checksum: row.checksum,
+          rows: snapshots,
+        });
+        doc.pipe(res);
+        doc.end();
         return;
       }
-      res.json({ ...row, files });
-      return;
+      if (requestedFile === "report.csv") {
+        res.type("text/csv");
+        res.send(formatSnapshotCsv(snapshots));
+        return;
+      }
+      return res.status(404).json({ error: "Tiedostoa ei löytynyt." });
     }
-    res.json(row);
+
+    res.json({ ...row, files });
   } catch (err) {
     next(err);
   }

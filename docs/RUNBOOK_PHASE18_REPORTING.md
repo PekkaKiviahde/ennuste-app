@@ -4,6 +4,7 @@ Päivitetty: 2025-12-18
 
 ## Mitä tämä vaihe lisää?
 Tämä migraatio luo raportointiin “valmiit näkymät” (views), joista UI ja raportit voivat lukea.
+Lisäksi raporttipaketit voidaan tallentaa snapshot-tauluihin, joista PDF/CSV generoidaan pyynnöstä.
 
 Raportit kattavat:
 - Työvaihe (KPI nykytilanne)
@@ -23,6 +24,21 @@ Migraatio on idempotentti: `CREATE OR REPLACE VIEW` yliajaa vain näkymät.
 ## Tärkeä periaate
 Projektin ennuste/raportointi = usean työvaiheen koonti.
 Näkymät laskevat projektin summat baseline-lukituista työvaiheista.
+
+## Snapshot-on-demand (MVP)
+Raporttipaketin “totuus” on snapshot-tauluissa (append-only), ja tiedosto (PDF/CSV) generoidaan näistä pyynnöstä.
+Tämä pitää audit-ketjun ehjänä ja estää tiedostovaraston riippuvuuden MVP:ssä.
+
+Snapshot sisältää raporttinäkymät:
+- v_report_work_phase_current
+- v_report_project_current
+- v_report_project_main_group_current
+- v_report_project_weekly_ev
+- v_report_monthly_work_phase
+- v_report_monthly_target_cost_raw (jos month-sarake löytyy)
+- v_report_top_overruns_work_phases
+- v_report_lowest_cpi_work_phases
+- v_report_top_selvitettavat_littera
 
 ## Smoke test (teidän projektilla)
 Käytä project_id:tä:
@@ -68,6 +84,15 @@ LIMIT 10;
 SELECT * FROM v_report_monthly_work_phase
 WHERE project_id='111c4f99-ae89-4fcd-8756-e66b6722af50'
 ORDER BY month_key, work_phase_name;
+```
+
+### 5b) Snapshot-rivit (raporttipaketti)
+```sql
+SELECT package_id, row_type, row_data
+FROM report_package_snapshots
+WHERE project_id='111c4f99-ae89-4fcd-8756-e66b6722af50'
+ORDER BY created_at DESC
+LIMIT 20;
 ```
 
 Jos `v_report_monthly_work_phase` on tyhjä, syy on lähes aina se, että `v_target_month_cost_report`-näkymässä

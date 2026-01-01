@@ -249,18 +249,21 @@ async function ensureMapping(projectId, litteraIds) {
      ORDER BY valid_from DESC LIMIT 1`,
     [projectId]
   );
-  let mappingVersionId;
   if (existing.rowCount > 0) {
-    mappingVersionId = existing.rows[0].mapping_version_id;
-  } else {
-    const result = await pool.query(
-      `INSERT INTO mapping_versions (project_id, valid_from, status, reason, created_by)
-       VALUES ($1, CURRENT_DATE, 'ACTIVE', 'Seed mapping', 'seed')
-       RETURNING mapping_version_id`,
-      [projectId]
+    await pool.query(
+      `UPDATE mapping_versions
+       SET status = 'RETIRED', valid_to = CURRENT_DATE, approved_at = now(), approved_by = 'seed'
+       WHERE mapping_version_id = $1`,
+      [existing.rows[0].mapping_version_id]
     );
-    mappingVersionId = result.rows[0].mapping_version_id;
   }
+  const draftResult = await pool.query(
+    `INSERT INTO mapping_versions (project_id, valid_from, status, reason, created_by)
+     VALUES ($1, CURRENT_DATE, 'DRAFT', 'Seed mapping', 'seed')
+     RETURNING mapping_version_id`,
+    [projectId]
+  );
+  const mappingVersionId = draftResult.rows[0].mapping_version_id;
 
   const mappingLines = ['1100', '1200'];
   for (const code of mappingLines) {
@@ -282,6 +285,12 @@ async function ensureMapping(projectId, litteraIds) {
       [projectId, mappingVersionId, litteraIds[code]]
     );
   }
+  await pool.query(
+    `UPDATE mapping_versions
+     SET status = 'ACTIVE', approved_at = now(), approved_by = 'seed'
+     WHERE mapping_version_id = $1`,
+    [mappingVersionId]
+  );
 }
 
 async function ensureWorkPhases(projectId, litteraIds, targetBatchId) {
