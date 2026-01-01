@@ -2080,13 +2080,16 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
   try {
     const { packageId } = req.params;
     const { rows } = await query(
-      `SELECT package_id, artifact_type, artifact_uri, checksum
+      `SELECT package_id, project_id, artifact_type, artifact_uri, checksum
        FROM report_packages
        WHERE package_id=$1`,
       [packageId]
     );
     if (rows.length === 0) {
       return res.status(404).json({ error: "Report packagea ei löytynyt." });
+    }
+    if (!requireProjectAccess(req, res, rows[0].project_id, "viewer")) {
+      return;
     }
     res.json(rows[0]);
   } catch (err) {
