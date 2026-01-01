@@ -117,11 +117,19 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - RBAC + tenant-eristys + audit-eventit koskevat generointia ja latausta.
 - Smoke-testit: tenant-eristys + RBAC + on-demand generointi + audit.
 
+## 2026-01-01 – Onboarding + RBAC (minimi)
+- API tekee projektitasoisen gatingin rooleilla viewer/editor/manager/owner; system-roolit ovat erillinen polku.
+- Onboarding-linkki on kertakäyttöinen, TTL 7 pv, ja kaikki käytöt auditoidaan.
+- Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
+- Lisätty onboarding + RBAC minimipäätös (gating, linkki, smoke).
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
+- Tarvitaan minimivarmistus onboarding-polun turvallisuudesta ja toistettavuudesta.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.
+- Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
