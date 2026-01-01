@@ -28,6 +28,7 @@ const litteraSelects = {
   mappingWork: document.getElementById("mapping-work-littera"),
   mappingTarget: document.getElementById("mapping-target-littera"),
   mappingCorrectionTarget: document.getElementById("mapping-correction-target-littera"),
+  weeklyLead: document.getElementById("weekly-lead-littera"),
   report: document.getElementById("report-littera"),
   history: document.getElementById("history-littera"),
 };
@@ -58,6 +59,8 @@ const weeklyWorkPhaseSelect = document.getElementById("weekly-work-phase");
 const ghostWorkPhaseSelect = document.getElementById("ghost-work-phase");
 const ghostOpenSelect = document.getElementById("ghost-open-select");
 const ghostOpenList = document.getElementById("ghost-open-list");
+const weeklyUpdatesList = document.getElementById("weekly-updates-list");
+const weeklyRefresh = document.getElementById("weekly-refresh");
 const budgetPreviewNote = document.getElementById("budget-preview-note");
 const budgetPreviewTable = document.getElementById("budget-preview-table");
 const budgetValidation = document.getElementById("budget-validation");
@@ -970,6 +973,7 @@ projectSelects.planning.addEventListener("change", async (e) => {
 
 projectSelects.weekly.addEventListener("change", async (e) => {
   await loadWorkPhases(e.target.value);
+  await loadLitteras(e.target.value);
   applyRoleUi();
 });
 
@@ -1018,12 +1022,19 @@ if (mappingCorrectionLineSelect) {
 if (weeklyWorkPhaseSelect) {
   weeklyWorkPhaseSelect.addEventListener("change", async () => {
     await loadGhostOpen(projectSelects.weekly.value, weeklyWorkPhaseSelect.value);
+    await loadWeeklyUpdates(projectSelects.weekly.value, weeklyWorkPhaseSelect.value);
   });
 }
 
 if (ghostWorkPhaseSelect) {
   ghostWorkPhaseSelect.addEventListener("change", async () => {
     await loadGhostOpen(projectSelects.weekly.value, ghostWorkPhaseSelect.value);
+  });
+}
+
+if (weeklyRefresh) {
+  weeklyRefresh.addEventListener("click", async () => {
+    await loadWeeklyUpdates(projectSelects.weekly.value, weeklyWorkPhaseSelect.value);
   });
 }
 
@@ -1137,6 +1148,33 @@ async function loadGhostOpen(projectId, workPhaseId) {
     item.innerHTML = `<strong>${row.week_ending}</strong> ${row.cost_type} — open ${row.open_amount} €
       <div>Kirjattu ${row.entered_amount} €, kuitattu ${row.settled_amount} €</div>`;
     ghostOpenList.appendChild(item);
+  });
+}
+
+async function loadWeeklyUpdates(projectId, workPhaseId) {
+  if (!weeklyUpdatesList) {
+    return;
+  }
+  weeklyUpdatesList.textContent = "Valitse työvaihe nähdäksesi päivitykset.";
+  if (!projectId || !workPhaseId) {
+    return;
+  }
+  const rows = await fetchJson(
+    `/api/work-phases/${workPhaseId}/weekly-updates?projectId=${projectId}`
+  );
+  weeklyUpdatesList.innerHTML = "";
+  if (rows.length === 0) {
+    weeklyUpdatesList.textContent = "Ei viikkopäivityksiä.";
+    return;
+  }
+  rows.forEach((row) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+    item.innerHTML = `<strong>${row.week_ending}</strong> — ${row.percent_complete} %
+      <div>${row.progress_notes || ""}</div>
+      <div>${row.risks || ""}</div>
+      <div>${row.created_by} · ${new Date(row.created_at).toLocaleString("fi-FI")}</div>`;
+    weeklyUpdatesList.appendChild(item);
   });
 }
 
@@ -2280,18 +2318,19 @@ if (workPhaseForm) {
     const form = new FormData(workPhaseForm);
     const payload = Object.fromEntries(form.entries());
     const result = document.getElementById("work-phase-result");
-    try {
-      await fetchJson("/api/work-phases", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      setHint(result, "Työvaihe luotu.");
-      workPhaseForm.reset();
-      await loadWorkPhases(payload.projectId);
-    } catch (err) {
-      setHint(result, err.message, true);
-    }
-  });
+  try {
+    await fetchJson("/api/work-phases", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setHint(result, "Työvaihe luotu.");
+    workPhaseForm.reset();
+    await loadWorkPhases(payload.projectId);
+    await loadLitteras(payload.projectId);
+  } catch (err) {
+    setHint(result, err.message, true);
+  }
+});
 }
 
 const weeklyUpdateForm = document.getElementById("weekly-update-form");
@@ -2302,17 +2341,18 @@ if (weeklyUpdateForm) {
     const payload = Object.fromEntries(form.entries());
     payload.projectId = projectSelects.weekly.value;
     const result = document.getElementById("weekly-update-result");
-    try {
-      await fetchJson(`/api/work-phases/${payload.workPhaseId}/weekly-updates`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      setHint(result, "Viikkopäivitys tallennettu.");
-      weeklyUpdateForm.reset();
-    } catch (err) {
-      setHint(result, err.message, true);
-    }
-  });
+  try {
+    await fetchJson(`/api/work-phases/${payload.workPhaseId}/weekly-updates`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setHint(result, "Viikkopäivitys tallennettu.");
+    weeklyUpdateForm.reset();
+    await loadWeeklyUpdates(payload.projectId, payload.workPhaseId);
+  } catch (err) {
+    setHint(result, err.message, true);
+  }
+});
 }
 
 const ghostEntryForm = document.getElementById("ghost-entry-form");

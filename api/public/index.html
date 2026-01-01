@@ -640,6 +640,10 @@
             <select name="projectId" id="weekly-project" required></select>
           </label>
           <label>
+            Lead-littera
+            <select name="leadLitteraId" id="weekly-lead-littera"></select>
+          </label>
+          <label>
             Työvaiheen nimi
             <input name="name" placeholder="Perustukset" required />
           </label>
@@ -687,6 +691,12 @@
           <button type="submit">Tallenna viikkopäivitys</button>
           <div class="hint" id="weekly-update-result"></div>
         </form>
+
+        <div class="lines">
+          <h3>Viikkopäivitykset (viimeisimmät)</h3>
+          <button type="button" id="weekly-refresh">Päivitä lista</button>
+          <div id="weekly-updates-list" class="history"></div>
+        </div>
 
         <form id="ghost-entry-form" class="stack" data-guard="project:editor">
           <label>
