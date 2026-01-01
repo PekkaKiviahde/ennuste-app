@@ -85,7 +85,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Smoke-testit + invariantit (ei duplikaatteja, ACTIVE-mapping).
 
 ## 2026-01-01 – Raportointi + export (scope, malli, oikeudet, evidence)
-- MVP: kuukausiraportti + metadata (URI + checksum); PDF/XLSX myöhemmin.
+- MVP: kuukausiraportti + PDF + CSV (ei XLSX).
 - Raporttipaketti snapshot + checksum + append-only.
 - Export-oikeus: PM/johto; audit kaikista exporteista.
 - Manuaalinen send-reports; versiointi report-package-ketjuna.

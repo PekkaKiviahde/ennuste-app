@@ -133,6 +133,6 @@ Peruste: D-012 append-only-periaate, migrations/0019_import_jobs.sql, migrations
 
 ## D-032 (LUKITTU) Raportointi + export (scope, malli, oikeudet, evidence)
 
-Päätös: MVP:ssä kuukausiraportti + metadata (URI + checksum); PDF/XLSX myöhemmässä vaiheessa; raporttipaketti on snapshot + checksum + append-only; export-oikeus PM/johto ja audit kaikista exporteista; send-reports on manuaalinen ja versiointi report-package-ketjuna; smoke-testit todentavat ketjun (checksum, lukitus, korjausversio).
+Päätös: MVP:ssä kuukausiraportti + PDF + CSV (ei XLSX); raporttipaketti on snapshot + checksum + append-only; export-oikeus PM/johto ja audit kaikista exporteista; send-reports on manuaalinen ja versiointi report-package-ketjuna; smoke-testit todentavat ketjun (checksum, lukitus, korjausversio).
 
 Peruste: D-028 report-package-ketju ja immutability, decision-log MVP-exportit (PDF + Excel).
