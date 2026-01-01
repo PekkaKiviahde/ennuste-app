@@ -8,6 +8,7 @@ Tavoite: että UI-työnkulkujen (nappipolut + tilakoneet) toteutus on suoraviiva
 ## Sisältö
 - `docs/api/openapi.yaml` – OpenAPI 3.1 -luonnos (endpointit + skeemat)
 - (Tuleva) `docs/api/examples.md` – esimerkkipyynnöt/palautukset (curl)
+- `docs/import-mapping-examples.json` – import-mapping esimerkit (budjetti + JYDA)
 
 ## Periaatteet (MVP)
 - **Tenant-eristys**: backend johdattaa `tenant_id`:n sessiosta/tokenista (ei clientiltä).
