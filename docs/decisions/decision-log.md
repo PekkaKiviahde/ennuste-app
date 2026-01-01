@@ -77,6 +77,19 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Onboarding-linkit ovat kertakäyttöisiä ja idempotentteja.
 - Smoke-testit varmistavat tenant-eristyksen, rooligatingin ja audit-eventit.
 
+## 2026-01-01 – Onboarding + RBAC (tarkennukset)
+- Projektin roolit: viewer/editor/manager/owner.
+- Järjestelmäroolit: superadmin/admin/director/seller; director on read-only.
+- Acting role sallittu (owner/superadmin, TTL 7pv/30pv, audit).
+- Seller saa stub + onboarding-linkin; demo-tenant erillinen ja esitäytetty.
+- Onboarding-linkki kertakäyttöinen (TTL 7pv).
+- Pakolliset kentät: nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu).
+- Kutsu: sähköposti + kertakäyttöinen linkki + PIN/OTP.
+- Oletusrooli viewer.
+- Audit: kaikki kirjoitukset + roolimuutokset + hyväksynnät.
+- Break-glass vain superadmin (audit + syy).
+- Roolit poistuvat käyttäjän poistuessa projektista.
+
 ## 2026-01-01 – Importit + mapping (scope, malli, oikeudet, evidence)
 - MVP: budjetti + JYDA.
 - Importit: import_job + event-loki + mapping_versions (append-only).

@@ -32,6 +32,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** raportit eivät ylikirjoitu, lukitus ja korjaus ovat tilasiirtymiä, ja audit on todennettu.
 - **D-033 (LUKITTU)** Raportin “totuus” säilytetään snapshot-tauluissa (append-only), ja PDF/CSV generoidaan on-demand snapshotista; kaikki versiot säilytetään; generointi ja lataus vaativat RBAC + tenant-eristys + audit-eventit; smoke-testit todentavat tenant/RBAC/on-demand/audit.  
   **Tulkinta:** raporttidata ei katoa, tiedostot ovat esitysmuotoja, ja audit on kattava.
+- **D-034 (LUKITTU)** Onboarding + RBAC: projektin roolit = viewer/editor/manager/owner; järjestelmäroolit = superadmin/admin/director/seller; acting role sallitaan (owner/superadmin, TTL 7pv/30pv, audit); director on read-only; seller saa stub+onboarding-linkki, mutta myyjille on erillinen demo-tenant esitäytettynä; onboarding-linkki kertakäyttöinen (TTL 7pv); pakolliset kentät = nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu); kutsu = sähköposti + kertakäyttöinen linkki + PIN/OTP; oletusrooli viewer; audit kaikki kirjoitukset + roolimuutokset + hyväksynnät; API on gatingin totuus; tenant-eristys pakollinen; break-glass vain superadmin (audit+syy); roolit poistuvat poistossa.  
+  **Tulkinta:** roolimalli on standardi, turvallinen ja käyttöönotto pysyy helppona.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  
@@ -103,14 +105,18 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 
 ## Mitä muuttui
 - Lukittiin raporttien snapshot-on-demand -malli päätökseksi D-033.
+- Lukittiin onboarding + RBAC -tarkennukset päätökseksi D-034.
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
+- Tarvitaan uskottava ja helppo roolimalli (SaaS-standardit) ennen laajaa käyttöönottoa.
 
 ## Miten testataan (manuaali)
 - Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.
 - Lataa PDF/CSV on-demand ja varmista, että audit-eventit kirjautuvat.
 - Varmista tenant-eristys ja RBAC (vain sallittu rooli voi generoida ja ladata).
+- Luo käyttäjä onboarding-linkillä, tarkista kertakäyttö + TTL ja oletusrooli viewer.
+- Varmista acting role TTL + audit, ja break-glass vain superadminille.
 
 ## D-029 (LUKITTU) Onboarding tallennusmalli (JSONB)
 
