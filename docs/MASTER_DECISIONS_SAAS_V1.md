@@ -26,6 +26,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** NPSS ei päivity cutoverin jälkeen, ERP on ainoa lähde.
 - **D-026 (LUKITTU)** NPSS_UNCLASSIFIED siistintä vapaaehtoinen v1:ssä; ei vaikuta KPI/EV/CPI; jälkiluokitus append-only myöhemmin.  
   **Tulkinta:** v1 ei vaadi siistintää eikä muuta KPI-laskentaa.
+- **D-027 (LUKITTU)** Viikkopäivitys tallennetaan append-only eventtinä; ghost-kulut erillisinä tapahtumina ja suljetaan settlement-rivillä; lukitussa kuussa muutokset vain correction-polulla; RBAC: SITE_FOREMAN/GENERAL_FOREMAN luonti, PM/PRODUCTION_MANAGER hyväksyntä.  
+  **Tulkinta:** viikkopäivitys on event-loki, ghostit eivät päivity, vaan kuittaus tehdään settlementilla ja lukitus estää muokkauksen.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  

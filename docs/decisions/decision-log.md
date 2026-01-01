@@ -67,6 +67,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Laskenta: AC/EV/CPI/SPI + EAC/BAC jos specissä.
 - Exportit: PDF + Excel (ei PPT MVP:ssa).
 - Append-only pakotetaan kaikkiin kirjoittaviin tapahtumiin.
+- Viikkopäivitys: append-only event + ghost settlement; lukitus estää muokkaukset, korjaus correction-polulla.
 
 ## Mitä muuttui
 - Lisätty päätökset MVP-työnkulkujen siirrosta ja integraatiopolusta.
