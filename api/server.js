@@ -2,11 +2,14 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
+import fsSync from "fs";
 import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { createHash, randomBytes } from "crypto";
 import dotenv from "dotenv";
+import PDFDocument from "pdfkit";
+import { finished } from "stream/promises";
 import { query, withClient } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -277,14 +280,18 @@ async function writeReportArtifacts({ projectId, month, recipients, checksum }) 
   await fs.mkdir(dir, { recursive: true });
   const pdfPath = path.join(dir, "report.pdf");
   const csvPath = path.join(dir, "report.csv");
-  const pdfContent = [
-    "Report package",
-    `Project: ${projectId}`,
-    `Month: ${month}`,
-    `Recipients: ${(recipients || []).join(", ")}`,
-    `Checksum: ${checksum}`,
-    "",
-  ].join("\n");
+  const doc = new PDFDocument({ size: "A4", margin: 40 });
+  const pdfStream = fsSync.createWriteStream(pdfPath);
+  doc.pipe(pdfStream);
+  doc.fontSize(18).text("Report package", { underline: true });
+  doc.moveDown();
+  doc.fontSize(12).text(`Project: ${projectId}`);
+  doc.text(`Month: ${month}`);
+  doc.text(`Recipients: ${(recipients || []).join(", ") || "—"}`);
+  doc.text(`Checksum: ${checksum}`);
+  doc.end();
+  await finished(pdfStream);
+
   const csvHeader = "project_id,month,recipients,checksum";
   const csvRow = [
     projectId,
@@ -292,10 +299,7 @@ async function writeReportArtifacts({ projectId, month, recipients, checksum }) 
     `"${(recipients || []).join(";")}"`,
     checksum,
   ].join(",");
-  await Promise.all([
-    fs.writeFile(pdfPath, pdfContent, "utf8"),
-    fs.writeFile(csvPath, `${csvHeader}\n${csvRow}\n`, "utf8"),
-  ]);
+  await fs.writeFile(csvPath, `${csvHeader}\n${csvRow}\n`, "utf8");
   return {
     artifactType: "LINK",
     artifactUri: fileUri(dir),
