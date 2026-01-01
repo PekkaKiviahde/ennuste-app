@@ -1286,6 +1286,147 @@ app.get("/api/work-phases/:workPhaseId", async (req, res, next) => {
   }
 });
 
+app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
+  try {
+    const { workPhaseId } = req.params;
+    const { rows: phaseRows } = await query(
+      `SELECT p.project_id, cv.work_phase_version_id
+       FROM work_phases p
+       LEFT JOIN v_work_phase_current_version cv ON cv.work_phase_id = p.work_phase_id
+       WHERE p.work_phase_id=$1`,
+      [workPhaseId]
+    );
+    if (phaseRows.length === 0) {
+      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+    }
+    if (!requireProjectAccess(req, res, phaseRows[0].project_id, "viewer")) {
+      return;
+    }
+    const versionId = phaseRows[0].work_phase_version_id;
+    if (!versionId) {
+      return res.json({ members: [] });
+    }
+    const { rows } = await query(
+      `SELECT
+         m.work_phase_member_id,
+         m.member_type,
+         m.littera_id,
+         l.code AS littera_code,
+         l.title AS littera_title,
+         m.item_code,
+         m.item_desc,
+         m.note,
+         m.created_at,
+         m.created_by
+       FROM work_phase_members m
+       LEFT JOIN litteras l
+         ON l.project_id = m.project_id AND l.littera_id = m.littera_id
+       WHERE m.work_phase_version_id=$1
+       ORDER BY m.member_type, l.code, m.item_code`,
+      [versionId]
+    );
+    res.json({ members: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
+  try {
+    const { workPhaseId } = req.params;
+    const { rows: phaseRows } = await query(
+      `SELECT p.project_id, cv.work_phase_version_id, lb.work_phase_baseline_id
+       FROM work_phases p
+       LEFT JOIN v_work_phase_current_version cv ON cv.work_phase_id = p.work_phase_id
+       LEFT JOIN v_work_phase_latest_baseline lb ON lb.work_phase_id = p.work_phase_id
+       WHERE p.work_phase_id=$1`,
+      [workPhaseId]
+    );
+    if (phaseRows.length === 0) {
+      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+    }
+    const phaseRow = phaseRows[0];
+    if (!requireProjectAccess(req, res, phaseRow.project_id, "editor")) {
+      return;
+    }
+    if (phaseRow.work_phase_baseline_id) {
+      return res.status(409).json({ error: "BASELINE_ALREADY_LOCKED" });
+    }
+    if (!phaseRow.work_phase_version_id) {
+      return res.status(409).json({ error: "VERSION_REQUIRED" });
+    }
+
+    const { memberType, litteraId, itemCode, itemDesc, note } = req.body || {};
+    if (!memberType || !["LITTERA", "ITEM"].includes(memberType)) {
+      return badRequest(res, "memberType puuttuu tai on virheellinen.");
+    }
+    if (memberType === "LITTERA" && !litteraId) {
+      return badRequest(res, "litteraId puuttuu.");
+    }
+    if (memberType === "ITEM" && (!itemCode || String(itemCode).trim() === "")) {
+      return badRequest(res, "itemCode puuttuu.");
+    }
+
+    const { rows: userRows } = await query(
+      "SELECT username FROM users WHERE user_id=$1",
+      [req.user?.userId]
+    );
+    const createdBy = userRows[0]?.username || "user";
+
+    if (memberType === "LITTERA") {
+      const { rowCount: litteraCount } = await query(
+        "SELECT 1 FROM litteras WHERE project_id=$1 AND littera_id=$2",
+        [phaseRow.project_id, litteraId]
+      );
+      if (litteraCount === 0) {
+        return badRequest(res, "litteraId ei kuulu projektiin.");
+      }
+    }
+
+    const { rows: existingRows } = await query(
+      `SELECT 1
+       FROM work_phase_members
+       WHERE work_phase_version_id=$1
+         AND member_type=$2
+         AND (
+           ($2 = 'LITTERA' AND littera_id=$3)
+           OR ($2 = 'ITEM' AND item_code=$4)
+         )`,
+      [phaseRow.work_phase_version_id, memberType, litteraId || null, itemCode || null]
+    );
+    if (existingRows.length > 0) {
+      return res.status(409).json({ error: "ALREADY_EXISTS" });
+    }
+
+    const { rows } = await query(
+      `INSERT INTO work_phase_members (
+         project_id,
+         work_phase_version_id,
+         member_type,
+         littera_id,
+         item_code,
+         item_desc,
+         note,
+         created_by
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING work_phase_member_id`,
+      [
+        phaseRow.project_id,
+        phaseRow.work_phase_version_id,
+        memberType,
+        memberType === "LITTERA" ? litteraId : null,
+        memberType === "ITEM" ? String(itemCode).trim() : null,
+        memberType === "ITEM" && itemDesc ? String(itemDesc).trim() : null,
+        note ? String(note).trim() : null,
+        createdBy,
+      ]
+    );
+    res.status(201).json({ work_phase_member_id: rows[0].work_phase_member_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get("/api/work-phases", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
