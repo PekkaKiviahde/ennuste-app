@@ -84,11 +84,18 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Retry + validointiraportti käytössä.
 - Smoke-testit + invariantit (ei duplikaatteja, ACTIVE-mapping).
 
+## 2026-01-01 – Raportointi + export (scope, malli, oikeudet, evidence)
+- MVP: kuukausiraportti + PDF + Excel.
+- Raporttipaketti snapshot + checksum + append-only.
+- Export-oikeus: PM/johto; audit kaikista exporteista.
+- Manuaalinen send-reports; versiointi report-package-ketjuna.
+- Smoke-testit: ketju + checksum + lukitus + korjausversio.
+
 ## Mitä muuttui
-- Lisätty päätös importtien ja mappingin scopesta, mallista, oikeuksista ja evidencestä.
+- Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 
 ## Miksi
-- Tarvitaan yhteinen totuus importtien ja mappingin toteutusmallista ja testivaatimuksista.
+- Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
 
 ## Miten testataan (manuaali)
-- Aja import-polku: budjetti + JYDA, tarkista import-jobit, mapping-versio ja invariantit.
+- Aja report-polku: send-reports → lukitus → correction → uusi report-package.

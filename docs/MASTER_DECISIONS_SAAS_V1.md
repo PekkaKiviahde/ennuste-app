@@ -130,3 +130,9 @@ Peruste: docs/api/security.md (RBAC + tenant isolation + audit), docs/workflows/
 Päätös: MVP:hen kuuluu budjetti- ja JYDA-importit; importit tallennetaan import_job + event-loki + mapping_versions -mallilla (append-only); importoikeus admin/PM/talous, mapping-korjaus admin/manager; retry + validointiraportti käytössä; smoke-testit varmistavat invariantit (ei duplikaatteja, ACTIVE-mapping).
 
 Peruste: D-012 append-only-periaate, migrations/0019_import_jobs.sql, migrations/0020_import_mappings.sql, F-001 mapping-ketjun varmennus.
+
+## D-032 (LUKITTU) Raportointi + export (scope, malli, oikeudet, evidence)
+
+Päätös: MVP:ssä kuukausiraportti + PDF + Excel; raporttipaketti on snapshot + checksum + append-only; export-oikeus PM/johto ja audit kaikista exporteista; send-reports on manuaalinen ja versiointi report-package-ketjuna; smoke-testit todentavat ketjun (checksum, lukitus, korjausversio).
+
+Peruste: D-028 report-package-ketju ja immutability, decision-log MVP-exportit (PDF + Excel).
