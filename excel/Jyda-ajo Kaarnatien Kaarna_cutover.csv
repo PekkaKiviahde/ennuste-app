@@ -1,0 +1,112 @@
+﻿UTF-8
+ProjectCode;ProjectName;Month;WorkPackageCode;WorkPackageName;WorkPhaseCode;WorkPhaseName;LitteraCode;LitteraName;CostType;AC;GhostOpen;Remaining;PCT;Comment
+0001;Kide-Asunnot Demo;12/2025;0100;Tontin tai osakekannan hankinta/vuokra;0100;Tontin tai osakekannan hankinta/vuokra;0100;Tontin tai osakekannan hankinta/vuokra;Lajittelematon;37 087,21;0,00;923 912,79;3,86;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0310;ARK-suunnittelu;0310;ARK-suunnittelu;0310;ARK-suunnittelu;Lajittelematon;12 094,63;0,00;0,00;105,17;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0320;RAK-suunnittelu;0320;RAK-suunnittelu;0320;RAK-suunnittelu;Lajittelematon;21 559,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0330;LVI-suunnittelu;0330;LVI-suunnittelu;0330;LVI-suunnittelu;Lajittelematon;2 974,98;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0340;Sähkösuunnittelu;0340;Sähkösuunnittelu;0340;Sähkösuunnittelu;Lajittelematon;4 000,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0350;Pohjarakennussuunnittelu;0350;Pohjarakennussuunnittelu;0350;Pohjarakennussuunnittelu;Lajittelematon;1 004,50;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0510;Rakennuslupa- ja tarkastusmaksut;0510;Rakennuslupa- ja tarkastusmaksut;0510;Rakennuslupa- ja tarkastusmaksut;Lajittelematon;266,30;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0551;Rakennustyövakuutus;0551;Rakennustyövakuutus;0551;Rakennustyövakuutus;Lajittelematon;3 886,51;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0552;Rakennusaikaisen vakuuden korot;0552;Rakennusaikaisen vakuuden korot;0552;Rakennusaikaisen vakuuden korot;Lajittelematon;16 138,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0553;Takuuajan vakuuden korot;0553;Takuuajan vakuuden korot;0553;Takuuajan vakuuden korot;Lajittelematon;6 147,00;0,00;1 753,00;77,81;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0601;Vesi- ja viemäriliittymä;0601;Vesi- ja viemäriliittymä;0601;Vesi- ja viemäriliittymä;Lajittelematon;26 781,16;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0602;Kaukolämpöliittymä;0602;Kaukolämpöliittymä;0602;Kaukolämpöliittymä;Lajittelematon;37,50;0,00;8 862,50;0,42;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0603;Sähköliittymä;0603;Sähköliittymä;0603;Sähköliittymä;Lajittelematon;6 938,61;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;0900;Riskivaraus;0900;Riskivaraus;0900;Riskivaraus;Lajittelematon;0,00;0,00;44 394,45;;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1100;Purkukustannukset;1100;Purkukustannukset;1100;Purkukustannukset;Lajittelematon;27 173,40;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1200;Maankaivu;1200;Maankaivu;1200;Maankaivu;Lajittelematon;162 443,44;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1450;Ponttaus;1450;Ponttaus;1450;Ponttaus;Lajittelematon;37 217,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1500;Salaojat, putkijohdot, kaivot ja viemäri;1500;Salaojat, putkijohdot, kaivot ja viemäri;1500;Salaojat, putkijohdot, kaivot ja viemäri;Lajittelematon;34 863,18;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1730;Asfaltointi;1730;Asfaltointi;1730;Asfaltointi;Lajittelematon;10 002,05;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1740;Vihertyöt;1740;Vihertyöt;1740;Vihertyöt;Lajittelematon;30 730,55;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;1800;Ulkovarusteet;1800;Ulkovarusteet;1800;Ulkovarusteet;Lajittelematon;22 656,84;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2080;Perustusten vedeneristys;2080;Perustusten vedeneristys;2080;Perustusten vedeneristys;Lajittelematon;4 999,98;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2200;Anturat ja perusmuurit;2200;Anturat ja perusmuurit;2200;Anturat ja perusmuurit;Lajittelematon;129 308,41;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2250;Sokkelielementit / sokkelikuorielementit;2250;Sokkelielementit / sokkelikuorielementit;2250;Sokkelielementit / sokkelikuorielementit;Lajittelematon;20 781,19;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2500;VSS-rakenteet;2500;VSS-rakenteet;2500;VSS-rakenteet;Lajittelematon;39 679,08;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2600;Maanvaraiset alapohjat;2600;Maanvaraiset alapohjat;2600;Maanvaraiset alapohjat;Lajittelematon;19 116,72;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;2830;Sisäänkäyntitasot ja -katokset;2830;Sisäänkäyntitasot ja -katokset;2830;Sisäänkäyntitasot ja -katokset;Lajittelematon;8 624,60;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3020;Rungon teräsosat;3020;Rungon teräsosat;3020;Rungon teräsosat;Lajittelematon;12 999,98;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3110;Väliseinäelementit;3110;Väliseinäelementit;3110;Väliseinäelementit;Lajittelematon;159 826,82;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3120;Ontelo-, Massiivi- ja tulppalaatat;3120;Ontelo-, Massiivi- ja tulppalaatat;3120;Ontelo-, Massiivi- ja tulppalaatat;Lajittelematon;246 544,81;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3130;Kuorielementit (SK,RK);3130;Kuorielementit (SK,RK);3130;Kuorielementit (SK,RK);Lajittelematon;86 223,50;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3140;Hissikuiluelementit(seinä ja kuppilaat.);3140;Hissikuiluelementit(seinä ja kuppilaat.);3140;Hissikuiluelementit(seinä ja kuppilaat.);Lajittelematon;3 736,50;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3150;Porraselementit;3150;Porraselementit;3150;Porraselementit;Lajittelematon;13 904,05;0,00;757,80;94,83;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;3170;Luhtikäyt.-,parveke-, parvekkeiden pielielementit;Lajittelematon;63 432,96;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3220;Seinien raudoitukset;3220;Seinien raudoitukset;3220;Seinien raudoitukset;Lajittelematon;319,60;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3350;Betonipintojen etupaikkaus;3350;Betonipintojen etupaikkaus;3350;Betonipintojen etupaikkaus;Lajittelematon;17 114,35;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3500;Ulkoseinät;3500;Ulkoseinät;3500;Ulkoseinät;Lajittelematon;12 095,95;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3550;Ulkoseinät elementteinä, puu;3550;Ulkoseinät elementteinä, puu;3550;Ulkoseinät elementteinä, puu;Lajittelematon;135 374,68;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3600;Kattotasot ja parvekkeet;3600;Kattotasot ja parvekkeet;3600;Kattotasot ja parvekkeet;Lajittelematon;4 659,09;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3700;Ullakko- ja kattorakenteet;3700;Ullakko- ja kattorakenteet;3700;Ullakko- ja kattorakenteet;Lajittelematon;33 444,15;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3720;Kattoristikot;3720;Kattoristikot;3720;Kattoristikot;Lajittelematon;8 500,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;3750;Puhallusvilla;3750;Puhallusvilla;3750;Puhallusvilla;Lajittelematon;6 526,86;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4100;Puu- ja muovi-ikkunat, parvekeovet;4100;Puu- ja muovi-ikkunat, parvekeovet;4100;Puu- ja muovi-ikkunat, parvekeovet;Lajittelematon;97 194,96;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4200;Erityisikkunat, sp-luukut;4200;Erityisikkunat, sp-luukut;4200;Erityisikkunat, sp-luukut;Lajittelematon;5 034,15;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4300;Puuovet;4300;Puuovet;4300;Puuovet;Lajittelematon;51 460,18;0,00;0,00;100,07;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4330;Metalliovet, -ikkunat ja lasiseinät;4330;Metalliovet, -ikkunat ja lasiseinät;4330;Metalliovet, -ikkunat ja lasiseinät;Lajittelematon;25 926,81;0,00;501,42;98,10;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4360;Lukitukset ja heloitukset;4360;Lukitukset ja heloitukset;4360;Lukitukset ja heloitukset;Lajittelematon;35 730,52;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4510;Kipsiväliseinät;4510;Kipsiväliseinät;4510;Kipsiväliseinät;Lajittelematon;55 648,91;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4520;Kipsialakatot;4520;Kipsialakatot;4520;Kipsialakatot;Lajittelematon;23 001,42;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4530;Kipsihormit;4530;Kipsihormit;4530;Kipsihormit;Lajittelematon;11 583,72;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4540;Muuratut väliseinät;4540;Muuratut väliseinät;4540;Muuratut väliseinät;Lajittelematon;4 127,26;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4600;Irtaimistokopit ja erityisväliseinät;4600;Irtaimistokopit ja erityisväliseinät;4600;Irtaimistokopit ja erityisväliseinät;Lajittelematon;12 054,00;0,00;0,00;;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;4700;Kaiteet ja parvekelasitukset;4700;Kaiteet ja parvekelasitukset;4700;Kaiteet ja parvekelasitukset;Lajittelematon;112 006,51;0,00;9 953,33;91,84;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5110;Vesikattovarusteet, tikkaat yms.;5110;Vesikattovarusteet, tikkaat yms.;5110;Vesikattovarusteet, tikkaat yms.;Lajittelematon;5 812,86;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5180;Bitumikatteet;5180;Bitumikatteet;5180;Bitumikatteet;Lajittelematon;20 463,43;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5240;Märkätilojen laatoitukset;5240;Märkätilojen laatoitukset;5240;Märkätilojen laatoitukset;Lajittelematon;75 461,50;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5245;Yleisten tilojen laatoitukset;5245;Yleisten tilojen laatoitukset;5245;Yleisten tilojen laatoitukset;Lajittelematon;1 478,69;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5260;Puulistoitukset;5260;Puulistoitukset;5260;Puulistoitukset;Lajittelematon;20 059,62;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5350;Akustoivat alakatot;5350;Akustoivat alakatot;5350;Akustoivat alakatot;Lajittelematon;7 599,87;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5530;Julkisivun pellitykset ja metalliverhoukset;5530;Julkisivun pellitykset ja metalliverhoukset;5530;Julkisivun pellitykset ja metalliverhoukset;Lajittelematon;29 048,50;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5540;Julkisivumuuraus;5540;Julkisivumuuraus;5540;Julkisivumuuraus;Lajittelematon;33 979,22;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5550;Julkisivurappaus;5550;Julkisivurappaus;5550;Julkisivurappaus;Lajittelematon;78 573,20;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5560;Julkisivun puu- ja levyverhoukset;5560;Julkisivun puu- ja levyverhoukset;5560;Julkisivun puu- ja levyverhoukset;Lajittelematon;64 427,34;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5570;Elastiset saumaukset;5570;Elastiset saumaukset;5570;Elastiset saumaukset;Lajittelematon;7 063,06;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5600;Pintabetonilattiat;5600;Pintabetonilattiat;5600;Pintabetonilattiat;Lajittelematon;25 672,84;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5640;Tasoitelattiat (pumpputasoite);5640;Tasoitelattiat (pumpputasoite);5640;Tasoitelattiat (pumpputasoite);Lajittelematon;37 451,79;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5660;Parketti ja laminaatti;5660;Parketti ja laminaatti;5660;Parketti ja laminaatti;Lajittelematon;48 111,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5690;Mattolattiat pohjatöineen;5690;Mattolattiat pohjatöineen;5690;Mattolattiat pohjatöineen;Lajittelematon;7 560,30;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5710;Saunat;5710;Saunat;5710;Saunat;Lajittelematon;25 029,47;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5730;Puualakatot;5730;Puualakatot;5730;Puualakatot;Lajittelematon;19 413,60;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;5800;Maalaus- ja tasoitetyöt;5800;Maalaus- ja tasoitetyöt;5800;Maalaus- ja tasoitetyöt;Lajittelematon;104 150,91;0,00;16 769,00;86,13;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6110;Huoneistojen kalusteet;6110;Huoneistojen kalusteet;6110;Huoneistojen kalusteet;Lajittelematon;149 291,61;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6120;Märkätilojen kalusteet;6120;Märkätilojen kalusteet;6120;Märkätilojen kalusteet;Lajittelematon;29 778,53;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6200;Varusteet;6200;Varusteet;6200;Varusteet;Lajittelematon;24 375,62;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6250;Saunojen tarvikkeet;6250;Saunojen tarvikkeet;6250;Saunojen tarvikkeet;Lajittelematon;10 736,92;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6300;Laitteet ja kodinkoneet;6300;Laitteet ja kodinkoneet;6300;Laitteet ja kodinkoneet;Lajittelematon;39 740,85;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;6700;Väestönsuojan varusteet;6700;Väestönsuojan varusteet;6700;Väestönsuojan varusteet;Lajittelematon;12 026,71;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;7100;LÄMPÖ, VESI JA VIEMÄRI;7100;LÄMPÖ, VESI JA VIEMÄRI;7100;LÄMPÖ, VESI JA VIEMÄRI;Lajittelematon;486 000,00;0,00;6 000,00;98,78;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;7300;SÄHKÖ;7300;SÄHKÖ;7300;SÄHKÖ;Lajittelematon;211 000,00;0,00;1 000,00;99,53;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;7500;Siirtolaitteet, hissit;7500;Siirtolaitteet, hissit;7500;Siirtolaitteet, hissit;Lajittelematon;32 100,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;7850;Palokatkot;7850;Palokatkot;7850;Palokatkot;Lajittelematon;3 566,35;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;7900;LVIS-aputyöt;7900;LVIS-aputyöt;7900;LVIS-aputyöt;Lajittelematon;12 238,22;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8110;Työmaarakennukset;8110;Työmaarakennukset;8110;Työmaarakennukset;Lajittelematon;21 953,54;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8150;Työmaa-alue , aitaukset ja mainoskilvet;8150;Työmaa-alue , aitaukset ja mainoskilvet;8150;Työmaa-alue , aitaukset ja mainoskilvet;Lajittelematon;2 992,57;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8160;Rakennussuojaus;8160;Rakennussuojaus;8160;Rakennussuojaus;Lajittelematon;4 217,13;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8170;Työturvallisuus;8170;Työturvallisuus;8170;Työturvallisuus;Lajittelematon;12 124,75;0,00;460,00;96,34;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8180;Telineet ja julkisivunostimet;8180;Telineet ja julkisivunostimet;8180;Telineet ja julkisivunostimet;Lajittelematon;48 581,80;0,00;16,00;99,97;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8200;Työaikaiset rakenteet  LVIS;8200;Työaikaiset rakenteet  LVIS;8200;Työaikaiset rakenteet  LVIS;Lajittelematon;10 088,54;0,00;1 899,69;84,15;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8320;Ajoneuvonosturit;8320;Ajoneuvonosturit;8320;Ajoneuvonosturit;Lajittelematon;16 551,80;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8330;Torninosturit, ristikkopuominosturit;8330;Torninosturit, ristikkopuominosturit;8330;Torninosturit, ristikkopuominosturit;Lajittelematon;72 713,80;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8350;Muut siirtokoneet, henkilönostimet;8350;Muut siirtokoneet, henkilönostimet;8350;Muut siirtokoneet, henkilönostimet;Lajittelematon;33 724,04;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8400;Työkalut ja -välineet;8400;Työkalut ja -välineet;8400;Työkalut ja -välineet;Lajittelematon;62 909,93;0,00;5 011,30;92,62;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8500;Työmaan käyttötarvikkeet;8500;Työmaan käyttötarvikkeet;8500;Työmaan käyttötarvikkeet;Lajittelematon;7 087,23;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8610;Sähkölaskut;8610;Sähkölaskut;8610;Sähkölaskut;Lajittelematon;8 037,60;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8620;Vesilaskut;8620;Vesilaskut;8620;Vesilaskut;Lajittelematon;1 791,43;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8640;Kaukolämpömaksut;8640;Kaukolämpömaksut;8640;Kaukolämpömaksut;Lajittelematon;9 729,09;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;8700;Työmaan jätemaksut ja kuljetukset;8700;Työmaan jätemaksut ja kuljetukset;8700;Työmaan jätemaksut ja kuljetukset;Lajittelematon;13 277,33;0,00;1 052,67;92,65;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9110;Työjohdon palkat & kustannusten korvaukset;9110;Työjohdon palkat & kustannusten korvaukset;9110;Työjohdon palkat & kustannusten korvaukset;Lajittelematon;164 496,22;0,00;45 503,78;78,33;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;9120;Kopiot, IT-, AV-, tstotarvike, Huoltokirja;Lajittelematon;10 473,42;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9200;Viimeistelytyöt;9200;Viimeistelytyöt;9200;Viimeistelytyöt;Lajittelematon;4 287,98;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9210;Mittaukset ja kokeet;9210;Mittaukset ja kokeet;9210;Mittaukset ja kokeet;Lajittelematon;8 516,99;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9230;Työmaan vartiointi;9230;Työmaan vartiointi;9230;Työmaan vartiointi;Lajittelematon;1 561,99;0,00;368,26;80,92;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9240;Siivous ja raivaus;9240;Siivous ja raivaus;9240;Siivous ja raivaus;Lajittelematon;57 367,64;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9250;Loppusiivous;9250;Loppusiivous;9250;Loppusiivous;Lajittelematon;15 487,05;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9400;Talvilisätyöt;9400;Talvilisätyöt;9400;Talvilisätyöt;Lajittelematon;416,20;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9700;Työntekijöiden palkanlisät;9700;Työntekijöiden palkanlisät;9700;Työntekijöiden palkanlisät;Lajittelematon;3 540,66;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9750;Työntekijöiden työvaatetus;9750;Työntekijöiden työvaatetus;9750;Työntekijöiden työvaatetus;Lajittelematon;13 046,64;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9800;Sosiaalikulut;9800;Sosiaalikulut;9800;Sosiaalikulut;Lajittelematon;411,26;0,00;0,00;;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9901;Kaarnan osuus parkkihallikuluista;9901;Kaarnan osuus parkkihallikuluista;9901;Kaarnan osuus parkkihallikuluista;Lajittelematon;330 000,00;0,00;0,00;100,00;JYDA-cutover 12/2025
+0001;Kide-Asunnot Demo;12/2025;9980;Oman käytön ALV;9980;Oman käytön ALV;9980;Oman käytön ALV;Lajittelematon;1 152 473,11;0,00;72 526,89;94,08;JYDA-cutover 12/2025
