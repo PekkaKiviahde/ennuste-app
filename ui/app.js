@@ -1203,6 +1203,8 @@ async function refreshProjectData() {
   state.projectLowestCpi = reportLowestCpi.rows;
   state.projectTopSelvitettavat = reportTopSelvitettavat.rows;
   state.projectOverlap = reportOverlap.rows;
+  state.reportPackages = [];
+  state.reportPackagesMonth = defaultReportMonth();
   state.workPhases = workPhases.workPhases;
   state.targetBatches = batches.batches;
   state.selvitettavat = selvitettavat.selvitettavat;
@@ -1231,7 +1233,13 @@ async function loadReportPackages() {
   }
   const status = document.getElementById('report-packages-status');
   const input = document.getElementById('report-packages-month');
-  const month = input?.value || defaultReportMonth();
+  const month = input?.value;
+  if (!month) {
+    if (status) {
+      status.textContent = t('ui.error.required');
+    }
+    return;
+  }
   state.reportPackagesMonth = month;
   if (status) {
     status.textContent = t('ui.status.loading');
@@ -1246,9 +1254,11 @@ async function loadReportPackages() {
     }
     renderDetail();
   } catch (error) {
+    state.reportPackages = [];
     if (status) {
       status.textContent = formatErrorMessage(error);
     }
+    renderDetail();
   }
 }
 
