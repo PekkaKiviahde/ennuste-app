@@ -1206,6 +1206,44 @@ app.get("/api/projects/:projectId/litteras", async (req, res, next) => {
   }
 });
 
+app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.params.projectId, "viewer")) {
+      return;
+    }
+    const { projectId } = req.params;
+    const { rows } = await query(
+      `SELECT
+         s.work_phase_id,
+         s.work_phase_name AS name,
+         s.work_phase_status AS status,
+         p.owner,
+         p.lead_littera_id,
+         s.lead_littera_code,
+         s.lead_littera_title,
+         s.current_version_id,
+         s.latest_baseline_id,
+         s.target_import_batch_id,
+         s.bac_total,
+         s.latest_week_ending,
+         s.percent_complete,
+         s.ev_value,
+         s.ghost_open_total,
+         s.ac_total,
+         s.ac_star_total,
+         s.cpi
+       FROM v_work_phase_summary_v16_all s
+       JOIN work_phases p ON p.work_phase_id = s.work_phase_id
+       WHERE s.project_id=$1
+       ORDER BY s.work_phase_name`,
+      [projectId]
+    );
+    res.json({ workPhases: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get("/api/work-phases", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
