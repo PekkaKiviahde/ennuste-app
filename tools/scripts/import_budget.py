@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import json
 import os
 import sys
 from dataclasses import dataclass
@@ -42,24 +43,33 @@ from db_url_redact import redact_database_url
 DEFAULT_DATABASE_URL = "postgresql://codex:codex@127.0.0.1:5433/codex"
 DEFAULT_SOURCE_SYSTEM = "TARGET_ESTIMATE"
 
-# Expected headers (your file has these)
-COL_LITTERA_CODE = "Litterakoodi"
-COL_LITTERA_TITLE = "Litteraselite"
+# Flexible column mapping keys
+FIELD_LITTERA_CODE = "littera_code"
+FIELD_LITTERA_TITLE = "littera_title"
+FIELD_LABOR_EUR = "labor_eur"
+FIELD_MATERIAL_EUR = "material_eur"
+FIELD_SUBCONTRACT_EUR = "subcontract_eur"
+FIELD_RENTAL_EUR = "rental_eur"
+FIELD_OTHER_EUR = "other_eur"
+FIELD_SUM_EUR = "sum_eur"
 
-COL_LABOR_EUR = "Työ €"
-COL_MATERIAL_EUR = "Aine €"
-COL_SUBCONTRACT_EUR = "Alih €"
-COL_RENTAL_EUR = "Vmiehet €"
-COL_OTHER_EUR = "Muu €"
-COL_SUM_EUR = "Summa"  # used for sanity check only
-
+DEFAULT_COLUMN_MAPPING = {
+    FIELD_LITTERA_CODE: "Litterakoodi",
+    FIELD_LITTERA_TITLE: "Litteraselite",
+    FIELD_LABOR_EUR: "Työ €",
+    FIELD_MATERIAL_EUR: "Aine €",
+    FIELD_SUBCONTRACT_EUR: "Alih €",
+    FIELD_RENTAL_EUR: "Vmiehet €",
+    FIELD_OTHER_EUR: "Muu €",
+    FIELD_SUM_EUR: "Summa",
+}
 
 COST_TYPES = [
-    ("LABOR", COL_LABOR_EUR),
-    ("MATERIAL", COL_MATERIAL_EUR),
-    ("SUBCONTRACT", COL_SUBCONTRACT_EUR),
-    ("RENTAL", COL_RENTAL_EUR),
-    ("OTHER", COL_OTHER_EUR),
+    ("LABOR", FIELD_LABOR_EUR),
+    ("MATERIAL", FIELD_MATERIAL_EUR),
+    ("SUBCONTRACT", FIELD_SUBCONTRACT_EUR),
+    ("RENTAL", FIELD_RENTAL_EUR),
+    ("OTHER", FIELD_OTHER_EUR),
 ]
 
 
@@ -142,7 +152,21 @@ def normalize_littera_code(raw: str) -> Tuple[str, str]:
     return code, alt
 
 
-def read_and_aggregate_csv(csv_path: Path) -> Tuple[Dict[str, CostAgg], Dict[str, str], int, int]:
+def normalize_mapping(raw_mapping: Optional[Dict[str, str]]) -> Dict[str, str]:
+    if not raw_mapping:
+        return DEFAULT_COLUMN_MAPPING.copy()
+    if "columns" in raw_mapping and isinstance(raw_mapping["columns"], dict):
+        raw_mapping = raw_mapping["columns"]
+    mapping = DEFAULT_COLUMN_MAPPING.copy()
+    for key, value in raw_mapping.items():
+        if key in mapping and isinstance(value, str) and value.strip():
+            mapping[key] = value.strip()
+    return mapping
+
+
+def read_and_aggregate_csv(
+    csv_path: Path, column_mapping: Dict[str, str]
+) -> Tuple[Dict[str, CostAgg], Dict[str, str], int, int]:
     """
     Returns:
       - agg_by_littera_code: { '0100': CostAgg(...) }
@@ -161,14 +185,25 @@ def read_and_aggregate_csv(csv_path: Path) -> Tuple[Dict[str, CostAgg], Dict[str
             die("CSV has no header row.")
 
         # Basic header check (only the ones we need)
-        required = [COL_LITTERA_CODE, COL_LABOR_EUR, COL_MATERIAL_EUR, COL_SUBCONTRACT_EUR, COL_RENTAL_EUR, COL_OTHER_EUR]
-        missing_headers = [h for h in required if h not in reader.fieldnames]
+        required_fields = [
+            FIELD_LITTERA_CODE,
+            FIELD_LABOR_EUR,
+            FIELD_MATERIAL_EUR,
+            FIELD_SUBCONTRACT_EUR,
+            FIELD_RENTAL_EUR,
+            FIELD_OTHER_EUR,
+        ]
+        required_headers = [column_mapping[f] for f in required_fields]
+        missing_headers = [h for h in required_headers if h not in reader.fieldnames]
         if missing_headers:
-            die(f"CSV missing required columns: {missing_headers}\nFound columns: {reader.fieldnames}")
+            die(
+                "CSV missing required columns: "
+                f"{missing_headers}\nFound columns: {reader.fieldnames}"
+            )
 
         for row in reader:
             rows_read += 1
-            raw_code = (row.get(COL_LITTERA_CODE) or "").strip()
+            raw_code = (row.get(column_mapping[FIELD_LITTERA_CODE]) or "").strip()
 
             # Skip summary/footer rows (e.g. ';;;;;;;;519 505,52...')
             if raw_code == "":
@@ -179,11 +214,26 @@ def read_and_aggregate_csv(csv_path: Path) -> Tuple[Dict[str, CostAgg], Dict[str
             code = raw_code
 
             # Parse cost euros
-            labor = parse_fi_number(row.get(COL_LABOR_EUR), field_name=COL_LABOR_EUR)
-            material = parse_fi_number(row.get(COL_MATERIAL_EUR), field_name=COL_MATERIAL_EUR)
-            subcontract = parse_fi_number(row.get(COL_SUBCONTRACT_EUR), field_name=COL_SUBCONTRACT_EUR)
-            rental = parse_fi_number(row.get(COL_RENTAL_EUR), field_name=COL_RENTAL_EUR)
-            other = parse_fi_number(row.get(COL_OTHER_EUR), field_name=COL_OTHER_EUR)
+            labor = parse_fi_number(
+                row.get(column_mapping[FIELD_LABOR_EUR]),
+                field_name=column_mapping[FIELD_LABOR_EUR],
+            )
+            material = parse_fi_number(
+                row.get(column_mapping[FIELD_MATERIAL_EUR]),
+                field_name=column_mapping[FIELD_MATERIAL_EUR],
+            )
+            subcontract = parse_fi_number(
+                row.get(column_mapping[FIELD_SUBCONTRACT_EUR]),
+                field_name=column_mapping[FIELD_SUBCONTRACT_EUR],
+            )
+            rental = parse_fi_number(
+                row.get(column_mapping[FIELD_RENTAL_EUR]),
+                field_name=column_mapping[FIELD_RENTAL_EUR],
+            )
+            other = parse_fi_number(
+                row.get(column_mapping[FIELD_OTHER_EUR]),
+                field_name=column_mapping[FIELD_OTHER_EUR],
+            )
 
             # If everything is zero, skip row (no effect)
             if (labor + material + subcontract + rental + other) == 0:
@@ -194,7 +244,7 @@ def read_and_aggregate_csv(csv_path: Path) -> Tuple[Dict[str, CostAgg], Dict[str
             agg[code] = prev.add(labor, material, subcontract, rental, other)
 
             # Capture title if available
-            t = (row.get(COL_LITTERA_TITLE) or "").strip()
+            t = (row.get(column_mapping[FIELD_LITTERA_TITLE]) or "").strip()
             if t and code not in titles:
                 titles[code] = t
 
@@ -321,6 +371,20 @@ def main() -> None:
     parser.add_argument("--file", required=True, help="Path to CSV (UTF-8, ';' delimited).")
     parser.add_argument("--imported-by", required=True, help="Actor name for audit.")
     parser.add_argument("--source-system", default=DEFAULT_SOURCE_SYSTEM, help=f"Source system label (default: {DEFAULT_SOURCE_SYSTEM}).")
+    parser.add_argument(
+        "--mapping-file",
+        help="Path to JSON file with column mapping (optional).",
+    )
+    parser.add_argument(
+        "--mapping-json",
+        help="Inline JSON mapping (optional).",
+    )
+    parser.add_argument(
+        "--mapping-source",
+        choices=["auto", "db", "none"],
+        default="auto",
+        help="Mapping source: auto (file/json -> db -> default), db, or none (defaults only).",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Read and aggregate, but do not write to DB.")
     parser.add_argument("--database-url", default=os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL), help="Postgres connection string.")
     parser.add_argument("--allow-duplicate", action="store_true", help="Allow importing same signature again (NOT recommended).")
@@ -330,19 +394,6 @@ def main() -> None:
     if not csv_path.exists():
         die(f"File not found: {csv_path}")
 
-    # Read & aggregate
-    try:
-        agg, titles, rows_read, rows_skipped = read_and_aggregate_csv(csv_path)
-    except Exception as e:
-        die(f"Failed reading CSV: {e}")
-
-    if not agg:
-        die("No non-zero budget rows found after aggregation (nothing to import).")
-
-    print(f"CSV read ok: {rows_read} rows, {rows_skipped} skipped (empty/zero/footer).")
-    print_summary(agg, titles)
-
-    # Connect DB
     dsn = args.database_url
     print(f"DB: {redact_database_url(dsn)}")
     signature = sha256_file(csv_path)
@@ -350,6 +401,32 @@ def main() -> None:
 
     with psycopg.connect(dsn) as conn:
         conn.autocommit = False
+        raw_mapping: Optional[Dict[str, str]] = None
+        if args.mapping_source in ("auto", "db"):
+            raw_mapping = load_mapping_from_db(conn, args.project_id, "BUDGET")
+        if args.mapping_file:
+            try:
+                raw_mapping = json.loads(Path(args.mapping_file).read_text(encoding="utf-8"))
+            except Exception as e:
+                die(f"Failed reading mapping file: {e}")
+        if args.mapping_json:
+            try:
+                raw_mapping = json.loads(args.mapping_json)
+            except Exception as e:
+                die(f"Failed parsing mapping JSON: {e}")
+        column_mapping = normalize_mapping(raw_mapping)
+
+        # Read & aggregate
+        try:
+            agg, titles, rows_read, rows_skipped = read_and_aggregate_csv(csv_path, column_mapping)
+        except Exception as e:
+            die(f"Failed reading CSV: {e}")
+
+        if not agg:
+            die("No non-zero budget rows found after aggregation (nothing to import).")
+
+        print(f"CSV read ok: {rows_read} rows, {rows_skipped} skipped (empty/zero/footer).")
+        print_summary(agg, titles)
 
         # Validate litteras exist + map codes
         missing: List[str] = []
@@ -420,3 +497,15 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+def load_mapping_from_db(conn, project_id: str, import_type: str) -> Optional[Dict[str, str]]:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT mapping FROM import_mappings WHERE project_id=%s AND import_type=%s",
+            (project_id, import_type),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        if isinstance(row[0], dict):
+            return row[0]
+        return None
