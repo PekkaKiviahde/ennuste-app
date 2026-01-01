@@ -42,6 +42,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** import-ketju on append-only, oikeudet eivät ole UI:n varassa ja minimivarmistus on toistettava.
 - **D-038 (LUKITTU)** Raportointi + export (minimi): export-oikeus on PM/johto ja kaikki exportit auditoidaan; report-package snapshotit arkistoidaan append-only; varmistus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
   **Tulkinta:** raporttien luovutus on rajattu rooleille, versiot ovat muuttumattomia ja minimivarmistus on toistettava.
+- **D-039 (LUKITTU)** Importit + mapping: rakenne on import_job + event-loki + mapping_versions; API tekee rooligatingin ja kaikki import/mapping-kirjoitukset auditoidaan; todennus tehdään smoke-testeillä (tenant-eristys, rooligating, idempotentti submit, audit-eventit).  
+  **Tulkinta:** import-ketju on append-only, oikeudet eivät ole UI:n varassa ja varmistus on toistettava.
 - Työmaata ei ennusteta suoraan: työmaan ennuste = työpakettien koonti.  
   **Tulkinta:** työmaa on aggregaatti, ei oma ennusteyksikkö.
 - KPI/EV/CPI vain baseline-lukituille työpaketeille (policy A).  

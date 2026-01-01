@@ -132,6 +132,11 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Report-package snapshotit arkistoidaan append-only.
 - Varmistus tehdään smoke-testeillä: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 
+## 2026-01-01 – Importit + mapping (D-039)
+- Rakenne: import_job + event-loki + mapping_versions (append-only).
+- API-gating + audit kaikista import/mapping-kirjoituksista.
+- Todennus: smoke-testit (tenant-eristys, rooligating, idempotentti submit, audit-eventit).
+
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
 - Lisätty onboarding + RBAC minimipäätös (gating, linkki, smoke).
