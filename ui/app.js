@@ -22,6 +22,8 @@ const state = {
   projectLowestCpi: [],
   projectTopSelvitettavat: [],
   projectOverlap: [],
+  reportPackages: [],
+  reportPackagesMonth: '',
   litteras: [],
 };
 
@@ -616,6 +618,42 @@ function renderProjectView() {
     `
     : '';
 
+  const monthValue = state.reportPackagesMonth || defaultReportMonth();
+  const reportPackages = state.reportPackages.length
+    ? `
+      <table>
+        <thead>
+          <tr>
+            <th>${t('ui.field.month_key')}</th>
+            <th>${t('ui.field.sent_at')}</th>
+            <th>${t('ui.field.artifact_type')}</th>
+            <th>${t('ui.field.checksum')}</th>
+            <th>${t('ui.field.actions')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${state.reportPackages
+            .map(
+              (pkg) => `
+            <tr>
+              <td>${pkg.month}</td>
+              <td>${pkg.sent_at ? new Date(pkg.sent_at).toLocaleString('fi-FI') : '—'}</td>
+              <td>${pkg.artifact_type}</td>
+              <td class="mono">${pkg.checksum || '—'}</td>
+              <td>
+                <a href="/api/report-packages/${pkg.package_id}/download" target="_blank" rel="noopener">
+                  ${t('ui.action.open_report_metadata')}
+                </a>
+              </td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `
+    : `<div class="empty">${t('ui.empty.report_packages')}</div>`;
+
   const summary = state.projectReport
     ? `
       <div class="section">
@@ -652,6 +690,17 @@ function renderProjectView() {
     </div>
 
     <div class="section">
+      <h3>${t('ui.section.report_packages')}</h3>
+      <div class="form-row">
+        <label>${t('ui.field.month_key')}</label>
+        <input id="report-packages-month" type="month" value="${monthValue}" />
+      </div>
+      <button id="report-packages-load" type="button">${t('ui.action.load_report_packages')}</button>
+      <div class="status" id="report-packages-status"></div>
+      ${reportPackages}
+    </div>
+
+    <div class="section">
       <h3>${t('ui.section.top_overruns')}</h3>
       ${topOverrunsRows}
     </div>
@@ -682,6 +731,8 @@ function renderDetail() {
 
   if (state.activeView === 'work_phase') {
     bindDetailActions();
+  } else if (state.activeView === 'project') {
+    bindProjectActions();
   }
 }
 
@@ -1165,6 +1216,49 @@ async function refreshProjectData() {
   renderProjectSummary();
   renderWorkPhaseList();
   await refreshCurrentWorkPhase();
+}
+
+function defaultReportMonth() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  return `${yyyy}-${mm}`;
+}
+
+async function loadReportPackages() {
+  if (!state.currentProjectId) {
+    return;
+  }
+  const status = document.getElementById('report-packages-status');
+  const input = document.getElementById('report-packages-month');
+  const month = input?.value || defaultReportMonth();
+  state.reportPackagesMonth = month;
+  if (status) {
+    status.textContent = t('ui.status.loading');
+  }
+  try {
+    const packages = await fetchJSON(
+      `/api/projects/${state.currentProjectId}/months/${month}/report-packages`
+    );
+    state.reportPackages = packages;
+    if (status) {
+      status.textContent = t('ui.status.loaded');
+    }
+    renderDetail();
+  } catch (error) {
+    if (status) {
+      status.textContent = formatErrorMessage(error);
+    }
+  }
+}
+
+function bindProjectActions() {
+  const loadButton = document.getElementById('report-packages-load');
+  if (loadButton) {
+    loadButton.addEventListener('click', async () => {
+      await loadReportPackages();
+    });
+  }
 }
 
 async function refreshCurrentWorkPhase() {
