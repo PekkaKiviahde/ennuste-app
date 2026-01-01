@@ -1,0 +1,10 @@
+%% diagrams/architecture.mmd
+%% Mermaid diagram: high-level architecture
+
+flowchart LR
+  U[User] --> UI[Web UI]
+  UI --> API[API]
+  API --> DB[(PostgreSQL)]
+  API --> OBJ[(Object Storage: attachments)]:::opt
+  API --> OBS[(Logs / Errors / Tracing)]:::opt
+  classDef opt stroke-dasharray: 5 5;
