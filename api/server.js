@@ -16,6 +16,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
 const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
+const reportStorageRoot = path.join(__dirname, "storage", "report-packages");
 
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -265,6 +266,40 @@ async function setMonthState(client, { projectId, month, fromState, toState, act
      VALUES ($1,$2,$3::month_state,$4::month_state,$5,$6)`,
     [projectId, month, fromState, toState, actor || null, reason || null]
   );
+}
+
+function fileUri(p) {
+  return `file://${p}`;
+}
+
+async function writeReportArtifacts({ projectId, month, recipients, checksum }) {
+  const dir = path.join(reportStorageRoot, checksum);
+  await fs.mkdir(dir, { recursive: true });
+  const pdfPath = path.join(dir, "report.pdf");
+  const csvPath = path.join(dir, "report.csv");
+  const pdfContent = [
+    "Report package",
+    `Project: ${projectId}`,
+    `Month: ${month}`,
+    `Recipients: ${(recipients || []).join(", ")}`,
+    `Checksum: ${checksum}`,
+    "",
+  ].join("\n");
+  const csvHeader = "project_id,month,recipients,checksum";
+  const csvRow = [
+    projectId,
+    month,
+    `"${(recipients || []).join(";")}"`,
+    checksum,
+  ].join(",");
+  await Promise.all([
+    fs.writeFile(pdfPath, pdfContent, "utf8"),
+    fs.writeFile(csvPath, `${csvHeader}\n${csvRow}\n`, "utf8"),
+  ]);
+  return {
+    artifactType: "LINK",
+    artifactUri: fileUri(dir),
+  };
 }
 
 async function logImportJobEvent({ jobId, status, message }) {
@@ -1819,6 +1854,12 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
         };
         const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
         const recipientsJson = JSON.stringify(recips);
+        const artifacts = await writeReportArtifacts({
+          projectId,
+          month,
+          recipients: recips,
+          checksum,
+        });
         const { rows } = await client.query(
           `INSERT INTO report_packages
             (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum)
@@ -1829,8 +1870,8 @@ app.post("/api/projects/:projectId/months/:month/send-reports", async (req, res,
             month,
             String(sentBy).trim(),
             recipientsJson,
-            artifact,
-            `report://${projectId}/${month}/${checksum}`,
+            artifacts.artifactType,
+            artifacts.artifactUri,
             checksum,
           ]
         );
@@ -1956,6 +1997,12 @@ app.post(
           const payload = { projectId, month, correctionId, approvedBy: String(approvedBy).trim() };
           const checksum = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
           const recipientsJson = JSON.stringify([]);
+          const artifacts = await writeReportArtifacts({
+            projectId,
+            month,
+            recipients: [],
+            checksum,
+          });
           const { rows: pkgRows } = await client.query(
             `INSERT INTO report_packages
               (project_id, month, sent_by_user_id, recipients, artifact_type, artifact_uri, checksum, correction_id)
@@ -1966,8 +2013,8 @@ app.post(
               month,
               String(approvedBy).trim(),
               recipientsJson,
-              "LINK",
-              `report://${projectId}/${month}/${checksum}`,
+              artifacts.artifactType,
+              artifacts.artifactUri,
               checksum,
               correctionId,
             ]
@@ -2091,7 +2138,14 @@ app.get("/api/report-packages/:packageId/download", async (req, res, next) => {
     if (!requireProjectAccess(req, res, rows[0].project_id, "viewer")) {
       return;
     }
-    res.json(rows[0]);
+    const row = rows[0];
+    if (row.artifact_type === "LINK" && row.artifact_uri.startsWith("file://")) {
+      const dir = row.artifact_uri.slice("file://".length);
+      const files = await fs.readdir(dir).catch(() => []);
+      res.json({ ...row, files });
+      return;
+    }
+    res.json(row);
   } catch (err) {
     next(err);
   }

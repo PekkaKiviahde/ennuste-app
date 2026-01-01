@@ -586,7 +586,7 @@ paths:
       tags: [MonthClose]
       summary: Send monthly reports and lock month (Month close)
       description: >
-        Atominen operaatio: arkistoi report package (MVP: metadata-only), ja lukitsee kuukauden (M2_SENT_LOCKED).
+        Atominen operaatio: arkistoi report package (MVP: file-based CSV/PDF), ja lukitsee kuukauden (M2_SENT_LOCKED).
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - $ref: '#/components/parameters/Month'
@@ -713,7 +713,7 @@ paths:
         - $ref: '#/components/parameters/PackageId'
       responses:
         "200":
-          description: OK (MVP metadata-only)
+          description: OK (MVP file-based)
           content:
             application/json:
               schema:
@@ -725,6 +725,9 @@ paths:
                     enum: [LINK]
                   artifact_uri: { type: string }
                   checksum: { type: string }
+                  files:
+                    type: array
+                    items: { type: string }
                 required: [package_id, artifact_type, artifact_uri, checksum]
         "401":
           $ref: '#/components/responses/Unauthorized'
@@ -1263,10 +1266,6 @@ components:
         recipients:
           type: array
           items: { type: string, format: email }
-        artifactType:
-          type: string
-          enum: [LINK]
-          description: "MVP metadata-only"
         note:
           type: string
           nullable: true
