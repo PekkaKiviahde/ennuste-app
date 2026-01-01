@@ -3,6 +3,7 @@
 -- Tämä vastaa tavoitearvio-Excelin rivejä (A–Q)
 -- Luotu: 2025-12-18
 
+
 CREATE TABLE IF NOT EXISTS budget_items (
   budget_item_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 

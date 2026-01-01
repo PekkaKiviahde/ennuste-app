@@ -10,6 +10,33 @@ services:
       - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codex -d codex"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: node:20
+    container_name: codex_saas_app
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://codex:codex@db:5432/codex
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      NODE_ENV: ${NODE_ENV:-development}
+      ALLOW_CROSS_ORG_QUERY: ${ALLOW_CROSS_ORG_QUERY:-false}
+      PIN_SALT: ${PIN_SALT:-dev-salt}
+      PORT: ${APP_PORT:-3000}
+    ports:
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+    volumes:
+      - .:/app
+    command: sh -c "cd api && npm install && npm run db:setup && npm start"
+    depends_on:
+      db:
+        condition: service_healthy
 
   pgadmin:
     image: dpage/pgadmin4:8

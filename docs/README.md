@@ -19,6 +19,7 @@ Päivitetty: 2025-12-30
 - `docs/runbooks/incident.md` – incident (SEV1–3), banneri, hotfix, postmortem
 - `docs/runbooks/data-fix.md` – data-korjaukset (migrations/backfill/verify)
 - `docs/runbooks/release.md` – julkaisuprosessi (dev→test→staging→prod)
+- `docs/runbooks/db-smoke.md` – DB-smoke (core invariants)
 
 ## Decisions
 - `docs/decisions/decision-log.md` – päätösloki (keskustelupäätökset koottuna)
@@ -33,3 +34,16 @@ Päivitetty: 2025-12-30
 - `docs/api/openapi.yaml` – OpenAPI 3.1
 - `docs/api/examples.md` – curl-esimerkit
 - `docs/api/security.md` – API security (token/SSO + audit)
+
+## SQL (verify/smoke)
+- `docs/sql/VERIFY_INVARIANTS.sql` – invarianttien verify
+- `docs/sql/SMOKE_E2E_CORE.sql` – E2E-smoke (rollback)
+
+## Mitä muuttui
+- Lisätty linkit DB-smoke-runbookiin ja verify/smoke-SQL-skripteihin.
+
+## Miksi
+- Linkit helpottavat löydettävyyttä ja käyttöä CI/QA-polussa.
+
+## Miten testataan (manuaali)
+- Avaa `docs/README.md` ja varmista, että linkit löytyvät ja osoittavat oikeisiin tiedostoihin.

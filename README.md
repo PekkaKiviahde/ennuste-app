@@ -34,6 +34,23 @@ että logiikka toimii ilman Exceliä.
 4. Ennuste kirjataan **tapahtumana** (kustannuslajit + muistiot + perustelut)
 5. Ryhmä-/kokonaistaso päivittyy (raportointi)
 
+## MVP-sovellus (demo)
+
+Nopea demo käyttää Postgresia ja minimikäyttöliittymää (suunnitelma + ennustetapahtuma).
+
+1. Kopioi `.env.example` → `.env` ja varmista `DATABASE_URL`.
+2. Aja: `docker compose up -d`
+3. Avaa: `http://localhost:3000` (tai suoraan `/setup`, `/mapping`, `/planning`, `/forecast`, `/report`, `/history`)
+
+Käyttöliittymä tarjoaa:
+- projektin luonti
+- tavoitearvio-litteran luonti
+- mapping-versio + mapping-rivit + aktivointi
+- suunnitelma (status READY_FOR_FORECAST ennen ennustetta)
+- ennustetapahtuma kustannuslajeittain (append-only)
+- perusraportti (tavoite/ennuste/toteuma kustannuslajeittain)
+- välilehdet + omat reitit yllä mainituille osioille
+
 ## Lähteet (nykyinen Excel)
 
 Excel-työkirja ja exportatut VBA-moduulit tallennetaan tänne:
@@ -53,6 +70,137 @@ Excel-työkirja ja exportatut VBA-moduulit tallennetaan tänne:
 ## Windows local dev DB
 
 Ohjeet host-portille 5433 ja osoitteelle 127.0.0.1 löytyvät: `docs/local-dev-db-windows.md`.
+
+---
+
+## MVP-prototyyppi (local)
+
+Tämä repo sisältää nyt ajettavan MVP-prototyypin (API + UI) yhdessä Docker Compose -komennossa.
+
+### Käynnistys
+
+1. Kopioi ympäristömuuttujat:
+
+```bash
+cp .env.example .env
+```
+
+2. Käynnistä palvelut:
+
+```bash
+docker compose up
+```
+
+3. Avaa selain:
+   - UI + API: http://localhost:3000
+   - pgAdmin: http://localhost:5050
+
+### Troubleshooting: portti 3000
+
+- Jos `docker compose config --services` ei näytä `app`: app-palvelu puuttuu compose-tiedostosta.
+- Jos portti 3000 ei näy:
+  - Tarkista `docker compose ps`
+  - Tarkista `docker compose logs app --tail=200`
+- Jos portti 3000 on varattu: aseta `.env`-tiedostoon `APP_PORT=3001` (tai muu vapaa portti).
+- Jos vain db + pgadmin käynnistyy:
+  - Varmista että `docker-compose.yml` sisältää `app`-palvelun
+- Resetointi:
+  - `docker compose down -v && docker compose up -d --build`
+
+### Verifikaatio (ohje)
+
+1. `docker compose config --services`
+2. `docker compose ps`
+3. `curl -s http://localhost:${APP_PORT:-3000}/health`
+4. `curl -s http://localhost:${APP_PORT:-3000}/version`
+
+### Kirjautuminen (dev)
+
+Kirjautumisessa valitaan käyttäjä ja annetaan PIN. Seed-data luo oletuskäyttäjät:
+- `anna` (Työnjohtaja)
+- `paavo` (Työpäällikkö)
+- `tuija` (Tuotantojohtaja)
+- `admin` (Org Admin)
+
+PIN (dev): `1234`
+
+### Käyttäjäpolut (testattavat)
+
+1. **SETUP → TRACK -polku**
+   - Kirjaudu `paavo`.
+   - Valitse projekti → avaa työvaihe.
+   - Lisää jäsenlitteroita.
+   - Lukitse baseline (tavoitearvio-erä).
+2. **Viikkopäivitys + KPI**
+   - Kirjaudu `anna`.
+   - Avaa TRACK-tilassa oleva työvaihe.
+   - Lisää viikkopäivitys (valmiusaste + memo).
+   - Varmista KPI:t (BAC, EV, AC, AC*, CPI) näkyvät.
+3. **Ghost-kulut**
+   - Kirjaudu `anna`.
+   - Lisää ghost-kulu TRACK-tilassa.
+   - Varmista AC* päivittyy raporteissa.
+4. **Korjausehdotus**
+   - Kirjaudu `anna`.
+   - Ehdota korjaus (item_code).
+   - Kirjaudu `paavo` → hyväksy (PM).
+   - Kirjaudu `tuija` → hyväksy lopullisesti.
+5. **Korjausjonon hylkäys**
+   - Kirjaudu `paavo` tai `tuija`.
+   - Hylkää korjaus jonosta.
+
+### Projektiraportit (UI)
+
+- **Projektikoonti** (BAC/EV/AC/AC*/CPI)
+- **Pääryhmätaso** (budget/actual/variance)
+- **Viikkotrendi (EV)**
+- **Kuukausiraportti (työvaihe)**
+- **Top-poikkeamat** (overrun + lowest CPI)
+- **Selvitettävät (top)** + overlap-varoitukset
+
+### Raportti-endpointit (Phase 18)
+
+- `/api/projects/:projectId/reports/main-group-current`
+- `/api/projects/:projectId/reports/weekly-ev`
+- `/api/projects/:projectId/reports/monthly-target-raw`
+- `/api/projects/:projectId/reports/monthly-work-phase`
+- `/api/projects/:projectId/reports/top-overruns`
+- `/api/projects/:projectId/reports/lowest-cpi`
+- `/api/projects/:projectId/reports/top-selvitettavat`
+- `/api/projects/:projectId/reports/overlap`
+
+### Health checkit
+
+- `GET /health`
+- `GET /version`
+
+### Organisaation vaihto
+
+- UI:n organisaatiovalinta kutsuu `POST /api/session/switch-org` ja päivittää tokenin.
+- `GET /api/projects` käyttää tokenin `organization_id`:tä. Debug-kysely orgId-paramilla on estetty ilman `ALLOW_CROSS_ORG_QUERY=true`.
+
+---
+
+## MVP-prototyyppi: mitä muuttui
+
+### Mitä muuttui
+- Lisättiin Node/Express-API (auth, työvaiheet, raportit, korjauspolku, terminologia).
+- Lisättiin yksiruutuinen UI (SETUP/TRACK) sanastopohjaisilla teksteillä.
+- Lisättiin Docker Compose -palvelu `app`, automaattinen migraatio + seed.
+- Lisättiin MVP seed-data (organisaatio, käyttäjät, projekti, työvaiheet, baseline).
+- Lisättiin testiskenaariot `data/samples/`-kansioon.
+- Lisättiin projektiraportit (Phase 18) UI:hin ja API:in.
+- Lisättiin portti 3000 -troubleshooting- ja verifikaatio-ohjeet.
+
+### Miksi
+- Tarvitaan paikallisesti ajettava MVP-prototyyppi, jolla voidaan testata käyttäjäpolkuja ja liiketoimintasääntöjä DB:n näkymien ja funktioiden päällä.
+- Varmistetaan, että portti 3000 voidaan ottaa käyttöön ja tarkistaa nopeasti.
+
+### Miten testataan (manuaali)
+- `docker compose up`
+- Avaa http://localhost:3000
+- Suorita yllä kuvatut käyttäjäpolut (SETUP → TRACK, viikkopäivitys, ghost, korjausjono)
+- Vaihda “Projekti”-tabiin ja varmista että raporttitaulukot latautuvat
 
 ## Seuraavat askeleet (tämän reposi-pohjan jälkeen)
 
@@ -112,6 +260,34 @@ rg -n ":[^@\\s]+@|password=" .\smoke.log
 
 Jos tuloksia ei tule, redaktointi on kunnossa. Päinvastoin, korjaa tulostus käyttämään `redact_database_url()`-apua.
 
+## Mitä muuttui
+- Laajennettu MVP-sovellus: mapping-versiot/rivit/aktivointi, perusraportti ja esimerkkidatan automaatio.
+- Lisätty RBAC-minimi: Bearer-token + järjestelmärooli + projektikohtaiset roolit.
+- Rajattu kirjoitus- ja luku-API:t roolien mukaan sekä UI:n näkyvyys.
+- Lisätty Pikatoiminnot-osio nopeaan navigointiin ja roolivalintoihin.
+- Päivitetty demo-ohje ja UI-polut vastaamaan MVP-ydintä.
+- Lisätty `data/samples/`-skenaariot MVP-testattavuutta varten.
+
+## Miksi
+- MVP-ydin pitää saada näkyviin sovelluksena (suunnitelma + mapping + ennuste + raportti).
+- Esimerkkidatan napilla saadaan UI-polku toistettavasti yhdellä klikkauksella.
+- Roolien ohjaus parantaa käytettävyyttä ja estää väärät toiminnot kevyesti.
+- Token-pohjainen tarkistus valmistaa API:n myöhemmälle autentikaatiolle.
+- Pikatoiminnot nopeuttavat MVP-polun läpivientiä.
+
+## Miten testataan (manuaali)
+- Aja `docker compose up -d` ja varmista, että `http://localhost:3000` avautuu.
+- Luo projekti → littera → suunnitelma → ennuste ja tarkista, että historia listautuu.
+- Luo mapping-versio → lisää mapping-rivi → aktivoi mapping ja tarkista, että raportti päivittyy.
+- Klikkaa “Täytä esimerkkidata” ja varmista, että uusi projekti ilmestyy ja raportti näyttää ennusteen.
+- Vaihda järjestelmärooliin `admin` ja projektin rooliin `owner`, ja varmista että kaikki lomakkeet toimivat.
+- Vaihda projektin rooliin `viewer` ja varmista, että muokkauslomakkeet ovat poissa käytöstä.
+- Vaihda välilehtiä ja varmista, että URL päivittyy (esim. `/report`).
+- Paina Alt+1..Alt+6 ja varmista, että välilehdet vaihtuvat.
+- Yritä avata `/report` ilman projektia ja varmista, että ohjaus pyytää valitsemaan projektin.
+- Klikkaa “Roolit: admin + owner” ja varmista, että roolivalinnat päivittyvät.
+- Klikkaa “Luo projekti (avaa lomake)” ja varmista, että Setupin projektilomake fokusoituu.
+
 
 Docs
 ⦁	Docs index: docs/README.md
@@ -130,4 +306,3 @@ Docs
 ⦁	Incident runbook: docs/runbooks/incident.md
 ⦁	Data-fix runbook: docs/runbooks/data-fix.md
 ⦁	Release runbook: docs/runbooks/release.md
-

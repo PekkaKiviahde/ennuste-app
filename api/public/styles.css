@@ -1,0 +1,349 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap");
+
+:root {
+  color-scheme: light;
+  --bg: #f4f1ea;
+  --bg-accent: #fbe3d4;
+  --ink: #1c1c1c;
+  --muted: #5c5c5c;
+  --accent: #c45121;
+  --accent-2: #1f6f8b;
+  --card: rgba(255, 255, 255, 0.85);
+  --stroke: rgba(0, 0, 0, 0.08);
+  --shadow: 0 30px 70px rgba(28, 28, 28, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(1200px 700px at 20% -10%, #ffe9d9 0%, transparent 60%),
+    radial-gradient(900px 600px at 95% 15%, #d5f0ff 0%, transparent 55%),
+    linear-gradient(140deg, #f5f1eb 0%, #fbf7f2 40%, #f3ede3 100%);
+  position: relative;
+}
+
+.noise {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.container {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: grid;
+  gap: 28px;
+  animation: fadeUp 0.8s ease;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+h1 {
+  font-family: "Fraunces", "Space Grotesk", serif;
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  margin: 10px 0 8px;
+}
+
+.lead {
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 520px;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  font-size: 0.9rem;
+}
+
+.badge span {
+  background: rgba(196, 81, 33, 0.08);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.role-select {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  max-width: 220px;
+}
+
+.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.2);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 16px;
+  z-index: 10;
+}
+
+.tabs a {
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.tabs a.active {
+  background: rgba(196, 81, 33, 0.12);
+  border-color: rgba(196, 81, 33, 0.3);
+}
+
+.tab-hint {
+  font-size: 0.9rem;
+  color: var(--accent-2);
+  padding-left: 6px;
+}
+
+.page-hidden {
+  display: none;
+}
+
+.quick-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.action-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 26px;
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  animation: fadeUp 0.6s ease;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+button {
+  background: linear-gradient(120deg, var(--accent), #e06b3a);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(196, 81, 33, 0.3);
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--accent-2);
+}
+
+.preview-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.preview-table {
+  overflow-x: auto;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.preview-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--stroke);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.job-log {
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+}
+
+.job-log pre {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  color: var(--muted);
+}
+
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.job-actions button {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.lines {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed var(--stroke);
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.lines h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.line-row {
+  display: grid;
+  grid-template-columns: 80px 110px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.line-row span {
+  font-weight: 600;
+}
+
+.history {
+  border: 1px dashed var(--stroke);
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+  min-height: 120px;
+}
+
+.history-item {
+  padding: 10px;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .line-row {
+    grid-template-columns: 1fr;
+  }
+
+  .badge {
+    width: 100%;
+  }
+}

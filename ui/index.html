@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ennuste MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <section id="login-view" class="panel">
+        <h1 id="login-title"></h1>
+        <div class="form-row">
+          <label for="login-user" id="login-user-label"></label>
+          <select id="login-user"></select>
+          <div class="inline-error" id="login-user-error"></div>
+        </div>
+        <div class="form-row">
+          <label for="login-pin" id="login-pin-label"></label>
+          <input id="login-pin" type="password" inputmode="numeric" autocomplete="one-time-code" />
+          <div class="inline-error" id="login-pin-error"></div>
+        </div>
+        <button id="login-submit" type="button"></button>
+        <div class="status" id="login-status"></div>
+      </section>
+
+      <section id="main-view" class="hidden">
+        <header class="topbar">
+          <div class="topbar-left">
+            <div class="topbar-item" id="user-display"></div>
+            <div class="topbar-item">
+              <label for="org-select" id="org-select-label"></label>
+              <select id="org-select"></select>
+            </div>
+            <div class="topbar-item">
+              <label for="project-select" id="project-select-label"></label>
+              <select id="project-select"></select>
+            </div>
+          </div>
+          <div class="topbar-right">
+            <button id="refresh-project" type="button"></button>
+            <button id="logout" type="button"></button>
+          </div>
+        </header>
+
+        <div class="content">
+          <aside class="panel" id="work-phase-list">
+            <h2 id="work-phase-list-title"></h2>
+            <div class="project-summary" id="project-summary"></div>
+            <div class="filter-row">
+              <input type="search" id="work-phase-filter" placeholder="" />
+              <select id="work-phase-state-filter">
+                <option value="ALL"></option>
+                <option value="SETUP"></option>
+                <option value="TRACK"></option>
+              </select>
+            </div>
+            <div id="work-phase-items" class="list"></div>
+            <div class="divider"></div>
+            <h3 id="work-phase-create-title"></h3>
+            <div class="form-row">
+              <label for="work-phase-name" id="work-phase-name-label"></label>
+              <input id="work-phase-name" type="text" />
+              <div class="inline-error" id="work-phase-name-error"></div>
+            </div>
+            <div class="form-row">
+              <label for="work-phase-description" id="work-phase-description-label"></label>
+              <textarea id="work-phase-description" rows="2"></textarea>
+            </div>
+            <button id="work-phase-create" type="button"></button>
+            <div class="status" id="work-phase-create-status"></div>
+          </aside>
+
+          <main class="panel" id="work-phase-detail">
+            <div class="detail-tabs">
+              <button id="tab-work-phase" type="button"></button>
+              <button id="tab-project" type="button"></button>
+            </div>
+            <div id="work-phase-detail-content" class="empty"></div>
+          </main>
+        </div>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

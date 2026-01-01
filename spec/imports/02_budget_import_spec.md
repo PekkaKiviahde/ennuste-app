@@ -21,6 +21,9 @@ ja liitetään jokainen rivi importiin `import_batch_id`-kentällä.
 ## 1. Lähde
 
 Excel-tiedosto: `excel/Tavoitearvio ... .xlsx/.xlsm`
+CSV-esimerkit:
+- `data/budget.csv`
+- `excel/Tavoitearvio Kaarna Päivitetty 17.12.2025.csv`
 
 Koska tiedostorakenteet vaihtelevat, import-työkalu tukee:
 
@@ -35,13 +38,37 @@ Importtaa vähintään:
 - `Nimi` / selite (valinnainen)
 - `Tavoite` / budjetti € (yksi summa)
 
-### Cost type
-Koska tavoitearvio voi olla ensin “kokonaisbudjetti per littera”, MVP vie sen:
+### CSV-esimerkkisarakkeet (MVP)
+Semikolonieroteltu (;) ja UTF-8, joskus BOM.
+Sarakkeet:
+- Litterakoodi
+- Litteraselite
+- Koodi
+- Selite
+- Määrä
+- Yksikkö
+- Työ €/h
+- Työ €/yks.
+- Työ €
+- Aine €/yks.
+- Aine €
+- Alih €/yks.
+- Alih €
+- Vmiehet €/yks.
+- Vmiehet €
+- Muu €
+- Summa
 
-- `cost_type = OTHER`
+### Cost type (MVP)
+Jos CSV:ssa on kustannuslajisarakkeet, importoi ne erikseen:
+- Työ € -> LABOR
+- Aine € -> MATERIAL
+- Alih € -> SUBCONTRACT
+- Vmiehet € -> RENTAL
+- Muu € -> OTHER
 
-Laajennus myöhemmin:
-- LABOR / MATERIAL / SUBCONTRACT / RENTAL erikseen.
+Jos kustannuslajisarakkeita ei ole, käytä:
+- Summa -> OTHER
 
 ## 3. Tietokantakartoitus
 
@@ -69,3 +96,45 @@ B) Satunnaistarkistus
 C) “Oliko tavoitearviossa” -todennus (tulevaa baseline-logiikkaa varten)
 - kun työvaiheeseen lisätään rivi retroaktiivisesti, järjestelmä tarkistaa että (koodi, import_batch_id) löytyy `budget_lines`-taulusta.
 
+---
+
+## 5. Sarakemappaus (MVP, joustava)
+
+MVP:ssa tuonti sallii sarakemappauksen, jotta eri budget-formaatit voidaan ottaa sisaan.
+Pakolliset kentat:
+- koodi (4 numeroa)
+- budjetti EUR (numeric) tai kustannuslaji-eurot
+
+Valinnaiset kentat:
+- nimi / selite
+- cost_type (jos eritelty valmiiksi)
+- labor_eur / material_eur / subcontract_eur / rental_eur / other_eur
+- total_eur (Summa)
+
+Suositeltu mappauskonfiguraatio:
+- sheet_name
+- header_row
+- column_map:
+  - code
+  - name (optional)
+  - budget_amount
+  - cost_type (optional)
+
+Validointi:
+- code normalisoidaan 4 numeroon
+- budjettiarvot >= 0
+- jos cost_type puuttuu, kayta OTHER
+- jos kustannuslajisarakkeet puuttuvat, total_eur pakollinen
+
+Virheilmoitukset:
+- ilmoita rivit, joissa code tai budjetti puuttuu
+- ilmoita rivit, joissa budjetti ei ole numero
+
+## Mita muuttui
+- Lisatty CSV-esimerkkisarakkeet ja kustannuslajimappaus MVP-tuontiin.
+
+## Miksi
+- Esimerkkidata ohjaa MVP-importin pakolliset sarakkeet ja validoinnin.
+
+## Miten testataan (manuaali)
+- Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.

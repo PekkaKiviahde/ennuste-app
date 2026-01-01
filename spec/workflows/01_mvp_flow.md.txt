@@ -1,106 +1,104 @@
-MVP-työnkulut
-WF1: Mappingin määrittely (työlitterat → tavoitearvio-littera)
+MVP-tyonkulut
 
-Tavoite: pystyä yhdistämään usean työlitteran ostot/toteumat yhden tavoitearvio-litteran alle taloudellista suunnittelua varten.
+WF0: Projekti + roolit (RBAC + acting role)
+Tavoite: luoda projekti, roolit ja oikeudet ennen tuonteja.
+- Projektin perustaminen (nimi, koodi, aikajaksot)
+- Roolit (tekniset roolit) + alias-mappaus tyon rooleihin
+- Acting role sallitaan MVP:ssa (tilapainen roolinkorotus)
+- RBAC-checkpoint jokaisessa kirjoittavassa toiminnossa
 
-Käyttäjä valitsee tavoitearvio-litteran
+WF1: Importit (budjetti + JYDA)
+Tavoite: saada budjetti ja toteuma sisaan integroidusti.
+- Budjetti: CSV/Excel -> budjetti-tauluihin (append-only)
+- JYDA: snapshot-import (append-only)
+- MVP:ssa sallitaan joustava sarakemappaus (mapping tool)
+- Importit luovat import_batch + audit
 
-Käyttäjä lisää työlitterat + säännön:
+WF2: Mappingin maarittely (tyolitterat -> tavoitearvio-littera)
+Tavoite: yhdistaa usean tyolitteran ostot/toteumat yhden tavoitearvio-litteran alle.
+- Kayttaja valitsee tavoitearvio-litteran
+- Kayttaja lisaa tyolitterat + saannon:
+  - FULL (100%) tai
+  - PERCENT (esim. 30/70)
+- Mapping tallennetaan versiona (valid_from/to)
+- Järjestelma laskee toteuma tavoitelitteralle = Σ(tyolittera toteuma × allokointi)
+Hyvaksymissaanto (MVP):
+- Jos PERCENT, summan pitää olla 100% (± pieni toleranssi)
+- Muutokset mappingiin kirjataan lokiin (kuka/milloin/miksi)
 
-FULL (100%) tai
-
-PERCENT (esim. 30/70)
-
-Mapping tallennetaan versiona (valid_from/to)
-
-Järjestelmä laskee “toteuma tavoitelitteralle” = Σ(työlittera toteuma × allokointi)
-
-Hyväksymissääntö (MVP):
-
-Jos PERCENT, summan pitää olla 100% (± pieni toleranssi)
-
-Muutokset mappingiin kirjataan lokiin (kuka/milloin/miksi)
-
-WF2: Työn taloudellinen suunnittelu (ennen ennustetta)
-
-Käyttäjä avaa tavoitearvio-litteran
-
-Näkee:
-
-tavoite (BudgetLine)
-
-toteuma (ActualCostLine mappingin kautta)
-
-viimeisimmän ennusteen (ForecastCurrentView)
-
-Kirjaa PlanningNote:
-
-miten työ johdetaan
-
-huomiot
-
-riskit
-
-päätökset
-
+WF3: Tyopaketin taloudellinen suunnittelu (ennen ennustetta)
+Kayttaja avaa tavoitearvio-litteran ja naykee:
+- tavoite (BudgetLine)
+- toteuma (ActualCostLine mappingin kautta)
+- viimeisin ennuste (ForecastCurrentView)
+Kirjaa suunnitelman:
+- miten tyo johdetaan
+- huomiot
+- riskit
+- paatokset
 Asettaa tilaksi READY_FOR_FORECAST
+Hyvaksymissaanto (MVP):
+- Ennusteen tekeminen sallitaan vain, jos suunnitelma on READY_FOR_FORECAST tai LOCKED
 
-Hyväksymissääntö (MVP):
+WF4: Ennustetapahtuma (append-only)
+Kayttaja avaa tavoitearvio-litteran (jolla on suunnitelma).
+- Syottaa kustannuslajikohtaiset ennusteet (5 kpl)
+- Kirjaa perustelut (memo_general / memo_procurement / memo_calculation)
+- (optional) rivimuistiot (ForecastRowMemo)
+- (optional) laskentapaneelin snapshot
+Tallenna ennuste -> syntyy:
+- 1 kpl ForecastEvent
+- 1..5 kpl ForecastEventLine
+- 0..n kpl RowMemo
+- 0..1 kpl CalcPanelSnapshot
+Hyvaksymissaanto (MVP):
+- Tapahtumaa ei voi muokata, vain uusi tapahtuma (korjaus = uusi event)
+- Pakolliset kentat: target_littera + vahintaan 1 cost_type forecast_value + comment tai memo_general
 
-Ennusteen tekeminen sallitaan vain, jos suunnitelma on READY_FOR_FORECAST tai LOCKED
+WF5: Viikkopaivitys (ghost + % + memo)
+Kayttaja tekee viikkopaivityksen erillisena polkuna:
+- % valmius
+- ghost-kustannukset
+- memo
+Kirjoitukset ovat append-only. Lukitukset tulee month state -gateista.
 
-WF3: Ennustetapahtuma (append-only)
+WF6: Month close + korjauspolku (M0..M4)
+Kuukausi etenee tiloissa M0 -> M1_READY_TO_SEND -> M2_SENT_LOCKED.
+- Ennen lahetysta voi muokata ennustetta, ghosteja, memoja.
+- Lahetys tuottaa report package (immutability).
+Korjauspolku:
+- Tuotantojohtaja tekee korjauspyynnon
+- Yksikon johto hyvaksyy tai hylkaa
+- Korjaus on append-only ja luo uuden report package -version
 
-Käyttäjä avaa tavoitearvio-litteran (jolla on suunnitelma)
+WF7: Raportointi ja exportit
+Järjestelma muodostaa summary-nakymat:
+- sum(tavoite), sum(toteuma), sum(ennuste)
+- CPI/AC/EV/SPI (ja EAC/BAC jos specissä)
+Nayta:
+- tavoitearvio-litteroittain
+- tyolitteroittain (drill down)
+- "Miksi muuttui?" -nakyma (ennustetapahtumat ja perustelut)
+Export MVP:ssa: PDF + Excel (ei PPT).
 
-Syöttää kustannuslajikohtaiset ennusteet (5 kpl)
+WF8: Terminologia + i18n
+- Termien muokkaus UI:ssa sallitaan
+- UI ja raportit lukevat terminology_i18n-tauluista
 
-Kirjaa perustelut:
+WF9: Audit + append-only
+- Kaikki kirjoittavat tapahtumat ovat append-only
+- Audit-talteenotto importista, rooleista, korjauksista ja tapahtumista
 
-memo_general / memo_procurement / memo_calculation
+Mita muuttui
+- Laajennettu MVP-tyonkulut kattamaan importit, viikkopaivitys, month close ja terminologia.
+- Tavoitesuunnitelma nimetty uudelleen ja ennustetapahtuma erotettu viikkopaivityksesta.
+- RBAC + acting role + audit + append-only tuotu osaksi jokaista polkua.
 
-(optional) Lisää rivimuistiot (ForecastRowMemo)
+Miksi
+- Tarvitaan integraatiotestauspolku ja yhtenainen workflow ennen toteutusta.
+- Roolit, audit ja lukitukset ovat kriittisia SaaSissa.
 
-(optional) Tallentaa laskentapaneelin snapshotin
-
-Paina “Tallenna ennuste” → syntyy:
-
-1 kpl ForecastEvent
-
-5 kpl ForecastEventLine (tai vähemmän jos sallitaan tyhjät)
-
-0..n kpl RowMemo
-
-0..1 kpl CalcPanelSnapshot
-
-Hyväksymissääntö (MVP):
-
-Tapahtumaa ei voi muokata jälkeenpäin, vain tehdä uusi tapahtuma (korjaus = uusi event)
-
-Pakolliset kentät:
-
-target_littera
-
-vähintään 1 cost_type forecast_value (tai kaikki 5 — päätetään)
-
-comment tai memo_general (pakollinen perustelu)
-
-WF4: Raportointi (ryhmä 0–9)
-
-Järjestelmä muodostaa GroupSummaryView:
-
-sum(tavoite), sum(toteuma), sum(ennuste)
-
-taloudellinen valmiusaste (toteuma / ennuste tai oma kaava)
-
-tekninen valmiusaste (syötetty tai laskettu)
-
-Näytä:
-
-tavoitearviolitteroittain
-
-työlitteroittain (drill down)
-
-“Miksi muuttui?” -näkymä:
-
-listaa ForecastEventit aikajärjestyksessä ja näyttää perustelut
+Miten testataan (manuaali)
+- Aja MVP-polku: projekti -> budjetti -> JYDA -> mapping -> tyopaketin taloudellinen suunnittelu -> ennuste -> raportti.
+- Tee viikkopaivitys ja varmista append-only.
+- Sulje kuukausi ja tee korjauspyynto + hyvaksynta.

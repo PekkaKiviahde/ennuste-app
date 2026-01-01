@@ -11,9 +11,9 @@ SELECT
   wp.name AS work_phase_name,
   (r.month)::text AS month_key,
 
-  ROUND(SUM(COALESCE(r.budget_amount, 0))::numeric, 2) AS target_total,
-  ROUND(SUM(COALESCE(r.actual_amount, 0))::numeric, 2) AS actual_total,
-  ROUND(SUM(COALESCE(r.forecast_value, 0))::numeric, 2) AS forecast_total
+  ROUND(SUM(COALESCE(r.budget_amount, 0))::numeric, 2)::numeric(14,2) AS target_total,
+  ROUND(SUM(COALESCE(r.actual_amount, 0))::numeric, 2)::numeric(14,2) AS actual_total,
+  ROUND(SUM(COALESCE(r.forecast_value, 0))::numeric, 2)::numeric(14,2) AS forecast_total
 
 FROM v_work_phase_latest_baseline lb
 JOIN work_phases wp

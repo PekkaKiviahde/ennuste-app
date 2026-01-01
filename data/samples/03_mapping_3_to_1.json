@@ -1,0 +1,22 @@
+{
+  "scenario": "mapping, jossa 3 työlitteraa yhdistyy yhteen tavoitearvio-litteraan",
+  "project": {
+    "name": "Kaarnatie",
+    "customer": "Kaarna Oy"
+  },
+  "target_littera": {
+    "code": "0200",
+    "title": "Maanrakennus",
+    "group_code": 0
+  },
+  "work_litteras": [
+    { "code": "2100", "title": "Kaivuut" },
+    { "code": "2200", "title": "Pohjatyöt" },
+    { "code": "2300", "title": "Täytöt" }
+  ],
+  "mapping": {
+    "allocation_rule": "FULL",
+    "allocation_value": 1.0,
+    "note": "Kaikki työlitterat yhdistetään tavoitearvio-litteraan 0200."
+  }
+}
