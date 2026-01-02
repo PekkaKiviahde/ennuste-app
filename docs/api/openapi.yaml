@@ -10,6 +10,10 @@ servers:
 security:
   - bearerAuth: []
 tags:
+  - name: Public
+    description: Julkiset endpointit (health/version/login/users)
+  - name: Core
+    description: Ydintoiminnot (session/org/project/permissions)
   - name: Seller
     description: Myyjän provisioning (stub + onboarding-linkki)
   - name: Admin
@@ -836,6 +840,426 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
+
+  /health:
+    get:
+      tags: [Public]
+      summary: Healthcheck
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+
+  /version:
+    get:
+      tags: [Public]
+      summary: Build/version info
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: string }
+                  commit: { type: string }
+
+  /login:
+    post:
+      tags: [Public]
+      summary: Dev login (username + pin)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                pin: { type: string }
+              required: [username, pin]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+
+  /users:
+    get:
+      tags: [Public]
+      summary: List users for login selection
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username: { type: string }
+                        display_name: { type: string }
+
+  /me:
+    get:
+      tags: [Core]
+      summary: Current user + organizations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /organizations:
+    get:
+      tags: [Core]
+      summary: List organizations for current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects:
+    get:
+      tags: [Core]
+      summary: List projects for current org
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /session/switch-org:
+    post:
+      tags: [Core]
+      summary: Switch organization context
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                organization_id: { type: string, format: uuid }
+              required: [organization_id]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/permissions:
+    get:
+      tags: [Core]
+      summary: Permissions for current user in project
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project_id}/litteras:
+    get:
+      tags: [Core]
+      summary: List litteras for project
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/target-batches:
+    get:
+      tags: [Core]
+      summary: List target batches for project
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /work-packages/{wp_id}/version:
+    post:
+      tags: [WorkPackages]
+      summary: Create work package version
+      parameters:
+        - $ref: '#/components/parameters/WpId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/months/{month}/lock-candidates:
+    put:
+      tags: [MonthClose]
+      summary: Set month to READY_TO_SEND (lock candidates)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/Month'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/project-current:
+    get:
+      tags: [Reports]
+      summary: Project report (current)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/work-phase-current:
+    get:
+      tags: [Reports]
+      summary: Work phase report (current)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/main-group-current:
+    get:
+      tags: [Reports]
+      summary: Main group report (current)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/weekly-ev:
+    get:
+      tags: [Reports]
+      summary: Weekly EV report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/monthly-target-raw:
+    get:
+      tags: [Reports]
+      summary: Monthly target report (raw)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/monthly-work-phase:
+    get:
+      tags: [Reports]
+      summary: Monthly work phase report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/top-overruns:
+    get:
+      tags: [Reports]
+      summary: Top overruns report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/lowest-cpi:
+    get:
+      tags: [Reports]
+      summary: Lowest CPI report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/top-selvitettavat:
+    get:
+      tags: [Reports]
+      summary: Top selvitettavat report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/reports/overlap:
+    get:
+      tags: [Reports]
+      summary: Overlap report
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/selvitettavat:
+    get:
+      tags: [Tracking]
+      summary: List unmapped actuals (selvitettavat)
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /projects/{project_id}/corrections/queue:
+    get:
+      tags: [MonthClose]
+      summary: Corrections queue
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /terminology/dictionary:
+    get:
+      tags: [Core]
+      summary: Terminology dictionary
+      parameters:
+        - name: orgId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: locale
+          in: query
+          required: false
+          schema: { type: string }
+        - name: fallback
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
 
 components:
   securitySchemes:

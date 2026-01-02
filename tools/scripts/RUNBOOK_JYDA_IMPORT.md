@@ -1,6 +1,6 @@
 # Jyda Python import - Runbook
 
-Päivitetty: 2025-12-16
+Päivitetty: 2026-01-02
 
 ## 1) Esivaatimukset
 - Python 3.10+ (suositus)
@@ -37,3 +37,12 @@ Koska Jyda-ajo on snapshot, käytä:
 - `v_actuals_latest_snapshot_mapped`
 - `v_mapping_coverage_latest_snapshot`
 (Ne tulevat migraatiosta `0003_jyda_snapshot_views.sql`)
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

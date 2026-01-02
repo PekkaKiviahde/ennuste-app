@@ -38,3 +38,12 @@ Tämä paketti sisältää arkkitehtuuri- ja toteutusspeksin multi-tenant SaaS:l
 1) Lisää nämä tiedostot repoosi sellaisenaan.  
 2) Käytä promptteja (docs/prompts/*) kun pyydät arkkitehdilta tai koodarilta jatkotyötä.  
 3) Pidä ADR:t ajan tasalla, jos päätöksiä muutetaan.
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

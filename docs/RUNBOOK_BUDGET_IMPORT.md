@@ -20,3 +20,12 @@ python tools\scripts\import_budget.py --file "excel\Tavoitearvio Kaarna Päivite
 ```bat
 python tools\scripts\import_budget.py --file "excel\Tavoitearvio Kaarna Päivitetty 17.12.2025.xlsx" --project-id 111c4f99-ae89-4fcd-8756-e66b6722af50 --probe
 ```
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

@@ -1,6 +1,6 @@
 # Tilakoneet – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tässä dokumentissa on sovelluksen keskeiset **tilat (status)**, sallitut **siirtymät (transitions)** ja roolit.
 Tarkoitus: helpottaa RBAC:tä, nappeja ja “lukituslogiikkaa”.
@@ -248,3 +248,15 @@ Nämä verify-skriptit ajetaan:
 - staging deploy
 - prod deploy (gate)
 
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

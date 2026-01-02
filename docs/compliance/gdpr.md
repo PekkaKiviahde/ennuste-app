@@ -157,3 +157,12 @@ Koska asiakas on rekisterinpitäjä:
 - [ ] Retention/purge-ikkuna sovittu (default + sopimusmuunnokset)
 - [ ] RBAC testattu (yritysadmin ei näe muita tennantteja)
 - [ ] Incident-runbook käytössä (SEV + banneri)
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

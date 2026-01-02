@@ -2,7 +2,7 @@
 
 - **Sovelluksen tarkoitus**: Tuotannonhallinta‑SaaS korvaa ruutupaperit, Excelit ja PowerPointit. Se yhdistää projektin perustamisen, budjetin tuonnin, työvaiheiden seurannan, korjausten hallinnan ja raportoinnin yhdeksi järjestelmäksi.  
 - **Käyttäjäpolku‑painotus**: Pääpaino on käyttäjän UI‑poluissa – mitä käyttäjä näkee ja tekee sovelluksessa – mutta taustalla kuvataan myös API‑kutsut ja tietokannan päivitykset.  
-- **Ydintyönkulut**: (1) projektin perustaminen ja asetukset; (2) budjetin tuonti ja korjaukset; (3) JYDA‑datatuonti (jos käytössä); (4) työvaiheiden ja toteumien hallinta; (5) kustannusindeksien (CPI/AC) laskenta; (6) raportointi ja viennit (Excel/PPT‑korvaus); (7) terminologian hallinta ja i18n.  
+- **Ydintyönkulut**: (1) projektin perustaminen ja asetukset; (2) budjetin tuonti ja korjaukset; (3) JYDA‑datatuonti (jos käytössä); (4) työvaiheiden ja toteumien hallinta; (5) kustannusindeksien (CPI/AC) laskenta; (6) raportointi ja viennit (PDF/CSV‑paketti); (7) terminologian hallinta ja i18n.  
 - **RBAC**: Roolit (esim. järjestelmänvalvoja, projektipäällikkö, työnjohtaja, taloushallinto, katselija) määrittelevät, mitä näkymiä ja toimintoja kukin käyttäjä saa käyttää. Jokaisessa työnkulussa on checkpoint, jossa tarkistetaan oikeudet.  
 - **Data‑integraatio**: Sovellus lukee budjetti‑ ja toteumatiedot ulkoisista järjestelmistä (esim. JYDA) ja tallentaa ne tietokantatauluihin. Dataa aggrekoidaan näkymien kautta raportointia varten.  
 - **Laskentasäännöt**: AC/CPI‑laskenta perustuu SPEC_CALC_RULES_V1‑säännöihin (esim. AC = actual cost, CPI = EV/AC).  
@@ -26,7 +26,7 @@ flowchart TD
     H -->|UPDATE| HDB(DB: work_phase_corrections)
     A7[UI: Raportointi] -->|request report| I[Reporting service]
     I -->|query views| J[DB views: reports]
-    I -->|export| K[Export (Excel/PPT replacement)]
+    I -->|export| K[Export (PDF/CSV)]
     A8[UI: Terminologian hallinta] -->|manage terms| L[Backend: terminology]
     L -->|UPDATE| LDB(DB: terminology tables)
     I -->|use terms| L
@@ -117,14 +117,14 @@ flowchart TD
   - Lokitus ja jäljitettävyys.  
 
 ## 3.6 Raportointi ja viennit (Phase18)
-- **Tavoite**: Tuottaa selkeät raportit projektin tilanteesta (budjetti vs. toteuma, CPI/AC) ja korvata perinteiset Excel/PPT‑raportit.  
+- **Tavoite**: Tuottaa selkeät raportit projektin tilanteesta (budjetti vs. toteuma, CPI/AC) ja korvata perinteiset manuaaliraportit (PDF/CSV).  
 - **Kenelle**: Projektipäällikkö, johto, asiakkaat.  
 - **Vaiheet**:  
   1. Avaa *“Raportit”*‑näkymä.  
   2. Valitse raporttityyppi (budjetti, CPI, AC, aikataulu).  
   3. Suodata aikajakso ja valitse yksityiskoiden taso (projekti, työvaihe, kustannustyyppi).  
   4. Näytä raportti interaktiivisessa taulukossa/kaaviossa.  
-  5. Vie raportti PDF/Excel‑muodossa tai generoi PPT‑tyylinen dia.  
+  5. Vie raportti PDF/CSV‑muodossa.  
 - **Data**: Raportit perustuvat näkymiin (`views`), jotka agregoivat `budget_items`, `actuals`, `corrections`, `cpi_results`.  
 - **Oikeudet**: Katselijat voivat nähdä raportteja; vienti käyttöön PM/johto.  
 - **Edge caset**:  
@@ -189,8 +189,32 @@ Checklist, joka varmistaa, että sovellus voi korvata ruutupaperit, Excelit ja P
 - [ ] **JYDA‑integraatio**: Import toimii valitulle aikajaksolle, käsittelee virheitä ja kirjaa lokiin, tallentaa snapshotin.  
 - [ ] **Työvaiheiden ja toteumien hallinta**: UI‑näkymät mahdollistavat uusien vaiheiden lisäämisen, muokkauksen ja poistamisen; toteumien kirjaus toimii; tiedot tallennetaan; CPI/AC päivittyy reaaliaikaisesti.  
 - [ ] **Korjausten hallinta**: Korjausten luonti, hyväksyntä tai hylkäys; päivitys tietokantaan; vaikutus laskentoihin; audit‑trail.  
-- [ ] **Raportointi & Viennit**: Raporttinäkymät kattavat kaikki tarpeelliset mittarit (budjetti vs. toteuma, CPI/AC, aikataulu); vienti PDF/Excel/PPT korvaa manuaaliset PowerPointit; käyttäjä voi suodattaa ja viedä raportit roolin mukaan.  
+- [ ] **Raportointi & Viennit**: Raporttinäkymät kattavat kaikki tarpeelliset mittarit (budjetti vs. toteuma, CPI/AC, aikataulu); vienti PDF/CSV korvaa manuaaliset raportit; käyttäjä voi suodattaa ja viedä raportit roolin mukaan.  
 - [ ] **Terminologia & i18n**: Sanasto on ylläpidettävissä; UI ja raportit käyttävät oikeita termejä; käännökset toimivat.  
 - [ ] **RBAC**: Kaikissa poluissa on oikeuscheck; testattu, että rooleilla on pääsy vain omiin näkymiinsä ja toimintoihin.  
 - [ ] **Dokumentaatio ja runbookit**: Projektin runbookit ja SQL‑migraatiot ovat ajan tasalla; mahdolliset ristiriidat on ratkaistu; tieto löytyy yhdestä “single source of truth” ‑dokumentista.  
 
+# 8. Uloskirjautumisen tarkistus (UI)
+
+Mita muuttui
+- Tarkistettu uloskirjautumisen logiikka molemmissa UI-polkuissa.
+- Vahvistettu, että `api/public/app.js` ja `ui/app.js` tyhjentavat paikallisen tilan ja ohjaavat `/login`.
+
+Miksi
+- Varmistetaan, ettei uloskirjautuminen vaadi kahta klikkausta.
+- Yhtenainen kayttaytyminen eri UI-polkujen valilla.
+
+Miten testataan (manuaali)
+- Kirjaudu sisaan, klikkaa “Kirjaudu ulos” ja varmista, että siirryt `/login`-sivulle ensimmisella klikkauksella.
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty raportoinnin vientimuoto PDF/CSV-linjaukseen.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Päätösloki lukitsee MVP-exportit PDF + CSV -muotoon.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että raportoinnin vienti on mainittu PDF/CSV-muodossa.

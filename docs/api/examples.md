@@ -1,6 +1,6 @@
 # API examples (curl) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 > Huom: nämä ovat esimerkkejä. Tarkat polut, auth ja payloadit riippuvat toteutuksesta.
 > Katso OpenAPI: `docs/api/openapi.yaml`
@@ -57,13 +57,13 @@ curl -X PUT /api/projects/<project_id>/months/2025-12/forecast \
 
 ## Send reports (locks month)
 ```bash
-curl -X POST /api/projects/<project_id>/months/2025-12:send-reports \
+curl -X POST /api/projects/<project_id>/months/2025-12/send-reports \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Request correction after lock (TJ)
 ```bash
-curl -X POST /api/projects/<project_id>/months/2025-12/corrections:request \
+curl -X POST /api/projects/<project_id>/months/2025-12/corrections/request \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason":"Korjaus: ghost puuttui","patch":{"ghost_adjustments":[{"amount_eur":5000,"note":"Lisäghost"}]}}'
@@ -135,3 +135,15 @@ curl -X PUT /api/import-mappings \
     }
   }'
 ```
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty month close -polut yhdenmukaisiksi API-dokumentin kanssa.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- API-polkujen pitää vastata nappipolkuja ja toteutusta.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Vertaile polut `docs/api/README.md` -listaan ja varmista yhtenäisyys.

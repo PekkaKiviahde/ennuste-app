@@ -1,6 +1,6 @@
 # MVP Workflow Checklist – Ennustus
 
-Päivitetty: 2025-12-31
+Päivitetty: 2026-01-02
 
 Tama checklist varmistaa, etta MVP-polku ja integraatiot toimivat
 ennen laajempaa toteutusta.
@@ -46,7 +46,7 @@ ennen laajempaa toteutusta.
 
 ## 9) Raportointi & export
 - Raportti nayttaa budjetti/toteuma/ennuste
-- Export PDF/Excel
+- Export PDF/CSV
 
 ## 10) Terminologia/i18n
 - UI-muokkaus toimii
@@ -54,11 +54,15 @@ ennen laajempaa toteutusta.
 
 ---
 
-## Mita muuttui
-+- Lisatty MVP-integraatiotestauksen checklist.
-+
-+## Miksi
-+- Yhtenaistaa integraatiotestauksen ja go/no-go -pisteen.
-+
-+## Miten testataan (manuaali)
-+- Aja kohdat 1-10 jarjestyksessa ja merkitse valmis.
+## Mitä muuttui
+- Lisatty MVP-integraatiotestauksen checklist.
+- Paivitetty export-formaatti PDF/CSV-linjaukseen.
+- Paivitetty paivays 2026-01-02.
+
+## Miksi
+- Yhtenaistaa integraatiotestauksen ja go/no-go -pisteen.
+- Paatosloki lukitsee MVP-exportit PDF + CSV -muotoon.
+
+## Miten testataan (manuaali)
+- Aja kohdat 1-10 jarjestyksessa ja merkitse valmis.
+- Varmista, etta export-kohta mainitsee PDF/CSV.

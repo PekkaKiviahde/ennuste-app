@@ -89,3 +89,12 @@ FROM terminology_get_dictionary(
 - API palauttaa aina **koodit** (esim. `metric.bac`) + arvot.
 - UI hakee sanaston (dictionary) ja renderöi labelit käyttäjän kielellä.
 - Tämä mahdollistaa kansainvälisyyden ja yrityskohtaiset nimitykset ilman laskennan muutoksia.
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

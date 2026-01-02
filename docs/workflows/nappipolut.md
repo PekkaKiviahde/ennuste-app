@@ -1,6 +1,6 @@
 # Nappipolut – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tässä dokumentissa on “nappipolut” eli **mitä käyttäjä painaa, missä järjestyksessä**.
 Tarkoitus: tehdä UI- ja RBAC-toteutuksesta yksiselitteinen.
@@ -183,7 +183,7 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 
 **Report package (arkisto):**
 - `GET  /api/projects/{project_id}/months/{YYYY-MM}/report-packages` → listaa arkistot
-- `GET  /api/report-packages/{package_id}/download` → lataa PDF/Excel (tai signed URL)
+- `GET  /api/report-packages/{package_id}/download` → lataa PDF/CSV (tai signed URL)
 
 #### Incident banner (toimittaja)
 - `GET /api/incident-banner` → kaikki käyttäjät (read-only)
@@ -217,3 +217,16 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - Unit: state transitions + “allowed fields” (korjaus)
 - Integration: DB gate (lukitukset, immutability), näkymät compile
 - E2E: 1) send-reports locks month 2) correction after lock requires approvals
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty raporttipaketin lataus PDF/CSV-linjaukseen.
+- Päivitetty päivämäärä 2026-01-02.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Päätösloki lukitsee MVP-exportit PDF + CSV -muotoon.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että report package -lataus mainitaan PDF/CSV-muodossa.

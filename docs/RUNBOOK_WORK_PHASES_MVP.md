@@ -108,3 +108,12 @@ Tämä migraatio ei vielä kytke JYDA-toteumatauluja, koska niiden lopullinen ta
 Kun kerrot minulle JYDA-toteumataulun nimen ja kentät, lisään:
 - AC ja AC* laskennan
 - CPI = EV / AC*
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

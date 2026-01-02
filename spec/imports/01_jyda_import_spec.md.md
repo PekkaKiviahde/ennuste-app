@@ -1,6 +1,6 @@
 # Jyda-ajo import-speksi (MVP)
 
-Päivitetty: 2025-12-16
+Päivitetty: 2026-01-02
 
 Tämä määrittelee, miten Excelin **Jyda-ajo**-välilehti (tai siitä tehty CSV) tuodaan
 Postgres-tietokantaan tauluihin:
@@ -210,3 +210,12 @@ Kun tämä toimii:
 
 ## Miten testataan (manuaali)
 - Tee import joustavalla mappauksella ja varmista, etta pakolliset kentat tulevat sisaan.
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

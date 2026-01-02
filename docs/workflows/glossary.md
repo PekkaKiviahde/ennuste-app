@@ -1,6 +1,6 @@
 # Sanasto (Glossary) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsitteet).
 
@@ -21,7 +21,7 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
   Lukittu suunnitelma (koostumus + budjetti), jota vasten seurataan.
 
 - **Report package**  
-  Arkistoitu “lähetetty raporttipaketti” (PDF/Excel tai linkki) + metadata (aikaleima, lähettäjä, vastaanottajat).
+  Arkistoitu “lähetetty raporttipaketti” (PDF/CSV tai linkki) + metadata (aikaleima, lähettäjä, vastaanottajat).
 
 ---
 
@@ -86,3 +86,16 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - `I2_IDENTIFIED`
 - `I3_MONITORING`
 - `I4_RESOLVED`
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty raporttipaketin formaatti PDF/CSV-linjaukseen.
+- Päivitetty päivämäärä 2026-01-02.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Päätösloki lukitsee MVP-exportit PDF + CSV -muotoon.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että raporttipaketin formaatti on PDF/CSV.

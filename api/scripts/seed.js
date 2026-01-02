@@ -1,6 +1,13 @@
-const path = require('path');
-const { Pool } = require('pg');
-require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { Pool } from 'pg';
+import crypto from 'crypto';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://codex:codex@db:5432/codex';
 
@@ -28,7 +35,6 @@ async function ensureSecondaryOrg() {
   return result.rows[0].organization_id;
 }
 
-const crypto = require('crypto');
 const PIN_SALT = process.env.PIN_SALT || 'dev-salt';
 
 function hashPin(pin) {
@@ -41,6 +47,66 @@ async function ensureUsers() {
     { username: 'paavo', display_name: 'Paavo Työpäällikkö', email: 'paavo@example.com', pin: '1234' },
     { username: 'tuija', display_name: 'Tuija Tuotantojohtaja', email: 'tuija@example.com', pin: '1234' },
     { username: 'admin', display_name: 'Org Admin', email: 'admin@example.com', pin: '1234' },
+    {
+      username: 'myyja',
+      display_name: 'Myyjä Demo',
+      email: 'myyja@kide-asunnot.fi',
+      pin: 'demo',
+    },
+    {
+      username: 'antti.halla@kide-asunnot.fi',
+      display_name: 'Antti Halla',
+      email: 'antti.halla@kide-asunnot.fi',
+      pin: 'antti123',
+    },
+    {
+      username: 'mikko.lahti@kide-asunnot.fi',
+      display_name: 'Mikko Lahti',
+      email: 'mikko.lahti@kide-asunnot.fi',
+      pin: 'mikko123',
+    },
+    {
+      username: 'jari.koski@kide-asunnot.fi',
+      display_name: 'Jari Koski',
+      email: 'jari.koski@kide-asunnot.fi',
+      pin: 'jari123',
+    },
+    {
+      username: 'sami.ranta@kide-asunnot.fi',
+      display_name: 'Sami Ranta',
+      email: 'sami.ranta@kide-asunnot.fi',
+      pin: 'sami123',
+    },
+    {
+      username: 'timo.aaltonen@kide-asunnot.fi',
+      display_name: 'Timo Aaltonen',
+      email: 'timo.aaltonen@kide-asunnot.fi',
+      pin: 'timo123',
+    },
+    {
+      username: 'ville.niemi@kide-asunnot.fi',
+      display_name: 'Ville Niemi',
+      email: 'ville.niemi@kide-asunnot.fi',
+      pin: 'ville123',
+    },
+    {
+      username: 'laura.paakkonen@kide-asunnot.fi',
+      display_name: 'Laura Paakkonen',
+      email: 'laura.paakkonen@kide-asunnot.fi',
+      pin: 'laura123',
+    },
+    {
+      username: 'teemu.savola@kide-asunnot.fi',
+      display_name: 'Teemu Savola',
+      email: 'teemu.savola@kide-asunnot.fi',
+      pin: 'teemu123',
+    },
+    {
+      username: 'johanna.lehto@kide-asunnot.fi',
+      display_name: 'Johanna Lehto',
+      email: 'johanna.lehto@kide-asunnot.fi',
+      pin: 'johanna123',
+    },
   ];
   for (const user of users) {
     const pinHash = hashPin(user.pin);
@@ -92,7 +158,48 @@ async function ensureProject(orgId) {
   return result.rows[0].project_id;
 }
 
+async function ensureDemoProjects(orgId) {
+  const demoProjects = [
+    { code: '0001', name: 'Kide-Asunnot Demo' },
+    { code: '0002', name: 'Kide rivitalo' },
+    { code: '0003', name: 'Kide kerrostalo' },
+    { code: '0004', name: 'Kide Toimitila' },
+    { code: '0005', name: 'Kide Pientalo' },
+    { code: '0006', name: 'Kide Halli' },
+    { code: '0007', name: 'Kide Saneeraus' },
+    { code: '0008', name: 'Kide Varasto' },
+    { code: '0009', name: 'Kide Hotelli' },
+    { code: '0010', name: 'Kide Koulu' },
+    { code: '0011', name: 'Kide Paivakoti' },
+    { code: '0012', name: 'Kide Liiketila' },
+  ];
+
+  const projectIds = {};
+  for (const project of demoProjects) {
+    const fullName = `${project.code} ${project.name}`;
+    const existing = await pool.query('SELECT project_id FROM projects WHERE name = $1', [fullName]);
+    if (existing.rowCount > 0) {
+      projectIds[project.code] = existing.rows[0].project_id;
+      continue;
+    }
+    const result = await pool.query(
+      `INSERT INTO projects (organization_id, name, customer)
+       VALUES ($1, $2, 'Kide')
+       RETURNING project_id`,
+      [orgId, fullName]
+    );
+    projectIds[project.code] = result.rows[0].project_id;
+  }
+  return projectIds;
+}
+
 async function ensureRoleAssignments(projectId, userIds, orgId) {
+  await pool.query(
+    `INSERT INTO roles (role_code, role_name_fi, description)
+     VALUES ('SELLER', 'Myyjä', 'Luo asiakkuuksia ja onboarding-linkkejä')
+     ON CONFLICT (role_code) DO NOTHING`
+  );
+
   await pool.query(
     `INSERT INTO organization_role_assignments (organization_id, user_id, role_code, granted_by)
      SELECT $1, $2, 'ORG_ADMIN', 'seed'
@@ -102,6 +209,18 @@ async function ensureRoleAssignments(projectId, userIds, orgId) {
      )`,
     [orgId, userIds.admin]
   );
+
+  if (userIds.myyja) {
+    await pool.query(
+      `INSERT INTO organization_role_assignments (organization_id, user_id, role_code, granted_by)
+       SELECT $1, $2, 'SELLER', 'seed'
+       WHERE NOT EXISTS (
+         SELECT 1 FROM organization_role_assignments
+         WHERE organization_id = $1 AND user_id = $2 AND role_code = 'SELLER' AND revoked_at IS NULL
+       )`,
+      [orgId, userIds.myyja]
+    );
+  }
 
   const projectRoles = [
     { username: 'anna', role: 'SITE_FOREMAN' },
@@ -119,6 +238,61 @@ async function ensureRoleAssignments(projectId, userIds, orgId) {
        )`,
       [projectId, userIds[assignment.username], assignment.role]
     );
+  }
+}
+
+async function ensureDemoRoleAssignments(projectIds, userIds) {
+  const foremen = [
+    { username: 'antti.halla@kide-asunnot.fi', projects: ['0001', '0007'] },
+    { username: 'mikko.lahti@kide-asunnot.fi', projects: ['0002', '0008'] },
+    { username: 'jari.koski@kide-asunnot.fi', projects: ['0003', '0009'] },
+    { username: 'sami.ranta@kide-asunnot.fi', projects: ['0004', '0010'] },
+    { username: 'timo.aaltonen@kide-asunnot.fi', projects: ['0005', '0011'] },
+    { username: 'ville.niemi@kide-asunnot.fi', projects: ['0006', '0012'] },
+  ];
+
+  const managers = [
+    {
+      username: 'laura.paakkonen@kide-asunnot.fi',
+      projects: ['0001', '0002', '0003', '0007', '0008', '0009'],
+    },
+    {
+      username: 'teemu.savola@kide-asunnot.fi',
+      projects: ['0004', '0005', '0006', '0010', '0011', '0012'],
+    },
+  ];
+
+  const production = {
+    username: 'johanna.lehto@kide-asunnot.fi',
+    projects: Object.keys(projectIds),
+  };
+
+  const assignments = [
+    ...foremen.map((user) => ({ ...user, role: 'GENERAL_FOREMAN' })),
+    ...managers.map((user) => ({ ...user, role: 'PROJECT_MANAGER' })),
+    { ...production, role: 'PRODUCTION_MANAGER' },
+  ];
+
+  for (const assignment of assignments) {
+    const userId = userIds[assignment.username];
+    if (!userId) {
+      continue;
+    }
+    for (const code of assignment.projects) {
+      const projectId = projectIds[code];
+      if (!projectId) {
+        continue;
+      }
+      await pool.query(
+        `INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by)
+         SELECT $1, $2, $3, 'seed'
+         WHERE NOT EXISTS (
+           SELECT 1 FROM project_role_assignments
+           WHERE project_id = $1 AND user_id = $2 AND role_code = $3 AND revoked_at IS NULL
+         )`,
+        [projectId, userId, assignment.role]
+      );
+    }
   }
 }
 
@@ -408,7 +582,7 @@ async function ensureTerminology() {
     { key: 'ui.login.title', fi: 'Kirjautuminen', en: 'Login' },
     { key: 'ui.login.select_user', fi: 'Valitse käyttäjä', en: 'Select user' },
     { key: 'ui.login.pin', fi: 'PIN', en: 'PIN' },
-    { key: 'ui.login.action', fi: 'Kirjaudu', en: 'Sign in' },
+    { key: 'ui.login.action', fi: 'Kirjaudu sisään', en: 'Sign in' },
     { key: 'ui.org.select', fi: 'Valitse organisaatio', en: 'Select organization' },
     { key: 'ui.project.select', fi: 'Valitse projekti', en: 'Select project' },
     { key: 'ui.action.refresh', fi: 'Päivitä', en: 'Refresh' },
@@ -565,8 +739,10 @@ async function run() {
   await ensureMemberships(orgId, userIds);
   await ensureMemberships(secondaryOrgId, userIds);
   const projectId = await ensureProject(orgId);
+  const demoProjectIds = await ensureDemoProjects(orgId);
   await ensureExtraPermissions();
   await ensureRoleAssignments(projectId, userIds, orgId);
+  await ensureDemoRoleAssignments(demoProjectIds, userIds);
   const litteraIds = await ensureLitteras(projectId);
   const targetBatchId = await ensureImportBatch(projectId, 'TARGET_ESTIMATE');
   const jydaBatchId = await ensureImportBatch(projectId, 'JYDA');

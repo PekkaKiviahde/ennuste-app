@@ -1,6 +1,6 @@
 # MASTER – SaaS v1 päätösloki
 
-Päivitetty: 2025-02-14  
+Päivitetty: 2026-01-02  
 Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain lukitut päätökset, varmennukset (gate/known-good) ja avoimet päätökset.
 
 ---
@@ -120,6 +120,8 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Lukittiin onboarding + RBAC minimipäätökset (gating, linkki, smoke) päätökseksi D-036.
 - Lukittiin importit + mapping minimipäätökset (rakenne, oikeudet, smoke) päätökseksi D-037.
 - Lukittiin raportointi + export minimipäätökset (oikeus, arkistointi, smoke) päätökseksi D-038.
+- Päivitettiin päiväys linjaan päätöslokin kanssa.
+- Korjattiin perusteviite decision-logiin: PDF + CSV (ei Excel).
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.
@@ -128,6 +130,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Tarvitaan minimigating ja toistettava varmennus ennen onboarding-polun laajentamista.
 - Tarvitaan minimivarmistus import-ketjun oikeuksista ja auditoinnista.
 - Tarvitaan minimivarmistus raporttien luovutuksesta ja auditoinnista.
+- Poistetaan ristiriita päätöslokin export-formaatista.
 
 ## Miten testataan (manuaali)
 - Aja raporttipolku: generoi report-package, tarkista että snapshot-rivit syntyvät append-only.
@@ -137,6 +140,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Varmista acting role TTL + audit, ja break-glass vain superadminille.
 - Aja importit eri sarakejärjestyksillä ja varmista import_mappingsin toiminta.
 - Tee mapping-korjaus ja varmista uuden mapping_versionin synty sekä RBAC.
+- Tarkista, että päätöslokin ja MASTERin export-formaatti on PDF + CSV.
 - Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 - Aja smoke-testit: tenant-eristys, rooligating, idempotentti submit, audit-eventit.
 
@@ -164,4 +168,4 @@ Peruste: D-012 append-only-periaate, migrations/0019_import_jobs.sql, migrations
 
 Päätös: MVP:ssä kuukausiraportti + PDF + CSV (ei XLSX); raporttipaketti on snapshot + checksum + append-only; export-oikeus PM/johto ja audit kaikista exporteista; send-reports on manuaalinen ja versiointi report-package-ketjuna; smoke-testit todentavat ketjun (checksum, lukitus, korjausversio).
 
-Peruste: D-028 report-package-ketju ja immutability, decision-log MVP-exportit (PDF + Excel).
+Peruste: D-028 report-package-ketju ja immutability, decision-log MVP-exportit (PDF + CSV).

@@ -1,6 +1,6 @@
 # GDPR & Compliance-päätökset – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä dokumentti kokoaa **päätökset ja oletukset**, joilla varmistetaan että Ennustus-MVP toimii “yleisen B2B SaaS -tyylin” mukaisesti ja tukee GDPR-vaatimuksia.
 
@@ -157,3 +157,12 @@ Koska asiakas on rekisterinpitäjä:
 - [ ] Retention/purge-ikkuna sovittu (default + sopimusmuunnokset)
 - [ ] RBAC testattu (yritysadmin ei näe muita tennantteja)
 - [ ] Incident-runbook käytössä (SEV + banneri)
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

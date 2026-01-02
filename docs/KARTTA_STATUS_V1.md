@@ -2,14 +2,14 @@
 
 Versiointi: KARTTA-YYYY-MM-DD.n (n=juokseva korjausnumero samalle päivälle)
 
-Päivitetty: 2026-01-01
+Päivitetty: 2026-01-02
 
 ## P0_SCAN — Repo-kartoitus
 
 ### Repo-kartta (tiivis)
 - Päätökset: `docs/MASTER_DECISIONS_SAAS_V1.md`, `docs/decisions/decision-log.md`
 - ADR:t: `docs/adr/`
-- Runbookit: `docs/runbooks/`, `docs/RUNBOOK_*.md`
+- Runbookit: `docs/runbooks/`, `docs/RUNBOOK_BUDGET_IMPORT.md`, `docs/RUNBOOK_PHASE16_AC_CPI.md`, `docs/RUNBOOK_PHASE17_ITEM_CORRECTIONS.md`, `docs/RUNBOOK_PHASE18_REPORTING.md`, `docs/RUNBOOK_PHASE19_SAAS_RBAC.md`, `docs/RUNBOOK_PHASE20_TERMINOLOGY.md`, `docs/RUNBOOK_WORK_PHASES_MVP.md`
 - Migraatiot: `migrations/`
 - Speksit: `spec/`
 - API/UI: `api/`, `ui/`, `api/public/`
@@ -105,9 +105,15 @@ Vastaa: pelkkä numero.
 
 ## Mitä muuttui
 - Lisättiin KARTTA-tilannekuva ja versionointityyli.
+- Päivitettiin päivämäärä linjaan päätöslokin kanssa.
+- Täsmennetty runbook-viitteet ilman globi-muotoa.
 
 ## Miksi
 - Tarvitaan selkeä, versionoitu “missä mennään” -dokumentti.
+- Päätöslokin ja tilannekuvan päivämäärien tulee olla linjassa.
+- Viitteiden pitää osoittaa olemassa oleviin tiedostoihin.
 
 ## Miten testataan (manuaali)
 - Tarkista, että tiedosto löytyy ja linkit polkuihin ovat oikein.
+- Varmista, että päivämäärä vastaa `docs/decisions/decision-log.md`-päivitystä.
+- Avaa runbook-viitteet ja varmista, että polut löytyvät.

@@ -1,6 +1,6 @@
 # RUNBOOK – Data-fix (versionoidut skriptit) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tässä runbookissa data-korjaukset tehdään **vain versionoiduilla skripteillä** (migrations/backfill/verify).  
 **Manuaalinen DB-edit tuotannossa ei ole sallittu.**
@@ -108,3 +108,15 @@ end
 T0 --> T1 --> D0 --> D1 --> D2 --> S0 --> S1 --> S2 --> S3 --> A0
 A0 --> P0 --> P1 --> P2 --> P3
 ```
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

@@ -1,6 +1,6 @@
 # Master workflow – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä on “kokonaiskuva” (master): **Sales/Admin/Production/DevOps** + linkit Incident- ja Data-fix -runbookeihin.
 
@@ -177,3 +177,15 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - GDPR & compliance: `docs/compliance/gdpr.md`
 
 - Traceability: `docs/traceability.md`
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

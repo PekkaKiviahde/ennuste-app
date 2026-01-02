@@ -1,7 +1,7 @@
-# 0002-mvp-workflow-decisions
+# ADR-0002: MVP-työnkulkujen päätökset
 
-Status: hyväksytty
-Päivitetty: 2025-12-31
+**Status:** Accepted  
+**Date:** 2026-01-02
 
 ## Konteksti
 MVP-työnkulkujen siirrossa tarvitaan yhteinen päätöspohja, jotta UI, API ja DB
@@ -30,11 +30,14 @@ ennen integraatiotestausta.
 - Päätettiin MVP-polku ja roolien/mappingin periaatteet.
 - Lukittiin month close -tilat ja korjauspolku.
 - Valittiin importien joustava mappaus ja exportit (PDF/Excel).
+- Yhdenmukaistettiin ADR-otsikon Status/Date-muoto ja päiväys.
 
 ## Miksi
 - Integraatiotestit vaativat yhteisen, lukitun työnkulun.
 - SaaSissa roolit, audit ja append-only ovat kriittisiä.
+- ADR-päivämäärien on oltava yhdenmukaisia, jotta päätöshistoria on selkeä.
 
 ## Miten testataan (manuaali)
 - Aja integraatiopolku end-to-end ja varmista audit-loki.
 - Testaa roolit (alias + acting role) ja lukitukset (M0->M1->M2).
+- Varmista, että ADR-otsikossa on sama Status/Date-muoto kuin muissa ADR:issä.

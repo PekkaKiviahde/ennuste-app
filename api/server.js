@@ -17,9 +17,14 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
 const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/login", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && origin.includes(".app.github.dev")) {
@@ -86,12 +91,22 @@ const ROLE_CODE_TO_PROJECT_ROLE = {
 
 function parseToken(req) {
   const auth = req.header("authorization") || "";
+  let tokenValue = "";
   const parts = auth.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
+  if (parts.length === 2 && parts[0] === "Bearer") {
+    tokenValue = parts[1];
+  }
+  if (!tokenValue && req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|;\s*)authToken=([^;]+)/);
+    if (match) {
+      tokenValue = decodeURIComponent(match[1]);
+    }
+  }
+  if (!tokenValue) {
     return null;
   }
   try {
-    const raw = Buffer.from(parts[1], "base64").toString("utf8");
+    const raw = Buffer.from(tokenValue, "base64").toString("utf8");
     const token = JSON.parse(raw);
     if (!token.userId) {
       return null;
@@ -162,6 +177,30 @@ async function loadProjectRoles(userId, organizationId) {
     projectRoles[row.project_id] = selectHigherProjectRole(currentRole, mapped);
   }
   return projectRoles;
+}
+
+async function loadSystemRole(userId, organizationId) {
+  if (!organizationId) {
+    return null;
+  }
+  const { rows } = await query(
+    `SELECT role_code
+     FROM organization_role_assignments
+     WHERE organization_id = $1 AND user_id = $2 AND revoked_at IS NULL
+     ORDER BY granted_at DESC
+     LIMIT 1`,
+    [organizationId, userId]
+  );
+  if (rows.length === 0) {
+    return null;
+  }
+  if (rows[0].role_code === "ORG_ADMIN") {
+    return "admin";
+  }
+  if (rows[0].role_code === "SELLER") {
+    return "seller";
+  }
+  return null;
 }
 
 function requireAuth(req, res) {
@@ -695,6 +734,223 @@ app.get("/api/users", async (_req, res, next) => {
   }
 });
 
+app.get("/api/admin/users", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const orgId = req.user?.organizationId;
+    if (!orgId) {
+      return badRequest(res, "organizationId puuttuu.");
+    }
+    const { rows } = await query(
+      `SELECT u.user_id, u.username, u.display_name, u.email
+       FROM users u
+       JOIN organization_memberships m
+         ON m.user_id = u.user_id AND m.organization_id = $1 AND m.left_at IS NULL
+       WHERE u.is_active = true
+       ORDER BY COALESCE(u.display_name, u.username), u.username`,
+      [orgId]
+    );
+    res.json({ users: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/users", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const orgId = req.user?.organizationId;
+    if (!orgId) {
+      return badRequest(res, "organizationId puuttuu.");
+    }
+    const { username, displayName, email, pin, orgRole } = req.body || {};
+    if (!username || String(username).trim() === "") {
+      return badRequest(res, "username puuttuu.");
+    }
+    if (!pin || String(pin).trim() === "") {
+      return badRequest(res, "pin puuttuu.");
+    }
+    const allowedOrgRoles = new Set(["ORG_ADMIN", "SELLER"]);
+    if (orgRole && !allowedOrgRoles.has(orgRole)) {
+      return badRequest(res, "orgRole ei kelpaa.");
+    }
+
+    const existing = await query("SELECT user_id FROM users WHERE username=$1", [
+      String(username).trim(),
+    ]);
+    if (existing.rowCount > 0) {
+      return res.status(409).json({ error: "Käyttäjä on jo olemassa." });
+    }
+
+    const pinHash = hashPin(String(pin).trim());
+    const createdBy = String(req.user.userId || "admin");
+
+    const { rows } = await query(
+      `INSERT INTO users (username, display_name, email, pin_hash, created_by)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING user_id`,
+      [
+        String(username).trim(),
+        displayName ? String(displayName).trim() : null,
+        email ? String(email).trim() : null,
+        pinHash,
+        createdBy,
+      ]
+    );
+    const userId = rows[0].user_id;
+
+    await query(
+      `INSERT INTO organization_memberships (organization_id, user_id, joined_by)
+       VALUES ($1, $2, $3)
+       ON CONFLICT DO NOTHING`,
+      [orgId, userId, createdBy]
+    );
+
+    if (orgRole) {
+      await query(
+        `INSERT INTO organization_role_assignments (organization_id, user_id, role_code, granted_by)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT DO NOTHING`,
+        [orgId, userId, orgRole, createdBy]
+      );
+    }
+
+    res.status(201).json({ user_id: userId });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/users/:userId/org-role", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const orgId = req.user?.organizationId;
+    if (!orgId) {
+      return badRequest(res, "organizationId puuttuu.");
+    }
+    const { userId } = req.params;
+    const { roleCode } = req.body || {};
+    const allowedOrgRoles = new Set(["ORG_ADMIN", "SELLER"]);
+    if (!roleCode || !allowedOrgRoles.has(roleCode)) {
+      return badRequest(res, "roleCode ei kelpaa.");
+    }
+    const createdBy = String(req.user.userId || "admin");
+    await query(
+      `INSERT INTO organization_role_assignments (organization_id, user_id, role_code, granted_by)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT DO NOTHING`,
+      [orgId, userId, roleCode, createdBy]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/admin/users/:userId/project-roles", async (req, res, next) => {
+  try {
+    if (!requireSystemRole(req, res, ["admin", "superadmin"])) {
+      return;
+    }
+    const { userId } = req.params;
+    const { projectId, roleCode } = req.body || {};
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    const allowedProjectRoles = new Set([
+      "SITE_FOREMAN",
+      "GENERAL_FOREMAN",
+      "PROJECT_MANAGER",
+      "PRODUCTION_MANAGER",
+      "PROCUREMENT",
+      "EXEC_READONLY",
+    ]);
+    if (!roleCode || !allowedProjectRoles.has(roleCode)) {
+      return badRequest(res, "roleCode ei kelpaa.");
+    }
+    const orgId = req.user?.organizationId;
+    const { rowCount } = await query(
+      "SELECT 1 FROM projects WHERE project_id=$1 AND organization_id=$2",
+      [projectId, orgId]
+    );
+    if (rowCount === 0) {
+      return res.status(403).json({ error: "Projekti ei kuulu organisaatioon." });
+    }
+    const createdBy = String(req.user.userId || "admin");
+    await query(
+      `INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT DO NOTHING`,
+      [projectId, userId, roleCode, createdBy]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/assistant/chat", async (req, res, next) => {
+  try {
+    if (!OPENAI_API_KEY) {
+      return res.status(400).json({ error: "OPENAI_API_KEY puuttuu." });
+    }
+    const { messages } = req.body || {};
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return badRequest(res, "messages puuttuu.");
+    }
+
+    const systemPrompt = [
+      "Olet Ennuste-sovelluksen avustaja.",
+      "Vastaa lyhyesti ja selkeästi suomeksi.",
+      "Käytä termejä: työlittera, tavoitearvio-littera, mapping, ennustetapahtuma, suunnitelma.",
+      "Muista append-only-periaate ja että suunnitelma tehdään ennen ennustetta.",
+    ].join(" ");
+
+    const payload = {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      ],
+      temperature: 0.2,
+    };
+
+    let response;
+    try {
+      response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      return res
+        .status(502)
+        .json({ error: "OpenAI-yhteys epäonnistui. Tarkista verkkoyhteys." });
+    }
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return res.status(502).json({ error: data?.error?.message || "OpenAI-virhe." });
+    }
+    const message = data?.choices?.[0]?.message?.content || "";
+    res.json({ message });
+  } catch (err) {
+    res.status(500).json({ error: "AI-avustaja epäonnistui." });
+  }
+});
+
 app.post("/api/login", async (req, res, next) => {
   try {
     const { username, pin } = req.body || {};
@@ -719,18 +975,31 @@ app.post("/api/login", async (req, res, next) => {
     const organizations = await loadUserOrganizations(userId);
     const currentOrganizationId = organizations[0]?.organization_id || null;
     const projectRoles = await loadProjectRoles(userId, currentOrganizationId);
+    const systemRole = await loadSystemRole(userId, currentOrganizationId);
 
     const token = encodeToken({
       userId,
       organizationId: currentOrganizationId,
-      systemRole: null,
+      systemRole,
       projectRoles,
     });
 
+    res.setHeader(
+      "Set-Cookie",
+      `authToken=${encodeURIComponent(token)}; Path=/; SameSite=Lax`
+    );
     res.json({ token });
   } catch (err) {
     next(err);
   }
+});
+
+app.post("/api/logout", (_req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    "authToken=; Path=/; Max-Age=0; SameSite=Lax"
+  );
+  res.status(204).end();
 });
 
 app.get("/api/me", async (req, res, next) => {
@@ -858,7 +1127,7 @@ app.get("/api/projects", async (_req, res, next) => {
       user.systemRole === "director"
     ) {
       const { rows } = await query(
-        "SELECT project_id, name, customer, created_at FROM projects ORDER BY created_at DESC"
+        "SELECT project_id, name, customer, project_state, project_details, created_at FROM projects ORDER BY created_at DESC"
       );
       res.json({ projects: rows });
       return;
@@ -871,7 +1140,7 @@ app.get("/api/projects", async (_req, res, next) => {
     }
 
     const { rows } = await query(
-      "SELECT project_id, name, customer, created_at FROM projects WHERE project_id = ANY($1) ORDER BY created_at DESC",
+      "SELECT project_id, name, customer, project_state, project_details, created_at FROM projects WHERE project_id = ANY($1) ORDER BY created_at DESC",
       [projectIds]
     );
     res.json({ projects: rows });

@@ -1,6 +1,6 @@
 # Toimittajan polku (SDLC) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä dokumentti kuvaa **toimittajan sisäisen kehitys- ja testipolun** (Software Delivery Lifecycle).
 Tavoite: jokainen muutos kulkee saman “portitetun” reitin kautta, jotta tuotanto pysyy vakaana.
@@ -90,3 +90,15 @@ flowchart LR
   M --> N["Deploy prod"]
   N --> O["Post-deploy smoke + monitor"]
 ```
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

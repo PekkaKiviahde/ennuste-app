@@ -71,3 +71,12 @@ create policy audit_tenant_isolation
 - Varmista:
   - /companies list ei näytä B:n rivejä
   - /projects patch B:n id:llä palauttaa 404 tai 403 (mieluiten 404, ettei vuoda olemassaoloa)
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

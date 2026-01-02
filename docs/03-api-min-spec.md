@@ -218,3 +218,12 @@ Osapäivitys: sallii `name` ja/tai `company_details` (kokonaan tai osittain, val
 - Suositus: `GET /audit` (permission: audit.read) jos halutaan UI-näkymä.
 - MVP: audit voidaan jättää vain backendin sisäiseksi.
 
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

@@ -1,6 +1,6 @@
 # RUNBOOK – DB smoke (core invariants) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä runbook kuvaa miten ajetaan **DB-smoke** ja **invarianttien verify** paikallisesti.
 

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kirjautuminen – Ennuste</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <main class="container">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">MVP / työtavoitearviosuunnittelu → ennustetapahtuma</p>
+          <h1>Tervetuloa takaisin</h1>
+          <p class="lead">
+            Kirjaudu sisään jatkaaksesi ennusteen ja suunnittelun hallintaa.
+          </p>
+        </div>
+        <div class="badge">
+          <span>Append-only</span>
+          <span>Työtavoite ensin</span>
+          <span>Tavoitearvio-littera</span>
+        </div>
+      </header>
+
+      <section class="card login-card">
+        <div class="auth-card" id="login-panel">
+          <h2>Kirjaudu sisään</h2>
+          <div class="auth-grid">
+            <label>
+              Käyttäjä
+              <select id="login-user"></select>
+            </label>
+            <label>
+              PIN
+              <input id="login-pin" type="password" inputmode="numeric" autocomplete="one-time-code" />
+            </label>
+          </div>
+          <label class="checkbox login-toggle">
+            <input id="login-pin-toggle" type="checkbox" />
+            Näytä PIN
+          </label>
+          <button id="login-submit" type="button">Kirjaudu sisään</button>
+          <div class="hint" id="login-status"></div>
+          <div class="hint">Demo-tunnukset:</div>
+          <ul class="hint login-accounts">
+            <li>anna / 1234</li>
+            <li>paavo / 1234</li>
+            <li>tuija / 1234</li>
+            <li>admin / 1234</li>
+            <li>myyja / demo</li>
+          </ul>
+          <div class="hint">Unohtuiko PIN? Pyydä uusi organisaatio-adminilta.</div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/login.js"></script>
+  </body>
+</html>

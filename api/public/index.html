@@ -11,64 +11,76 @@
     <main class="container">
       <header class="hero">
         <div>
-          <p class="eyebrow">MVP / työtavoitearviosuunnittelu → ennustetapahtuma</p>
+          <p class="eyebrow">MVP / työtavoite → ennuste</p>
           <h1>Ennuste sovelluksena</h1>
           <p class="lead">
-            Kirjaa suunnitelma ja tee ennustetapahtuma append-only lokiin. Kaikki tapahtumat jäävät talteen.
+            Kirjaa suunnitelma ja tee ennustetapahtuma lokiin. Kaikki tapahtumat säilyvät.
           </p>
-          <label class="role-select">
-            Järjestelmärooli
-            <select id="system-role-select">
-              <option value="">(ei)</option>
-              <option value="seller">seller</option>
-              <option value="superadmin">superadmin</option>
-              <option value="admin">admin</option>
-              <option value="director">director</option>
-            </select>
-          </label>
-          <label class="role-select">
-            Projektin rooli
-            <select id="project-role-select">
-              <option value="viewer">viewer</option>
-              <option value="editor">editor</option>
-              <option value="manager">manager</option>
-              <option value="owner">owner</option>
-            </select>
-          </label>
+          <div class="user-pill hidden" id="login-info"></div>
         </div>
-        <div class="badge">
-          <span>Append-only</span>
-          <span>Työtavoite ensin</span>
-          <span>Tavoitearvio-littera</span>
+        <div class="top-right">
+          <div class="user-pill hidden" id="login-info-top">
+            <div class="auth-meta">
+              <span>Kirjautunut</span>
+              <strong id="login-user-display-top"></strong>
+            </div>
+            <button id="logout-top" type="button">Kirjaudu ulos</button>
+          </div>
         </div>
       </header>
 
-      <nav class="tabs" id="tab-nav">
-        <a href="/setup" data-page="setup">Setup</a>
-        <a href="/mapping" data-page="mapping">Mapping</a>
-        <a href="/planning" data-page="planning">Työtavoite</a>
-        <a href="/weekly" data-page="weekly">Viikko</a>
-        <a href="/forecast" data-page="forecast">Ennuste</a>
-        <a href="/report" data-page="report">Raportti</a>
-        <a href="/history" data-page="history">Historia</a>
-      </nav>
-      <div class="tab-hint" id="tab-hint"></div>
+      <div id="app-content">
+        <div class="app-shell">
+          <aside class="sidebar">
+            <div class="sidebar-section">
+              <h3>Työnkulku</h3>
+              <nav class="tabs" id="tab-nav">
+                <a href="/setup" data-page="setup" data-guard="system:admin" data-hide-when-denied="true">
+                  Hallinto
+                </a>
+                <a href="/sales" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+                  Myynti
+                </a>
+                <a href="/mapping" data-page="mapping" data-guard="project:manager" data-hide-when-denied="true">
+                  Mapping
+                </a>
+                <a href="/planning" data-page="planning" data-guard="project:editor" data-hide-when-denied="true">
+                  Työtavoite
+                </a>
+                <a href="/weekly" data-page="weekly" data-guard="project:editor" data-hide-when-denied="true">
+                  Viikko
+                </a>
+                <a href="/forecast" data-page="forecast" data-guard="project:editor" data-hide-when-denied="true">
+                  Ennuste
+                </a>
+                <a href="/report" data-page="report" data-guard="project:viewer" data-hide-when-denied="true">
+                  Raportti
+                </a>
+                <a href="/history" data-page="history" data-guard="project:viewer" data-hide-when-denied="true">
+                  Historia
+                </a>
+              </nav>
+              <div class="tab-hint" id="tab-hint"></div>
+            </div>
 
-      <section class="card quick-actions">
-        <h2>Pikatoiminnot</h2>
-        <div class="action-grid">
-          <button data-action="go-setup">Siirry Setupiin</button>
-          <button data-action="focus-project">Luo projekti (avaa lomake)</button>
-          <button data-action="go-report">Siirry Raporttiin</button>
-          <button data-action="role-admin-owner">Roolit: admin + owner</button>
-          <button id="demo-seed" data-guard="system:admin">Täytä esimerkkidata</button>
-        </div>
-        <div class="hint" id="demo-seed-result"></div>
-      </section>
+            <section class="card quick-actions hidden" data-guard="system:admin" data-hide-when-denied="true">
+              <h2>Pikatoiminnot</h2>
+              <div class="action-grid">
+                <button data-action="go-setup">Siirry Setupiin</button>
+                <button data-action="focus-project">Luo projekti (avaa lomake)</button>
+                <button data-action="go-report">Siirry Raporttiin</button>
+                <button data-action="role-admin-owner">Roolit: admin + owner</button>
+                <button id="demo-seed" data-guard="system:admin">Täytä esimerkkidata</button>
+              </div>
+              <div class="hint" id="demo-seed-result"></div>
+            </section>
+          </aside>
 
-      <section class="card" data-page="setup">
-        <h2>1. Projekti</h2>
-        <form id="project-form" class="stack" data-guard="system:admin">
+          <main class="main-panel">
+      <details class="accordion" data-page="setup" data-guard="system:admin" data-hide-when-denied="true" open>
+        <summary>1. Projekti</summary>
+        <div class="card card-body">
+          <form id="project-form" class="stack" data-guard="system:admin">
           <label>
             Projektin nimi
             <input name="name" placeholder="Kaarnatie" required />
@@ -79,11 +91,105 @@
           </label>
           <button type="submit">Luo projekti</button>
           <div class="hint" id="project-result"></div>
-        </form>
+          </form>
+        </div>
+      </details>
+
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>Myynti: SaaS-paketti → onboarding</h2>
+        <ol class="stack">
+          <li>Valitse paketti ja lisäpalikat (integraatiot, käyttäjämäärä, SLA).</li>
+          <li>Vahvista sopimus sisäisesti.</li>
+          <li>Luo yritys (tenant).</li>
+          <li>Luo projekti (stub).</li>
+          <li>Luo onboarding-linkki.</li>
+          <li>Seuraa tilaa C0 → C3.</li>
+          <li>Luovuta org-adminille käyttöönottoon.</li>
+        </ol>
       </section>
 
-      <section class="card" data-page="setup">
-        <h2>1A. Seller / onboarding</h2>
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>Uimarata: myynti → käyttöönotto</h2>
+        <div class="swimlane">
+          <div class="lane">
+            <h3>Myynti</h3>
+            <div class="lane-step">Paketti + integraatiot + SLA</div>
+            <div class="lane-step">Sopimuksen sisäinen hyväksyntä</div>
+            <div class="lane-step">Luo tenant</div>
+            <div class="lane-step">Luo projekti (stub)</div>
+            <div class="lane-step">Luo onboarding-linkki</div>
+            <div class="lane-step">Seuranta C0–C3</div>
+            <div class="lane-step">Luovutus org-adminille</div>
+          </div>
+          <div class="lane">
+            <h3>Asiakas</h3>
+            <div class="lane-step">Täyttää yritystiedot</div>
+            <div class="lane-step">Täyttää projektitiedot</div>
+            <div class="lane-step">Käyttäjät + roolit kutsuun</div>
+          </div>
+          <div class="lane">
+            <h3>Org-admin</h3>
+            <div class="lane-step">Tarkistus + hyväksyntä</div>
+            <div class="lane-step">Projektin aktivointi</div>
+            <div class="lane-step">Raportointi- ja hyväksyntäasetukset</div>
+            <div class="lane-step">Luovutus tuotantoon</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>1. Paketti ja kaupalliset tiedot</h2>
+        <div class="stack">
+          <label>
+            Paketti
+            <select>
+              <option value="">Valitse paketti</option>
+              <option value="core">Core</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </label>
+          <label>
+            Integraatiot
+            <input placeholder="JYDA, talous, ostot" />
+          </label>
+          <label>
+            Käyttäjämäärä
+            <input type="number" min="1" placeholder="20" />
+          </label>
+          <label>
+            SLA
+            <select>
+              <option value="">Valitse SLA</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <div class="hint">Tallennus tätä vaihetta varten lisätään seuraavassa iteratiossa.</div>
+        </div>
+      </section>
+
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>2. Sopimuksen aktivointi</h2>
+        <div class="stack">
+          <label>
+            Sopimuksen tila
+            <select>
+              <option value="">Valitse tila</option>
+              <option value="draft">Luonnos</option>
+              <option value="approved">Hyväksytty</option>
+            </select>
+          </label>
+          <label>
+            Hyväksyjä
+            <input placeholder="Myyntijohto" />
+          </label>
+          <div class="hint">Aktivointi vaaditaan ennen teknistä avausta.</div>
+        </div>
+      </section>
+
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>3. Luo yritys (tenant)</h2>
         <form id="tenant-form" class="stack" data-guard="system:seller">
           <label>
             Tenantin nimi
@@ -96,7 +202,10 @@
           <button type="submit">Luo tenant</button>
           <div class="hint" id="tenant-result"></div>
         </form>
+      </section>
 
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>4. Luo projekti (stub)</h2>
         <form id="seller-project-form" class="stack" data-guard="system:seller">
           <label>
             Tenant
@@ -117,7 +226,10 @@
           <button type="submit">Luo project stub</button>
           <div class="hint" id="seller-project-result"></div>
         </form>
+      </section>
 
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>5. Luo onboarding-linkki</h2>
         <form id="onboarding-link-form" class="stack" data-guard="system:seller">
           <label>
             Tenant
@@ -140,9 +252,31 @@
         </form>
       </section>
 
-      <section class="card" data-page="setup">
-        <h2>1B. Onboarding (admin)</h2>
-        <form id="company-details-form" class="stack" data-guard="system:admin">
+      <section class="card" data-page="sales" data-guard="system:seller" data-hide-when-denied="true">
+        <h2>6. Seuranta ja luovutus</h2>
+        <div class="stack">
+          <label>
+            Onboarding-tila
+            <select>
+              <option value="">Valitse tila</option>
+              <option value="c0">C0 – aloitus</option>
+              <option value="c1">C1 – tiedot kerätty</option>
+              <option value="c2">C2 – käyttäjät kutsuttu</option>
+              <option value="c3">C3 – valmis tuotantoon</option>
+            </select>
+          </label>
+          <label>
+            Luovutus org-adminille
+            <input placeholder="Yritysadmin" />
+          </label>
+          <div class="hint">Luovutus varmistaa, että asiakas siirtyy tuotantoon hallitusti.</div>
+        </div>
+      </section>
+
+      <details class="accordion" data-page="setup" data-guard="system:admin" data-hide-when-denied="true" open>
+        <summary>1B. Onboarding (admin)</summary>
+        <div class="card card-body">
+          <form id="company-details-form" class="stack" data-guard="system:admin">
           <label>
             Tenant
             <select name="tenantId" id="company-tenant-select" required></select>
@@ -175,6 +309,14 @@
           <label>
             Osoite
             <input name="address" placeholder="Katu 1, Kaupunki" />
+          </label>
+          <label>
+            Vastuuhenkilö
+            <input name="managerName" placeholder="Projektipäällikkö" />
+          </label>
+          <label>
+            Vastuuhenkilön email
+            <input name="managerEmail" placeholder="paallikko@yritys.fi" />
           </label>
           <label>
             Alku
@@ -229,12 +371,14 @@
           </label>
           <button type="submit">Arkistoi projekti</button>
           <div class="hint" id="project-archive-result"></div>
-        </form>
-      </section>
+          </form>
+        </div>
+      </details>
 
-      <section class="card" data-page="setup">
-        <h2>2. Tavoitearvio-littera</h2>
-        <form id="littera-form" class="stack" data-guard="project:editor">
+      <details class="accordion" data-page="setup" data-guard="project:editor" data-hide-when-denied="true" open>
+        <summary>2. Tavoitearvio-littera</summary>
+        <div class="card card-body">
+          <form id="littera-form" class="stack" data-guard="project:editor">
           <label>
             Projekti
             <select name="projectId" id="project-select" required></select>
@@ -249,12 +393,14 @@
           </label>
           <button type="submit">Lisää littera</button>
           <div class="hint" id="littera-result"></div>
-        </form>
-      </section>
+          </form>
+        </div>
+      </details>
 
-      <section class="card" data-page="setup">
-        <h2>3. Budjetin tuonti (CSV)</h2>
-        <form id="budget-import-form" class="stack" data-guard="project:manager">
+      <details class="accordion" data-page="setup" data-guard="project:manager" data-hide-when-denied="true">
+        <summary>3. Budjetin tuonti (CSV)</summary>
+        <div class="card card-body">
+          <form id="budget-import-form" class="stack" data-guard="project:manager">
           <label>
             Projekti
             <select name="projectId" id="budget-project" required></select>
@@ -313,12 +459,14 @@
           </label>
           <button type="submit">Tuo budjetti</button>
           <div class="hint" id="budget-import-result"></div>
-        </form>
-      </section>
+          </form>
+        </div>
+      </details>
 
-      <section class="card" data-page="setup">
-        <h2>4. JYDA-tuonti (CSV)</h2>
-        <form id="jyda-import-form" class="stack" data-guard="project:manager">
+      <details class="accordion" data-page="setup" data-guard="project:manager" data-hide-when-denied="true">
+        <summary>4. JYDA-tuonti (CSV)</summary>
+        <div class="card card-body">
+          <form id="jyda-import-form" class="stack" data-guard="project:manager">
           <label>
             Projekti
             <select name="projectId" id="jyda-project" required></select>
@@ -407,27 +555,108 @@
           </label>
           <button type="submit">Tuo JYDA</button>
           <div class="hint" id="jyda-import-result"></div>
-        </form>
-      </section>
-
-      <section class="card" data-page="setup">
-        <h2>5. Tuontilokit</h2>
-        <div class="grid-2">
-          <label>
-            Suodata tyyppi
-            <select id="import-filter-type">
-              <option value="ALL">Kaikki</option>
-              <option value="BUDGET">BUDGET</option>
-              <option value="JYDA">JYDA</option>
-            </select>
-          </label>
-          <label>
-            Haku (tiedosto / status / batch)
-            <input id="import-filter-query" placeholder="etsi..." />
-          </label>
+          </form>
         </div>
-        <div class="history" id="budget-import-jobs">Valitse projekti nähdäksesi tuontihistorian.</div>
-      </section>
+      </details>
+
+      <details class="accordion" data-page="setup" data-guard="project:manager" data-hide-when-denied="true">
+        <summary>5. Tuontilokit</summary>
+        <div class="card card-body">
+          <div class="grid-2">
+            <label>
+              Suodata tyyppi
+              <select id="import-filter-type">
+                <option value="ALL">Kaikki</option>
+                <option value="BUDGET">BUDGET</option>
+                <option value="JYDA">JYDA</option>
+              </select>
+            </label>
+            <label>
+              Haku (tiedosto / status / batch)
+              <input id="import-filter-query" placeholder="etsi..." />
+            </label>
+          </div>
+          <div class="history" id="budget-import-jobs">Valitse projekti nähdäksesi tuontihistorian.</div>
+        </div>
+      </details>
+
+      <details class="accordion" data-page="setup" data-guard="system:admin" data-hide-when-denied="true">
+        <summary>6. Käyttäjät ja roolit</summary>
+        <div class="card card-body">
+          <form id="admin-user-form" class="stack" data-guard="system:admin">
+            <label>
+              Käyttäjätunnus
+              <input name="username" placeholder="etunimi.sukunimi" required />
+            </label>
+            <label>
+              Näyttönimi
+              <input name="displayName" placeholder="Etunimi Sukunimi" />
+            </label>
+            <label>
+              Sähköposti
+              <input name="email" placeholder="etunimi@yritys.fi" />
+            </label>
+            <label>
+              PIN
+              <input name="pin" type="text" placeholder="1234" required />
+            </label>
+            <label>
+              Org-rooli (valinnainen)
+              <select name="orgRole">
+                <option value="">Ei roolia</option>
+                <option value="ORG_ADMIN">Org admin</option>
+                <option value="SELLER">Myyjä</option>
+              </select>
+            </label>
+            <button type="submit">Lisää käyttäjä</button>
+            <div class="hint" id="admin-user-result"></div>
+          </form>
+
+          <div class="divider"></div>
+
+          <form id="admin-org-role-form" class="stack" data-guard="system:admin">
+            <label>
+              Käyttäjä
+              <select id="admin-org-user" name="userId" required></select>
+            </label>
+            <label>
+              Org-rooli
+              <select id="admin-org-role" name="roleCode" required>
+                <option value="ORG_ADMIN">Org admin</option>
+                <option value="SELLER">Myyjä</option>
+              </select>
+            </label>
+            <button type="submit">Aseta org-rooli</button>
+            <div class="hint" id="admin-org-role-result"></div>
+          </form>
+
+          <div class="divider"></div>
+
+          <form id="admin-project-role-form" class="stack" data-guard="system:admin">
+            <label>
+              Käyttäjä
+              <select id="admin-project-user" name="userId" required></select>
+            </label>
+            <label>
+              Projekti
+              <select id="admin-project-role-project" name="projectId" required></select>
+            </label>
+            <label>
+              Projektin rooli
+              <select id="admin-project-role" name="roleCode" required>
+                <option value="SITE_FOREMAN">Työnjohtaja</option>
+                <option value="GENERAL_FOREMAN">Vastaava mestari</option>
+                <option value="PROJECT_MANAGER">Työpäällikkö</option>
+                <option value="PRODUCTION_MANAGER">Tuotantojohtaja</option>
+                <option value="PROCUREMENT">Hankinta</option>
+                <option value="EXEC_READONLY">Johto (luku)</option>
+              </select>
+            </label>
+            <button type="submit">Aseta projektin rooli</button>
+            <div class="hint" id="admin-project-role-result"></div>
+          </form>
+        </div>
+      </details>
 
       <section class="card" data-page="planning">
         <h2>6. Työtavoitearviosuunnittelu</h2>
@@ -857,6 +1086,7 @@
             <select id="report-littera"></select>
           </label>
           <button id="report-refresh">Päivitä raportti</button>
+          <div class="history" id="project-meta"></div>
           <div class="history" id="report-output"></div>
         </div>
       </section>
@@ -876,6 +1106,23 @@
           <div class="history" id="history-output"></div>
         </div>
       </section>
+
+      <section class="card assistant-panel">
+        <h2>AI-avustaja</h2>
+        <div class="assistant-log" id="assistant-log"></div>
+        <label class="stack">
+          <span>Kysy työnkulusta tai rooleista</span>
+          <textarea id="assistant-input" rows="3" placeholder="Kirjoita kysymys..."></textarea>
+        </label>
+        <div class="assistant-actions">
+          <button id="assistant-send" type="button">Lähetä</button>
+          <button id="assistant-clear" type="button">Tyhjennä</button>
+        </div>
+        <div class="hint hint-warning">AI-vastaukset voivat olla epätarkkoja. Tarkista kriittiset päätökset.</div>
+      </section>
+          </main>
+        </div>
+      </div>
     </main>
 
     <script src="/app.js"></script>

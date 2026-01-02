@@ -1,6 +1,6 @@
 # API docs – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä kansio sisältää **API-dokumentoinnin** (toteutusta varten).  
 Tavoite: että UI-työnkulkujen (nappipolut + tilakoneet) toteutus on suoraviivaista ja testattavaa.
@@ -34,21 +34,32 @@ Katso myös:
 
 ### Authenticated
 - `GET /api/me` – käyttäjä + organisaatiot
+- `GET /api/me/capabilities` – UI-oikeudet (napit)
 - `GET /api/organizations`
 - `GET /api/projects`
 - `POST /api/session/switch-org`
 - `GET /api/projects/:projectId/permissions`
 - `GET /api/projects/:projectId/litteras`
 - `GET /api/projects/:projectId/target-batches`
-- `GET /api/projects/:projectId/work-phases`
-- `POST /api/projects/:projectId/work-phases`
-- `GET /api/work-phases/:id`
-- `POST /api/work-phases/:id/version`
-- `GET /api/work-phases/:id/members`
-- `POST /api/work-phases/:id/members`
-- `POST /api/work-phases/:id/lock-baseline`
-- `POST /api/work-phases/:id/weekly-update`
-- `POST /api/work-phases/:id/ghost`
+- `GET /api/projects/:projectId/work-packages`
+- `POST /api/projects/:projectId/work-packages`
+- `GET /api/work-packages/:id`
+- `POST /api/work-packages/:id/version`
+- `GET /api/work-packages/:id/members`
+- `POST /api/work-packages/:id/members`
+- `POST /api/work-packages/:id/baseline-lock:request`
+- `POST /api/work-packages/:id/baseline-lock:approve?step=1`
+- `POST /api/work-packages/:id/baseline-lock:approve?step=2`
+- `POST /api/work-packages/:id/weekly-updates`
+- `POST /api/work-packages/:id/ghosts`
+- `PUT /api/projects/:projectId/months/:YYYY-MM/forecast`
+- `PUT /api/projects/:projectId/months/:YYYY-MM/lock-candidates`
+- `POST /api/projects/:projectId/months/:YYYY-MM/send-reports`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/request`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/:corr_id/approve`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/:corr_id/reject`
+- `GET /api/projects/:projectId/months/:YYYY-MM/report-packages`
+- `GET /api/report-packages/:package_id/download`
 - `GET /api/projects/:projectId/reports/project-current`
 - `GET /api/projects/:projectId/reports/work-phase-current`
 - `GET /api/projects/:projectId/reports/main-group-current`
@@ -61,40 +72,54 @@ Katso myös:
 - `GET /api/projects/:projectId/reports/overlap`
 - `GET /api/projects/:projectId/selvitettavat`
 - `GET /api/projects/:projectId/corrections/queue`
-- `POST /api/work-phases/:id/corrections/propose`
-- `POST /api/corrections/:id/approve-pm`
-- `POST /api/corrections/:id/approve-final`
-- `POST /api/corrections/:id/reject`
 - `GET /api/terminology/dictionary?orgId=&locale=&fallback=`
+- `PUT /api/import-mappings`
+- `GET /api/incident-banner`
+
+### Seller / Admin
+- `POST /api/seller/tenants`
+- `POST /api/seller/projects`
+- `POST /api/seller/onboarding-links`
+- `POST /api/admin/tenants/:tenantId/onboarding/submit`
+- `POST /api/admin/tenants/:tenantId/users:invite`
+- `PUT /api/admin/tenants/:tenantId/rbac`
+- `PUT /api/admin/projects/:projectId/reporting-settings`
+- `PUT /api/admin/projects/:projectId/approval-settings`
+- `GET /api/admin/projects/:projectId/mappings`
+- `PATCH /api/admin/projects/:projectId/mappings/:mappingId`
+
+### Superadmin
+- `PUT /api/superadmin/incident-banner`
 
 ## Write-endpointtien permissions + tilat
 
-- `POST /api/projects/:projectId/work-phases`
+- `POST /api/projects/:projectId/work-packages`
   - Permission: `WORK_PHASE_CREATE`
-- `POST /api/work-phases/:id/members`
+- `POST /api/work-packages/:id/members`
   - Permission: `WORK_PHASE_MEMBER_CREATE`
   - Tila: **SETUP** (baseline ei lukittu), muuten `409 BASELINE_ALREADY_LOCKED`
-- `POST /api/work-phases/:id/version`
+- `POST /api/work-packages/:id/version`
   - Permission: `WORK_PHASE_VERSION_CREATE`
   - Tila: **SETUP** (baseline ei lukittu)
-- `POST /api/work-phases/:id/lock-baseline`
+- `POST /api/work-packages/:id/baseline-lock:request`
   - Permission: `BASELINE_LOCK`
   - Tila: **SETUP** (baseline ei lukittu)
-- `POST /api/work-phases/:id/weekly-update`
+- `POST /api/work-packages/:id/baseline-lock:approve?step=1`
+  - Permission: `BASELINE_LOCK_APPROVE_PM`
+- `POST /api/work-packages/:id/baseline-lock:approve?step=2`
+  - Permission: `BASELINE_LOCK_APPROVE_TJ`
+- `POST /api/work-packages/:id/weekly-updates`
   - Permission: `WORK_PHASE_WEEKLY_UPDATE_CREATE`
   - Tila: **TRACK** (baseline lukittu), muuten `409 BASELINE_REQUIRED`
-- `POST /api/work-phases/:id/ghost`
+- `POST /api/work-packages/:id/ghosts`
   - Permission: `GHOST_ENTRY_CREATE`
   - Tila: **TRACK** (baseline lukittu), muuten `409 BASELINE_REQUIRED`
-- `POST /api/work-phases/:id/corrections/propose`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/request`
   - Permission: `CORRECTION_PROPOSE`
-  - Tila: **TRACK** (baseline lukittu), muuten `409 BASELINE_REQUIRED`
-- `POST /api/corrections/:id/approve-pm`
-  - Permission: `CORRECTION_APPROVE_PM`
-- `POST /api/corrections/:id/approve-final`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/:corr_id/approve`
   - Permission: `CORRECTION_APPROVE_FINAL`
-- `POST /api/corrections/:id/reject`
-  - Permission: `CORRECTION_APPROVE_PM` **tai** `CORRECTION_APPROVE_FINAL`
+- `POST /api/projects/:projectId/months/:YYYY-MM/corrections/:corr_id/reject`
+  - Permission: `CORRECTION_APPROVE_FINAL`
 
 ## Tenant / org -konteksti
 
@@ -107,14 +132,17 @@ Katso myös:
 ### Mitä muuttui
 - Lisättiin Phase 18 -raporttien endpointit ja MVP UI:lle listaus.
 - Kuvattiin write-endpointtien permissions + tilavaatimukset ja tenant-konteksti.
+- Yhdenmukaistettiin work-packages-terminologia ja month close -endpointit.
 
 ### Miksi
 - UI tarvitsee raporttinäkymät (pääryhmät, viikko- ja kuukausitason seuranta sekä poikkeamat) suoraan DB-näkymistä.
+- Nappipolut ja esimerkit käyttävät work-packages- ja month close -polkuja.
 
 ### Miten testataan (manuaali)
 - `curl http://localhost:3000/api/projects/<projectId>/reports/main-group-current`
 - `curl http://localhost:3000/api/projects/<projectId>/reports/weekly-ev`
 - Avaa UI → valitse “Projekti”-tabi ja varmista taulukoiden data.
+- Avaa `docs/api/examples.md` ja varmista, että polut vastaavat tätä listaa.
 
 
 ## Security

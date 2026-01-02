@@ -41,3 +41,12 @@ Tämä paketti tekee Postgres-skeeman, joka tukee:
 - Excelin “Tavo_Ennuste” tavoitepuoli ≈ `budget_lines`
 - Excelissä puuttuva osa (mutta teillä tarpeena) = `mapping_versions` + `mapping_lines` + coverage
 
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

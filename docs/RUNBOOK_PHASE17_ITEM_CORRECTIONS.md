@@ -117,3 +117,12 @@ SELECT work_phase_reject_correction(
 ## Mitä seuraavaksi (vaihe 18 ja 19)
 - Vaihe 18: raportointi (työvaihe/pääryhmä/projekti + viikko+kuukausi trendit)
 - Vaihe 19: SaaS-tenantit, käyttäjät, roolit ja oikeudet (multi-org membership) + hyväksyntäpolut UI:ssa
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

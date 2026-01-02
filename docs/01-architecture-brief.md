@@ -1,5 +1,7 @@
 # Arkkitehtuurimalli: Multi-tenant SaaS (MVP → v2)
 
+Päivitetty: 2026-01-02
+
 ## 1) Tavoite
 Rakennetaan multi-tenant SaaS, jossa on:
 - **Tenant-eristys** (`tenant_id` kaikessa domain-datassa)
@@ -9,10 +11,10 @@ Rakennetaan multi-tenant SaaS, jossa on:
 - **Audit-log** kriittisille muutoksille
 
 ## 2) Päätökset (high-level)
-- **ADR-001 Hybridi data-malli**: Core = normalisoitu, “epävarma/muuttuva” = JSONB.
-- **ADR-002 Tenant_id kaikkialle**: kaikki domain-taulut sisältävät `tenant_id`.
-- **ADR-003 RBAC + aikarajat**: roolit voidaan myöntää määräajaksi.
-- **ADR-004 Audit-log**: jäljitettävyys vähintään create/update/delete + roolimuutokset.
+- **ADR-001: Hybridi data-malli (normalisoitu + JSONB)**: Core = normalisoitu, “epävarma/muuttuva” = JSONB.
+- **ADR-002: Tenant-eristys tenant_id:llä kaikessa domain-datassa**: kaikki domain-taulut sisältävät `tenant_id`.
+- **ADR-003: RBAC + aikarajatut roolit (valid_from/to)**: roolit voidaan myöntää määräajaksi.
+- **ADR-004: Audit-log kriittisille muutoksille**: jäljitettävyys vähintään create/update/delete + roolimuutokset.
 
 Katso tarkemmat perustelut: `docs/adr/`.
 
@@ -110,3 +112,15 @@ Katso yksityiskohtainen checklist: `docs/06-migration-jsonb-to-normalized.md`.
 - Laaja BI/analytiikka
 - Monimutkaiset workflowt ja automaatiot
 - Täysi event sourcing / CQRS (voi tulla myöhemmin, jos tarve)
+
+## Mitä muuttui
+- Päivitetty ADR-viitteiden otsikointi yhtenäiseksi.
+- Lisätty päivityspäivämäärä dokumenttiin.
+
+## Miksi
+- Viitteiden tulee vastata ADR-otsikoita.
+- Päiväys helpottaa päätösten ja dokumentaation synkkausta.
+
+## Miten testataan (manuaali)
+- Tarkista, että ADR-viitteet vastaavat `docs/adr/`-otsikoita.
+- Varmista, että päiväys on linjassa päätöslokin kanssa.

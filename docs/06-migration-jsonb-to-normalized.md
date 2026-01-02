@@ -48,3 +48,12 @@ where start_date is null
 - [ ] Sovellus kirjoittaa uuteen kenttään
 - [ ] Mahdollinen dual-write poistettu myöhemmin
 - [ ] JSONB-avain poistettu tai jätetty sovitusti
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

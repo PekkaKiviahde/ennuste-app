@@ -1,6 +1,6 @@
 # Mapping-speksi: työlitterat → tavoitearvio-littera (MVP)
 
-Päivitetty: 2025-12-16
+Päivitetty: 2026-01-02
 
 ## 0. Miksi tämä on olemassa?
 
@@ -273,3 +273,11 @@ Nämä 3 asiaa pitää päättää toteutuksessa, mutta ei estä speksin käytt�
 2) Sallitanko ennusteen tallennus, jos coverage < raja, poikkeusperustelulla?
 3) Retroaktiivisen mapping-muutoksen hyväksyntä: tarvitaanko hyväksyjä vai riittääkö pakollinen perustelu?
 
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

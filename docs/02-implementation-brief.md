@@ -86,3 +86,12 @@ Audit data -suositus:
 Kun JSONB-avainta käytetään usein suodatukseen/raportointiin:
 - nosta se sarakkeeksi/tauluksi hallitulla migraatiolla
 - katso tarkka vaiheistus: `docs/06-migration-jsonb-to-normalized.md`
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

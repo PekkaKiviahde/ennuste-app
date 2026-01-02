@@ -70,3 +70,12 @@ where m.user_id = :user_id
 Kirjaa aina roolimuutokset:
 - `rbac.role_assigned`
 - `rbac.role_revoked`
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

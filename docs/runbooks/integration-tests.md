@@ -1,6 +1,6 @@
 # Integration tests (MVP) – Ennustus
 
-Päivitetty: 2025-12-31
+Päivitetty: 2026-01-02
 
 Tama runbook kuvaa integraatiotestaus-skenaariot, joilla varmistetaan
 MVP-tyonkulkujen yhtenevyys (UI + API + DB).
@@ -65,11 +65,14 @@ Odotus:
 
 ---
 
-## Mita muuttui
-+- Lisatty MVP-integraatiotestaus-skenaariot.
-+
-+## Miksi
-+- Integraatiotestit varmistavat, ettei tyonkulku hajoa eri tasojen valissa.
-+
-+## Miten testataan (manuaali)
-+- Aja kaikki skenaariot ja varmista odotetut tulokset.
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisatty MVP-integraatiotestaus-skenaariot.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Integraatiotestit varmistavat, ettei tyonkulku hajoa eri tasojen valissa.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Aja kaikki skenaariot ja varmista odotetut tulokset.

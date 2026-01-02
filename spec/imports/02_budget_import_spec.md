@@ -1,6 +1,6 @@
 # Tavoitearvion (budget) import-speksi (MVP)
 
-Päivitetty: 2025-12-17
+Päivitetty: 2026-01-02
 
 ## 0. Miksi tämä import tarvitaan?
 
@@ -138,3 +138,12 @@ Virheilmoitukset:
 
 ## Miten testataan (manuaali)
 - Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

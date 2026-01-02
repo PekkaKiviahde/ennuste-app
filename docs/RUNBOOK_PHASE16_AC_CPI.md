@@ -81,3 +81,12 @@ Kun AC/CPI toimii, seuraava iso palikka on:
 - item-level “oli tavoitearviossa” tarkistus (`budget_items`) myös korjauspolussa
 - sekä UI/API toimintojen lukitus (kuka saa tehdä mitä)
 
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

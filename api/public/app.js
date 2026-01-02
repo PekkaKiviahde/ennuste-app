@@ -8,6 +8,7 @@ const projectSelects = {
   mapping: document.getElementById("mapping-project"),
   report: document.getElementById("report-project"),
   history: document.getElementById("history-project"),
+  adminProjectRole: document.getElementById("admin-project-role-project"),
 };
 const tenantSelects = {
   tenant: document.getElementById("tenant-select"),
@@ -35,6 +36,7 @@ const litteraSelects = {
 
 const historyOutput = document.getElementById("history-output");
 const reportOutput = document.getElementById("report-output");
+const projectMeta = document.getElementById("project-meta");
 const mappingVersionSelect = document.getElementById("mapping-version");
 const mappingVersionActivateSelect = document.getElementById("mapping-version-activate");
 const mappingCorrectionVersionSelect = document.getElementById("mapping-correction-version");
@@ -45,6 +47,16 @@ const mappingCorrectionValue = document.getElementById("mapping-correction-alloc
 const mappingCorrectionNote = document.getElementById("mapping-correction-note");
 const mappingCorrectionResult = document.getElementById("mapping-correction-result");
 const demoSeedResult = document.getElementById("demo-seed-result");
+const adminUserForm = document.getElementById("admin-user-form");
+const adminUserResult = document.getElementById("admin-user-result");
+const adminOrgRoleForm = document.getElementById("admin-org-role-form");
+const adminOrgRoleResult = document.getElementById("admin-org-role-result");
+const adminProjectRoleForm = document.getElementById("admin-project-role-form");
+const adminProjectRoleResult = document.getElementById("admin-project-role-result");
+const adminOrgUserSelect = document.getElementById("admin-org-user");
+const adminOrgRoleSelect = document.getElementById("admin-org-role");
+const adminProjectUserSelect = document.getElementById("admin-project-user");
+const adminProjectRoleSelect = document.getElementById("admin-project-role");
 const planningAttachmentTitle = document.getElementById("planning-attachment-title");
 const planningAttachmentUrl = document.getElementById("planning-attachment-url");
 const planningAttachmentAdd = document.getElementById("planning-attachment-add");
@@ -70,6 +82,10 @@ const jydaPreviewNote = document.getElementById("jyda-preview-note");
 const jydaPreviewTable = document.getElementById("jyda-preview-table");
 const jydaValidation = document.getElementById("jyda-validation");
 const jydaFileInput = document.getElementById("jyda-file");
+const assistantLog = document.getElementById("assistant-log");
+const assistantInput = document.getElementById("assistant-input");
+const assistantSend = document.getElementById("assistant-send");
+const assistantClear = document.getElementById("assistant-clear");
 const jydaMetricChecks = {
   committed: document.getElementById("metric-committed"),
   actual: document.getElementById("metric-actual"),
@@ -97,9 +113,22 @@ const jydaMappingSelects = {
 };
 const systemRoleSelect = document.getElementById("system-role-select");
 const projectRoleSelect = document.getElementById("project-role-select");
+const loginPanel = document.getElementById("login-panel");
+const loginInfo = document.getElementById("login-info");
+const loginInfoTop = document.getElementById("login-info-top");
+const loginUserSelect = document.getElementById("login-user");
+const loginPinInput = document.getElementById("login-pin");
+const loginPinToggle = document.getElementById("login-pin-toggle");
+const loginSubmit = document.getElementById("login-submit");
+const loginStatus = document.getElementById("login-status");
+const loginUserDisplay = document.getElementById("login-user-display");
+const loginUserDisplayTop = document.getElementById("login-user-display-top");
+const logoutButton = document.getElementById("logout");
+const logoutButtonTop = document.getElementById("logout-top");
+const appContent = document.getElementById("app-content");
 const ROLE_RANK = { viewer: 1, editor: 2, manager: 3, owner: 4 };
 let knownProjectIds = [];
-const pages = ["setup", "mapping", "planning", "weekly", "forecast", "report", "history"];
+const pages = ["setup", "sales", "mapping", "planning", "weekly", "forecast", "report", "history"];
 const tabHint = document.getElementById("tab-hint");
 const quickActions = document.querySelector(".quick-actions");
 let budgetCsvData = null;
@@ -114,14 +143,26 @@ let litteraById = new Map();
 let planningAttachments = [];
 let ghostEntries = [];
 let tenants = [];
+let projectsById = new Map();
+let assistantMessages = [];
 
 async function fetchJson(url, options = {}) {
+  const token = getToken();
+  const headers = { "Content-Type": "application/json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   const res = await fetch(url, {
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+    headers,
+    credentials: "include",
     ...options,
   });
-  const payload = await res.json();
+  const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      resetAuthState();
+      setAuthUi(false);
+    }
     throw new Error(payload.error || "Virhe");
   }
   return payload;
@@ -464,11 +505,76 @@ function updateJydaValidationSummary(headers, rows) {
     warnings.length === 0 ? `Rivejä yhteensä: ${total}.` : `Rivejä: ${total}. ${warnings.join(" · ")}`;
 }
 
+function captureTokenFromUrl() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  if (!token) {
+    return;
+  }
+  localStorage.setItem("authToken", token);
+  params.delete("token");
+  const query = params.toString();
+  const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  window.history.replaceState({}, "", next);
+}
+
+function storedAuthToken() {
+  captureTokenFromUrl();
+  const stored = localStorage.getItem("authToken");
+  if (stored) {
+    return stored;
+  }
+  if (typeof document !== "undefined") {
+    const match = document.cookie.match(/(?:^|;\s*)authToken=([^;]+)/);
+    if (match) {
+      const token = decodeURIComponent(match[1]);
+      localStorage.setItem("authToken", token);
+      return token;
+    }
+  }
+  return "";
+}
+
+function clearAuthToken() {
+  localStorage.removeItem("authToken");
+}
+
+function resetAuthState() {
+  clearAuthToken();
+  localStorage.removeItem("authState");
+  document.cookie = "authToken=; Path=/; Max-Age=0; SameSite=Lax";
+}
+
+function parseToken(token) {
+  if (!token) {
+    return null;
+  }
+  try {
+    return JSON.parse(atob(token));
+  } catch (_) {
+    return null;
+  }
+}
+
 function authState() {
+  const token = storedAuthToken();
+  const parsed = parseToken(token);
+  if (parsed) {
+    return {
+      userId: parsed.userId,
+      systemRole: parsed.systemRole || "",
+      projectRole: "viewer",
+      projectRoles: parsed.projectRoles || {},
+      authenticated: true,
+    };
+  }
   const stored = localStorage.getItem("authState");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      return { ...JSON.parse(stored), authenticated: false };
     } catch (_) {
       localStorage.removeItem("authState");
     }
@@ -478,6 +584,7 @@ function authState() {
     systemRole: "",
     projectRole: "viewer",
     projectRoles: {},
+    authenticated: false,
   };
   localStorage.setItem("authState", JSON.stringify(state));
   return state;
@@ -488,6 +595,10 @@ function saveAuthState(state) {
 }
 
 function getToken() {
+  const token = storedAuthToken();
+  if (token) {
+    return token;
+  }
   const state = authState();
   const payload = {
     userId: state.userId,
@@ -495,6 +606,45 @@ function getToken() {
     projectRoles: state.projectRoles || {},
   };
   return btoa(JSON.stringify(payload));
+}
+
+function setAuthUi(isLoggedIn, displayName = "") {
+  if (appContent) {
+    appContent.classList.toggle("requires-auth", !isLoggedIn);
+  }
+  if (loginPanel) {
+    loginPanel.classList.toggle("hidden", isLoggedIn);
+  }
+  if (loginInfo) {
+    loginInfo.classList.toggle("hidden", !isLoggedIn);
+  }
+  if (loginInfoTop) {
+    loginInfoTop.classList.toggle("hidden", !isLoggedIn);
+  }
+  if (loginUserDisplay) {
+    loginUserDisplay.textContent = displayName;
+  }
+  if (loginUserDisplayTop) {
+    loginUserDisplayTop.textContent = displayName;
+  }
+  const demoRoleButton = document.querySelector("[data-action='role-admin-owner']");
+  if (demoRoleButton) {
+    demoRoleButton.classList.toggle("hidden", isLoggedIn);
+  }
+}
+
+function isLoginPage() {
+  return window.location.pathname === "/login";
+}
+
+function redirectIfNeeded(isLoggedIn) {
+  if (!isLoggedIn && !isLoginPage()) {
+    window.location.href = "/login";
+    return;
+  }
+  if (isLoggedIn && isLoginPage()) {
+    window.location.href = "/";
+  }
 }
 
 function canSystem(role, required) {
@@ -517,6 +667,12 @@ function canProject(role, required) {
   return ROLE_RANK[role] >= ROLE_RANK[required];
 }
 
+function hasAnyProjectRole(required) {
+  const state = authState();
+  const roles = Object.values(state.projectRoles || {});
+  return roles.some((role) => canProject(role, required));
+}
+
 function selectedProjectId() {
   return (
     projectSelects.report.value ||
@@ -536,27 +692,41 @@ function applyRoleUi() {
   const state = authState();
   document.querySelectorAll("[data-guard]").forEach((el) => {
     const guard = el.dataset.guard;
+    const hideWhenDenied = el.dataset.hideWhenDenied === "true";
     let allowed = false;
+    let canEnable = false;
     if (guard.startsWith("system:")) {
       const required = guard.split(":")[1];
       allowed = canSystem(state.systemRole, required);
+      canEnable = allowed;
     } else if (guard.startsWith("project:")) {
       const required = guard.split(":")[1];
       const selectedProject = selectedProjectId();
       if (state.systemRole === "admin" || state.systemRole === "superadmin") {
         allowed = true;
+        canEnable = Boolean(selectedProject);
       } else if (selectedProject && state.projectRoles?.[selectedProject]) {
         allowed = canProject(state.projectRoles[selectedProject], required);
+        canEnable = allowed;
+      } else if (!selectedProject) {
+        allowed = hasAnyProjectRole(required);
+        canEnable = false;
       }
     }
 
     if (allowed) {
       el.classList.remove("disabled");
+      if (hideWhenDenied) {
+        el.classList.remove("hidden");
+      }
       el.querySelectorAll("input, select, textarea, button").forEach((item) => {
-        item.disabled = false;
+        item.disabled = !canEnable;
       });
     } else {
       el.classList.add("disabled");
+      if (hideWhenDenied) {
+        el.classList.add("hidden");
+      }
       el.querySelectorAll("input, select, textarea, button").forEach((item) => {
         item.disabled = true;
       });
@@ -572,8 +742,57 @@ function pageFromPath() {
   return "setup";
 }
 
+function renderProjectMeta(projectId) {
+  if (!projectMeta) {
+    return;
+  }
+  if (!projectId) {
+    projectMeta.textContent = "Valitse projekti nähdäksesi perustiedot.";
+    return;
+  }
+  const project = projectsById.get(projectId);
+  if (!project) {
+    projectMeta.textContent = "Projektin tiedot puuttuvat.";
+    return;
+  }
+  const details = project.project_details || {};
+  const rows = [
+    `<strong>${project.name}</strong>`,
+    project.customer ? `Asiakas: ${project.customer}` : null,
+    project.project_state ? `Tila: ${project.project_state}` : null,
+    details.address ? `Osoite: ${details.address}` : null,
+    details.startDate ? `Alku: ${details.startDate}` : null,
+    details.endDate ? `Loppu: ${details.endDate}` : null,
+    details.managerName ? `Vastuuhenkilö: ${details.managerName}` : null,
+    details.managerEmail ? `Email: ${details.managerEmail}` : null,
+  ].filter(Boolean);
+  projectMeta.innerHTML = rows.join("<br />");
+}
+
+function renderAssistant() {
+  if (!assistantLog) {
+    return;
+  }
+  assistantLog.innerHTML = "";
+  if (assistantMessages.length === 0) {
+    assistantLog.textContent = "Ei viestejä vielä.";
+    return;
+  }
+  assistantMessages.forEach((msg) => {
+    const div = document.createElement("div");
+    div.className = `assistant-message ${msg.role}`;
+    div.textContent = msg.text;
+    assistantLog.appendChild(div);
+  });
+}
+
+function addAssistantMessage(role, text) {
+  assistantMessages = [...assistantMessages, { role, text }];
+  renderAssistant();
+}
+
 function pageGuard(page) {
-  if (page === "setup") {
+  if (page === "setup" || page === "sales") {
     return { ok: true };
   }
   const projectId = selectedProjectId();
@@ -618,6 +837,7 @@ function setActivePage(page, push = true) {
 async function loadProjects() {
   const projects = await fetchJson("/api/projects");
   knownProjectIds = projects.map((p) => p.project_id);
+  projectsById = new Map(projects.map((p) => [p.project_id, p]));
   const entries = projects.map((p) => ({
     label: `${p.name} ${p.customer ? `(${p.customer})` : ""}`.trim(),
     value: p.project_id,
@@ -633,13 +853,16 @@ async function loadProjects() {
   });
 
   const state = authState();
-  knownProjectIds.forEach((id) => {
-    if (!state.projectRoles[id]) {
-      state.projectRoles[id] = state.projectRole || "viewer";
-    }
-  });
-  saveAuthState(state);
+  if (!state.authenticated) {
+    knownProjectIds.forEach((id) => {
+      if (!state.projectRoles[id]) {
+        state.projectRoles[id] = state.projectRole || "viewer";
+      }
+    });
+    saveAuthState(state);
+  }
   applyRoleUi();
+  renderProjectMeta(projectSelects.report?.value || "");
 }
 
 async function loadTenants() {
@@ -687,6 +910,112 @@ async function loadTenantProjects(tenantId) {
     select.appendChild(option("Valitse projekti", ""));
     options.forEach((opt) => select.appendChild(option(opt.label, opt.value)));
   });
+}
+
+async function loadAdminUsers() {
+  if (!adminOrgUserSelect && !adminProjectUserSelect) {
+    return;
+  }
+  const response = await fetchJson("/api/admin/users");
+  const entries = response.users || [];
+  const fill = (select) => {
+    if (!select) {
+      return;
+    }
+    select.innerHTML = "";
+    select.appendChild(option("Valitse käyttäjä", ""));
+    entries.forEach((user) => {
+      const label = user.display_name
+        ? `${user.display_name} (${user.username})`
+        : user.username;
+      select.appendChild(option(label, user.user_id));
+    });
+  };
+  fill(adminOrgUserSelect);
+  fill(adminProjectUserSelect);
+}
+
+async function loadLoginUsers() {
+  if (!loginUserSelect) {
+    return;
+  }
+  try {
+    const response = await fetchJson("/api/users");
+    loginUserSelect.innerHTML = "";
+    loginUserSelect.appendChild(option("Valitse käyttäjä", ""));
+    response.users.forEach((user) => {
+      const label = user.display_name
+        ? `${user.display_name} (${user.username})`
+        : user.username;
+      loginUserSelect.appendChild(option(label, user.username));
+    });
+  } catch (err) {
+    if (loginStatus) {
+      setHint(loginStatus, err.message, true);
+    }
+  }
+}
+
+async function finalizeLogin() {
+  const me = await fetchJson("/api/me");
+  const name = me.user.display_name || me.user.username;
+  setAuthUi(true, name);
+  applyRoleUi();
+  if (loginStatus) {
+    loginStatus.textContent = "";
+  }
+  try {
+    await loadProjects();
+  } catch (_) {
+    // Project list is optional for the initial auth check.
+  }
+  try {
+    await loadTenants();
+  } catch (_) {
+    // Tenants are optional for non-admin roles.
+  }
+  try {
+    await loadAdminUsers();
+  } catch (_) {
+    // Admin-only data, ignore for others.
+  }
+  redirectIfNeeded(true);
+}
+
+async function handleLoginSubmit() {
+  if (!loginUserSelect || !loginPinInput) {
+    return;
+  }
+  const username = loginUserSelect.value;
+  const pin = loginPinInput.value.trim();
+  if (!username) {
+    if (loginStatus) {
+      setHint(loginStatus, "Valitse käyttäjä.", true);
+    }
+    return;
+  }
+  if (!pin) {
+    if (loginStatus) {
+      setHint(loginStatus, "Syötä PIN.", true);
+    }
+    return;
+  }
+  if (loginStatus) {
+    setHint(loginStatus, "Kirjaudutaan...");
+  }
+  try {
+    const response = await fetchJson("/api/login", {
+      method: "POST",
+      body: JSON.stringify({ username, pin }),
+    });
+    localStorage.setItem("authToken", response.token);
+    loginPinInput.value = "";
+    await finalizeLogin();
+  } catch (err) {
+    if (loginStatus) {
+      setHint(loginStatus, err.message, true);
+    }
+  }
 }
 
 async function loadWorkPhases(projectId) {
@@ -907,52 +1236,58 @@ async function refreshHistory() {
     });
 }
 
-projectSelects.project.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-  applyRoleUi();
-});
+if (projectSelects.project) {
+  projectSelects.project.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+    applyRoleUi();
+  });
+}
 
-projectSelects.budget.addEventListener("change", async () => {
-  applyRoleUi();
-  await loadBudgetJobs(projectSelects.budget.value);
-  const projectId = projectSelects.budget.value;
-  savedBudgetMapping = null;
-  if (projectId) {
-    try {
-      const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=BUDGET`);
-      if (mapping && mapping.mapping) {
-        savedBudgetMapping = mapping.mapping;
-        if (budgetCsvData) {
-          fillMappingOptions(budgetCsvData.headers);
-          updateValidationSummary(budgetCsvData.headers, budgetCsvData.rows);
+if (projectSelects.budget) {
+  projectSelects.budget.addEventListener("change", async () => {
+    applyRoleUi();
+    await loadBudgetJobs(projectSelects.budget.value);
+    const projectId = projectSelects.budget.value;
+    savedBudgetMapping = null;
+    if (projectId) {
+      try {
+        const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=BUDGET`);
+        if (mapping && mapping.mapping) {
+          savedBudgetMapping = mapping.mapping;
+          if (budgetCsvData) {
+            fillMappingOptions(budgetCsvData.headers);
+            updateValidationSummary(budgetCsvData.headers, budgetCsvData.rows);
+          }
         }
+      } catch (_) {
+        // ignore mapping fetch errors
       }
-    } catch (_) {
-      // ignore mapping fetch errors
     }
-  }
-});
+  });
+}
 
-projectSelects.jyda.addEventListener("change", async () => {
-  applyRoleUi();
-  await loadBudgetJobs(projectSelects.jyda.value);
-  const projectId = projectSelects.jyda.value;
-  savedJydaMapping = null;
-  if (projectId) {
-    try {
-      const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=JYDA`);
-      if (mapping && mapping.mapping) {
-        savedJydaMapping = mapping.mapping;
-        if (jydaCsvData) {
-          fillJydaMappingOptions(jydaCsvData.headers);
-          updateJydaValidationSummary(jydaCsvData.headers, jydaCsvData.rows);
+if (projectSelects.jyda) {
+  projectSelects.jyda.addEventListener("change", async () => {
+    applyRoleUi();
+    await loadBudgetJobs(projectSelects.jyda.value);
+    const projectId = projectSelects.jyda.value;
+    savedJydaMapping = null;
+    if (projectId) {
+      try {
+        const mapping = await fetchJson(`/api/import-mappings?projectId=${projectId}&type=JYDA`);
+        if (mapping && mapping.mapping) {
+          savedJydaMapping = mapping.mapping;
+          if (jydaCsvData) {
+            fillJydaMappingOptions(jydaCsvData.headers);
+            updateJydaValidationSummary(jydaCsvData.headers, jydaCsvData.rows);
+          }
         }
+      } catch (_) {
+        // ignore mapping fetch errors
       }
-    } catch (_) {
-      // ignore mapping fetch errors
     }
-  }
-});
+  });
+}
 
 const importFilterType = document.getElementById("import-filter-type");
 const importFilterQuery = document.getElementById("import-filter-query");
@@ -967,26 +1302,34 @@ if (importFilterQuery) {
   });
 }
 
-projectSelects.planning.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-});
+if (projectSelects.planning) {
+  projectSelects.planning.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+  });
+}
 
-projectSelects.weekly.addEventListener("change", async (e) => {
-  await loadWorkPhases(e.target.value);
-  await loadLitteras(e.target.value);
-  applyRoleUi();
-});
+if (projectSelects.weekly) {
+  projectSelects.weekly.addEventListener("change", async (e) => {
+    await loadWorkPhases(e.target.value);
+    await loadLitteras(e.target.value);
+    applyRoleUi();
+  });
+}
 
-projectSelects.forecast.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-});
+if (projectSelects.forecast) {
+  projectSelects.forecast.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+  });
+}
 
-projectSelects.mapping.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-  await loadMappingVersions(e.target.value);
-  await loadMappingLinesForCorrection(e.target.value, mappingCorrectionVersionSelect.value);
-  applyRoleUi();
-});
+if (projectSelects.mapping) {
+  projectSelects.mapping.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+    await loadMappingVersions(e.target.value);
+    await loadMappingLinesForCorrection(e.target.value, mappingCorrectionVersionSelect.value);
+    applyRoleUi();
+  });
+}
 
 if (mappingCorrectionVersionSelect) {
   mappingCorrectionVersionSelect.addEventListener("change", async (e) => {
@@ -1038,15 +1381,20 @@ if (weeklyRefresh) {
   });
 }
 
-projectSelects.report.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-  applyRoleUi();
-});
+if (projectSelects.report) {
+  projectSelects.report.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+    renderProjectMeta(e.target.value);
+    applyRoleUi();
+  });
+}
 
-projectSelects.history.addEventListener("change", async (e) => {
-  await loadLitteras(e.target.value);
-  applyRoleUi();
-});
+if (projectSelects.history) {
+  projectSelects.history.addEventListener("change", async (e) => {
+    await loadLitteras(e.target.value);
+    applyRoleUi();
+  });
+}
 
 Object.values(tenantSelects).forEach((select) => {
   if (!select) {
@@ -1307,6 +1655,8 @@ if (projectDetailsForm) {
       updatedBy: form.get("updatedBy"),
       details: {
         address: form.get("address"),
+        managerName: form.get("managerName"),
+        managerEmail: form.get("managerEmail"),
         startDate: form.get("startDate"),
         endDate: form.get("endDate"),
       },
@@ -1342,6 +1692,111 @@ if (onboardingCompleteForm) {
     } catch (err) {
       setHint(result, err.message, true);
     }
+  });
+}
+
+if (adminUserForm) {
+  adminUserForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(adminUserForm);
+    const payload = Object.fromEntries(form.entries());
+    try {
+      await fetchJson("/api/admin/users", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(adminUserResult, "Käyttäjä lisätty.");
+      adminUserForm.reset();
+      await loadAdminUsers();
+    } catch (err) {
+      setHint(adminUserResult, err.message, true);
+    }
+  });
+}
+
+if (adminOrgRoleForm) {
+  adminOrgRoleForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(adminOrgRoleForm);
+    const userId = form.get("userId");
+    const roleCode = form.get("roleCode");
+    try {
+      await fetchJson(`/api/admin/users/${userId}/org-role`, {
+        method: "POST",
+        body: JSON.stringify({ roleCode }),
+      });
+      setHint(adminOrgRoleResult, "Org-rooli asetettu.");
+      adminOrgRoleForm.reset();
+      await loadAdminUsers();
+    } catch (err) {
+      setHint(adminOrgRoleResult, err.message, true);
+    }
+  });
+}
+
+if (adminProjectRoleForm) {
+  adminProjectRoleForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = new FormData(adminProjectRoleForm);
+    const payload = {
+      userId: form.get("userId"),
+      projectId: form.get("projectId"),
+      roleCode: form.get("roleCode"),
+    };
+    try {
+      await fetchJson(`/api/admin/users/${payload.userId}/project-roles`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setHint(adminProjectRoleResult, "Projektin rooli asetettu.");
+      adminProjectRoleForm.reset();
+      await loadAdminUsers();
+    } catch (err) {
+      setHint(adminProjectRoleResult, err.message, true);
+    }
+  });
+}
+
+if (assistantSend && assistantInput) {
+  assistantSend.addEventListener("click", () => {
+    const text = assistantInput.value.trim();
+    if (!text) {
+      return;
+    }
+    addAssistantMessage("user", text);
+    assistantInput.value = "";
+    const payload = {
+      messages: assistantMessages.map((msg) => ({
+        role: msg.role,
+        content: msg.text,
+      })),
+    };
+    fetchJson("/api/assistant/chat", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        addAssistantMessage("assistant", res.message || "Ei vastausta.");
+      })
+      .catch((err) => {
+        addAssistantMessage("assistant", `Virhe: ${err.message}`);
+      });
+  });
+}
+
+if (assistantInput) {
+  assistantInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      assistantSend?.click();
+    }
+  });
+}
+
+if (assistantClear) {
+  assistantClear.addEventListener("click", () => {
+    assistantMessages = [];
+    renderAssistant();
   });
 }
 
@@ -2038,57 +2493,77 @@ forecastForm.addEventListener("submit", async (e) => {
   }
 });
 
-document.getElementById("report-refresh").addEventListener("click", (e) => {
-  e.preventDefault();
-  const projectId = projectSelects.report.value;
-  const litteraId = litteraSelects.report.value;
-  if (!projectId || !litteraId) {
-    reportOutput.textContent = "Valitse projekti ja tavoitearvio-littera.";
-    return;
-  }
+const reportRefresh = document.getElementById("report-refresh");
+if (reportRefresh) {
+  reportRefresh.addEventListener("click", (e) => {
+    e.preventDefault();
+    const projectId = projectSelects.report.value;
+    const litteraId = litteraSelects.report.value;
+    if (!projectId || !litteraId) {
+      reportOutput.textContent = "Valitse projekti ja tavoitearvio-littera.";
+      return;
+    }
 
-  fetchJson(`/api/report/target-summary?projectId=${projectId}&targetLitteraId=${litteraId}`)
-    .then((data) => {
-      const lines = [];
-      if (data.planning) {
-        lines.push(`<strong>Työtavoite:</strong> ${data.planning.status || ""}`);
-      }
-      if (data.forecast) {
-        lines.push(`<strong>Ennuste:</strong> ${data.forecast.event_time || ""}`);
-      }
-      if (data.totals) {
-        const formatRows = (title, items) => {
-          if (!items || items.length === 0) {
-            return `<div>${title}: (ei rivejä)</div>`;
-          }
-          const rows = items
-            .map((row) => `<div>${row.cost_type}: ${row.total}</div>`)
-            .join("");
-          return `<div><strong>${title}</strong>${rows}</div>`;
-        };
-        lines.push(formatRows("Tavoite (budget)", data.totals.budget));
-        lines.push(formatRows("Toteuma (mapped)", data.totals.actual));
-        lines.push(formatRows("Ennuste", data.totals.forecast));
-      }
-      reportOutput.innerHTML = lines.join("");
-    })
-    .catch((err) => {
-      reportOutput.textContent = err.message;
+    fetchJson(`/api/report/target-summary?projectId=${projectId}&targetLitteraId=${litteraId}`)
+      .then((data) => {
+        const lines = [];
+        if (data.planning) {
+          lines.push(`<strong>Työtavoite:</strong> ${data.planning.status || ""}`);
+        }
+        if (data.forecast) {
+          lines.push(`<strong>Ennuste:</strong> ${data.forecast.event_time || ""}`);
+        }
+        if (data.totals) {
+          const formatRows = (title, items) => {
+            if (!items || items.length === 0) {
+              return `<div>${title}: (ei rivejä)</div>`;
+            }
+            const rows = items
+              .map((row) => `<div>${row.cost_type}: ${row.total}</div>`)
+              .join("");
+            return `<div><strong>${title}</strong>${rows}</div>`;
+          };
+          lines.push(formatRows("Tavoite (budget)", data.totals.budget));
+          lines.push(formatRows("Toteuma (mapped)", data.totals.actual));
+          lines.push(formatRows("Ennuste", data.totals.forecast));
+        }
+        reportOutput.innerHTML = lines.join("");
+      })
+      .catch((err) => {
+        reportOutput.textContent = err.message;
+      });
+  });
+}
+
+const historyRefresh = document.getElementById("history-refresh");
+if (historyRefresh) {
+  historyRefresh.addEventListener("click", (e) => {
+    e.preventDefault();
+    refreshHistory().catch((err) => {
+      historyOutput.textContent = err.message;
     });
-});
-
-document.getElementById("history-refresh").addEventListener("click", (e) => {
-  e.preventDefault();
-  refreshHistory().catch((err) => {
-    historyOutput.textContent = err.message;
   });
-});
+}
 
-loadProjects()
-  .then(loadTenants)
-  .catch((err) => {
+async function initAuth() {
+  setAuthUi(false);
+  await loadLoginUsers();
+  try {
+    await finalizeLogin();
+    return;
+  } catch (err) {
+    resetAuthState();
+  }
+  setAuthUi(false);
+  redirectIfNeeded(false);
+}
+
+renderAssistant();
+initAuth().catch((err) => {
+  if (historyOutput) {
     historyOutput.textContent = err.message;
-  });
+  }
+});
 
 async function seedDemoData() {
   setHint(demoSeedResult, "Luodaan esimerkkidata...");
@@ -2108,8 +2583,10 @@ async function seedDemoData() {
   });
 
   const projectId = project.project_id;
-  state.projectRoles[projectId] = state.projectRole;
-  saveAuthState(state);
+  if (!state.authenticated) {
+    state.projectRoles[projectId] = state.projectRole;
+    saveAuthState(state);
+  }
 
   const target = await fetchJson("/api/litteras", {
     method: "POST",
@@ -2202,11 +2679,48 @@ async function seedDemoData() {
   document.getElementById("report-section")?.scrollIntoView({ behavior: "smooth" });
 }
 
-document.getElementById("demo-seed").addEventListener("click", () => {
-  seedDemoData().catch((err) => {
-    setHint(demoSeedResult, err.message, true);
+const demoSeedButton = document.getElementById("demo-seed");
+if (demoSeedButton) {
+  demoSeedButton.addEventListener("click", () => {
+    seedDemoData().catch((err) => {
+      setHint(demoSeedResult, err.message, true);
+    });
   });
-});
+}
+
+if (loginSubmit) {
+  loginSubmit.addEventListener("click", handleLoginSubmit);
+}
+
+if (loginPinInput) {
+  loginPinInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleLoginSubmit();
+    }
+  });
+}
+
+if (loginPinToggle && loginPinInput) {
+  loginPinToggle.addEventListener("change", (event) => {
+    loginPinInput.type = event.target.checked ? "text" : "password";
+  });
+}
+
+const performLogout = () => {
+  fetchJson("/api/logout", { method: "POST" }).catch(() => {});
+  resetAuthState();
+  setAuthUi(false);
+  applyRoleUi();
+  window.location.href = "/login";
+};
+
+if (logoutButton) {
+  logoutButton.addEventListener("click", performLogout);
+}
+if (logoutButtonTop) {
+  logoutButtonTop.addEventListener("click", performLogout);
+}
 
 if (quickActions) {
   quickActions.addEventListener("click", (event) => {
@@ -2233,6 +2747,11 @@ if (quickActions) {
       return;
     }
     if (action === "role-admin-owner") {
+      const current = authState();
+      if (current.authenticated) {
+        setHint(demoSeedResult, "Kirjautuneena rooleja ei voi muokata.");
+        return;
+      }
       const next = authState();
       next.systemRole = "admin";
       next.projectRole = "owner";
@@ -2240,8 +2759,10 @@ if (quickActions) {
         next.projectRoles[id] = "owner";
       });
       saveAuthState(next);
-      systemRoleSelect.value = "admin";
-      projectRoleSelect.value = "owner";
+      if (systemRoleSelect && projectRoleSelect) {
+        systemRoleSelect.value = "admin";
+        projectRoleSelect.value = "owner";
+      }
       applyRoleUi();
       setHint(demoSeedResult, "Roolit asetettu: admin + owner.");
     }
@@ -2249,29 +2770,33 @@ if (quickActions) {
 }
 
 const state = authState();
-systemRoleSelect.value = state.systemRole || "";
-projectRoleSelect.value = state.projectRole || "viewer";
-applyRoleUi();
-
-systemRoleSelect.addEventListener("change", (e) => {
-  const next = authState();
-  next.systemRole = e.target.value;
-  saveAuthState(next);
+if (systemRoleSelect && projectRoleSelect) {
+  systemRoleSelect.value = state.systemRole || "";
+  projectRoleSelect.value = state.projectRole || "viewer";
   applyRoleUi();
-  loadProjects().catch((err) => {
-    setHint(demoSeedResult, err.message, true);
-  });
-});
 
-projectRoleSelect.addEventListener("change", (e) => {
-  const next = authState();
-  next.projectRole = e.target.value;
-  knownProjectIds.forEach((id) => {
-    next.projectRoles[id] = e.target.value;
+  systemRoleSelect.addEventListener("change", (e) => {
+    const next = authState();
+    next.systemRole = e.target.value;
+    saveAuthState(next);
+    applyRoleUi();
+    loadProjects().catch((err) => {
+      setHint(demoSeedResult, err.message, true);
+    });
   });
-  saveAuthState(next);
+
+  projectRoleSelect.addEventListener("change", (e) => {
+    const next = authState();
+    next.projectRole = e.target.value;
+    knownProjectIds.forEach((id) => {
+      next.projectRoles[id] = e.target.value;
+    });
+    saveAuthState(next);
+    applyRoleUi();
+  });
+} else {
   applyRoleUi();
-});
+}
 
 document.querySelectorAll("#tab-nav a").forEach((link) => {
   link.addEventListener("click", (e) => {

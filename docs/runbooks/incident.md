@@ -1,6 +1,6 @@
 # RUNBOOK – Incident (SEV1–SEV3) – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tässä runbookissa incidentit hoidetaan **ulkoisessa tikettijärjestelmässä** (Jira/Zendesk tms.), ja sovelluksessa käytetään **häiriöbanneria** (in-app banner) asiakasviestintään.  
 **Hotfix-kaista** on sallittu, mutta aina **Staging + DB backup + migrations/verify** -portilla.
@@ -366,3 +366,15 @@ S1 --> M0 --> M1
 Jos incident liittyy dataan (esim. väärä raporttisumma), tee korjaus **vain versionoiduilla skripteillä**:
 
 → `docs/runbooks/data-fix.md`
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

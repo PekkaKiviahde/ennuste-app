@@ -1,6 +1,6 @@
 # Business rules – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä dokumentti kokoaa “kultaiset säännöt” (business rules), jotta:
 - UI-napit ja lukitukset ovat johdonmukaiset
@@ -94,3 +94,15 @@ Kun painetaan **[Lähetä raportit]**:
 - Lukitukset: SENT_LOCKED kuukauden data ei muutu ilman hyväksyntäpolkua
 - Arkisto: jokaisesta “Lähetä raportit” -toiminnosta jää muuttumaton report package
 - Audit: muutokset ovat jäljitettävissä (kuka, mitä, milloin) ilman että henkilötieto on embedattuna tapahtumariveihin
+
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

@@ -129,6 +129,12 @@ async function fetchJSON(url, options = {}) {
   }
   const response = await fetch(apiUrl(url), { ...options, headers });
   if (!response.ok) {
+    if (response.status === 401) {
+      resetAuthState();
+      state.token = null;
+      setView(false);
+      window.location.href = '/login';
+    }
     const error = await response.json().catch(() => ({ error: 'UNKNOWN' }));
     throw {
       code: error.error || 'REQUEST_FAILED',
@@ -1556,7 +1562,7 @@ async function init() {
       await loadAfterLogin();
       return;
     } catch (error) {
-      localStorage.removeItem('authToken');
+      resetAuthState();
       state.token = null;
     }
   }
@@ -1566,12 +1572,22 @@ async function init() {
 
 elements.loginSubmit.addEventListener('click', handleLogin);
 
-elements.logout.addEventListener('click', () => {
+function resetAuthState() {
   localStorage.removeItem('authToken');
+  localStorage.removeItem('authState');
+  document.cookie = 'authToken=; Path=/; Max-Age=0; SameSite=Lax';
+}
+
+function performLogout() {
+  fetchJSON('/api/logout', { method: 'POST' }).catch(() => {});
+  resetAuthState();
   state.token = null;
   setView(false);
   loadLoginOptions();
-});
+  window.location.href = '/login';
+}
+
+elements.logout.addEventListener('click', performLogout);
 
 elements.orgSelect.addEventListener('change', async (event) => {
   const nextOrgId = event.target.value;

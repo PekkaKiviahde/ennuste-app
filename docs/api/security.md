@@ -1,8 +1,8 @@
 # API Security – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
-Tässä dokumentissa kuvataan MVP-tason **authn/authz** (token/SSO-oletukset), sekä **audit-lokituksen** periaatteet.
+Tässä dokumentissa kuvataan MVP-tason **authn/authz** (autentikointi/autorisointi) (token/SSO-oletukset), sekä **audit-lokituksen** periaatteet.
 
 > Tavoite: että toteutus on yhdenmukainen `RBAC-matriisin` ja `GDPR`-päätösten kanssa.
 
@@ -114,3 +114,16 @@ UI:lle suositellaan `GET /api/me/capabilities` endpointia (napit).
 - [ ] Henkilötieto minimissä (ei event-riveihin)
 - [ ] Incident-runbook käytössä (SEV + banneri)
 
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty päivämäärä 2026-01-02.
+- Yhdenmukaistettu terminologia päätöslokin kanssa (tenant-eristys, audit).
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Päätösloki toimii yhteisenä terminologian lähteenä.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että termit vastaavat päätöslokin linjauksia.

@@ -10,3 +10,12 @@ Lisää nämä repoosi:
 - `spec/imports/01_jyda_import_spec.md`
 - `migrations/0003_jyda_snapshot_views.sql`
 
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

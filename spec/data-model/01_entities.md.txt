@@ -1,16 +1,29 @@
 1) Entiteetit ja periaatteet
 
-Perusperiaate: järjestelmä on “event-sourcing” -tyyppinen: kaikki kirjaukset ovat tapahtumia, joita ei poisteta. “Nykytila” muodostetaan lukemalla viimeisin relevantti tapahtuma (tai laskemalla aggregaatti).
+Perusperiaate: kaikki ennusteet ja perustelut kirjataan append-only lokiin. Nykytila muodostetaan lukemalla viimeisin relevantti ennustetapahtuma tai laskemalla aggregaatti.
 
-1.1 Projektin peruskäsitteet
+1.1 Projektin peruskasitteet
 
 Project
 
 project_id (UUID)
 
+organization_id (UUID)
+
+tenant_id (UUID, optional)
+
 name
 
 customer (optional)
+
+project_state (enum: P0_PROJECT_DRAFT, P1_PROJECT_ACTIVE, P2_PROJECT_ARCHIVED)
+
+project_details (jsonb, optional)
+- address
+- start_date
+- end_date
+- managerName
+- managerEmail
 
 created_at
 
@@ -21,23 +34,24 @@ cost_type (enum): LABOR, MATERIAL, SUBCONTRACT, RENTAL, OTHER
 label_fi
 
 2) Litterat ja mapping
-2.1 Työlittera ja tavoitearvio-littera
+
+2.1 Tyolittera ja tavoitearvio-littera
 
 Littera
 
 littera_id (UUID)
 
-code (string, esim. “2200”)
+code (string, esim. "2200")
 
-title (string, esim. “Anturat ja perusmuurit”)
+title (string, esim. "Anturat ja perusmuurit")
 
-group_code (int 0–9) = LEFT(code,1)
+group_code (int 0-9) = LEFT(code, 1)
 
 is_active (bool)
 
 Sama Littera-taulu palvelee molempia rooleja. Rooli tulee mappingista.
 
-2.2 Mapping (työlitterat → tavoitearvio-littera)
+2.2 Mapping (tyolitterat -> tavoitearvio-littera)
 
 LitteraMapping
 
@@ -45,17 +59,17 @@ mapping_id (UUID)
 
 project_id
 
-target_littera_id (FK → Littera) ← tavoitearvio-littera
+target_littera_id (FK -> Littera) <- tavoitearvio-littera
 
-work_littera_id (FK → Littera) ← työlittera
+work_littera_id (FK -> Littera) <- tyolittera
 
 allocation_rule (enum):
 
-FULL (100% työlittera tähän tavoitelitteraan)
+FULL (100% tyolittera tahan tavoitearvio-litteraan)
 
 PERCENT (prosenttiosuus)
 
-AMOUNT (kiinteä €-ohjaus – harvinainen)
+AMOUNT (kiintea ohjaus, harvinainen)
 
 allocation_value (decimal) (esim. 1.0 tai 0.25)
 
@@ -67,57 +81,46 @@ created_at
 
 created_by
 
-Perustelu (tärkeä):
-Mapping on pakko olla ajallinen (valid_from/to), koska työmaan aikana kohdistus voi muuttua.
+Perustelu:
+Mapping on ajallinen, koska kohdistus voi muuttua työmaan aikana.
 
-3) Suunnittelu (ennen ennustetta)
+3) Suunnitelma (ennen ennustetta)
 
-PlanningNote (suunnitelma / työjohdon taloudellinen suunnittelu)
+Suunnitelma
 
 plan_id (UUID)
 
 project_id
 
-target_littera_id (FK → Littera) ← suunnittelu tehdään tavoitelitteralle
+target_littera_id (FK -> Littera) <- suunnitelma tehdaan tavoitearvio-litteralle
 
 status (enum): DRAFT, READY_FOR_FORECAST, LOCKED
 
-summary (text) – “miten tämä työ johdetaan”
+summary (text) - "miten tyo johdetaan"
 
-observations (text) – “huomiot työjohdolla”
+observations (text) - "huomiot"
 
-risks (text) – “mikä voi mennä pieleen”
+risks (text) - "mika voi menna pieleen"
 
-decisions (text) – “päätökset / miten toimitaan”
+decisions (text) - "paatokset"
 
 created_at, created_by
 
 updated_at, updated_by
 
-PlanAttachment (optional)
+Suunnitelman liitteet kirjataan erillisina liite-riveina.
 
-attachment_id
+4) Ennustetapahtuma (append-only)
 
-plan_id
-
-filename
-
-storage_ref (polku / blob-id)
-
-created_at, created_by
-
-Ennusteen tekeminen voidaan rajata niin, että status pitää olla READY_FOR_FORECAST tai LOCKED.
-
-4) Ennuste tapahtumana (append-only)
 4.1 Ennustetapahtuma (header)
 
-ForecastEvent
+Ennustetapahtuma
 
 event_id (UUID)
 
 project_id
 
-target_littera_id (FK → Littera)
+target_littera_id (FK -> Littera)
 
 event_time (datetime)
 
@@ -125,29 +128,29 @@ created_by
 
 source (enum): UI, IMPORT, MIGRATION
 
-comment (text) – yleisperustelu (miksi muutos tehtiin)
+comment (text) - yleisperustelu
 
-technical_progress (decimal 0–1) – tekninen valmiusaste (jos käytössä)
+technical_progress (decimal 0-1, optional)
 
-financial_progress (decimal 0–1) – taloudellinen valmiusaste (jos käytössä)
+financial_progress (decimal 0-1, optional)
 
-kpi_value (decimal) – KPI (jos käytössä)
+kpi_value (decimal, optional)
 
-is_locked (bool) – kun “ennuste lukitaan” (optional)
+is_locked (bool)
 
 lock_reason (text, optional)
 
-4.2 Ennusterivit (kustannuslajit)
+4.2 EnnusteRivi (kustannuslajit)
 
-ForecastEventLine
+EnnusteRivi
 
 line_id (UUID)
 
-event_id (FK → ForecastEvent)
+event_id (FK -> Ennustetapahtuma)
 
 cost_type (enum CostType)
 
-forecast_value (money) – uusi ennuste tälle kustannuslajille
+forecast_value (money)
 
 memo_general (text)
 
@@ -155,19 +158,19 @@ memo_procurement (text)
 
 memo_calculation (text)
 
-4.3 Rivikohtaiset muistiot “laskenta-alueelta”
+4.3 Rivikohtaiset muistiot
 
 ForecastRowMemo
 
 rowmemo_id (UUID)
 
-event_id (FK → ForecastEvent)
+event_id (FK -> Ennustetapahtuma)
 
-row_key (string) – esim. “EnnusteRow:42” tai “item:ABC123”
+row_key (string)
 
 memo_text (text)
 
-4.4 Laskentapaneeli (vapaateksti/kaavat)
+4.4 Laskentapaneelin talteenotto
 
 ForecastCalcPanelSnapshot
 
@@ -175,17 +178,33 @@ snapshot_id (UUID)
 
 event_id
 
-panel_key (string) – esim. “L4:R19”
+panel_key (string)
 
-content (text/json) – tallennetaan sellaisenaan (myös kaavat tekstinä)
+content (text/json)
 
 format_hint (json, optional)
 
-Tämä vastaa Excelin “Laskenta-alueen” talteenottoa arkistoon.
+5) Liitteet
 
-5) Toteuma ja tavoite (tuonti / lähdedata)
+Liite
 
-BudgetLine (tavoitearvio / budjetti – voi tulla laskennasta tai tuonnista)
+attachment_id (UUID)
+
+owner_type (enum): PLAN, FORECAST_EVENT
+
+owner_id (UUID)
+
+filename
+
+storage_ref (polku / blob-id)
+
+created_at
+
+created_by
+
+6) Toteuma ja tavoite (tuonti / lahdedata)
+
+BudgetLine (tavoitearvio / budjetti)
 
 budget_id (UUID)
 
@@ -203,13 +222,13 @@ valid_from, valid_to
 
 created_at, created_by
 
-ActualCostLine (toteuma – yleensä tuonti)
+ActualCostLine (toteuma)
 
 actual_id (UUID)
 
 project_id
 
-work_littera_id (FK → Littera) ← toteumat ovat yleensä työlitteroilla
+work_littera_id (FK -> Littera) <- toteumat ovat tyolitteroilla
 
 cost_type
 
@@ -217,7 +236,7 @@ actual_value (money)
 
 period (YYYY-MM tai date range)
 
-source (JYDA, ERP, …)
+source (JYDA, ERP, ...)
 
 import_batch_id
 
@@ -233,22 +252,35 @@ imported_at
 
 imported_by
 
-hash/signature (optional)
+hash_signature (optional)
 
 notes
 
-6) “Nykytila” -näkymät (lasketaan tapahtumista)
-
-Nämä eivät ole pakko olla DB-tauluja aluksi, mutta ovat tärkeitä sovellukselle:
+7) Nykytila-nakymat (lasketaan tapahtumista)
 
 ForecastCurrentView (per target_littera)
 
-viimeisin ForecastEvent per target_littera
+viimeisin Ennustetapahtuma per target_littera
 
 rivit per cost_type
 
 yhdistetty tavoite, toteuma (mappingin kautta), ennuste, KPI
 
-GroupSummaryView (0–9)
+GroupSummaryView (0-9)
 
 aggregoi target_littera.group_code mukaan
+
+Mita muuttui
+- Lisatty Suunnitelma, Ennustetapahtuma, EnnusteRivi ja Liite yhtenaiseksi kokonaisuudeksi.
+- Selkeytetty mappingin ajallinen voimassaolo ja raportoinnin group_code 0-9.
+- Korostettu append-only loki perusperiaatteena.
+
+Miksi
+- Tarvitaan erillinen suunnitteluvaihe ennen ennustetapahtumaa.
+- Raportointi vaatii eron tyolitteran ja tavoitearvio-litteran valilla.
+- Audit trail edellyttaa muuttumattomia tapahtumia.
+
+Miten testataan (manuaali)
+- Luo tavoitearvio-littera, liita suunnitelma ja kirjaa ensimmainen ennustetapahtuma.
+- Tee mapping kolmesta tyolitterasta yhteen tavoitearvio-litteraan ja tarkista aggregointi 0-9.
+- Lisaa liite suunnitelmaan ja varmista, etta se linkittyy owner_type ja owner_id -kentilla.

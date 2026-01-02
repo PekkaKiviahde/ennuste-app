@@ -199,3 +199,12 @@ SELECT work_phase_approve_correction_pm_secure(
 ## Seuraava vaihe
 SaaS v1 -rakenteet on nyt paikallaan.
 Seuraavaksi voidaan tehdä API/UI-kerros (login, projektivalinta, hyväksyntäjonot, raportit).
+
+## Mitä muuttui
+- Lisätty muutososiot dokumentin loppuun.
+
+## Miksi
+- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että osiot ovat mukana.

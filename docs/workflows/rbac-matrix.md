@@ -1,6 +1,6 @@
 # RBAC-matriisi – Ennustus (MVP)
 
-Päivitetty: 2025-12-30
+Päivitetty: 2026-01-02
 
 Tämä dokumentti kokoaa roolit ja oikeudet “yhdelle sivulle”, jotta:
 - UI-nappien näkyvyys on yksiselitteinen
@@ -104,11 +104,14 @@ Legend:
 | Incident-tiketti (ulkoinen) | — | ✅ | ✅ |
 | Hotfix PR | — | — | ✅ |
 
-## Mita muuttui
+## Mitä muuttui
+- Päivitetty päivämäärä 2026-01-02.
 - Lisatty alias-mappaus tyomaa-rooleille ja acting role -periaate.
 
 ## Miksi
+- Päivämäärä pidetään linjassa päätöslokin kanssa.
 - Todelliset roolit vaihtelevat yrityksittain; alias-mappaus tukee SaaS-oikeuksia.
 
 ## Miten testataan (manuaali)
+- Varmista, että päivämäärä vastaa päätöslokia.
 - Tarkista, etta acting role antaa oikeudet ajaksi ja kirjautuu audit-logiin.
