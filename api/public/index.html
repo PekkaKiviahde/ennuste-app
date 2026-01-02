@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ennuste MVP</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260102-011" />
   </head>
   <body>
     <div class="noise"></div>
@@ -18,19 +18,13 @@
           </p>
         </div>
         <div class="top-right">
-          <div class="user-menu hidden" id="login-info">
-            <button id="user-menu-toggle" class="user-button" type="button" aria-expanded="false">
-              <span class="user-avatar" id="login-user-initials"></span>
-              <span class="user-name" id="login-user-display"></span>
-              <span class="user-caret">▾</span>
-            </button>
-            <div class="user-dropdown" id="user-menu-dropdown" aria-hidden="true">
-              <div class="user-row">
-                <span>Kirjautunut</span>
-                <strong id="login-user-display-dropdown"></strong>
-              </div>
-              <button id="logout" type="button">Kirjaudu ulos</button>
+          <a class="login-link" id="login-link" href="/login">Kirjaudu sisään</a>
+          <div class="user-pill hidden" id="login-info">
+            <div class="auth-meta">
+              <span>Kirjautunut</span>
+              <strong id="login-user-display"></strong>
             </div>
+            <a id="logout" class="button-link" href="/logout">Kirjaudu ulos</a>
           </div>
         </div>
       </header>
@@ -1094,6 +1088,7 @@
           </label>
           <button id="report-refresh">Päivitä raportti</button>
           <div class="history" id="project-meta"></div>
+          <div class="history" id="report-main-groups"></div>
           <div class="history" id="report-output"></div>
         </div>
       </section>
@@ -1132,6 +1127,27 @@
       </div>
     </main>
 
-    <script src="/app.js"></script>
+    <script>
+      (function () {
+        try {
+          const token = localStorage.getItem("authToken");
+          if (!token) {
+            return;
+          }
+          const pill = document.getElementById("login-info");
+          if (pill) {
+            pill.classList.remove("hidden");
+          }
+          const name = localStorage.getItem("authUsername") || "Kirjautunut käyttäjä";
+          const nameEl = document.getElementById("login-user-display");
+          if (nameEl) {
+            nameEl.textContent = name;
+          }
+        } catch (_) {
+          // ignore
+        }
+      })();
+    </script>
+    <script src="/app.js?v=20260102-011"></script>
   </body>
 </html>

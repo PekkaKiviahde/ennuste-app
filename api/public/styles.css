@@ -226,7 +226,7 @@ h1 {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .auth-card {
@@ -269,91 +269,44 @@ h1 {
   gap: 12px;
 }
 
-.user-pill button {
-  padding: 8px 14px;
-}
-
-.user-menu {
-  position: relative;
-}
-
-.user-button {
+.login-link {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding: 10px 14px;
   border-radius: 999px;
   border: 1px solid var(--stroke);
-  background: var(--card);
-  padding: 8px 12px 8px 8px;
-  box-shadow: var(--shadow);
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
   font-weight: 600;
-  cursor: pointer;
-  color: var(--ink);
+  box-shadow: var(--shadow);
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(196, 81, 33, 0.85), rgba(31, 111, 139, 0.85));
-  color: #fff;
+.login-link:hover {
+  filter: brightness(0.98);
+}
+
+.button-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-}
-
-.user-name {
-  font-size: 0.95rem;
-  color: var(--ink);
-}
-
-.user-caret {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-.user-dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  min-width: 200px;
-  background: var(--card);
-  border-radius: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
   border: 1px solid var(--stroke);
-  box-shadow: var(--shadow);
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-  opacity: 0;
-  transform: translateY(-6px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.user-menu.open .user-dropdown {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+.button-link:hover {
+  filter: brightness(0.98);
 }
 
-.user-menu:hover .user-dropdown {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.user-row {
-  display: grid;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.user-row strong {
-  color: var(--ink);
-  font-size: 0.95rem;
+.user-pill button,
+.user-pill .button-link {
+  padding: 8px 14px;
 }
 
 #app-content.requires-auth {
@@ -376,6 +329,11 @@ h1 {
   margin: 0;
   display: grid;
   gap: 4px;
+}
+
+.login-session {
+  display: grid;
+  gap: 8px;
 }
 
 .swimlane {
@@ -595,6 +553,17 @@ button {
 button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 25px rgba(196, 81, 33, 0.3);
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent-2);
+  border: 1px solid var(--stroke);
+  box-shadow: none;
+}
+
+button.secondary:hover {
+  box-shadow: 0 10px 25px rgba(31, 111, 139, 0.2);
 }
 
 .hint {

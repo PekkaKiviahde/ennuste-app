@@ -223,6 +223,7 @@ const litteraSelects = {
 
 const historyOutput = document.getElementById("history-output");
 const reportOutput = document.getElementById("report-output");
+const reportMainGroups = document.getElementById("report-main-groups");
 const projectMeta = document.getElementById("project-meta");
 const mappingVersionSelect = document.getElementById("mapping-version");
 const mappingVersionActivateSelect = document.getElementById("mapping-version-activate");
@@ -307,6 +308,7 @@ const projectRoleSelect = document.getElementById("project-role-select");
 const loginPanel = document.getElementById("login-panel");
 const loginInfo = document.getElementById("login-info");
 const loginInfoTop = document.getElementById("login-info-top");
+const loginLink = document.getElementById("login-link");
 const loginUserSelect = document.getElementById("login-user");
 const loginPinInput = document.getElementById("login-pin");
 const loginPinToggle = document.getElementById("login-pin-toggle");
@@ -314,10 +316,6 @@ const loginSubmit = document.getElementById("login-submit");
 const loginStatus = document.getElementById("login-status");
 const loginUserDisplay = document.getElementById("login-user-display");
 const loginUserDisplayTop = document.getElementById("login-user-display-top");
-const loginUserDisplayDropdown = document.getElementById("login-user-display-dropdown");
-const loginUserInitials = document.getElementById("login-user-initials");
-const userMenuToggle = document.getElementById("user-menu-toggle");
-const userMenuDropdown = document.getElementById("user-menu-dropdown");
 const logoutButton = document.getElementById("logout");
 const logoutButtonTop = document.getElementById("logout-top");
 const appContent = document.getElementById("app-content");
@@ -804,18 +802,6 @@ function getToken() {
   return btoa(JSON.stringify(payload));
 }
 
-function initialsFromName(name) {
-  if (!name) {
-    return "??";
-  }
-  const parts = String(name)
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  const initials = parts.slice(0, 2).map((part) => part[0].toUpperCase());
-  return initials.join("") || "??";
-}
-
 function setAuthUi(isLoggedIn, displayName = "") {
   const fallbackName =
     displayName || localStorage.getItem("authUsername") || "Kirjautunut käyttäjä";
@@ -831,17 +817,14 @@ function setAuthUi(isLoggedIn, displayName = "") {
   if (loginInfoTop) {
     loginInfoTop.classList.toggle("hidden", !isLoggedIn);
   }
+  if (loginLink) {
+    loginLink.classList.toggle("hidden", isLoggedIn);
+  }
   if (loginUserDisplay) {
     loginUserDisplay.textContent = fallbackName;
   }
   if (loginUserDisplayTop) {
     loginUserDisplayTop.textContent = fallbackName;
-  }
-  if (loginUserDisplayDropdown) {
-    loginUserDisplayDropdown.textContent = fallbackName;
-  }
-  if (loginUserInitials) {
-    loginUserInitials.textContent = initialsFromName(fallbackName);
   }
   const demoRoleButton = document.querySelector("[data-action='role-admin-owner']");
   if (demoRoleButton) {
@@ -2776,14 +2759,61 @@ forecastForm.addEventListener("submit", async (e) => {
   }
 });
 
+function formatAmount(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return value ?? "";
+  }
+  return num.toLocaleString("fi-FI", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function renderMainGroupReport(rows) {
+  if (!reportMainGroups) {
+    return;
+  }
+  const title = "<strong>Mapping-kooste 0-9</strong>";
+  if (!rows || rows.length === 0) {
+    reportMainGroups.innerHTML = `${title}<div>(ei rivejä)</div>`;
+    return;
+  }
+  const lines = rows
+    .map(
+      (row) =>
+        `<div>${row.main_group_code}: budjetti ${formatAmount(row.budget_total)} / ` +
+        `toteuma ${formatAmount(row.actual_total)} / erotus ${formatAmount(row.variance_eur)}</div>`
+    )
+    .join("");
+  reportMainGroups.innerHTML = `${title}${lines}`;
+}
+
 const reportRefresh = document.getElementById("report-refresh");
 if (reportRefresh) {
   reportRefresh.addEventListener("click", (e) => {
     e.preventDefault();
     const projectId = projectSelects.report.value;
     const litteraId = litteraSelects.report.value;
-    if (!projectId || !litteraId) {
-      reportOutput.textContent = "Valitse projekti ja tavoitearvio-littera.";
+    if (!projectId) {
+      reportOutput.textContent = "Valitse projekti.";
+      if (reportMainGroups) {
+        reportMainGroups.textContent = "";
+      }
+      return;
+    }
+
+    if (reportMainGroups) {
+      reportMainGroups.textContent = "Ladataan mapping-koostetta...";
+      fetchJson(`/api/report/main-groups?projectId=${projectId}`)
+        .then((data) => renderMainGroupReport(data.rows))
+        .catch((err) => {
+          reportMainGroups.textContent = err.message;
+        });
+    }
+
+    if (!litteraId) {
+      reportOutput.textContent = "Valitse tavoitearvio-littera nähdäksesi suunnitelman ja ennusteen.";
       return;
     }
 
@@ -2802,7 +2832,7 @@ if (reportRefresh) {
               return `<div>${title}: (ei rivejä)</div>`;
             }
             const rows = items
-              .map((row) => `<div>${row.cost_type}: ${row.total}</div>`)
+              .map((row) => `<div>${row.cost_type}: ${formatAmount(row.total)}</div>`)
               .join("");
             return `<div><strong>${title}</strong>${rows}</div>`;
           };
@@ -3001,49 +3031,12 @@ if (loginPinToggle && loginPinInput) {
   });
 }
 
-function setUserMenuOpen(isOpen) {
-  if (!loginInfo) {
-    return;
-  }
-  loginInfo.classList.toggle("open", isOpen);
-  if (userMenuToggle) {
-    userMenuToggle.setAttribute("aria-expanded", String(isOpen));
-  }
-  if (userMenuDropdown) {
-    userMenuDropdown.setAttribute("aria-hidden", String(!isOpen));
-  }
-}
-
-if (userMenuToggle) {
-  userMenuToggle.addEventListener("click", (event) => {
-    event.preventDefault();
-    const isOpen = loginInfo?.classList.contains("open");
-    setUserMenuOpen(!isOpen);
-  });
-}
-
-document.addEventListener("click", (event) => {
-  if (!loginInfo || !loginInfo.classList.contains("open")) {
-    return;
-  }
-  if (!loginInfo.contains(event.target)) {
-    setUserMenuOpen(false);
-  }
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    setUserMenuOpen(false);
-  }
-});
-
 const performLogout = () => {
-  setUserMenuOpen(false);
   fetchJson("/api/logout", { method: "POST" }).catch(() => {});
   resetAuthState();
   setAuthUi(false);
   applyRoleUi();
-  window.location.href = "/login?loggedOut=1&forceLogin=1";
+  window.location.href = "/login?loggedOut=1";
 };
 
 if (logoutButton) {
@@ -3052,6 +3045,14 @@ if (logoutButton) {
 if (logoutButtonTop) {
   logoutButtonTop.addEventListener("click", performLogout);
 }
+document.addEventListener("click", (event) => {
+  const target = event.target.closest("#logout");
+  if (!target) {
+    return;
+  }
+  event.preventDefault();
+  performLogout();
+});
 
 if (quickActions) {
   quickActions.addEventListener("click", (event) => {

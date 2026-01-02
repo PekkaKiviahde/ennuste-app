@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kirjautuminen – Ennuste</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260102-011" />
   </head>
   <body class="login-body">
     <div class="noise"></div>
@@ -55,6 +55,11 @@
           </label>
           <button id="login-submit" type="button">Kirjaudu sisään</button>
           <div class="hint login-status" id="login-status" role="status" aria-live="polite"></div>
+          <div class="login-session hidden" id="login-session">
+            <div class="hint">Olet jo kirjautunut sisään.</div>
+            <button id="login-continue" type="button">Siirry sovellukseen</button>
+            <button id="login-clear" type="button" class="secondary">Tyhjennä istunto</button>
+          </div>
           <div class="hint">Demo-tunnukset:</div>
           <ul class="hint login-accounts">
             <li>anna / 1234</li>
@@ -73,6 +78,6 @@
       </section>
     </main>
 
-    <script src="/login.js"></script>
+    <script src="/login.js?v=20260102-011"></script>
   </body>
 </html>

@@ -3,6 +3,9 @@ const loginPinInput = document.getElementById("login-pin");
 const loginPinToggle = document.getElementById("login-pin-toggle");
 const loginSubmit = document.getElementById("login-submit");
 const loginStatus = document.getElementById("login-status");
+const loginSession = document.getElementById("login-session");
+const loginContinue = document.getElementById("login-continue");
+const loginClear = document.getElementById("login-clear");
 
 function setStatus(message, isError = false) {
   if (!loginStatus) {
@@ -83,8 +86,7 @@ function handleLoggedOutParam() {
   }
   const params = new URLSearchParams(window.location.search);
   const hasLoggedOut = params.has("loggedOut");
-  const forceLogin = params.has("forceLogin");
-  if (!hasLoggedOut && !forceLogin) {
+  if (!hasLoggedOut) {
     return false;
   }
   if (hasLoggedOut) {
@@ -94,31 +96,28 @@ function handleLoggedOutParam() {
     setStatus("Kirjautuminen on päättynyt.", false);
   }
   params.delete("loggedOut");
-  params.delete("forceLogin");
   const query = params.toString();
   const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
   window.history.replaceState({}, "", next);
   return true;
 }
 
-async function checkExistingToken() {
+function showExistingSession() {
   const token = localStorage.getItem("authToken");
   if (!token) {
     return;
   }
-  try {
-    await fetchJson("/api/me", {
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    });
-    window.location.href = "/";
-  } catch (_) {
-    localStorage.removeItem("authToken");
+  if (loginSession) {
+    loginSession.classList.remove("hidden");
+  }
+  if (!loginStatus?.textContent) {
+    setStatus("Istunto on valmiina. Voit jatkaa sovellukseen.", false);
   }
 }
 
 const loggedOutHandled = handleLoggedOutParam();
 if (!loggedOutHandled) {
-  checkExistingToken().catch(() => {});
+  showExistingSession();
 }
 loadUsers().catch((err) => setStatus(err.message, true));
 
@@ -147,4 +146,39 @@ if (loginUserSelect) {
 
 if (loginPinInput) {
   loginPinInput.addEventListener("input", () => setStatus(""));
+}
+
+if (loginContinue) {
+  loginContinue.addEventListener("click", async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setStatus("Istuntoa ei löytynyt. Kirjaudu sisään.", true);
+      return;
+    }
+    try {
+      await fetchJson("/api/me", {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      window.location.href = "/";
+    } catch (_) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUsername");
+      setStatus("Istunto on vanhentunut. Kirjaudu sisään.", true);
+      if (loginSession) {
+        loginSession.classList.add("hidden");
+      }
+    }
+  });
+}
+
+if (loginClear) {
+  loginClear.addEventListener("click", () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUsername");
+    document.cookie = "authToken=; Path=/; Max-Age=0; SameSite=Lax";
+    if (loginSession) {
+      loginSession.classList.add("hidden");
+    }
+    setStatus("Istunto tyhjennetty. Kirjaudu sisään.", false);
+  });
 }

@@ -25,6 +25,13 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/login", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
+app.get("/logout", (_req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    "authToken=; Path=/; Max-Age=0; SameSite=Lax"
+  );
+  res.redirect("/login?loggedOut=1");
+});
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && origin.includes(".app.github.dev")) {
@@ -3369,13 +3376,47 @@ app.get("/api/report/target-summary", async (req, res, next) => {
   }
 });
 
+app.get("/api/report/main-groups", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
+      return;
+    }
+    const { projectId } = req.query;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+
+    const { rows } = await query(
+      `SELECT main_group_code, budget_total, actual_total, variance_eur
+       FROM v_report_project_main_group_current
+       WHERE project_id=$1
+       ORDER BY main_group_code`,
+      [projectId]
+    );
+
+    res.json({ rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: "Palvelinvirhe", detail: err.message });
 });
 
 app.get(
-  ["/", "/setup", "/mapping", "/planning", "/weekly", "/forecast", "/report", "/history"],
+  [
+    "/",
+    "/setup",
+    "/sales",
+    "/mapping",
+    "/planning",
+    "/weekly",
+    "/forecast",
+    "/report",
+    "/history",
+  ],
   (_req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
   }

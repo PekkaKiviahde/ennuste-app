@@ -198,6 +198,126 @@
 - Where we are: kirjautunut-pilli on ylaoikealla ja nimi erottuu paremmin.
 - What changed: paivitetty api/public/styles.css, docs/CODEX_HISTORY.md.
 - What remains: jos nimi ei viela nay, tarkista authUsername localStorage ja /api/me vastaus.
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-010] LUKITTU: Mapping-raportoinnin 0-9 kooste UI:ssa
+- Goal: nayttaa mappingin paaryhma (0-9) kooste raporttinakymaan.
+- Scope: UI + API/Routes.
+- Deliverables: raporttinakymaan 0-9 kooste, uusi report-endpoint.
+- Key files: api/public/index.html, api/public/app.js, api/server.js, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen raporttinakyma projektilla
+
+[2026-01-02] [DONE] [L-20260102-010] LUKITTU: Mapping-raportoinnin 0-9 kooste UI:ssa
+- Summary: lisatty projektitasoinen 0-9 mapping-kooste raporttinakymaan ja uusi API-endpoint.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: kooste nakee v_report_project_main_group_current -nakymasta.
+
+[2026-01-02] [HANDOFF] [L-20260102-010]
+- Where we are: raporttinakyma nayttaa mappingin 0-9 koosteet projektitasolla.
+- What changed: paivitetty api/public/index.html, api/public/app.js, api/server.js, docs/CODEX_HISTORY.md.
+- What remains: haluttaessa tarkenna kustannuslajien esitystapaa (esim. taulukko).
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/public/index.html, api/public/app.js, api/server.js, docs/CODEX_HISTORY.md
+- How to resume: valitse projekti -> Raportti -> Paivita raportti
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-011] Kirjautumisnappi puuttui etusivulta
+- Goal: nayttaa kirjautumisnappi etusivulla, kun kayttaja ei ole kirjautunut.
+- Scope: UI.
+- Deliverables: login-link etusivun ylareunaan ja naytto auth-tilan mukaan.
+- Key files: api/public/index.html, api/public/app.js, api/public/styles.css, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen tarkistus (kirjautumaton -> login-link, kirjautunut -> logout)
+
+[2026-01-02] [DONE] [L-20260102-011] Kirjautumisnappi puuttui etusivulta
+- Summary: lisatty Kirjaudu sisaan -linkki etusivulle ja toggle auth-tilan mukaan.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: logout-CTA pysyy kirjautuneena pillissa.
+
+[2026-01-02] [HANDOFF] [L-20260102-011]
+- Where we are: kirjautumaton naykee Kirjaudu sisaan -napin etusivulla.
+- What changed: paivitetty api/public/index.html, api/public/app.js, api/public/styles.css, docs/CODEX_HISTORY.md.
+- What remains: jos logout ei viela toimi, tarkista selaimen console/Network.
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/public/index.html, api/public/app.js, api/public/styles.css, docs/CODEX_HISTORY.md
+- How to resume: avaa / ja varmista login-link -> /login
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-012] Logout-linkki ilman JS-riippuvuutta
+- Goal: varmistaa, etta logout toimii myos ilman JS:aa.
+- Scope: UI + API/Routes.
+- Deliverables: /logout-reitti ja ankkurilinkki etusivun logoutille.
+- Key files: api/server.js, api/public/index.html, api/public/styles.css, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen logout-polkutestaus
+
+[2026-01-02] [DONE] [L-20260102-012] Logout-linkki ilman JS-riippuvuutta
+- Summary: lisatty /logout-reitti (tyhjentaa authTokenin ja ohjaa /login?loggedOut=1) ja muutettu logout ankkurilinkiksi.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: JS-logout toimii yha, mutta ei ole pakollinen.
+
+[2026-01-02] [HANDOFF] [L-20260102-012]
+- Where we are: logout toimii myös ilman JS:aa.
+- What changed: paivitetty api/server.js, api/public/index.html, api/public/styles.css, docs/CODEX_HISTORY.md.
+- What remains: jos logout ei viela toimi, tarkista selaimen console/Network.
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/server.js, api/public/index.html, api/public/styles.css, docs/CODEX_HISTORY.md
+- How to resume: klikkaa Kirjaudu ulos -> /logout -> /login?loggedOut=1
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-013] Cache-bust: login/app JS + CSS
+- Goal: varmistaa, etta selain hakee uusimman JS/CSS:n muutosten jälkeen.
+- Scope: UI.
+- Deliverables: versionoidut query-parametrit app.js/login.js/styles.css.
+- Key files: api/public/index.html, api/public/login.html, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen hard refresh
+
+[2026-01-02] [DONE] [L-20260102-013] Cache-bust: login/app JS + CSS
+- Summary: lisatty versioparametri app.js/login.js/styles.css -polkuihin.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: auttaa tilanteissa, joissa vanha JS ja uusi HTML menevat ristiin.
+
+[2026-01-02] [HANDOFF] [L-20260102-013]
+- Where we are: selaimen cache ei estä login/logout UI:n päivityksiä.
+- What changed: paivitetty api/public/index.html, api/public/login.html, docs/CODEX_HISTORY.md.
+- What remains: jos edelleen vanha JS, tee hard refresh.
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/public/index.html, api/public/login.html, docs/CODEX_HISTORY.md
+- How to resume: reload / ja /login
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-014] Hidden-luokan varmistus
+- Goal: varmistaa, etta .hidden piilottaa elementit vaikka niilla on omat display-tyylit.
+- Scope: UI.
+- Deliverables: .hidden display:none !important.
+- Key files: api/public/styles.css, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen UI-tarkistus (login-link piiloutuu kirjautuneena)
+
+[2026-01-02] [DONE] [L-20260102-014] Hidden-luokan varmistus
+- Summary: lisatty !important .hidden-luokkaan, jotta se ohittaa elementtien display-tyylit.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: vaikuttaa kaikkiin hidden-luokan kayttoihin.
+
+[2026-01-02] [HANDOFF] [L-20260102-014]
+- Where we are: hidden-luokka toimii myos user-pill/login-link -tapauksissa.
+- What changed: paivitetty api/public/styles.css, docs/CODEX_HISTORY.md.
+- What remains: jos UI ei viela paivity, tee hard refresh.
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/public/styles.css, docs/CODEX_HISTORY.md
+- How to resume: avaa / ja varmista login-link piiloutuu kirjautuneena
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-015] Sales-polun SPA-reitti
+- Goal: estaa 404, kun navigoidaan /sales reittiin.
+- Scope: API/Routes.
+- Deliverables: index.html palvelee /sales-reittia.
+- Key files: api/server.js, docs/CODEX_HISTORY.md
+- Tests (planned): manuaalinen reittitesti (/sales)
+
+[2026-01-02] [DONE] [L-20260102-015] Sales-polun SPA-reitti
+- Summary: lisatty /sales index.html -reititykseen.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: koskee vain SPA-UI:n reititysta.
+
+[2026-01-02] [HANDOFF] [L-20260102-015]
+- Where we are: /sales ei enää palauta 404.
+- What changed: paivitetty api/server.js, docs/CODEX_HISTORY.md.
+- What remains: ei avoimia.
+- Next LUKITTU suggestion: yhtenaista login-polkujen testaus (automaatio/polku).
+- Key files: api/server.js, docs/CODEX_HISTORY.md
+- How to resume: avaa /sales
 - Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
 - Key files: api/public/styles.css, api/public/app.js, api/public/index.html, docs/CODEX_HISTORY.md
 - How to resume: codex resume --last, tarvittaessa `node api/scripts/seed.js`
@@ -258,3 +378,35 @@
 - Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
 - Key files: docs/adr/0010-primary-ui-path.md, docs/KARTTA_STATUS_V1.md, docs/decisions/decision-log.md, docs/CODEX_HISTORY.md
 - How to resume: codex resume --last
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-013] LUKITTU: Kirjautunut-pilli ilman dropdownia
+- Goal: nayttaa kirjautunut-pilli ja logout ilman alasvetovalikkoa.
+- Scope: UI + Domain.
+- Deliverables: suora pilli ylaoikealla, logout toimii, nimi nakyy.
+- Tests (planned): manuaalinen login + logout
+
+[2026-01-02] [DONE] [L-20260102-013] LUKITTU: Kirjautunut-pilli ilman dropdownia
+- Summary: poistettu dropdown-logiikka ja palautettu suora kirjautunut-pilli; nimi ja logout esilla.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: pilli naytetaan token-fallbackilla.
+
+[2026-01-02] [HANDOFF] [L-20260102-013]
+- Where we are: kirjautunut-pilli on suora ja logout toimii ilman alasvetovalikkoa.
+- What changed: paivitetty api/public/index.html, api/public/styles.css, api/public/app.js.
+- What remains: jos pilli ei nay, tarkista localStorage authToken.
+- Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
+- Key files: api/public/index.html, api/public/styles.css, api/public/app.js, docs/CODEX_HISTORY.md
+- How to resume: codex resume --last
+
+[2026-01-02] [HANDOFF] [L-20260102-014]
+- Where we are: login-sivu ei ohjaa automaattisesti; istuntoa varten on "Siirry sovellukseen" ja "Tyhjennä istunto".
+- What changed: paivitetty api/public/login.html, api/public/login.js, api/public/styles.css, api/public/app.js.
+- What remains: validoi login-polku end-to-end (login -> logout -> login) ja varmista pillin naytto.
+- Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
+- Key files: api/public/login.html, api/public/login.js, api/public/styles.css, api/public/app.js, docs/CODEX_HISTORY.md
+- How to resume:
+  - git status
+  - git log -1
+  - docker compose up -d
+  - avaa /login ja testaa login -> logout -> login
+  - codex resume --last
