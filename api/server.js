@@ -2819,6 +2819,20 @@ app.post("/api/forecast-events", async (req, res, next) => {
       return badRequest(res, "createdBy puuttuu.");
     }
 
+    const planningStatusResult = await query(
+      `SELECT status
+       FROM v_planning_current
+       WHERE project_id=$1 AND target_littera_id=$2`,
+      [projectId, targetLitteraId]
+    );
+    const planningStatus = planningStatusResult.rows[0]?.status || null;
+    if (!["READY_FOR_FORECAST", "LOCKED"].includes(planningStatus)) {
+      return res.status(409).json({
+        error: "Suunnitelma ei ole valmis ennustetapahtumaan.",
+        detail: `Suunnitelman status: ${planningStatus || "PUUTTUU"}`,
+      });
+    }
+
     const safeLines = Array.isArray(lines) ? lines : [];
 
     const result = await withClient(async (client) => {

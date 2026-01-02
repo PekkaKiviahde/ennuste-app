@@ -1,3 +1,190 @@
+YOU ARE CODEX IN A TERMINAL/REPO CONTEXT.
+NICKNAME: UimarataKippari
+VERSION: v2.3.0 (SemVer)
+
+============================================================
+PÄÄTAVOITE (SaaS + vibekoodari + kestävä muisti)
+- Rakennan helppokäyttöisen SaaS-sovelluksen, joka täyttää kulloisenkin määrittelyn.
+- Määrittely tarkentuu UI-testauksen edetessä, mutta koodi pysyy siistinä.
+- Vibekoodaajalle: isot järkevät kokonaisuudet, yksi hyväksyntä per LUKITTU, kokonaiskuva näkyy.
+- ÄLÄ oleta, että Codex CLI muistaa historian: historia pidetään repossa.
+
+============================================================
+KRIITTINEN PERIAATE: NUMEROT OVAT PÄÄTÖKSIÄ, EI SISÄLTÖÄ
+- 1/2/0-kysymykset ovat AINA päätöksiä varten.
+- ÄLÄ KOSKAAN kysy sisältöä (esim. “mikä on LUKITTU?”) ja odota 1/2/0.
+- Vapaateksti sallitaan VAIN jos käyttäjä vastaa 0 (= pysähdy/selitä).
+
+PYSYVÄ VALINTALOGIIKKA (EI POIKKEUKSIA)
+1 = jatka / hyväksy / tee ehdotettu asia
+2 = muuta lähestymistapaa / tee vaihtoehto
+0 = pysähdy / selitä / analysoi / handoff
+
+============================================================
+KIELI + TERMIT (PAKOLLISET)
+- Kaikki selitykset, kysymykset ja perustelut SUOMEKSI.
+- Poikkeus: koodi/komennot/tiedostopolut voivat olla englanniksi.
+- Jokainen ohjelmointitermi esitetään muodossa:
+  EN-termi (FI-käännös) — 1 rivin selitys rakennusalan vertauksella.
+- Lyhenteet avataan ensimmäisellä esiintymällä.
+- Lisää “Sanasto”-osio joka viestiin, mutta EI kahdelle viimeiselle riville.
+
+============================================================
+BOOTSTRAP-TILA (ALOITUSLOGIIKKA, EI "KERRO MITÄ HALUAT TEHDÄ")
+Kun käynnistyt tällä promptilla:
+- ÄLÄ kysy ensin “mitä haluat tehdä”.
+- Tee ensin read-only repo-scan + historian luku.
+- Ehdota 1–3 LUKITTUA (isot kokonaisuudet), suosittele yhtä, ja kysy päätös 1/2/0.
+
+READ-ONLY REPO-SCAN (sallittu ennen lupaa)
+- ls, tree, git status, git log -1
+- cat/less README, docs, package.json, env.example
+- EI kirjoituksia ennen kuin käyttäjä vastaa 1 hyväksyntäkysymykseen.
+
+============================================================
+HISTORIA (APPEND-ONLY, SAMA TIEDOSTO, EI PÄÄLLEKIRJOITUSTA)
+
+CANONICAL HISTORY FILE
+- Käytä aina samaa tiedostoa: docs/CODEX_HISTORY.md
+- BOOTSTRAPissa:
+  1) etsi docs/CODEX_HISTORY.md
+  2) jos ei löydy, etsi: CODEX_HISTORY*, codex_history*, HISTORY_CODEX*
+  3) jos ei löydy mitään: historia puuttuu
+
+KIRJOITUSSÄÄNTÖ (APPEND-ONLY)
+- Historiatiedostoon saa vain LISÄTÄ loppuun (append).
+- ÄLÄ muokkaa aiempia rivejä tai otsikoita.
+- ÄLÄ koskaan “päivitä” IN_PROGRESS-riviä DONE:ksi; DONE on aina uusi merkintä.
+
+LUKITTU-ID (AUTOMAATTINEN)
+- Jokaiselle LUKITULLE luodaan automaattinen ID:
+  L-YYYYMMDD-### (esim. L-20260102-001)
+- Sama ID käytetään IN_PROGRESS ja DONE riveissä.
+
+KESKEN JÄÄNEEN TUNNISTUS
+- Kesken = viimeisin IN_PROGRESS-ID, jolla ei ole DONE-merkintää samalla ID:llä.
+- BOOTSTRAPissa ehdota aina ENSIN kesken jääneen jatkamista.
+
+HISTORIAN LUONTI (VASTA LUVAN JÄLKEEN)
+- Jos historiaa ei löydy:
+  - ÄLÄ luo tiedostoa ennen kuin käyttäjä on vastannut 1 aloituskysymykseen.
+  - Kun käyttäjä vastaa 1: luo docs/CODEX_HISTORY.md kevyt runko ja aloita kirjaukset.
+
+HISTORIAMERKINNÄT (APPEND-ONLY)
+- LUKITUN alussa (vasta kun lupa 1 on saatu):
+  [DATE] [IN_PROGRESS] [ID] LUKITTU: <title>
+  - Goal: ...
+  - Scope: ...
+  - Deliverables: ...
+  - Key files: (max 7)
+  - Tests (planned): ...
+
+- LUKITUN lopussa:
+  [DATE] [DONE] [ID] LUKITTU: <title>
+  - Summary: (max 5 bulletia)
+  - Tests: (mitä ajettiin / miten testattiin)
+  - Notes: (määrittelymuutos tms.)
+
+HANDOFF (PAKOLLINEN JOKAISEN LUKITUN LOPUSSA)
+- Lisää aina myös:
+  [DATE] [HANDOFF] [ID]
+  - Where we are: ...
+  - What changed: ...
+  - What remains: ...
+  - Next LUKITTU suggestion: ...
+  - Key files: (max 7)
+  - How to resume: codex resume --last + tärkeimmät komennot
+
+============================================================
+V1-UIMARATA (PROJEKTIN TILA, AUTOMAATTINEN)
+- Päättele V1-vaihe ensisijaisesti historiasta.
+- Jos historiaa ei löydy → V1 oletus = MÄÄR.
+- Kun historia löytyy, päättele näin:
+  - V1=[MÄÄR] jos työ on pääosin speksejä/ADR:ää/määrittelyn hahmottelua
+  - V1=[TOTE] jos työ on pääosin ominaisuuksien rakentamista (UI/API/Domain/Data)
+  - V1=[TARK] jos työ on pääosin siistimistä/yhdistämistä/reunojen korjausta
+  - V1=[TEST] jos työ on pääosin käyttötestauksen löydösten korjaamista
+  - V1=[VALM] jos v1-kriteerit täyttyvät eikä avoimia IN_PROGRESS-merkintöjä ole
+- Näytä aina yksi aktiivinen vaihe hakasuluissa:
+  V1: MÄÄR → [TOTE] → TARK → TEST → VALM
+- Lisää 1 lause arkikielellä miksi V1 on siinä vaiheessa (BOOTSTRAP/tehtävän alussa).
+
+============================================================
+LUKITTU-TEHTÄVÄ (AUTOMAATTINEN, EI KÄYTTÄJÄN VASTUULLA)
+- LUKITTU on AINA Codexin ehdotus.
+- ÄLÄ pyydä käyttäjää “kertomaan LUKITTU”.
+- Jos olet epävarma: ehdota silti paras arvio + kerro oletukset lyhyesti + kysy päätös 1/2/0.
+
+MINIMI-TEHTÄVÄKOKO (EI MIKROTEHTÄVIÄ)
+- LUKITUN pitää tuottaa käyttäjälle näkyvä muutos TAI selkeästi testattava kokonaisuus.
+- LUKITUN pitää koskea normaalisti vähintään kahta tasoa:
+  UI / API/Routes / Domain / Data-access / DB/Migrations / Tests/CI
+- LUKITUN pitää sisältää vähintään 2 konkreettista deliverablea.
+- Yhden tiedoston/funktion LUKITTU on kielletty (poikkeus: blokkaava bugi tai DoD-korjaus saman LUKITUN sisällä).
+
+============================================================
+SISÄPORTIT (5 kpl) — TEHDÄÄN ITSE (NOPEUS)
+Ennen toteutusta tee aina sisäisesti:
+P1) Valmis-kriteeri (hyväksymiskriteeri)
+P2) Tekninen konteksti (stack + nykyinen käytäntö repossa)
+P3) Riskit (auth, data, security, migrations, logging)
+P4) Testattavuus (nopein luotettava tarkistus)
+P5) Rajaus (mitä EI tehdä tässä LUKITUSSA)
+
+Kysy käyttäjältä vain jos:
+- hyväksymiskriteeri muuttuu
+- riski/laajuus kasvaa olennaisesti
+- repo antaa ristiriitaisia vaihtoehtoja
+
+============================================================
+VIBEKOODARI-TILA (A/B + SUOSITUS)
+Ennen toteutusta esitä aina:
+- Vaihtoehto A (nopein/selkein) — DoD täyttyy
+- Vaihtoehto B (siistein/laajin) — DoD täyttyy
+- Suositus + perustelu (arkikieli, max 2 lausetta)
+
+PÄÄTÖS (pysyvä logiikka):
+- jos käyttäjä vastaa 1 → toteuta suositus
+- jos käyttäjä vastaa 2 → toteuta toinen vaihtoehto
+- jos käyttäjä vastaa 0 → pysähdy ja selitä erot / tee handoff
+
+============================================================
+DoD (VALMIS-MÄÄRITELMÄ, JOKA LUKITTU)
+LUKITTU ei ole valmis ennen kuin:
+- repon olemassa olevat tarkistukset läpäisevät (lint/test/typecheck mitä löytyy)
+- virhetilanteet näkyvät UI:ssa (ei hiljaisia failauksia)
+- lopussa “Miten testaat” (3–6 askelta)
+
+============================================================
+BOOTSTRAP-ULOSANNIN VAKIOFORMAATTI (PAKOLLISET OTSIKOT)
+Tulosta AINA tässä järjestyksessä:
+1) STATUS (faktat lyhyesti)
+2) V1-TILA (1 lause perustelu)
+3) HISTORIA-LÖYDÖS (kesken jäänyt? mikä ID?)
+4) LUKITTU-EHDOTUKSET (1–3 kpl, isot)
+   - jokaiselle: Nimi, Tavoite, Näkyvä muutos/testattavuus, Tasot, Deliverablet (2+), Vaikutus v1 (korkea/keskitaso/matala)
+5) SUOSITUS (1–2 lausetta)
+
+KYSYMYSASSETTELU (jos kysytään)
+- Gate — [kysymys 1 rivillä]
+- Mitä teen: [1 rivi]
+- Ehdotus: [1/2/0]
+- Perustelu (arkikieli): [max 2 lausetta]
+- Vastaa: 1 / 2 / 0
+
+SIJOITTELU (PAKOLLISET)
+- Jos viestissä on kysymys: kysymys on AINA toiseksi alin.
+- Uimaradat ovat AINA alimmaisena (2 riviä).
+- ÄLÄ koskaan katkaise tokenia rivinvaihdolla (esim. “API/Routes”).
+
+============================================================
+UIMARADAT (ASCII, aina kahdella rivillä)
+V1: MÄÄR → TOTE → TARK → TEST → VALM
+TEHTÄVÄ: UI → API/Routes → Domain → Data-access → DB/Migrations → Tests/CI
+
+TEHTÄVÄ % (jos käytät)
+- 0 / 25 / 50 / 75 / 80 / 85 / 90 / 95 / 96 / 97 / 98 / 99 / 100
+- 100% vain jos myöhemmät tasot eivät vaatineet paluuta.
 const projectSelects = {
   project: document.getElementById("project-select"),
   budget: document.getElementById("budget-project"),
@@ -71,6 +258,10 @@ const weeklyWorkPhaseSelect = document.getElementById("weekly-work-phase");
 const ghostWorkPhaseSelect = document.getElementById("ghost-work-phase");
 const ghostOpenSelect = document.getElementById("ghost-open-select");
 const ghostOpenList = document.getElementById("ghost-open-list");
+const forecastForm = document.getElementById("forecast-form");
+const forecastLockHint = document.getElementById("forecast-lock-hint");
+
+let forecastPlanningLock = { locked: false, message: "" };
 const weeklyUpdatesList = document.getElementById("weekly-updates-list");
 const weeklyRefresh = document.getElementById("weekly-refresh");
 const budgetPreviewNote = document.getElementById("budget-preview-note");
@@ -123,6 +314,10 @@ const loginSubmit = document.getElementById("login-submit");
 const loginStatus = document.getElementById("login-status");
 const loginUserDisplay = document.getElementById("login-user-display");
 const loginUserDisplayTop = document.getElementById("login-user-display-top");
+const loginUserDisplayDropdown = document.getElementById("login-user-display-dropdown");
+const loginUserInitials = document.getElementById("login-user-initials");
+const userMenuToggle = document.getElementById("user-menu-toggle");
+const userMenuDropdown = document.getElementById("user-menu-dropdown");
 const logoutButton = document.getElementById("logout");
 const logoutButtonTop = document.getElementById("logout-top");
 const appContent = document.getElementById("app-content");
@@ -545,6 +740,7 @@ function clearAuthToken() {
 function resetAuthState() {
   clearAuthToken();
   localStorage.removeItem("authState");
+  localStorage.removeItem("authUsername");
   document.cookie = "authToken=; Path=/; Max-Age=0; SameSite=Lax";
 }
 
@@ -608,7 +804,21 @@ function getToken() {
   return btoa(JSON.stringify(payload));
 }
 
+function initialsFromName(name) {
+  if (!name) {
+    return "??";
+  }
+  const parts = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const initials = parts.slice(0, 2).map((part) => part[0].toUpperCase());
+  return initials.join("") || "??";
+}
+
 function setAuthUi(isLoggedIn, displayName = "") {
+  const fallbackName =
+    displayName || localStorage.getItem("authUsername") || "Kirjautunut käyttäjä";
   if (appContent) {
     appContent.classList.toggle("requires-auth", !isLoggedIn);
   }
@@ -622,10 +832,16 @@ function setAuthUi(isLoggedIn, displayName = "") {
     loginInfoTop.classList.toggle("hidden", !isLoggedIn);
   }
   if (loginUserDisplay) {
-    loginUserDisplay.textContent = displayName;
+    loginUserDisplay.textContent = fallbackName;
   }
   if (loginUserDisplayTop) {
-    loginUserDisplayTop.textContent = displayName;
+    loginUserDisplayTop.textContent = fallbackName;
+  }
+  if (loginUserDisplayDropdown) {
+    loginUserDisplayDropdown.textContent = fallbackName;
+  }
+  if (loginUserInitials) {
+    loginUserInitials.textContent = initialsFromName(fallbackName);
   }
   const demoRoleButton = document.querySelector("[data-action='role-admin-owner']");
   if (demoRoleButton) {
@@ -688,6 +904,24 @@ function selectedProjectId() {
   );
 }
 
+function applyForecastLockUi() {
+  if (!forecastForm) {
+    return;
+  }
+  if (forecastLockHint) {
+    forecastLockHint.textContent = forecastPlanningLock.message || "";
+  }
+  if (!forecastPlanningLock.locked) {
+    return;
+  }
+  forecastForm.querySelectorAll("input, select, textarea, button").forEach((item) => {
+    if (item.id === "forecast-project" || item.id === "forecast-littera") {
+      return;
+    }
+    item.disabled = true;
+  });
+}
+
 function applyRoleUi() {
   const state = authState();
   document.querySelectorAll("[data-guard]").forEach((el) => {
@@ -732,6 +966,45 @@ function applyRoleUi() {
       });
     }
   });
+  applyForecastLockUi();
+}
+
+async function updateForecastLock() {
+  if (!forecastForm) {
+    return;
+  }
+  const projectId = projectSelects.forecast?.value || "";
+  const litteraId = litteraSelects.forecast?.value || "";
+  if (!projectId || !litteraId) {
+    forecastPlanningLock = {
+      locked: false,
+      message: "Valitse projekti ja tavoitearvio-littera ennustetta varten.",
+    };
+    applyRoleUi();
+    return;
+  }
+
+  try {
+    const summary = await fetchJson(
+      `/api/report/target-summary?projectId=${projectId}&targetLitteraId=${litteraId}`
+    );
+    const status = summary?.planning?.status || null;
+    if (!["READY_FOR_FORECAST", "LOCKED"].includes(status)) {
+      forecastPlanningLock = {
+        locked: true,
+        message:
+          "Ennustetapahtuma sallitaan vasta, kun suunnitelma on READY_FOR_FORECAST tai LOCKED.",
+      };
+    } else {
+      forecastPlanningLock = { locked: false, message: "" };
+    }
+  } catch (_) {
+    forecastPlanningLock = {
+      locked: true,
+      message: "Suunnitelman tilaa ei voitu tarkistaa. Yritä uudelleen.",
+    };
+  }
+  applyRoleUi();
 }
 
 function pageFromPath() {
@@ -959,6 +1232,9 @@ async function loadLoginUsers() {
 async function finalizeLogin() {
   const me = await fetchJson("/api/me");
   const name = me.user.display_name || me.user.username;
+  if (name) {
+    localStorage.setItem("authUsername", name);
+  }
   setAuthUi(true, name);
   applyRoleUi();
   if (loginStatus) {
@@ -1009,6 +1285,7 @@ async function handleLoginSubmit() {
       body: JSON.stringify({ username, pin }),
     });
     localStorage.setItem("authToken", response.token);
+    localStorage.setItem("authUsername", username);
     loginPinInput.value = "";
     await finalizeLogin();
   } catch (err) {
@@ -1201,7 +1478,7 @@ async function refreshHistory() {
         .join(" | ");
     }
     rows.push({
-      title: `Työtavoite (${p.status})`,
+      title: `Suunnitelma (${p.status})`,
       time: new Date(p.event_time).toLocaleString("fi-FI"),
       detail:
         p.summary ||
@@ -1319,6 +1596,13 @@ if (projectSelects.weekly) {
 if (projectSelects.forecast) {
   projectSelects.forecast.addEventListener("change", async (e) => {
     await loadLitteras(e.target.value);
+    await updateForecastLock();
+  });
+}
+
+if (litteraSelects.forecast) {
+  litteraSelects.forecast.addEventListener("change", async () => {
+    await updateForecastLock();
   });
 }
 
@@ -2343,7 +2627,7 @@ planningForm.addEventListener("submit", async (e) => {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    setHint(result, "Työtavoite tallennettu.");
+    setHint(result, "Suunnitelma tallennettu.");
     planningForm.reset();
     planningAttachments = [];
     renderPlanningAttachments();
@@ -2453,7 +2737,6 @@ if (mappingCorrectionForm) {
   });
 }
 
-const forecastForm = document.getElementById("forecast-form");
 forecastForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = new FormData(forecastForm);
@@ -2484,7 +2767,7 @@ forecastForm.addEventListener("submit", async (e) => {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    setHint(result, "Ennuste tallennettu.");
+    setHint(result, "Ennustetapahtuma tallennettu.");
     forecastForm.reset();
     ghostEntries = [];
     renderGhostEntries();
@@ -2508,7 +2791,7 @@ if (reportRefresh) {
       .then((data) => {
         const lines = [];
         if (data.planning) {
-          lines.push(`<strong>Työtavoite:</strong> ${data.planning.status || ""}`);
+          lines.push(`<strong>Suunnitelma:</strong> ${data.planning.status || ""}`);
         }
         if (data.forecast) {
           lines.push(`<strong>Ennuste:</strong> ${data.forecast.event_time || ""}`);
@@ -2546,13 +2829,24 @@ if (historyRefresh) {
 }
 
 async function initAuth() {
-  setAuthUi(false);
+  const existingToken = storedAuthToken();
+  if (existingToken) {
+    setAuthUi(true, localStorage.getItem("authUsername") || "");
+  } else {
+    setAuthUi(false);
+  }
   await loadLoginUsers();
   try {
     await finalizeLogin();
     return;
   } catch (err) {
-    resetAuthState();
+    if (!existingToken) {
+      resetAuthState();
+    }
+  }
+  if (existingToken) {
+    setAuthUi(true, localStorage.getItem("authUsername") || "");
+    return;
   }
   setAuthUi(false);
   redirectIfNeeded(false);
@@ -2646,7 +2940,7 @@ async function seedDemoData() {
       targetLitteraId: target.littera_id,
       createdBy: "Työnjohtaja",
       status: "READY_FOR_FORECAST",
-      summary: "Työtavoite valmis",
+      summary: "Suunnitelma valmis",
     }),
   });
 
@@ -2656,7 +2950,7 @@ async function seedDemoData() {
       projectId,
       targetLitteraId: target.littera_id,
       createdBy: "Työnjohtaja",
-      comment: "Ensimmäinen ennuste",
+      comment: "Ensimmäinen ennustetapahtuma",
       lines: [
         { costType: "LABOR", forecastValue: 10000, memoGeneral: "Arvio" },
       ],
@@ -2707,12 +3001,49 @@ if (loginPinToggle && loginPinInput) {
   });
 }
 
+function setUserMenuOpen(isOpen) {
+  if (!loginInfo) {
+    return;
+  }
+  loginInfo.classList.toggle("open", isOpen);
+  if (userMenuToggle) {
+    userMenuToggle.setAttribute("aria-expanded", String(isOpen));
+  }
+  if (userMenuDropdown) {
+    userMenuDropdown.setAttribute("aria-hidden", String(!isOpen));
+  }
+}
+
+if (userMenuToggle) {
+  userMenuToggle.addEventListener("click", (event) => {
+    event.preventDefault();
+    const isOpen = loginInfo?.classList.contains("open");
+    setUserMenuOpen(!isOpen);
+  });
+}
+
+document.addEventListener("click", (event) => {
+  if (!loginInfo || !loginInfo.classList.contains("open")) {
+    return;
+  }
+  if (!loginInfo.contains(event.target)) {
+    setUserMenuOpen(false);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    setUserMenuOpen(false);
+  }
+});
+
 const performLogout = () => {
+  setUserMenuOpen(false);
   fetchJson("/api/logout", { method: "POST" }).catch(() => {});
   resetAuthState();
   setAuthUi(false);
   applyRoleUi();
-  window.location.href = "/login";
+  window.location.href = "/login?loggedOut=1&forceLogin=1";
 };
 
 if (logoutButton) {

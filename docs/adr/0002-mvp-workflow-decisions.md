@@ -11,6 +11,8 @@ ennen integraatiotestausta.
 ## Päätös
 - Työnkulku kuvaa UI + API + DB -tasot.
 - MVP-polku: projekti -> budjetti -> JYDA -> mapping -> tyopaketin taloudellinen suunnittelu -> ennustetapahtuma -> raportti.
+- API-minimi suunnitelmalle ja ennustetapahtumalle käyttää append-only /api/planning-events ja /api/forecast-events -päätepisteitä.
+- Ennustetapahtuma estetaan UI:ssa ja API:ssa, jos suunnitelma ei ole READY_FOR_FORECAST tai LOCKED.
 - Viikkopaivitys (ghost + % + memo) on oma polku.
 - Month close käyttää M1_READY_TO_SEND-tilaa ja korjauspolku vaatii hyväksynnän.
 - Terminologia/i18n UI-muokkaus mukana MVP:ssa.
@@ -31,6 +33,8 @@ ennen integraatiotestausta.
 - Lukittiin month close -tilat ja korjauspolku.
 - Valittiin importien joustava mappaus ja exportit (PDF/Excel).
 - Yhdenmukaistettiin ADR-otsikon Status/Date-muoto ja päiväys.
+- Lisättiin API-minimin suunnitelma- ja ennustetapahtuma-päätepisteet.
+- Lisatty UI + API -tasoinen este ennustetapahtumalle ilman valmista suunnitelmaa.
 
 ## Miksi
 - Integraatiotestit vaativat yhteisen, lukitun työnkulun.

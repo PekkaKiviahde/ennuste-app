@@ -139,10 +139,12 @@ curl -X PUT /api/import-mappings \
 ## Mitä muuttui
 - Lisätty muutososiot dokumentin loppuun.
 - Päivitetty month close -polut yhdenmukaisiksi API-dokumentin kanssa.
+- Täsmennetty placeholderit vastaamaan README/OpenAPI-linjaa.
 
 ## Miksi
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
 - API-polkujen pitää vastata nappipolkuja ja toteutusta.
+ - Esimerkkien pitää olla luettavissa yhdessä README:n polkulistauksen kanssa.
 
 ## Miten testataan (manuaali)
 - Avaa dokumentti ja varmista, että osiot ovat mukana.

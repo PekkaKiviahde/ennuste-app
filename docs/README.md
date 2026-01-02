@@ -28,6 +28,7 @@ Päivitetty: 2025-12-30
 ## Käyttövinkki
 - Nämä tiedostot on tarkoitettu suoraan repon sisään (versionhallinta).
 - Mermaid-kaaviot renderöityvät GitHubissa Markdownissa.
+- Perusseed (dev): `node api/scripts/seed.js` (luo suunnitelma + ennuste + liitteet).
 
 ## API
 - `docs/api/README.md` – API docs (OpenAPI + esimerkit)
@@ -38,6 +39,7 @@ Päivitetty: 2025-12-30
 ## SQL (verify/smoke)
 - `docs/sql/VERIFY_INVARIANTS.sql` – invarianttien verify
 - `docs/sql/SMOKE_E2E_CORE.sql` – E2E-smoke (rollback)
+- `migrations/0023_spec_attachments.sql` – liitteiden append-only taulu (speksin mukainen)
 
 ## Mitä muuttui
 - Lisätty linkit DB-smoke-runbookiin ja verify/smoke-SQL-skripteihin.

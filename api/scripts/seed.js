@@ -465,6 +465,127 @@ async function ensureMapping(projectId, litteraIds) {
      WHERE mapping_version_id = $1`,
     [mappingVersionId]
   );
+  return mappingVersionId;
+}
+
+async function ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId) {
+  const targetLitteraId =
+    litteraIds["1100"] || Object.values(litteraIds)[0];
+  if (!targetLitteraId) {
+    return;
+  }
+
+  const existingPlan = await pool.query(
+    `SELECT planning_event_id
+     FROM planning_events
+     WHERE project_id = $1 AND target_littera_id = $2
+     ORDER BY event_time DESC
+     LIMIT 1`,
+    [projectId, targetLitteraId]
+  );
+
+  let planningEventId = existingPlan.rows[0]?.planning_event_id;
+  if (!planningEventId) {
+    const planResult = await pool.query(
+      `INSERT INTO planning_events (
+        project_id,
+        target_littera_id,
+        created_by,
+        status,
+        summary,
+        observations,
+        risks,
+        decisions
+      )
+      VALUES ($1, $2, 'seed', 'READY_FOR_FORECAST', $3, $4, $5, $6)
+      RETURNING planning_event_id`,
+      [
+        projectId,
+        targetLitteraId,
+        "Seed-suunnitelma: peruslinja",
+        "Seed-huomiot: tarkistettu mapping",
+        "Seed-riski: toteumat voivat muuttua",
+        "Seed-paatos: jatka ennustukseen",
+      ]
+    );
+    planningEventId = planResult.rows[0].planning_event_id;
+  }
+
+  const existingForecast = await pool.query(
+    `SELECT forecast_event_id
+     FROM forecast_events
+     WHERE project_id = $1 AND target_littera_id = $2
+     ORDER BY event_time DESC
+     LIMIT 1`,
+    [projectId, targetLitteraId]
+  );
+
+  let forecastEventId = existingForecast.rows[0]?.forecast_event_id;
+  if (!forecastEventId) {
+    const forecastResult = await pool.query(
+      `INSERT INTO forecast_events (
+        project_id,
+        target_littera_id,
+        mapping_version_id,
+        created_by,
+        source,
+        comment,
+        technical_progress,
+        financial_progress
+      )
+      VALUES ($1, $2, $3, 'seed', 'UI', $4, 0.35, 0.30)
+      RETURNING forecast_event_id`,
+      [
+        projectId,
+        targetLitteraId,
+        mappingVersionId,
+        "Seed-ennuste: peruslinja",
+      ]
+    );
+    forecastEventId = forecastResult.rows[0].forecast_event_id;
+
+    const lineData = [
+      { costType: "LABOR", value: 12000, memo: "Seed: tyo" },
+      { costType: "MATERIAL", value: 8000, memo: "Seed: aine" },
+    ];
+
+    for (const line of lineData) {
+      await pool.query(
+        `INSERT INTO forecast_event_lines (
+          forecast_event_id,
+          cost_type,
+          forecast_value,
+          memo_general
+        )
+        VALUES ($1, $2, $3, $4)`,
+        [forecastEventId, line.costType, line.value, line.memo]
+      );
+    }
+  }
+
+  const attachmentTable = await pool.query(
+    "SELECT to_regclass('public.attachments') AS name"
+  );
+  if (attachmentTable.rows[0]?.name) {
+    await pool.query(
+      `INSERT INTO attachments (owner_type, owner_id, filename, storage_ref, created_by)
+       SELECT 'PLAN', $1, 'seed-plan.txt', 'seed://plan', 'seed'
+       WHERE NOT EXISTS (
+         SELECT 1 FROM attachments
+         WHERE owner_type = 'PLAN' AND owner_id = $1
+       )`,
+      [planningEventId]
+    );
+    await pool.query(
+      `INSERT INTO attachments (owner_type, owner_id, filename, storage_ref, created_by)
+       SELECT 'FORECAST_EVENT', $1, 'seed-forecast.txt', 'seed://forecast', 'seed'
+       WHERE NOT EXISTS (
+         SELECT 1 FROM attachments
+         WHERE owner_type = 'FORECAST_EVENT' AND owner_id = $1
+       )`,
+      [forecastEventId]
+    );
+  }
 }
 
 async function ensureWorkPhases(projectId, litteraIds, targetBatchId) {
@@ -748,7 +869,8 @@ async function run() {
   const jydaBatchId = await ensureImportBatch(projectId, 'JYDA');
   await ensureBudgetLines(projectId, targetBatchId, litteraIds);
   await ensureBudgetItems(projectId, targetBatchId, litteraIds);
-  await ensureMapping(projectId, litteraIds);
+  const mappingVersionId = await ensureMapping(projectId, litteraIds);
+  await ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId);
   await ensureWorkPhases(projectId, litteraIds, targetBatchId);
   await ensureActuals(projectId, jydaBatchId, litteraIds);
   await ensureWeeklyUpdate(projectId);

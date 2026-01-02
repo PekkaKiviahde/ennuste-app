@@ -4,7 +4,7 @@
 **Date:** 2026-01-02
 
 ## Context
-Tarvitsemme tavan, jolla kaikki ennusteet ja perustelut ovat jaljitettavissa. Ennustetapahtumia syntyy viikoittain, ja muutosten historia on raportoinnin ydin.
+Tarvitsemme tavan, jolla kaikki ennusteet ja perustelut ovat jaljitettavissa. Ennustetapahtumia syntyy viikoittain, ja muutosten historia on raportoinnin ydin. Suunnitelma on oma vaihe ennen ennustetapahtumaa, mutta ennustuksen totuus muodostuu silti tapahtumista.
 
 ## Decision
 Valitaan append-only event log -malli ennustukseen:
@@ -27,8 +27,8 @@ Valitaan append-only event log -malli ennustukseen:
 - Tapahtumia kertyy paljon, mutta malli on skaalautuva aggregoinneilla.
 
 ## Mitä muuttui
-- Luotu ADR-0001, joka lukitsee append-only event log -valinnan.
-- Kirjattu vaihtoehdot ja seuraukset ennustuksen tietomalliin.
+- Paivitetty ADR-0001 vastaamaan suunnitelma -> ennustetapahtuma -ketjua.
+- Vahvistettu, etta suunnitelma ei korvaa append-only lokia vaan taydentaa sita.
 
 ## Miksi
 - Tarvitaan pysyvä historia ennustetapahtumista ja perusteluista.

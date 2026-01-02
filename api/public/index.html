@@ -16,15 +16,21 @@
           <p class="lead">
             Kirjaa suunnitelma ja tee ennustetapahtuma lokiin. Kaikki tapahtumat säilyvät.
           </p>
-          <div class="user-pill hidden" id="login-info"></div>
         </div>
         <div class="top-right">
-          <div class="user-pill hidden" id="login-info-top">
-            <div class="auth-meta">
-              <span>Kirjautunut</span>
-              <strong id="login-user-display-top"></strong>
+          <div class="user-menu hidden" id="login-info">
+            <button id="user-menu-toggle" class="user-button" type="button" aria-expanded="false">
+              <span class="user-avatar" id="login-user-initials"></span>
+              <span class="user-name" id="login-user-display"></span>
+              <span class="user-caret">▾</span>
+            </button>
+            <div class="user-dropdown" id="user-menu-dropdown" aria-hidden="true">
+              <div class="user-row">
+                <span>Kirjautunut</span>
+                <strong id="login-user-display-dropdown"></strong>
+              </div>
+              <button id="logout" type="button">Kirjaudu ulos</button>
             </div>
-            <button id="logout-top" type="button">Kirjaudu ulos</button>
           </div>
         </div>
       </header>
@@ -45,7 +51,7 @@
                   Mapping
                 </a>
                 <a href="/planning" data-page="planning" data-guard="project:editor" data-hide-when-denied="true">
-                  Työtavoite
+                  Suunnitelma
                 </a>
                 <a href="/weekly" data-page="weekly" data-guard="project:editor" data-hide-when-denied="true">
                   Viikko
@@ -659,7 +665,7 @@
       </details>
 
       <section class="card" data-page="planning">
-        <h2>6. Työtavoitearviosuunnittelu</h2>
+        <h2>6. Suunnitelma (tavoitearvio-littera)</h2>
         <form id="planning-form" class="stack" data-guard="project:editor">
           <label>
             Projekti
@@ -997,6 +1003,7 @@
             Tavoitearvio-littera
             <select name="targetLitteraId" id="forecast-littera" required></select>
           </label>
+          <div class="hint" id="forecast-lock-hint"></div>
           <label>
             Tekijä
             <input name="createdBy" placeholder="Työnjohtaja" required />
@@ -1069,7 +1076,7 @@
             <div id="ghost-list" class="history"></div>
           </div>
 
-          <button type="submit">Tallenna ennuste</button>
+          <button type="submit">Tallenna ennustetapahtuma</button>
           <div class="hint" id="forecast-result"></div>
         </form>
       </section>

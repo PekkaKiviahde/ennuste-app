@@ -3,7 +3,7 @@
 Paivitetty: 2026-01-02
 
 ## Tavoite
-Rakennetaan sovellus, joka muuntaa Excel-ennustelogikan palveluksi ja tallentaa kaikki ennusteet append-only lokiin. Suunnittelu on oma vaihe ennen ennustetapahtumaa, ja mapping erottaa tyolitterat tavoitearvio-litteroista.
+Rakennetaan sovellus, joka muuntaa Excel-ennustelogikan palveluksi ja tallentaa kaikki ennusteet append-only lokiin. Suunnittelu on oma vaihe ennen ennustetapahtumaa, ja mapping erottaa tyolitterat tavoitearvio-litteroista seka mahdollistaa aggregoinnin group_code 0-9 tasolla.
 
 ## Komponentit
 - UI: selainkayttoinen kasittely nakymille (suunnitelma, ennuste, raportti)
@@ -27,10 +27,8 @@ Rakennetaan sovellus, joka muuntaa Excel-ennustelogikan palveluksi ja tallentaa 
 - Raportointi kattaa tyolittera- ja tavoitearvio-littera-nakymat sekä group_code 0-9.
 
 ## Mitä muuttui
-- Lisatty oma arkkitehtuurikuvaus MVP-kokonaisuudesta.
-- Korostettu suunnitelma -> ennuste -> lukitus -> loki -> raportti -ketju.
-- Kuvattu UI, API ja DB komponentit seka liitteiden varastointi.
-- Lisatty paivitetty-paivamaara dokumenttiin.
+- Tarkennettu mappingin rooli raportoinnin aggregoinnissa (group_code 0-9).
+- Yhtenaisistetty tietovirta suunnitelmasta lokiin ja raporttiin.
 
 ## Miksi
 - Tarvitaan lyhyt, yhtenainen kuvaus tiimille ja toteutuksen pohjaksi.

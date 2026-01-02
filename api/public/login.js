@@ -10,6 +10,7 @@ function setStatus(message, isError = false) {
   }
   loginStatus.textContent = message;
   loginStatus.style.color = isError ? "#b00020" : "#1f6f8b";
+  loginStatus.classList.toggle("is-error", isError);
 }
 
 async function fetchJson(url, options = {}) {
@@ -67,12 +68,37 @@ async function handleLogin() {
     });
     if (response.token) {
       localStorage.setItem("authToken", response.token);
+      localStorage.setItem("authUsername", username);
     }
     loginPinInput.value = "";
     window.location.href = "/";
   } catch (err) {
     setStatus(err.message, true);
   }
+}
+
+function handleLoggedOutParam() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const hasLoggedOut = params.has("loggedOut");
+  const forceLogin = params.has("forceLogin");
+  if (!hasLoggedOut && !forceLogin) {
+    return false;
+  }
+  if (hasLoggedOut) {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUsername");
+    document.cookie = "authToken=; Path=/; Max-Age=0; SameSite=Lax";
+    setStatus("Kirjautuminen on päättynyt.", false);
+  }
+  params.delete("loggedOut");
+  params.delete("forceLogin");
+  const query = params.toString();
+  const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  window.history.replaceState({}, "", next);
+  return true;
 }
 
 async function checkExistingToken() {
@@ -90,7 +116,10 @@ async function checkExistingToken() {
   }
 }
 
-checkExistingToken().catch(() => {});
+const loggedOutHandled = handleLoggedOutParam();
+if (!loggedOutHandled) {
+  checkExistingToken().catch(() => {});
+}
 loadUsers().catch((err) => setStatus(err.message, true));
 
 if (loginSubmit) {
@@ -110,4 +139,12 @@ if (loginPinToggle && loginPinInput) {
   loginPinToggle.addEventListener("change", (event) => {
     loginPinInput.type = event.target.checked ? "text" : "password";
   });
+}
+
+if (loginUserSelect) {
+  loginUserSelect.addEventListener("change", () => setStatus(""));
+}
+
+if (loginPinInput) {
+  loginPinInput.addEventListener("input", () => setStatus(""));
 }

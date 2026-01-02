@@ -171,8 +171,12 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 ### Päätökset vs speksit
 - Päätösloki vs `spec/`: ristiriitoja ei löytynyt (tarkistettu).
 
+### Päätökset vs UI/API
+- Päätösloki vs docsissa olevat `ui/` ja `api/` -viitteet: ristiriitoja ei löytynyt (tarkistettu).
+
 ### UI/API-viitteet
 - KARTTA + nappipolut + ADR-0006 viitteet tarkistettu, ristiriitoja ei löytynyt.
+- API-dokit: README/examples polkulistat yhtenäistetty OpenAPI-baseen ja placeholder-muotoon (korjattu).
 
 ## Mitä muuttui
 - Lisätty päätös raportoinnin ja exportin scopesta, mallista, oikeuksista ja evidencestä.
@@ -195,6 +199,8 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Lisätty report.md-raporttiformaattiristiriidan koontimerkintä.
 - Lisätty API-dokumenttien polkujen yhtenäistys koontiin.
 - Lisätty UI/API-viitteiden tarkistus koontiin.
+- Lisätty API-dokkien base-path/placeholder-yhdenmukaistus koontiin.
+- Lisätty päätösloki vs UI/API -tarkistus koontiin.
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.
@@ -217,6 +223,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Report-dokumentin raporttiformaatin pitää vastata päätöslokia.
 - API-dokumenttien polut pidetään yhtenäisinä nappipolkujen kanssa.
 - UI/API-viitteet pidetään linjassa dokumenttien kanssa.
+- API-dokkien pitää käyttää samaa base-path/placeholder-linjaa kuin OpenAPI.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.
@@ -236,4 +243,6 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Tarkista, että päätösloki vs speksit -tarkistuksessa ei ole ristiriitoja.
 - Tarkista, että report.md käyttää PDF/CSV-vientimuotoa.
 - Tarkista, että `docs/api/README.md` ja `docs/api/examples.md` käyttävät samoja polkuja.
+- Tarkista, että `docs/api/README.md` polkulistaus vastaa `docs/api/openapi.yaml` base-path/placeholder-linjaa.
+- Tarkista, että docs-viitteiden `ui/` ja `api/` -polut vastaavat päätöslokin linjaa.
 - Tarkista, että `docs/KARTTA_STATUS_V1.md`, `docs/workflows/nappipolut.md` ja `docs/adr/0006-auth-session-flow.md` viitteet osuvat olemassa oleviin tiedostoihin.
