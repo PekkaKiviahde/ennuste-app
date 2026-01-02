@@ -39,7 +39,7 @@ Päivitetty: 2026-01-02
 ### Yhteenveto
 - Päätökset on kirjattu ja raportoinnin snapshot-malli toimii.
 - Import mapping on joustava (budjetti + JYDA) ja API validoi mappaukset.
-- UI-polkuja on kaksi (kevät UI vs setup UI), mikä aiheuttaa kitkaa.
+- UI-polku on valittu: `api/public/` ensisijainen, `ui/` legacy (ADR-0010).
 - Open-questions sisältää jo ratkaistuja kohtia.
 
 ### Scoreboard
@@ -52,13 +52,13 @@ Päivitetty: 2026-01-02
 
 ### Riskit ja epäselvyydet (max 5)
 - Open-questions sisältää jo päätettyjä kohtia (raporttiformaatit, arkistointi) — `docs/decisions/open-questions.md`
-- Kaksi UI-polkuja (login UI vs setup UI) — `ui/`, `api/public/`
+- Legacy-UI:n ylläpitovelka — `ui/`, ADR-0010
 - Cutover-audit päätös auki — `docs/MASTER_DECISIONS_SAAS_V1.md`
 - Import mapping -UX hajautunut — `ui/app.js`, `api/public/`
 - Operointipäätökset (purge/backup/monitoring) auki — `docs/decisions/open-questions.md`
 
 ### Seuraava looginen päätös
-Päätä yhtenäinen UI-polku (login UI vs setup UI) ja päivitä open-questions vastaamaan lukittuja päätöksiä.
+Yhtenäistä import-mapping UX ensisijaiseen UI-polkuun ja päivitä open-questions vastaamaan lukittuja päätöksiä.
 
 ## P2_PLAN — Kehityssuunnitelma
 
@@ -80,7 +80,6 @@ Päätä yhtenäinen UI-polku (login UI vs setup UI) ja päivitä open-questions
 ## P3_GAPS — Aukot
 - Open-questions päivitys (raporttiformaatit, arkistointi) — `docs/decisions/open-questions.md`
 - Cutover-audit päätös — `docs/MASTER_DECISIONS_SAAS_V1.md`, migraatiot
-- UI-polun valinta (login vs setup) — `ui/`, `api/public/`
 - Import-mapping UX yhtenäistys — `ui/app.js`, `api/public/`
 - Operointi (purge/backup/monitoring) — `docs/runbooks/`
 
@@ -107,13 +106,16 @@ Vastaa: pelkkä numero.
 - Lisättiin KARTTA-tilannekuva ja versionointityyli.
 - Päivitettiin päivämäärä linjaan päätöslokin kanssa.
 - Täsmennetty runbook-viitteet ilman globi-muotoa.
+- Päätettiin ensisijainen UI-polku ja kirjattiin legacy-status.
 
 ## Miksi
 - Tarvitaan selkeä, versionoitu “missä mennään” -dokumentti.
 - Päätöslokin ja tilannekuvan päivämäärien tulee olla linjassa.
 - Viitteiden pitää osoittaa olemassa oleviin tiedostoihin.
+- UI-polun päätös vähentää rinnakkaista ylläpitoa.
 
 ## Miten testataan (manuaali)
 - Tarkista, että tiedosto löytyy ja linkit polkuihin ovat oikein.
 - Varmista, että päivämäärä vastaa `docs/decisions/decision-log.md`-päivitystä.
 - Avaa runbook-viitteet ja varmista, että polut löytyvät.
+- Varmista, että UI-polun päätös näkyy yhteenvetona ja riskeissä.

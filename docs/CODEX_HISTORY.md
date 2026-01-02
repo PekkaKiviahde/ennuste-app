@@ -239,3 +239,22 @@
 - Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
 - Key files: api/public/app.js, api/public/index.html, docs/CODEX_HISTORY.md
 - How to resume: codex resume --last, tarvittaessa `node api/scripts/seed.js`
+
+[2026-01-02] [IN_PROGRESS] [L-20260102-012] LUKITTU: Ensisijainen UI-polku ja legacy-merkintä
+- Goal: päättää ensisijainen UI-polku ja merkitä toinen legacyksi.
+- Scope: Docs + ADR.
+- Deliverables: uusi ADR-0010, kartta-päivitys, päätösloki.
+- Tests (planned): manuaalinen docs-tarkistus
+
+[2026-01-02] [DONE] [L-20260102-012] LUKITTU: Ensisijainen UI-polku ja legacy-merkintä
+- Summary: valittu `api/public/` ensisijaiseksi UI-poluksi; lisätty ADR-0010; päivitetty KARTTA ja päätösloki.
+- Tests: ei ajettu; manuaalinen polku kuvattu.
+- Notes: `ui/` on jatkossa legacy-polku.
+
+[2026-01-02] [HANDOFF] [L-20260102-012]
+- Where we are: UI-polku on päätetty ja dokumentoitu.
+- What changed: päivitetty docs/adr/0010-primary-ui-path.md, docs/adr/README.md, docs/KARTTA_STATUS_V1.md, docs/decisions/decision-log.md.
+- What remains: paivita mahdolliset UI-viitteet muissa docseissa tarvittaessa.
+- Next LUKITTU suggestion: mapping-raportoinnin 0-9 kooste UI:ssa.
+- Key files: docs/adr/0010-primary-ui-path.md, docs/KARTTA_STATUS_V1.md, docs/decisions/decision-log.md, docs/CODEX_HISTORY.md
+- How to resume: codex resume --last

@@ -150,6 +150,10 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - MVP: PDF + CSV (ei Excel/XLSX).
 - Excel/XLSX siirtyy myöhempään vaiheeseen.
 
+## 2026-01-02 – Ensisijainen UI-polku
+- Ensisijainen UI: `api/public/` (login erillisessä `/login`-reitissä).
+- `ui/` merkitään legacyksi, eikä sinne lisätä uusia UI-muutoksia.
+
 ## Ristiriidat (koonti)
 
 ### Dokumenttiviitteet ja otsikot
@@ -198,6 +202,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Lisätty päätösloki vs speksit -tarkistus koontiin.
 - Lisätty report.md-raporttiformaattiristiriidan koontimerkintä.
 - Lisätty API-dokumenttien polkujen yhtenäistys koontiin.
+- Lisätty päätös ensisijaisesta UI-polusta.
 - Lisätty UI/API-viitteiden tarkistus koontiin.
 - Lisätty API-dokkien base-path/placeholder-yhdenmukaistus koontiin.
 - Lisätty päätösloki vs UI/API -tarkistus koontiin.
@@ -224,6 +229,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - API-dokumenttien polut pidetään yhtenäisinä nappipolkujen kanssa.
 - UI/API-viitteet pidetään linjassa dokumenttien kanssa.
 - API-dokkien pitää käyttää samaa base-path/placeholder-linjaa kuin OpenAPI.
+- UI-polun päätös vähentää rinnakkaista ylläpitoa ja sekaannusta.
 
 ## Miten testataan (manuaali)
 - Aja report-polku: send-reports → lukitus → correction → uusi report-package.
@@ -246,3 +252,4 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Tarkista, että `docs/api/README.md` polkulistaus vastaa `docs/api/openapi.yaml` base-path/placeholder-linjaa.
 - Tarkista, että docs-viitteiden `ui/` ja `api/` -polut vastaavat päätöslokin linjaa.
 - Tarkista, että `docs/KARTTA_STATUS_V1.md`, `docs/workflows/nappipolut.md` ja `docs/adr/0006-auth-session-flow.md` viitteet osuvat olemassa oleviin tiedostoihin.
+- Tarkista, että päätöslokissa on UI-polun valinta ja viittaus ADR-0010:een.

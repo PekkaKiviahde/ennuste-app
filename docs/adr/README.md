@@ -12,12 +12,16 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-005: Projektin SaaS-tyypilliset metatiedot
 - ADR-0006: Yhtenäinen kirjautumis- ja uloskirjautumisvirta
 - ADR-0007: Kaikki merkittävät päätökset kirjataan ADR:iin
+- ADR-0010: Ensisijainen UI-polku
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
+- Lisättiin ADR-0010 listaan.
 
 ## Miksi
 - Listauksen pitää vastata päätösdokumenttien otsikoita ja helpottaa hakua.
+- UI-polun päätös on näkyvissä samasta listasta.
 
 ## Miten testataan (manuaali)
 - Avaa `docs/adr/README.md` ja tarkista, että listan otsikot vastaavat ADR-tiedostojen otsikoita.
+- Varmista, että ADR-0010 näkyy listassa.
