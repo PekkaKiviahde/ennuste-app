@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type ForecastRow = {
   forecast_event_id: string;
@@ -44,10 +45,25 @@ export default function ForecastTable({
   rows: ForecastRow[];
   targetOptions: TargetOption[];
 }) {
-  const [query, setQuery] = useState("");
-  const [mappingFilter, setMappingFilter] = useState("ALL");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [mappingFilter, setMappingFilter] = useState(searchParams.get("mapping") ?? "ALL");
+  const [startDate, setStartDate] = useState(searchParams.get("start") ?? "");
+  const [endDate, setEndDate] = useState(searchParams.get("end") ?? "");
+
+  useEffect(() => {
+    const nextQuery = searchParams.get("q") ?? "";
+    const nextMapping = searchParams.get("mapping") ?? "ALL";
+    const nextStart = searchParams.get("start") ?? "";
+    const nextEnd = searchParams.get("end") ?? "";
+    if (nextQuery !== query) setQuery(nextQuery);
+    if (nextMapping !== mappingFilter) setMappingFilter(nextMapping);
+    if (nextStart !== startDate) setStartDate(nextStart);
+    if (nextEnd !== endDate) setEndDate(nextEnd);
+  }, [searchParams, query, mappingFilter, startDate, endDate]);
 
   const targetLookup = useMemo(
     () => new Map(targetOptions.map((option) => [option.id, option.label])),
@@ -104,6 +120,29 @@ export default function ForecastTable({
     setEndDate("");
   };
 
+  const updateParams = (next: {
+    q?: string;
+    mapping?: string;
+    start?: string;
+    end?: string;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.q !== undefined) {
+      next.q ? params.set("q", next.q) : params.delete("q");
+    }
+    if (next.mapping !== undefined) {
+      next.mapping && next.mapping !== "ALL" ? params.set("mapping", next.mapping) : params.delete("mapping");
+    }
+    if (next.start !== undefined) {
+      next.start ? params.set("start", next.start) : params.delete("start");
+    }
+    if (next.end !== undefined) {
+      next.end ? params.set("end", next.end) : params.delete("end");
+    }
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+  };
+
   return (
     <>
       <div className="table-filters">
@@ -113,7 +152,11 @@ export default function ForecastTable({
             className="input"
             id="forecast-query"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setQuery(value);
+              updateParams({ q: value });
+            }}
             placeholder="Esim. 1100 tai Runko"
           />
         </div>
@@ -123,7 +166,11 @@ export default function ForecastTable({
             className="input"
             id="forecast-mapping"
             value={mappingFilter}
-            onChange={(event) => setMappingFilter(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setMappingFilter(value);
+              updateParams({ mapping: value });
+            }}
           >
             <option value="ALL">Kaikki</option>
             <option value="MAPPED">Valittu</option>
@@ -137,7 +184,11 @@ export default function ForecastTable({
             id="forecast-start-date"
             type="date"
             value={startDate}
-            onChange={(event) => setStartDate(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setStartDate(value);
+              updateParams({ start: value });
+            }}
           />
         </div>
         <div>
@@ -147,10 +198,21 @@ export default function ForecastTable({
             id="forecast-end-date"
             type="date"
             value={endDate}
-            onChange={(event) => setEndDate(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setEndDate(value);
+              updateParams({ end: value });
+            }}
           />
           {(startDate || endDate) && (
-            <button className="btn btn-secondary btn-sm" type="button" onClick={resetDates}>
+            <button
+              className="btn btn-secondary btn-sm"
+              type="button"
+              onClick={() => {
+                resetDates();
+                updateParams({ start: "", end: "" });
+              }}
+            >
               Tyhjenna
             </button>
           )}

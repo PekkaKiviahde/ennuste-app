@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type PlanningRow = {
   planning_event_id: string;
@@ -51,10 +52,25 @@ export default function PlanningTable({
   rows: PlanningRow[];
   targetOptions: TargetOption[];
 }) {
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "ALL");
+  const [startDate, setStartDate] = useState(searchParams.get("start") ?? "");
+  const [endDate, setEndDate] = useState(searchParams.get("end") ?? "");
+
+  useEffect(() => {
+    const nextQuery = searchParams.get("q") ?? "";
+    const nextStatus = searchParams.get("status") ?? "ALL";
+    const nextStart = searchParams.get("start") ?? "";
+    const nextEnd = searchParams.get("end") ?? "";
+    if (nextQuery !== query) setQuery(nextQuery);
+    if (nextStatus !== statusFilter) setStatusFilter(nextStatus);
+    if (nextStart !== startDate) setStartDate(nextStart);
+    if (nextEnd !== endDate) setEndDate(nextEnd);
+  }, [searchParams, query, statusFilter, startDate, endDate]);
 
   const targetLookup = useMemo(
     () => new Map(targetOptions.map((option) => [option.id, option.label])),
@@ -108,6 +124,29 @@ export default function PlanningTable({
     setEndDate("");
   };
 
+  const updateParams = (next: {
+    q?: string;
+    status?: string;
+    start?: string;
+    end?: string;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.q !== undefined) {
+      next.q ? params.set("q", next.q) : params.delete("q");
+    }
+    if (next.status !== undefined) {
+      next.status && next.status !== "ALL" ? params.set("status", next.status) : params.delete("status");
+    }
+    if (next.start !== undefined) {
+      next.start ? params.set("start", next.start) : params.delete("start");
+    }
+    if (next.end !== undefined) {
+      next.end ? params.set("end", next.end) : params.delete("end");
+    }
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+  };
+
   return (
     <>
       <div className="table-filters">
@@ -117,7 +156,11 @@ export default function PlanningTable({
             className="input"
             id="planning-query"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setQuery(value);
+              updateParams({ q: value });
+            }}
             placeholder="Esim. 1100 tai Runko"
           />
         </div>
@@ -127,7 +170,11 @@ export default function PlanningTable({
             className="input"
             id="planning-status"
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setStatusFilter(value);
+              updateParams({ status: value });
+            }}
           >
             <option value="ALL">Kaikki</option>
             <option value="DRAFT">Luonnos</option>
@@ -142,7 +189,11 @@ export default function PlanningTable({
             id="planning-start-date"
             type="date"
             value={startDate}
-            onChange={(event) => setStartDate(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setStartDate(value);
+              updateParams({ start: value });
+            }}
           />
         </div>
         <div>
@@ -152,10 +203,21 @@ export default function PlanningTable({
             id="planning-end-date"
             type="date"
             value={endDate}
-            onChange={(event) => setEndDate(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setEndDate(value);
+              updateParams({ end: value });
+            }}
           />
           {(startDate || endDate) && (
-            <button className="btn btn-secondary btn-sm" type="button" onClick={resetDates}>
+            <button
+              className="btn btn-secondary btn-sm"
+              type="button"
+              onClick={() => {
+                resetDates();
+                updateParams({ start: "", end: "" });
+              }}
+            >
               Tyhjenna
             </button>
           )}

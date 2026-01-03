@@ -780,3 +780,23 @@
 - Next LUKITTU suggestion: suodattimien URL-parametrit tai ennusteen autotaytto.
 - Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-029] LUKITTU: Suodattimien URL-parametrit
+- Goal: paivittaa suodattimet URL-parametreihin suunnittelu- ja ennuste-taulukoissa.
+- Scope: UI.
+- Deliverables: URL-parametri-synkkaus suodattimille; jaettava linkki.
+- Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-029] LUKITTU: Suodattimien URL-parametrit
+- Summary: suodattimet synkronoituvat URL-parametreihin suunnittelu- ja ennuste-taulukoissa; takaisinnappain paivittaa tilan.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-029]
+- Where we are: suodattimet pysyvat URL-parametreissa ja linkki on jaettava.
+- What changed: lisatty URL-parametri-synkkaus PlanningTable ja ForecastTable -komponenteissa.
+- What remains: halutessasi lisaa oletusparametrit (esim. status=READY_FOR_FORECAST) tai reset-nappi kaikille suodattimille.
+- Next LUKITTU suggestion: ennusteen autotaytto tai suodattimien URL-resetointi.
+- Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
