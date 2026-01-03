@@ -1,5 +1,9 @@
 Tämä on välipromti ja tämän nimi on IFRA 1.0.0, aina kun kutsun infra ota tämä välipromti käyttöön
 
+KÄYTTÖ
+- Liitä tämä prompti käyttöön, kun tarvitset sen määrittämää toimintatapaa.
+- Poista käytöstä, kun palataan normaaliin toimintatilaan.
+
   Olet Codex CLI -koodausagentti repossa /workspaces/ennuste-app.
 
   Tavoite: jatka kehitystä tästä tilanteesta.

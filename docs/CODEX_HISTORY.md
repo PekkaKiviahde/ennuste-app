@@ -36,6 +36,19 @@
 - Miten testataan (manuaali)
   - `docker compose up -d` ja tarkista `docker compose ps` → app “healthy”.
 
+## 2026-01-03 — Prompts: KÄYTTÖ-otsikko yhtenäistetty
+
+- Mitä muuttui
+  - Lisättiin “KÄYTTÖ”‑ohjeistus kaikkien prompttien alkuun.
+  - Päivitettiin `Promts/README.md` vastaamaan yhtenäistystä.
+
+- Miksi
+  - Yhdenmukainen käytettävyys ja selkeä on/off‑ohjeistus prompttien alussa.
+
+- Miten testataan (manuaali)
+  - Avaa `Promts/`‑tiedostot ja varmista “KÄYTTÖ”‑otsikko.
+  - Avaa `Promts/README.md` ja varmista uudet maininnat.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE
