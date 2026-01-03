@@ -1,4 +1,4 @@
-import { loadWorkPhaseReport, loadWorkflowStatus } from "@ennuste/application";
+import { loadDashboard, loadWorkPhaseReport, loadWorkflowStatus } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
@@ -6,6 +6,11 @@ export default async function ReportPage() {
   const session = await requireSession();
   const services = createServices();
   const rows = await loadWorkPhaseReport(services, {
+    projectId: session.projectId,
+    tenantId: session.tenantId,
+    username: session.username
+  });
+  const dashboard = await loadDashboard(services, {
     projectId: session.projectId,
     tenantId: session.tenantId,
     username: session.username
@@ -45,6 +50,19 @@ export default async function ReportPage() {
   const lockSummaryLabel = status.isLocked
     ? planningSummary || "Ei lukituksen selitetta."
     : "Lukitus ei ole voimassa.";
+  const summary = dashboard as
+    | {
+        bac_total?: number | null;
+        ev_total?: number | null;
+        ac_star_total?: number | null;
+        cpi?: number | null;
+        actual_including_unmapped_total?: number | null;
+        work_phases_baseline_locked?: number | null;
+        work_phases_with_week_update?: number | null;
+      }
+    | null;
+  const summaryBaseline = summary?.work_phases_baseline_locked ?? 0;
+  const summaryWeekly = summary?.work_phases_with_week_update ?? 0;
 
   return (
     <div className="grid">
@@ -64,6 +82,39 @@ export default async function ReportPage() {
             <div className="label">Lukituksen selite</div>
             <div className="value">{lockSummaryLabel}</div>
             <div className="value muted">{status.isLocked ? "Lukitus voimassa" : "Ei lukitusta"}</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>KPI-yhteenveto</h2>
+        <p>Projektitason KPI ja toteuman kooste.</p>
+        <div className="status-grid">
+          <div className="status-item">
+            <div className="label">BAC yhteensa</div>
+            <div className="value">{formatNumber(summary?.bac_total ?? null)}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">EV yhteensa</div>
+            <div className="value">{formatNumber(summary?.ev_total ?? null)}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">AC* yhteensa</div>
+            <div className="value">{formatNumber(summary?.ac_star_total ?? null)}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">CPI</div>
+            <div className="value">{formatCpi(summary?.cpi ?? null, Boolean(summary?.cpi))}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">Toteuma (sis. unmapped)</div>
+            <div className="value">{formatNumber(summary?.actual_including_unmapped_total ?? null)}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">Tyovaiheet lukittu/viikkopaivitetty</div>
+            <div className="value">
+              {summaryBaseline} / {summaryWeekly}
+            </div>
           </div>
         </div>
       </section>

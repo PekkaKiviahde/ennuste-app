@@ -1040,3 +1040,23 @@
 - Next LUKITTU suggestion: LUKITTU: raportin KPI-yhteenveto + ennusteen syoton testikierros.
 - Key files: apps/web/src/server/actions/forecast.ts, apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
+- Goal: lisata raporttiin KPI-yhteenveto ja visuaalinen nosto projektitasolle.
+- Scope: UI (kayttoliittyma) + Application (sovelluskerros).
+- Deliverables: KPI-yhteenvetokortti, muotoillut luvut ja selitteet raporttiin.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, packages/application/src/usecases.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
+- Summary: lisatty KPI-yhteenvetokortti raporttiin; projektitason luvut muotoillaan; lukittujen ja viikkopaivitettyjen tyovaiheiden laskuri lisatty.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: KPI-yhteenveto perustuu v_report_project_current -nakymaan.
+
+[2026-01-03] [HANDOFF] [L-20260103-042]
+- Where we are: raportti nayttaa projektitason KPI-yhteenvetokortin.
+- What changed: lisatty loadDashboard-kutsu ja KPI-yhteenveto UI:hin.
+- What remains: halutessasi lisaa KPI-graafit tai poikkeamavari UI:hin.
+- Next LUKITTU suggestion: LUKITTU: KPI-graafit + poikkeamavarit raporttiin.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
