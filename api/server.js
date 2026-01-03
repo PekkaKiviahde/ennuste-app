@@ -46,7 +46,12 @@ app.use((req, res, next) => {
   }
   next();
 });
-const PUBLIC_API_PATHS = new Set(["/terminology/dictionary", "/users", "/login"]);
+const PUBLIC_API_PATHS = new Set([
+  "/terminology/dictionary",
+  "/users",
+  "/login",
+  "/health",
+]);
 
 app.use("/api", (req, res, next) => {
   if (PUBLIC_API_PATHS.has(req.path)) {

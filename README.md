@@ -101,6 +101,9 @@ docker compose up
 - Jos portti 3000 ei näy:
   - Tarkista `docker compose ps`
   - Tarkista `docker compose logs app --tail=200`
+- Jos ajat Codespaces/etäkontissa: avaa portti 3000 Ports-näkymästä ja käytä sieltä saatua URL:ia (ei paikallinen `localhost`).
+- Jos portti pitää avata ilman kirjautumisohjausta: aseta Ports-näkymästä Visibility → Public.
+- Jos `npm ci` epäonnistuu kontissa: aja kerran `cd api && npm ci` työtilassa, jotta `api/node_modules` löytyy volyymista.
 - Jos portti 3000 on varattu: aseta `.env`-tiedostoon `APP_PORT=3001` (tai muu vapaa portti).
 - Jos vain db + pgadmin käynnistyy:
   - Varmista että `docker-compose.yml` sisältää `app`-palvelun
@@ -111,8 +114,7 @@ docker compose up
 
 1. `docker compose config --services`
 2. `docker compose ps`
-3. `curl -s http://localhost:${APP_PORT:-3000}/health`
-4. `curl -s http://localhost:${APP_PORT:-3000}/version`
+3. `curl -s http://localhost:${APP_PORT:-3000}/api/health`
 
 ### Kirjautuminen (dev)
 
@@ -171,8 +173,7 @@ PIN (dev): `1234`
 
 ### Health checkit
 
-- `GET /health`
-- `GET /version`
+- `GET /api/health`
 
 ### Organisaation vaihto
 

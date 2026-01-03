@@ -1,5 +1,14 @@
 # Codex-historia
 
+## 2026-01-03 — DEV-INFRA: näkyvyys ja käynnistysvarmuus
+
+- Tila: DONE
+- Tavoite: varmistaa, että dev-näkymä avautuu luotettavasti ja yleiset portti- ja asennusongelmat löytyvät nopeasti.
+- Deliverablet: `docker-compose.yml`, `README.md`, `docs/runbooks/dev-output.md`, `docs/CODEX_HISTORY.md`.
+- Mitä muuttui: app-palvelu käyttää `npm ci` vain tarvittaessa, healthcheck lisättiin ja kohdistettiin `/api/health`-polkuun, `/api/health` vapautettiin autentikoinnista, ja dev-näkymän näkyvyys/porttiohjeet (Ports/Visibility) dokumentoitiin.
+- Miksi: vika ilmeni tilanteissa, joissa app ei käynnistynyt (npm-asennus/porttiohjeiden puute) ja dev-näkymä ei avautunut.
+- Miten testataan (manuaali): `docker compose up -d`, `docker compose ps`, `curl -s http://localhost:${APP_PORT:-3000}/health`.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE
