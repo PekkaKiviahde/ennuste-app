@@ -23,7 +23,7 @@ export const createForecastAction = async (
   formData: FormData
 ): Promise<ForecastFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
 
     const targetLitteraId = String(formData.get("targetLitteraId") ?? "").trim();

@@ -5,7 +5,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function PlanningPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const rows = await loadPlanningReport(services, {
     projectId: session.projectId,

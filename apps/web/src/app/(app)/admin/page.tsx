@@ -4,7 +4,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function AdminPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   let overview: Awaited<ReturnType<typeof loadAdminOverview>> | null = null;
   try {

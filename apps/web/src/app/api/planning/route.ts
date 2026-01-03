@@ -6,7 +6,7 @@ import { AppError } from "@ennuste/shared";
 
 export async function POST(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request);
     if (!session) {
       return NextResponse.json({ error: "Kirjaudu ensin sisaan" }, { status: 401 });
     }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const session = getSessionFromRequest(request);
+    const session = await getSessionFromRequest(request);
     if (!session) {
       return NextResponse.json({ error: "Kirjaudu ensin sisaan" }, { status: 401 });
     }

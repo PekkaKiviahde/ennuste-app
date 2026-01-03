@@ -4,8 +4,8 @@ import { getSessionFromCookies } from "../../server/session";
 import { redirect } from "next/navigation";
 import { logoutAction } from "../../server/actions/auth";
 
-export default function AuthedLayout({ children }: { children: ReactNode }) {
-  const session = getSessionFromCookies();
+export default async function AuthedLayout({ children }: { children: ReactNode }) {
+  const session = await getSessionFromCookies();
   if (!session) {
     redirect("/login");
   }

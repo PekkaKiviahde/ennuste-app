@@ -3,7 +3,17 @@ import type { SessionUser } from "@ennuste/shared";
 import { AuthError } from "@ennuste/shared";
 import { query } from "./db";
 
-const SESSION_TABLE_WARNING = "Session storage is stateless; logout clears cookie only.";
+const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 8;
+
+const loadPermissions = async (projectId: string, username: string) => {
+  const permissionsResult = await query<{ permission_code: string }>(
+    "SELECT permission_code FROM v_rbac_user_project_permissions WHERE project_id = $1::uuid AND username = $2::text",
+    [projectId, username]
+  );
+  return (permissionsResult.rows as Array<{ permission_code: SessionUser["permissions"][number] }>).map(
+    (row) => row.permission_code
+  );
+};
 
 export const authRepository = (): AuthPort => ({
   async loginWithPin(input: LoginInput): Promise<LoginResult> {
@@ -58,14 +68,7 @@ export const authRepository = (): AuthPort => ({
       throw new AuthError("Projektin tenant puuttuu");
     }
 
-    const permissionsResult = await query<{ permission_code: string }>(
-      "SELECT permission_code FROM v_rbac_user_project_permissions WHERE project_id = $1::uuid AND username = $2::text",
-      [projectId, user.username]
-    );
-
-    const permissions = (permissionsResult.rows as Array<{ permission_code: SessionUser["permissions"][number] }>).map(
-      (row) => row.permission_code
-    );
+    const permissions = await loadPermissions(projectId, user.username);
 
     const session: SessionUser = {
       userId: user.user_id,
@@ -79,13 +82,57 @@ export const authRepository = (): AuthPort => ({
 
     return { session };
   },
-  async getSession() {
-    throw new Error(SESSION_TABLE_WARNING);
+  async getSession(sessionId: string) {
+    const sessionResult = await query<{
+      session_id: string;
+      user_id: string;
+      project_id: string;
+      tenant_id: string;
+      expires_at: string;
+      revoked_at: string | null;
+      username: string;
+      display_name: string | null;
+      organization_id: string;
+    }>(
+      "SELECT s.session_id, s.user_id, s.project_id, s.tenant_id, s.expires_at, s.revoked_at, u.username, u.display_name, p.organization_id FROM sessions s JOIN users u ON u.user_id = s.user_id JOIN projects p ON p.project_id = s.project_id WHERE s.session_id = $1::uuid AND u.is_active = true",
+      [sessionId]
+    );
+
+    const sessionRow = sessionResult.rows[0];
+    if (!sessionRow) {
+      return null;
+    }
+    if (sessionRow.revoked_at) {
+      return null;
+    }
+    if (new Date(sessionRow.expires_at).getTime() <= Date.now()) {
+      return null;
+    }
+
+    const permissions = await loadPermissions(sessionRow.project_id, sessionRow.username);
+
+    return {
+      userId: sessionRow.user_id,
+      username: sessionRow.username,
+      displayName: sessionRow.display_name,
+      organizationId: sessionRow.organization_id,
+      tenantId: sessionRow.tenant_id,
+      projectId: sessionRow.project_id,
+      permissions
+    };
   },
-  async createSession() {
-    throw new Error(SESSION_TABLE_WARNING);
+  async createSession(session) {
+    const expiresAt = new Date(Date.now() + DEFAULT_MAX_AGE_SECONDS * 1000);
+    const result = await query<{ session_id: string }>(
+      "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, $4::timestamptz) RETURNING session_id",
+      [session.userId, session.projectId, session.tenantId, expiresAt.toISOString()]
+    );
+    return result.rows[0].session_id;
   },
-  async deleteSession() {
-    throw new Error(SESSION_TABLE_WARNING);
+  async deleteSession(sessionId: string) {
+    await query(
+      "UPDATE sessions SET revoked_at = now() WHERE session_id = $1::uuid AND revoked_at IS NULL",
+      [sessionId]
+    );
   }
 });

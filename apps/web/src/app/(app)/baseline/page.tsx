@@ -4,7 +4,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function BaselinePage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const reportRows = await loadWorkPhaseReport(services, {
     projectId: session.projectId,

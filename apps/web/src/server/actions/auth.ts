@@ -2,7 +2,7 @@
 
 import { login, ensureDemoRoleSwitchAllowed } from "@ennuste/application";
 import { createServices } from "../services";
-import { clearSessionCookie, setSessionCookie } from "../session";
+import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, setSessionCookie } from "../session";
 import { redirect } from "next/navigation";
 
 export type LoginFormState = {
@@ -17,7 +17,8 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
   const services = createServices();
   try {
     const result = await login(services, { username, pin, projectId });
-    setSessionCookie(result.session);
+    const sessionId = await services.auth.createSession(result.session);
+    setSessionCookie(sessionId);
     redirect("/ylataso");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
@@ -26,8 +27,23 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
 };
 
 export const logoutAction = async () => {
+  const services = createServices();
+  const sessionId = getSessionIdForLogout();
+  const session = await getSessionFromCookies();
+  if (sessionId) {
+    await services.auth.deleteSession(sessionId);
+  }
   clearSessionCookie();
-  redirect("/login");
+  if (session) {
+    await services.audit.recordEvent({
+      projectId: session.projectId,
+      tenantId: session.tenantId,
+      actor: session.username,
+      action: "auth.logout",
+      payload: {}
+    });
+  }
+  redirect("/login?loggedOut=1");
 };
 
 export const quickRoleLoginAction = async (formData: FormData) => {
@@ -40,7 +56,8 @@ export const quickRoleLoginAction = async (formData: FormData) => {
 
   const services = createServices();
   const result = await login(services, { username, pin, projectId });
-  setSessionCookie(result.session);
+  const sessionId = await services.auth.createSession(result.session);
+  setSessionCookie(sessionId);
 
   await services.audit.recordEvent({
     projectId: result.session.projectId,

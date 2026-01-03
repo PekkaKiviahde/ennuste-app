@@ -3,7 +3,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function DashboardPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const dashboard = (await loadDashboard(services, {
     projectId: session.projectId,

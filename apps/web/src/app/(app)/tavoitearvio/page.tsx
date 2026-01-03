@@ -3,7 +3,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function TargetEstimatePage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const rows = await loadTargetEstimate(services, {
     projectId: session.projectId,

@@ -13,7 +13,8 @@ export async function POST(request: Request) {
       pin: body.pin,
       projectId: body.projectId
     });
-    setSessionCookie(result.session);
+    const sessionId = await services.auth.createSession(result.session);
+    setSessionCookie(sessionId);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof AppError) {

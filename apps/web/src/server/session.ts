@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import type { SessionUser } from "@ennuste/shared";
 import { AuthError } from "@ennuste/shared";
+import { createServices } from "./services";
 
 const COOKIE_NAME = "ennuste_session";
 const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 8; // 8h
@@ -17,9 +18,9 @@ const getSecret = () => {
 const sign = (payload: string, secret: string) =>
   crypto.createHmac("sha256", secret).update(payload).digest("base64url");
 
-const encode = (session: SessionUser, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
+const encode = (sessionId: string, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
   const payload = {
-    session,
+    sessionId,
     exp: Date.now() + maxAgeSeconds * 1000
   };
   const json = JSON.stringify(payload);
@@ -38,15 +39,15 @@ const decode = (value: string) => {
     throw new AuthError("Istunnon allekirjoitus ei kelpaa");
   }
   const json = Buffer.from(b64, "base64url").toString("utf8");
-  const payload = JSON.parse(json) as { session: SessionUser; exp: number };
+  const payload = JSON.parse(json) as { sessionId: string; exp: number };
   if (Date.now() > payload.exp) {
     throw new AuthError("Istunto on vanhentunut");
   }
-  return payload.session;
+  return payload.sessionId;
 };
 
-export const setSessionCookie = (session: SessionUser, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
-  const value = encode(session, maxAgeSeconds);
+export const setSessionCookie = (sessionId: string, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
+  const value = encode(sessionId, maxAgeSeconds);
   cookies().set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: "lax",
@@ -56,8 +57,8 @@ export const setSessionCookie = (session: SessionUser, maxAgeSeconds = DEFAULT_M
   });
 };
 
-export const createSessionToken = (session: SessionUser, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
-  return encode(session, maxAgeSeconds);
+export const createSessionToken = (sessionId: string, maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS) => {
+  return encode(sessionId, maxAgeSeconds);
 };
 
 export const clearSessionCookie = () => {
@@ -70,7 +71,7 @@ export const clearSessionCookie = () => {
   });
 };
 
-export const getSessionFromCookies = (): SessionUser | null => {
+const getSessionIdFromCookies = (): string | null => {
   const value = cookies().get(COOKIE_NAME)?.value;
   if (!value) {
     return null;
@@ -78,7 +79,7 @@ export const getSessionFromCookies = (): SessionUser | null => {
   return decode(value);
 };
 
-export const getSessionFromRequest = (request: Request): SessionUser | null => {
+const getSessionIdFromRequest = (request: Request): string | null => {
   const cookieHeader = request.headers.get("cookie");
   if (!cookieHeader) {
     return null;
@@ -92,10 +93,51 @@ export const getSessionFromRequest = (request: Request): SessionUser | null => {
   return decode(value);
 };
 
-export const requireSession = (): SessionUser => {
-  const session = getSessionFromCookies();
-  if (!session) {
+export const getSessionFromCookies = async (): Promise<SessionUser | null> => {
+  let sessionId: string | null = null;
+  try {
+    sessionId = getSessionIdFromCookies();
+  } catch {
+    return null;
+  }
+  if (!sessionId) {
+    return null;
+  }
+  const services = createServices();
+  return services.auth.getSession(sessionId);
+};
+
+export const getSessionFromRequest = async (request: Request): Promise<SessionUser | null> => {
+  let sessionId: string | null = null;
+  try {
+    sessionId = getSessionIdFromRequest(request);
+  } catch {
+    return null;
+  }
+  if (!sessionId) {
+    return null;
+  }
+  const services = createServices();
+  return services.auth.getSession(sessionId);
+};
+
+export const requireSession = async (): Promise<SessionUser> => {
+  const sessionId = getSessionIdFromCookies();
+  if (!sessionId) {
     throw new AuthError("Kirjaudu sisaan");
   }
+  const services = createServices();
+  const session = await services.auth.getSession(sessionId);
+  if (!session) {
+    throw new AuthError("Istunto ei ole voimassa");
+  }
   return session;
+};
+
+export const getSessionIdForLogout = (): string | null => {
+  try {
+    return getSessionIdFromCookies();
+  } catch {
+    return null;
+  }
 };

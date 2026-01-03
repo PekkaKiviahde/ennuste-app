@@ -3,7 +3,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function ReportPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const rows = await loadWorkPhaseReport(services, {
     projectId: session.projectId,

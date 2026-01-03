@@ -30,7 +30,7 @@ export const createWeeklyUpdateAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const workPhaseId = String(formData.get("workPhaseId") ?? "").trim();
     const weekEnding = String(formData.get("weekEnding") ?? "").trim();
@@ -65,7 +65,7 @@ export const createGhostEntryAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const workPhaseId = String(formData.get("workPhaseId") ?? "").trim();
     const weekEnding = String(formData.get("weekEnding") ?? "").trim();
@@ -100,7 +100,7 @@ export const lockBaselineAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const workPhaseId = String(formData.get("workPhaseId") ?? "").trim();
     const workPhaseVersionId = String(formData.get("workPhaseVersionId") ?? "").trim();
@@ -131,7 +131,7 @@ export const proposeCorrectionAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const workPhaseId = String(formData.get("workPhaseId") ?? "").trim();
     const itemCode = String(formData.get("itemCode") ?? "").trim();
@@ -160,7 +160,7 @@ export const approveCorrectionPmAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const correctionId = String(formData.get("correctionId") ?? "").trim();
     if (!correctionId) {
@@ -186,7 +186,7 @@ export const approveCorrectionFinalAction = async (
   formData: FormData
 ): Promise<WorkPhaseFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
     const correctionId = String(formData.get("correctionId") ?? "").trim();
     if (!correctionId) {

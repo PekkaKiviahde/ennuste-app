@@ -980,3 +980,23 @@
 - Next LUKITTU suggestion: lokin suodatus suunnitelma/ennuste tai raportin lukitusyhteenveto historiasta.
 - Key files: apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-039] LUKITTU: Logout: tilallinen sessio + invalidointi
+- Goal: korjata uloskirjautuminen niin, etta sessio mitatoidaan palvelimella.
+- Scope: DB (tietokanta) + Infrastructure (infrastruktuuri) + UI (kayttoliittyma).
+- Deliverables: sessions-taulu, auth-portin session-toteutus, logout-invalidointi, login-kuittaus.
+- Key files: migrations/0025_sessions.sql, packages/infrastructure/src/auth.ts, apps/web/src/server/session.ts, apps/web/src/server/actions/auth.ts, apps/web/src/app/login/page.tsx, docs/adr/0011-stateful-sessions.md, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-039] LUKITTU: Logout: tilallinen sessio + invalidointi
+- Summary: lisatty sessions-taulu ja auth-session tallennus; sessio-cookie sisaltaa session_id:n; uloskirjautuminen mitatoi session ja asettaa login-kuittauksen; integraatiotesti paivitetty session-rowilla.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: stateless-cookie poistui, session tarkistetaan DB:sta.
+
+[2026-01-03] [HANDOFF] [L-20260103-039]
+- Where we are: uloskirjautuminen mitatoi session palvelimella ja login nayttaa kuittauksen.
+- What changed: lisatty sessions-taulu, auth-repositoryn session-toteutus ja session-id-cookie.
+- What remains: halutessasi lisaa /api/logout tai session-listaus adminiin.
+- Next LUKITTU suggestion: lokin suodatus suunnitelma/ennuste tai session-listaus adminiin.
+- Key files: migrations/0025_sessions.sql, packages/infrastructure/src/auth.ts, apps/web/src/server/session.ts, apps/web/src/server/actions/auth.ts, docs/adr/0011-stateful-sessions.md, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

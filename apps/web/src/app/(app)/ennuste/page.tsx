@@ -5,7 +5,7 @@ import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function ForecastPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const rows = await loadForecastReport(services, {
     projectId: session.projectId,

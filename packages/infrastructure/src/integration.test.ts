@@ -17,9 +17,9 @@ after(async () => {
 const sign = (payload: string) =>
   crypto.createHmac("sha256", sessionSecret).update(payload).digest("base64url");
 
-const createSessionToken = (session: object) => {
+const createSessionToken = (sessionId: string) => {
   const payload = {
-    session,
+    sessionId,
     exp: Date.now() + 60 * 60 * 1000
   };
   const json = JSON.stringify(payload);
@@ -72,15 +72,11 @@ test("planning endpoint writes planning event and audit log", { skip: !databaseU
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
 
-  const sessionToken = createSessionToken({
-    userId,
-    username: `integration.user.${suffix}`,
-    displayName: `Integration User ${suffix}`,
-    organizationId,
-    tenantId,
-    projectId,
-    permissions: ["REPORT_READ"]
-  });
+  const sessionResult = await client.query(
+    "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
+    [userId, projectId, tenantId]
+  );
+  const sessionToken = createSessionToken(sessionResult.rows[0].session_id);
 
   const request = new Request("http://localhost/api/planning", {
     method: "POST",
@@ -154,15 +150,11 @@ test("planning endpoint denies without permissions", { skip: !databaseUrl || !se
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
 
-  const sessionToken = createSessionToken({
-    userId,
-    username: `deny.user.${suffix}`,
-    displayName: `Deny User ${suffix}`,
-    organizationId,
-    tenantId,
-    projectId,
-    permissions: []
-  });
+  const sessionResult = await client.query(
+    "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
+    [userId, projectId, tenantId]
+  );
+  const sessionToken = createSessionToken(sessionResult.rows[0].session_id);
 
   const request = new Request("http://localhost/api/planning", {
     method: "POST",
@@ -233,15 +225,11 @@ test("tenant isolation blocks cross-tenant project access", { skip: !databaseUrl
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
 
-  const sessionToken = createSessionToken({
-    userId,
-    username: `tenant.a.user.${suffix}`,
-    displayName: `Tenant A User ${suffix}`,
-    organizationId: orgA.rows[0].organization_id,
-    tenantId: tenantA.rows[0].tenant_id,
-    projectId: projectB.rows[0].project_id,
-    permissions: ["REPORT_READ"]
-  });
+  const sessionResult = await client.query(
+    "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
+    [userId, projectB.rows[0].project_id, tenantA.rows[0].tenant_id]
+  );
+  const sessionToken = createSessionToken(sessionResult.rows[0].session_id);
 
   const request = new Request("http://localhost/api/planning", {
     method: "POST",
@@ -368,15 +356,11 @@ test("workflow status endpoint returns latest planning status", { skip: !databas
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
 
-  const sessionToken = createSessionToken({
-    userId,
-    username: `workflow.user.${suffix}`,
-    displayName: `Workflow User ${suffix}`,
-    organizationId,
-    tenantId,
-    projectId,
-    permissions: ["REPORT_READ"]
-  });
+  const sessionResult = await client.query(
+    "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
+    [userId, projectId, tenantId]
+  );
+  const sessionToken = createSessionToken(sessionResult.rows[0].session_id);
 
   const planningRequest = new Request("http://localhost/api/planning", {
     method: "POST",

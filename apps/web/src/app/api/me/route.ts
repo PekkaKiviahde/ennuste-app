@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionFromRequest } from "../../../server/session";
 
 export async function GET(request: Request) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
   if (!session) {
     return NextResponse.json({ error: "Kirjaudu ensin sisaan" }, { status: 401 });
   }

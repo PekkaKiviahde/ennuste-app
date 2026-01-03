@@ -14,7 +14,7 @@ const formatDateTime = (value: string | null | undefined) => {
 };
 
 export default async function WorkflowPage() {
-  const session = requireSession();
+  const session = await requireSession();
   const services = createServices();
   const status = await loadWorkflowStatus(services, {
     projectId: session.projectId,

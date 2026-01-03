@@ -15,7 +15,7 @@ export const createPlanningAction = async (
   formData: FormData
 ): Promise<PlanningFormState> => {
   try {
-    const session = requireSession();
+    const session = await requireSession();
     const services = createServices();
 
     const targetLitteraId = String(formData.get("targetLitteraId") ?? "").trim();
