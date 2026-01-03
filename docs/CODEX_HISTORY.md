@@ -1101,6 +1101,26 @@
 - Key files: apps/web/src/app/(app)/loki/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
 
+[2026-01-03] [IN_PROGRESS] [L-20260103-045] LUKITTU: Handoff-yhteenveto keskustelusta
+- Goal: tallentaa keskustelun handoff-yhteenveto repossa jatkon helpottamiseksi.
+- Scope: Docs (dokumentaatio) + Process (prosessi).
+- Deliverables: handoff-dokumentti ja CODEx-historia paivitys.
+- Key files: docs/HANDOFF_20260103.md, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-045] LUKITTU: Handoff-yhteenveto keskustelusta
+- Summary: lisatty handoff-yhteenveto tiedostoon; kirjattu historiaan.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: handoff kokoaa valmiit kokonaisuudet ja avoimet tehtavat.
+
+[2026-01-03] [HANDOFF] [L-20260103-045]
+- Where we are: handoff tallennettu erilliseen tiedostoon.
+- What changed: lisatty docs/HANDOFF_20260103.md ja historia paivitetty.
+- What remains: paivita handoff uuteen paivaan seuraavan session yhteydessa.
+- Next LUKITTU suggestion: LUKITTU: ennusteen testiskenaariot dataan + lokin suodatus lisatapahtumille.
+- Key files: docs/HANDOFF_20260103.md, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
 [2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
 - Summary: lisatty KPI-yhteenvetokortti raporttiin; projektitason luvut muotoillaan; lukittujen ja viikkopaivitettyjen tyovaiheiden laskuri lisatty.
 - Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
