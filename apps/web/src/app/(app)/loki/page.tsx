@@ -25,14 +25,22 @@ export default async function AuditLogPage() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row: any) => (
-            <tr key={row.audit_event_id}>
-              <td>{row.event_time}</td>
-              <td>{row.actor}</td>
-              <td>{row.action}</td>
-              <td>{JSON.stringify(row.payload)}</td>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={4}>
+                <div className="notice">Ei lokitapahtumia viela.</div>
+              </td>
             </tr>
-          ))}
+          ) : (
+            rows.map((row: any) => (
+              <tr key={row.audit_event_id}>
+                <td>{row.event_time}</td>
+                <td>{row.actor}</td>
+                <td>{row.action}</td>
+                <td>{JSON.stringify(row.payload)}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

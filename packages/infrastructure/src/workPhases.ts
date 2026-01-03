@@ -5,7 +5,12 @@ export const workPhaseRepository = (): WorkPhasePort => ({
   async listWorkPhases(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    const result = await tenantDb.query(
+    const result = await tenantDb.query<{
+      work_phase_id: string;
+      name: string;
+      status: string | null;
+      created_at: string;
+    }>(
       "SELECT work_phase_id, name, status, created_at FROM work_phases WHERE project_id = $1::uuid ORDER BY created_at DESC",
       [projectId]
     );

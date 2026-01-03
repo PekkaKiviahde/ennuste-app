@@ -552,3 +552,23 @@
 - Next LUKITTU suggestion: LUKITTU #3 workflow-formien tilannekuvat + validoinnit + onnistumisviestit.
 - Key files: apps/web/src/app/api/forecast/route.ts, apps/web/src/app/api/planning/route.ts, apps/web/src/app/api/work-phases/*, apps/web/src/app/api/report/*, apps/web/src/app/error.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test; docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-018] LUKITTU: Workflow-lomakkeiden validointi + onnistumisviestit
+- Goal: lisata lomakkeiden validointi, onnistumisviestit ja tilannekuvat workflow-nakymiin.
+- Scope: UI + API + Application.
+- Deliverables: UI-validointi, onnistumisviestit, listojen tilannekuvat, virheilmoitukset.
+- Key files: apps/web/src/app/(app)/*/page.tsx, apps/web/src/app/globals.css, apps/web/src/server/actions/*.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint, npm run typecheck, npm run test
+
+[2026-01-03] [DONE] [L-20260103-018] LUKITTU: Workflow-lomakkeiden validointi + onnistumisviestit
+- Summary: lisatty Planning/Forecast/Baseline-lomakkeiden validoinnit ja onnistumisviestit; lisatty FormStatus; lisatty tyhjat tilannekuvat raportti/loki/admin/tavoitearvio.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-018]
+- Where we are: workflow-lomakkeet nayttavat validoinnit ja onnistumisviestit; tyhjat listat ovat informatiivisia.
+- What changed: lisatty form-komponentit ja niiden status; actions palauttavat form state; paivitetty workflow-sivujen tyhjat tilat.
+- What remains: kierrata tsx IPC -testirajoitus; varmista UI-polut end-to-end.
+- Next LUKITTU suggestion: LUKITTU #4 workflow-UI viimeistely (valinnat UUID-kenttien tilalle, status-nakyma, paremmat virhetekstit).
+- Key files: apps/web/src/ui/form-status.tsx, apps/web/src/ui/planning/PlanningForm.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/ui/baseline/BaselineForms.tsx, apps/web/src/server/actions/*.ts, apps/web/src/app/(app)/*/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test; docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next; avaa /suunnittelu ja /ennuste

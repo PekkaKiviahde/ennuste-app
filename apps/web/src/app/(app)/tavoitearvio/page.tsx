@@ -30,9 +30,16 @@ export default async function TargetEstimatePage() {
               <th>Maara EUR</th>
               <th>Voimassa</th>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row: any) => (
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={5}>
+                <div className="notice">Ei tavoitearvioriveja viela.</div>
+              </td>
+            </tr>
+          ) : (
+            rows.map((row: any) => (
               <tr key={`${row.target_littera_id}-${row.cost_type}-${row.valid_from}`}>
                 <td>{row.littera_code}</td>
                 <td>{row.littera_title}</td>
@@ -42,10 +49,11 @@ export default async function TargetEstimatePage() {
                   {row.valid_from} - {row.valid_to ?? "inf"}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            ))
+          )}
+        </tbody>
+      </table>
+    </section>
 
       <section className="card">
         <h2>Mapping</h2>
@@ -59,9 +67,16 @@ export default async function TargetEstimatePage() {
               <th>Saanto</th>
               <th>Kustannuslaji</th>
             </tr>
-          </thead>
-          <tbody>
-            {mappingLines.map((row: any) => (
+        </thead>
+        <tbody>
+          {mappingLines.length === 0 ? (
+            <tr>
+              <td colSpan={5}>
+                <div className="notice">Ei mapping-riveja viela.</div>
+              </td>
+            </tr>
+          ) : (
+            mappingLines.map((row: any) => (
               <tr key={row.mapping_line_id}>
                 <td>{row.mapping_status}</td>
                 <td>{row.work_code} {row.work_title}</td>
@@ -69,10 +84,11 @@ export default async function TargetEstimatePage() {
                 <td>{row.allocation_rule} {row.allocation_value}</td>
                 <td>{row.cost_type ?? "ALL"}</td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            ))
+          )}
+        </tbody>
+      </table>
+    </section>
     </div>
   );
 }

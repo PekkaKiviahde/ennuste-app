@@ -18,11 +18,15 @@ export default async function AdminPage() {
         <p>Kayttajat, roolit ja projektin jasenyydet.</p>
         <h3>Roolit</h3>
         <div className="grid">
-          {overview.roles.map((role) => (
-            <div key={role.role_code} className="badge">
-              {role.role_code} - {role.role_name_fi}
-            </div>
-          ))}
+          {overview.roles.length === 0 ? (
+            <div className="notice">Ei rooleja saatavilla.</div>
+          ) : (
+            overview.roles.map((role) => (
+              <div key={role.role_code} className="badge">
+                {role.role_code} - {role.role_name_fi}
+              </div>
+            ))
+          )}
         </div>
       </section>
       <section className="card">
@@ -37,14 +41,22 @@ export default async function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {overview.assignments.map((row, index) => (
-              <tr key={`${row.username}-${row.role_code}-${index}`}>
-                <td>{row.scope}</td>
-                <td>{row.username}</td>
-                <td>{row.role_code}</td>
-                <td>{row.granted_at}</td>
+            {overview.assignments.length === 0 ? (
+              <tr>
+                <td colSpan={4}>
+                  <div className="notice">Ei assignointeja.</div>
+                </td>
               </tr>
-            ))}
+            ) : (
+              overview.assignments.map((row, index) => (
+                <tr key={`${row.username}-${row.role_code}-${index}`}>
+                  <td>{row.scope}</td>
+                  <td>{row.username}</td>
+                  <td>{row.role_code}</td>
+                  <td>{row.granted_at}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </section>

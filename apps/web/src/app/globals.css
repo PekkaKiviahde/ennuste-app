@@ -184,6 +184,13 @@ textarea {
   color: #5c1c1c;
 }
 
+.notice.success {
+  background: #e5f3ea;
+  border-style: solid;
+  border-color: var(--success);
+  color: #1c4a2b;
+}
+
 @media (max-width: 720px) {
   .navbar {
     padding: 1rem;

@@ -27,16 +27,24 @@ export default async function ReportPage() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row: any) => (
-            <tr key={row.work_phase_id}>
-              <td>{row.work_phase_name}</td>
-              <td>{row.bac_total}</td>
-              <td>{row.ev_value}</td>
-              <td>{row.ac_star_total}</td>
-              <td>{row.cpi ?? "-"}</td>
-              <td>{row.cost_variance_eur ?? 0}</td>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={6}>
+                <div className="notice">Ei raporttiriveja viela.</div>
+              </td>
             </tr>
-          ))}
+          ) : (
+            rows.map((row: any) => (
+              <tr key={row.work_phase_id}>
+                <td>{row.work_phase_name}</td>
+                <td>{row.bac_total}</td>
+                <td>{row.ev_value}</td>
+                <td>{row.ac_star_total}</td>
+                <td>{row.cpi ?? "-"}</td>
+                <td>{row.cost_variance_eur ?? 0}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

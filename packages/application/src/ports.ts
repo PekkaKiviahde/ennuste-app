@@ -87,7 +87,12 @@ export type AdminPort = {
 };
 
 export type WorkPhasePort = {
-  listWorkPhases(projectId: string, tenantId: string): Promise<unknown[]>;
+  listWorkPhases(projectId: string, tenantId: string): Promise<Array<{
+    work_phase_id: string;
+    name: string;
+    status: string | null;
+    created_at: string;
+  }>>;
   createWeeklyUpdate(input: {
     projectId: string;
     tenantId: string;
