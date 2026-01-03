@@ -42,6 +42,8 @@ export default function ForecastForm({
   const [targetLitteraId, setTargetLitteraId] = useState("");
   const [autoFillStatus, setAutoFillStatus] = useState<"idle" | "loading" | "done" | "empty" | "error">("idle");
   const [autoFillMessage, setAutoFillMessage] = useState<string | null>(null);
+  const [planningStatus, setPlanningStatus] = useState<"DRAFT" | "READY_FOR_FORECAST" | "LOCKED" | null>(null);
+  const [planningStatusError, setPlanningStatusError] = useState<string | null>(null);
 
   const mappingSelectRef = useRef<HTMLSelectElement>(null);
   const mappingInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +86,8 @@ export default function ForecastForm({
 
   useEffect(() => {
     if (!targetLitteraId) {
+      setPlanningStatus(null);
+      setPlanningStatusError(null);
       return;
     }
     const controller = new AbortController();
@@ -154,6 +158,56 @@ export default function ForecastForm({
     return () => controller.abort();
   }, [targetLitteraId]);
 
+  useEffect(() => {
+    if (!targetLitteraId) {
+      return;
+    }
+    const controller = new AbortController();
+    const loadPlanningStatus = async () => {
+      try {
+        setPlanningStatusError(null);
+        const response = await fetch(`/api/planning/status?targetLitteraId=${encodeURIComponent(targetLitteraId)}`, {
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          setPlanningStatusError("Suunnitelman tila ei saatavilla.");
+          setPlanningStatus(null);
+          return;
+        }
+        const payload = (await response.json()) as { status: { status: "DRAFT" | "READY_FOR_FORECAST" | "LOCKED" } | null };
+        setPlanningStatus(payload.status?.status ?? null);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setPlanningStatusError("Suunnitelman tila ei saatavilla.");
+          setPlanningStatus(null);
+        }
+      }
+    };
+
+    loadPlanningStatus();
+    return () => controller.abort();
+  }, [targetLitteraId]);
+
+  const planningReady = planningStatus === "READY_FOR_FORECAST" || planningStatus === "LOCKED";
+  const planningStatusLabel = () => {
+    if (planningStatusError) {
+      return planningStatusError;
+    }
+    if (!targetLitteraId) {
+      return "Valitse tavoitearvio-littera.";
+    }
+    if (!planningStatus) {
+      return "Suunnitelma puuttuu.";
+    }
+    if (planningStatus === "DRAFT") {
+      return "Suunnitelma on luonnos.";
+    }
+    if (planningStatus === "READY_FOR_FORECAST") {
+      return "Suunnitelma on valmis ennusteeseen.";
+    }
+    return "Suunnitelma on lukittu.";
+  };
+
   return (
     <form className="form-grid" action={formAction}>
       <label className="label" htmlFor="targetLitteraId">Tavoitearvio-littera</label>
@@ -211,6 +265,14 @@ export default function ForecastForm({
           {autoFillMessage}
         </div>
       )}
+
+      <div
+        className={`notice ${
+          targetLitteraId ? (planningReady ? "success" : "error") : ""
+        }`}
+      >
+        <strong>Suunnitelman tila:</strong> {planningStatusLabel()}
+      </div>
 
       <div className="grid grid-2">
         <div>
@@ -283,7 +345,9 @@ export default function ForecastForm({
 
       <FormStatus state={state} />
 
-      <button className="btn btn-primary" type="submit">Tallenna ennuste</button>
+      <button className="btn btn-primary" type="submit" disabled={!planningReady}>
+        Tallenna ennuste
+      </button>
     </form>
   );
 }

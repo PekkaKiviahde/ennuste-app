@@ -120,6 +120,14 @@ export const loadPlanningReport = async (services: AppServices, input: { project
   return services.report.getPlanningReport(input.projectId, input.tenantId);
 };
 
+export const loadPlanningStatus = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; targetLitteraId: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.planning.getLatestPlanningStatus(input.projectId, input.tenantId, input.targetLitteraId);
+};
+
 export const loadTargetEstimate = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getTargetEstimate(input.projectId, input.tenantId);

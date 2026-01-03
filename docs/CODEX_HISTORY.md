@@ -920,3 +920,23 @@
 - Next LUKITTU suggestion: LUKITTU #3: ennuste-UI:n suunnitelma-tila + lukituksen esteviesti.
 - Key files: packages/application/src/usecases.ts, packages/infrastructure/src/planning.ts, packages/application/src/ports.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-036] LUKITTU: Ennuste-UI: suunnitelman tila + esto
+- Goal: nayttaa suunnitelman tila ennuste-UI:ssa ja estaa tallennus ilman READY_FOR_FORECAST/LOCKED.
+- Scope: UI (kayttoliittyma) + API (rajapinta) + Application (sovelluskerros).
+- Deliverables: planning-status-API, UI-tilaennakko, tallennuksen esto ennen API-kutsua.
+- Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/planning/status/route.ts, packages/application/src/usecases.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-036] LUKITTU: Ennuste-UI: suunnitelman tila + esto
+- Summary: lisatty planning-status-API (suunnitelman tila -paatepiste); ennuste-UI nayttaa suunnitelman tilan; tallennus estyy ennen API-kutsua ilman READY_FOR_FORECAST/LOCKED.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: virhetilassa ennuste-UI lukitsee tallennuksen varmuuden vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-036]
+- Where we are: ennuste-UI tarkistaa suunnitelman tilan ennen tallennusta.
+- What changed: uusi /api/planning/status -reitti ja UI-tilaennakko ennustelomakkeella.
+- What remains: halutessasi nayta suunnitelman tila myös tyonohjauksessa ennusteen kortilla.
+- Next LUKITTU suggestion: ennusteen tilakortti tyonohjaukseen tai lukituksen selite UI:hin.
+- Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/planning/status/route.ts, packages/application/src/usecases.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
