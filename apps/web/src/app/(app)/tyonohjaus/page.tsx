@@ -100,6 +100,9 @@ export default async function WorkflowPage() {
       <section className="card">
         <h2>Polku nyt</h2>
         <p>Siirry suoraan seuraavaan vaiheeseen ja tarkista tilanne.</p>
+        {needsPlanning && (
+          <div className="notice error">Suunnitelma puuttuu. Ennustetapahtuma ei ole sallittu.</div>
+        )}
         <div className="status-actions">
           {showLockDialog ? (
             <LockPlanningDialog targetLitteraId={status.planning?.target_littera_id ?? null} />

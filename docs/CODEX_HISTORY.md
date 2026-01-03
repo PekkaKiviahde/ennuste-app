@@ -960,3 +960,23 @@
 - Next LUKITTU suggestion: raportin lukitusyhteenveto tai tyonohjauksen varoitus ilman suunnitelmaa.
 - Key files: packages/application/src/ports.ts, packages/infrastructure/src/report.ts, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-038] LUKITTU: Raportti: lukitusyhteenveto + varoitus ilman suunnitelmaa
+- Goal: nayttaa raportissa lukituksen selite ja varoittaa, jos suunnitelma puuttuu.
+- Scope: UI (kayttoliittyma).
+- Deliverables: raportin tilakortti lukituksen selitteella, varoitus ilman suunnitelmaa, tyonohjauksen varoitus ilman suunnitelmaa.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-038] LUKITTU: Raportti: lukitusyhteenveto + varoitus ilman suunnitelmaa
+- Summary: lisatty raportin tilakortti lukituksen selitteella; raportti varoittaa ilman suunnitelmaa; tyonohjaus nayttaa varoituksen ilman suunnitelmaa.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: raportin lukitusyhteenveto perustuu viimeisimpaan suunnitelmaan.
+
+[2026-01-03] [HANDOFF] [L-20260103-038]
+- Where we are: raportti nayttaa lukituksen selitteen ja varoituksen ilman suunnitelmaa.
+- What changed: raportti paivitetty workflow-tilalla ja tyonohjaukseen lisatty varoitus.
+- What remains: halutessasi nayta lukituksen selite myos lokin yhteydessa.
+- Next LUKITTU suggestion: lokin suodatus suunnitelma/ennuste tai raportin lukitusyhteenveto historiasta.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
