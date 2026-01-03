@@ -1,6 +1,7 @@
 import { loadMappingLines, loadTargetEstimate, loadWorkflowStatus } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
+import LockPlanningDialog from "../../../ui/planning/LockPlanningDialog";
 
 const formatDateTime = (value: string | null | undefined) => {
   if (!value) return "-";
@@ -42,6 +43,7 @@ export default async function WorkflowPage() {
   const mappingWorkCount = new Set(mappingRows.map((row: any) => row.work_code)).size;
   const needsPlanning = !status.planning;
   const needsLock = status.planning?.status === "READY_FOR_FORECAST" && !status.isLocked;
+  const showLockDialog = needsLock && Boolean(status.planning?.target_littera_id);
   const nextStepLabel = needsPlanning
     ? "Tee suunnitelma"
     : needsLock
@@ -50,7 +52,7 @@ export default async function WorkflowPage() {
   const nextStepHint = needsPlanning
     ? "Suunnitelma vaaditaan ennen ennustetapahtumaa."
     : needsLock
-      ? "Valitse tila: Lukittu ja tallenna."
+      ? "Avaa lukitus ja tallenna."
       : "Kirjaa uusi ennustetapahtuma.";
   const nextStepHref = needsPlanning || needsLock ? "/suunnittelu" : "/ennuste";
 
@@ -93,7 +95,11 @@ export default async function WorkflowPage() {
         <h2>Polku nyt</h2>
         <p>Siirry suoraan seuraavaan vaiheeseen ja tarkista tilanne.</p>
         <div className="status-actions">
-          <a className="btn btn-primary btn-sm" href={nextStepHref}>{nextStepLabel}</a>
+          {showLockDialog ? (
+            <LockPlanningDialog targetLitteraId={status.planning?.target_littera_id ?? null} />
+          ) : (
+            <a className="btn btn-primary btn-sm" href={nextStepHref}>{nextStepLabel}</a>
+          )}
           <a className="btn btn-secondary btn-sm" href="/suunnittelu">Suunnittelu</a>
           <a className="btn btn-secondary btn-sm" href="/ennuste">Ennuste</a>
           <a className="btn btn-secondary btn-sm" href="/loki">Loki</a>

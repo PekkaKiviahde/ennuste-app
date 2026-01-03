@@ -29,10 +29,25 @@ const formatDateTime = (value: string | null | undefined) => {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("fi-FI", {
-    dateStyle: "medium",
-    timeStyle: "short"
+  const getIsoWeek = (input: Date) => {
+    const tmp = new Date(Date.UTC(input.getUTCFullYear(), input.getUTCMonth(), input.getUTCDate()));
+    const day = tmp.getUTCDay() || 7;
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    const week = Math.ceil(((tmp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return week;
+  };
+  const formatted = new Intl.DateTimeFormat("fi-FI", {
+    weekday: "short",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC"
   }).format(date);
+  const week = String(getIsoWeek(date)).padStart(2, "0");
+  return `${formatted} (vk ${week})`;
 };
 
 const formatDateKey = (value: string | null | undefined) => {

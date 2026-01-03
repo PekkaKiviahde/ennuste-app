@@ -33,7 +33,12 @@ services:
       - "${APP_PORT:-3000}:${APP_PORT:-3000}"
     volumes:
       - .:/app
-    command: sh -c "cd api && if [ ! -d node_modules ]; then npm ci --no-audit --no-fund; fi && npm run db:setup && npm start"
+    command: >
+      sh -c "cd api &&
+      if [ ! -d node_modules ]; then npm ci --no-audit --no-fund; fi &&
+      node -e \"const net=require('net');const wait=()=>new Promise(r=>{const s=net.connect(5432,'db');s.on('connect',()=>{s.end();r(true);});s.on('error',()=>r(false));});(async()=>{for(let i=0;i<60;i++){if(await wait()){process.exit(0);}await new Promise(r=>setTimeout(r,1000));}process.exit(1);})();\" &&
+      npm run db:setup &&
+      npm start"
     restart: unless-stopped
     healthcheck:
       test:

@@ -860,3 +860,23 @@
 - Next LUKITTU suggestion: tyonohjauksen lukitus-dialogi tai raportin ryhmittely UI:ssa.
 - Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-033] LUKITTU: Tyonohjauksen lukitus-dialogi
+- Goal: lisata tyonohjaukseen lukitus-dialogi ja lukituksen yhteenveto.
+- Scope: UI.
+- Deliverables: lukitus-dialogi ja lukituksen yhteenvetokentta tyonohjauksessa.
+- Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/ui/planning/LockPlanningDialog.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-033] LUKITTU: Tyonohjauksen lukitus-dialogi
+- Summary: lisatty lukitus-dialogi tyonohjaukseen; lisatty lukituksen yhteenvetokentta ja palautestatus; paivitetty tyonohjauksen CTA lukitukseen.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-033]
+- Where we are: tyonohjaus tarjoaa lukitus-dialogin, kun suunnitelma on READY_FOR_FORECAST.
+- What changed: uusi LockPlanningDialog-komponentti, dialogin tyylit, tyonohjauksen CTA ohjaa dialogiin.
+- What remains: halutessasi lisaa lukituksen vahvistusmodalin jälkeen automaattinen paivitys.
+- Next LUKITTU suggestion: lukitus-dialogin auto-refresh tai raportin ryhmittely UI:ssa.
+- Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/ui/planning/LockPlanningDialog.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
