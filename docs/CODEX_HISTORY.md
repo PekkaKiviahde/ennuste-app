@@ -1061,6 +1061,26 @@
 - Key files: apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
 
+[2026-01-03] [IN_PROGRESS] [L-20260103-043] LUKITTU: Raportti: KPI-tooltipit + poikkeamien selitteet
+- Goal: lisata KPI-graafiin tooltipit ja poikkeamien selitteet raporttiin.
+- Scope: UI (kayttoliittyma).
+- Deliverables: tooltipit KPI-palkkeihin, poikkeaman selite tekstina KPI-korttiin.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-043] LUKITTU: Raportti: KPI-tooltipit + poikkeamien selitteet
+- Summary: lisatty tooltipit KPI-palkkeihin; poikkeamalle lisatty selite; tekstit suomeksi.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: tooltipit toteutettu title-atribuutilla.
+
+[2026-01-03] [HANDOFF] [L-20260103-043]
+- Where we are: raportti nayttaa KPI-tooltipit ja poikkeamien selitteet.
+- What changed: lisatty title-tooltipit KPI-sparklineen ja poikkeaman selite.
+- What remains: halutessasi tee omat tooltipit tai lisatiedot (esim. EV/AC* selite).
+- Next LUKITTU suggestion: LUKITTU: omat tooltipit + KPI-selitekortit.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
 [2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
 - Summary: lisatty KPI-yhteenvetokortti raporttiin; projektitason luvut muotoillaan; lukittujen ja viikkopaivitettyjen tyovaiheiden laskuri lisatty.
 - Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).

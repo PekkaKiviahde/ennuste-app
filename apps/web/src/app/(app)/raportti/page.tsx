@@ -69,6 +69,12 @@ export default async function ReportPage() {
       : null;
   const varianceClass =
     varianceTotal == null ? "" : varianceTotal >= 0 ? "variance-positive" : "variance-negative";
+  const varianceLabel =
+    varianceTotal == null
+      ? "Poikkeamaa ei voida laskea."
+      : varianceTotal >= 0
+        ? "EV ylittaa AC*:n."
+        : "AC* ylittaa EV:n.";
   const maxKpi = Math.max(summary?.bac_total ?? 0, summary?.ev_total ?? 0, summary?.ac_star_total ?? 0, 0);
   const toPercent = (value: number | null | undefined) => {
     if (!value || maxKpi <= 0) return "0%";
@@ -120,6 +126,7 @@ export default async function ReportPage() {
           <div className="status-item">
             <div className="label">Poikkeama (EV - AC*)</div>
             <div className={`value ${varianceClass}`}>{formatNumber(varianceTotal)}</div>
+            <div className="value muted">{varianceLabel}</div>
           </div>
           <div className="status-item">
             <div className="label">Toteuma (sis. unmapped)</div>
@@ -136,21 +143,33 @@ export default async function ReportPage() {
           <div className="kpi-row">
             <div className="label">BAC</div>
             <div className="kpi-bar">
-              <span className="kpi-fill bac" style={{ width: toPercent(summary?.bac_total) }} />
+              <span
+                className="kpi-fill bac"
+                style={{ width: toPercent(summary?.bac_total) }}
+                title={`BAC ${formatNumber(summary?.bac_total ?? null)}`}
+              />
             </div>
             <div className="value">{formatNumber(summary?.bac_total ?? null)}</div>
           </div>
           <div className="kpi-row">
             <div className="label">EV</div>
             <div className="kpi-bar">
-              <span className="kpi-fill ev" style={{ width: toPercent(summary?.ev_total) }} />
+              <span
+                className="kpi-fill ev"
+                style={{ width: toPercent(summary?.ev_total) }}
+                title={`EV ${formatNumber(summary?.ev_total ?? null)}`}
+              />
             </div>
             <div className="value">{formatNumber(summary?.ev_total ?? null)}</div>
           </div>
           <div className="kpi-row">
             <div className="label">AC*</div>
             <div className="kpi-bar">
-              <span className="kpi-fill ac" style={{ width: toPercent(summary?.ac_star_total) }} />
+              <span
+                className="kpi-fill ac"
+                style={{ width: toPercent(summary?.ac_star_total) }}
+                title={`AC* ${formatNumber(summary?.ac_star_total ?? null)}`}
+              />
             </div>
             <div className="value">{formatNumber(summary?.ac_star_total ?? null)}</div>
           </div>
