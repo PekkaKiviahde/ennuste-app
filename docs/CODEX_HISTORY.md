@@ -700,3 +700,23 @@
 - Next LUKITTU suggestion: viimeistele taulukoiden jaksotus (esim. date-formatointi) tai kierrata test-runner.
 - Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-025] LUKITTU: Workflow-UI viimeistely: date-formatointi ja ryhmittely
+- Goal: muuntaa aikaleimat selkeiksi ja ryhmitella suunnittelu/ennuste-taulukot tavoitearvion mukaan.
+- Scope: UI.
+- Deliverables: date-formatointi ja ryhmat suunnittelu/ennuste-taulukoissa.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-025] LUKITTU: Workflow-UI viimeistely: date-formatointi ja ryhmittely
+- Summary: lisatty suomenkielinen date-formatointi; taulukot ryhmitelty tavoitearvion mukaan; lisatty ryhmamainen taulukko-tyyli.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/503456.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-025]
+- Where we are: suunnittelu ja ennuste nayttavat ryhmitellyt taulukot ja muotoillut aikaleimat.
+- What changed: paivitetty taulukkojen renderointi ja lisatty ryhmatyylit; lisatty date-formatointi.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: test-runnerin IPC-kierto tai taulukkojen suodatus.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

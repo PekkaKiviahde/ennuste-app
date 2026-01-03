@@ -30,6 +30,28 @@ export default async function PlanningPage() {
   const latestTargetLabel = latestPlanning
     ? targetLookup.get(latestPlanning.target_littera_id) ?? latestPlanning.target_littera_id
     : "Ei suunnitelmaa";
+  const formatDateTime = (value: string | null | undefined) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("fi-FI", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(date);
+  };
+  const groupedRows = rows.reduce(
+    (acc: Array<{ label: string; items: any[] }>, row: any) => {
+      const label = targetLookup.get(row.target_littera_id) ?? row.target_littera_id;
+      const last = acc[acc.length - 1];
+      if (last && last.label === label) {
+        last.items.push(row);
+      } else {
+        acc.push({ label, items: [row] });
+      }
+      return acc;
+    },
+    []
+  );
   const statusClass = (status: string | null | undefined) => {
     if (status === "READY_FOR_FORECAST") return "ready";
     if (status === "LOCKED") return "locked";
@@ -88,23 +110,28 @@ export default async function PlanningPage() {
                 </td>
               </tr>
             ) : (
-              rows.map((row: any) => (
-                <tr key={row.planning_event_id}>
-                  <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
-                  <td>
-                    <span className={`status-pill ${statusClass(row.status)}`}>{row.status}</span>
-                  </td>
-                  <td>{row.event_time}</td>
-                  <td>
-                    <div>{row.created_by}</div>
-                    <div className="muted">{row.planning_event_id}</div>
-                  </td>
-                  <td>
-                    <div>{row.summary ?? "-"}</div>
-                    <div className="muted">{row.observations ?? "-"}</div>
-                  </td>
-                </tr>
-              ))
+              groupedRows.flatMap((group) => [
+                <tr key={`group-${group.label}`} className="table-group">
+                  <td colSpan={5}>{group.label}</td>
+                </tr>,
+                ...group.items.map((row: any) => (
+                  <tr key={row.planning_event_id}>
+                    <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
+                    <td>
+                      <span className={`status-pill ${statusClass(row.status)}`}>{row.status}</span>
+                    </td>
+                    <td>{formatDateTime(row.event_time)}</td>
+                    <td>
+                      <div>{row.created_by}</div>
+                      <div className="muted">{row.planning_event_id}</div>
+                    </td>
+                    <td>
+                      <div>{row.summary ?? "-"}</div>
+                      <div className="muted">{row.observations ?? "-"}</div>
+                    </td>
+                  </tr>
+                ))
+              ])
             )}
           </tbody>
         </table>

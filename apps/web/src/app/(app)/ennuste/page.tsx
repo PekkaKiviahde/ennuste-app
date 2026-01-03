@@ -38,6 +38,28 @@ export default async function ForecastPage() {
   const latestForecastTarget = latestForecast
     ? targetLookup.get(latestForecast.target_littera_id) ?? latestForecast.target_littera_id
     : "Ei ennustetta";
+  const formatDateTime = (value: string | null | undefined) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("fi-FI", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(date);
+  };
+  const groupedRows = rows.reduce(
+    (acc: Array<{ label: string; items: any[] }>, row: any) => {
+      const label = targetLookup.get(row.target_littera_id) ?? row.target_littera_id;
+      const last = acc[acc.length - 1];
+      if (last && last.label === label) {
+        last.items.push(row);
+      } else {
+        acc.push({ label, items: [row] });
+      }
+      return acc;
+    },
+    []
+  );
 
   return (
     <div className="grid grid-2">
@@ -89,21 +111,26 @@ export default async function ForecastPage() {
                 </td>
               </tr>
             ) : (
-              rows.map((row: any) => (
-                <tr key={row.forecast_event_id}>
-                  <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
-                  <td>{row.mapping_version_id ? "Valittu" : "Ei mappingia"}</td>
-                  <td>{row.event_time}</td>
-                  <td>
-                    <div>{row.created_by}</div>
-                    <div className="muted">{row.forecast_event_id}</div>
-                  </td>
-                  <td>
-                    <div>{row.comment ?? "-"}</div>
-                    <div className="muted">KPI: {row.kpi_value ?? "-"}</div>
-                  </td>
-                </tr>
-              ))
+              groupedRows.flatMap((group) => [
+                <tr key={`group-${group.label}`} className="table-group">
+                  <td colSpan={5}>{group.label}</td>
+                </tr>,
+                ...group.items.map((row: any) => (
+                  <tr key={row.forecast_event_id}>
+                    <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
+                    <td>{row.mapping_version_id ? "Valittu" : "Ei mappingia"}</td>
+                    <td>{formatDateTime(row.event_time)}</td>
+                    <td>
+                      <div>{row.created_by}</div>
+                      <div className="muted">{row.forecast_event_id}</div>
+                    </td>
+                    <td>
+                      <div>{row.comment ?? "-"}</div>
+                      <div className="muted">KPI: {row.kpi_value ?? "-"}</div>
+                    </td>
+                  </tr>
+                ))
+              ])
             )}
           </tbody>
         </table>

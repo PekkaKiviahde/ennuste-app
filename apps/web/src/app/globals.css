@@ -178,6 +178,14 @@ textarea {
   margin-top: 0.25rem;
 }
 
+.table-group td {
+  background: #f2e5d9;
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
 .status {
   font-weight: 600;
   color: var(--success);
