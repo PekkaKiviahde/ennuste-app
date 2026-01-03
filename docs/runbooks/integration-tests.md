@@ -81,7 +81,7 @@ Odotus:
 1. Avaa /login ja varmista että sivu vastaa (200).
 2. Kirjaudu sisään (anna / 1234).
 3. Varmista /api/me palauttaa käyttäjän.
-4. Kirjaudu ulos (/api/logout).
+4. Kirjaudu ulos (/logout tai /api/logout).
 5. Varmista, että /login näyttää loggedOut-tilan ja kirjautuminen toimii uudelleen.
 
 Odotus:

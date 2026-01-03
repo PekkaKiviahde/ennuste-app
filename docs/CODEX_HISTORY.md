@@ -62,6 +62,32 @@
   - `node api/scripts/smoke-api.js` (asetuksilla `SMOKE_BASE_URL` tarvittaessa).
   - Avaa runbook ja seuraa login + logout -skenaario.
 
+## 2026-01-03 — Login/logout-smoken tarkennus
+
+- Mitä muuttui
+  - Lisättiin /logout-redirectin tarkistus smoke-skriptiin.
+  - Tarkennettiin runbookin logout-askelta (UI /logout tai API /api/logout).
+
+- Miksi
+  - Varmistetaan, että UI-polun logout-redirect toimii.
+
+- Miten testataan (manuaali)
+  - `SMOKE_BASE_URL=http://localhost:3001 node api/scripts/smoke-api.js`
+  - Avaa runbook ja tarkista logout-askel.
+
+## 2026-01-03 — README-policy (root + docs) ja arkistointi
+
+- Mitä muuttui
+  - `README.md` on rootin master, `docs/README.md` on docs-master.
+  - Muut README-tiedostot siirretty `docs/_archive/`-kansioon.
+
+- Miksi
+  - Yhtenäinen dokumentaatiopolku ja GitHubin standardin mukainen README-nimeäminen.
+
+- Miten testataan (manuaali)
+  - Avaa `README.md` ja varmista linkki `docs/README.md`:ään.
+  - Avaa `docs/_archive/` ja varmista vanhat README-tiedostot.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE

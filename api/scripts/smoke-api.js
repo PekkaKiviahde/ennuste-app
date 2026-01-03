@@ -71,6 +71,17 @@ async function run() {
     }
   });
 
+  await runStep('Logout redirect responds', async () => {
+    const response = await fetch(`${baseUrl}/logout`, { redirect: 'manual' });
+    if (response.status !== 302 && response.status !== 303) {
+      throw new Error(`Expected 302/303 from /logout, got ${response.status}`);
+    }
+    const location = response.headers.get('location') || '';
+    if (!location.includes('/login?loggedOut=1')) {
+      throw new Error(`Expected redirect to /login?loggedOut=1, got ${location || '(empty)'}`);
+    }
+  });
+
   const annaToken = await runStep('Login anna', () => login('anna', '1234'));
 
   const context = await runStep('Fetch org + project', async () => {
