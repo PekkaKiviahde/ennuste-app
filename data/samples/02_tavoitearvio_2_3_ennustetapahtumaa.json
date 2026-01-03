@@ -1,0 +1,35 @@
+{
+  "scenario": "tavoitearvio-littera, jolla on 2-3 ennustetapahtumaa",
+  "project": "Demo projekti",
+  "target_littera": {
+    "code": "1100",
+    "title": "Runko",
+    "group_code": 1
+  },
+  "planning_events": [
+    {
+      "status": "READY_FOR_FORECAST",
+      "summary": "Runko vaiheistetaan kahteen tyovaiheeseen.",
+      "created_by": "site.foreman"
+    }
+  ],
+  "forecast_events": [
+    {
+      "comment": "Ensimmainen arvio",
+      "created_by": "project.manager",
+      "lines": [
+        { "cost_type": "LABOR", "forecast_value": 9500 },
+        { "cost_type": "MATERIAL", "forecast_value": 8700 }
+      ]
+    },
+    {
+      "comment": "Paivitetty arvio",
+      "created_by": "project.manager",
+      "lines": [
+        { "cost_type": "LABOR", "forecast_value": 9800 },
+        { "cost_type": "MATERIAL", "forecast_value": 9000 }
+      ]
+    }
+  ],
+  "expected": "Raportti nayttaa uusimman ennustetapahtuman summat per kustannuslaji."
+}

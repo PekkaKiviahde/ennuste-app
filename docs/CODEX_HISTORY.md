@@ -498,3 +498,17 @@
   - docker compose up -d
   - avaa /login ja testaa login -> logout -> login
   - codex resume --last
+
+[2026-01-03] [HANDOFF] [L-20260103-015]
+- Where we are: Next.js MVP UI kaynnissa Dockerissa portissa 3002 (web_next), login aukeaa; legacy app edelleen portissa 3001.
+- What changed: lisatty docker-compose.next.yml (tty/stdin_open, named volume, DB URL konttiin), korjattu auth.ts string escape, siemen- ja testikorjaukset aiemmin.
+- What remains: siivoa Next lockfile/swc-varoitus, varmista kaikki UI-polut end-to-end, paata legacy appin kaytto.
+- Next LUKITTU suggestion: vakauta Next-UI (lockfile/swc, tyyppityokset, login->ylataso) ja dokumentoi ajoymparisto.
+- Key files: docker-compose.next.yml, apps/web/src/server/actions/auth.ts, apps/web/src/app/login/page.tsx, apps/web/src/app/(app)/layout.tsx, tools/scripts/db-seed-demo.mjs, packages/infrastructure/src/integration.test.ts, docs/CODEX_HISTORY.md
+- How to resume:
+  - git status
+  - git log -1
+  - docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next
+  - docker compose -f docker-compose.yml -f docker-compose.next.yml logs --tail=200 web_next
+  - npm run test
+  - codex resume --last

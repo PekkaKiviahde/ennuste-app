@@ -1,0 +1,17 @@
+{
+  "name": "@ennuste/infrastructure",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@ennuste/application": "*",
+    "@ennuste/domain": "*",
+    "@ennuste/shared": "*",
+    "pg": "^8.12.0"
+  }
+}

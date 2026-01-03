@@ -1,0 +1,11 @@
+{
+  "name": "@ennuste/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/**/*.test.ts"
+  }
+}

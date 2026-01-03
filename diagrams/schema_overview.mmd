@@ -1,0 +1,269 @@
+erDiagram
+  organizations {
+    uuid organization_id PK
+    text slug
+    text name
+  }
+  tenants {
+    uuid tenant_id PK
+    text name
+  }
+  projects {
+    uuid project_id PK
+    uuid organization_id FK
+    uuid tenant_id FK
+    text name
+  }
+  users {
+    uuid user_id PK
+    text username
+    text email
+    text pin_hash
+  }
+  roles {
+    text role_code PK
+    text role_name_fi
+  }
+  permissions {
+    text permission_code PK
+  }
+  role_permissions {
+    text role_code FK
+    text permission_code FK
+  }
+  organization_role_assignments {
+    uuid assignment_id PK
+    uuid organization_id FK
+    uuid user_id FK
+    text role_code FK
+  }
+  project_role_assignments {
+    uuid assignment_id PK
+    uuid project_id FK
+    uuid user_id FK
+    text role_code FK
+  }
+
+  litteras {
+    uuid littera_id PK
+    uuid project_id FK
+    text code
+  }
+  mapping_versions {
+    uuid mapping_version_id PK
+    uuid project_id FK
+  }
+  mapping_lines {
+    uuid mapping_line_id PK
+    uuid mapping_version_id FK
+    uuid work_littera_id
+    uuid target_littera_id
+  }
+  mapping_event_log {
+    uuid event_id PK
+    uuid project_id FK
+  }
+
+  planning_events {
+    uuid planning_event_id PK
+    uuid project_id FK
+    uuid target_littera_id
+  }
+  forecast_events {
+    uuid forecast_event_id PK
+    uuid project_id FK
+    uuid target_littera_id
+  }
+  forecast_event_lines {
+    uuid forecast_event_line_id PK
+    uuid forecast_event_id FK
+  }
+  forecast_row_memos {
+    uuid forecast_row_memo_id PK
+    uuid forecast_event_id FK
+  }
+  forecast_calc_panel_snapshots {
+    uuid forecast_calc_panel_snapshot_id PK
+    uuid forecast_event_id FK
+  }
+  attachments {
+    uuid attachment_id PK
+    text owner_type
+    uuid owner_id
+  }
+
+  import_batches {
+    uuid import_batch_id PK
+    uuid project_id FK
+  }
+  budget_lines {
+    uuid budget_line_id PK
+    uuid project_id FK
+    uuid target_littera_id
+  }
+  budget_items {
+    uuid budget_item_id PK
+    uuid project_id FK
+    uuid import_batch_id FK
+  }
+  actual_cost_lines {
+    uuid actual_cost_line_id PK
+    uuid project_id FK
+    uuid work_littera_id
+  }
+
+  work_phases {
+    uuid work_phase_id PK
+    uuid project_id FK
+  }
+  work_phase_versions {
+    uuid work_phase_version_id PK
+    uuid work_phase_id FK
+  }
+  work_phase_members {
+    uuid work_phase_member_id PK
+    uuid work_phase_version_id FK
+  }
+  work_phase_baselines {
+    uuid work_phase_baseline_id PK
+    uuid work_phase_id FK
+    uuid work_phase_version_id FK
+  }
+  work_phase_baseline_lines {
+    uuid work_phase_baseline_id FK
+  }
+  work_phase_weekly_updates {
+    uuid work_phase_weekly_update_id PK
+    uuid work_phase_id FK
+  }
+  ghost_cost_entries {
+    uuid ghost_cost_entry_id PK
+    uuid work_phase_id FK
+  }
+  ghost_cost_settlements {
+    uuid ghost_cost_settlement_id PK
+    uuid ghost_cost_entry_id FK
+  }
+  work_phase_change_events {
+    uuid work_phase_change_event_id PK
+    uuid work_phase_id FK
+  }
+  work_phase_change_approvals {
+    uuid work_phase_change_approval_id PK
+    uuid work_phase_change_event_id FK
+  }
+  work_phase_corrections {
+    uuid correction_id PK
+    uuid work_phase_id FK
+  }
+
+  import_jobs {
+    uuid import_job_id PK
+    uuid project_id FK
+  }
+  import_job_events {
+    uuid import_job_event_id PK
+    uuid import_job_id FK
+  }
+  import_mappings {
+    uuid import_mapping_id PK
+    uuid project_id FK
+  }
+
+  months {
+    uuid project_id FK
+    text month
+  }
+  month_state_events {
+    uuid month_state_event_id PK
+    uuid project_id FK
+  }
+  month_forecasts {
+    uuid project_id FK
+    text month
+  }
+  month_forecast_events {
+    uuid month_forecast_event_id PK
+    uuid project_id FK
+  }
+  month_corrections {
+    uuid correction_id PK
+    uuid project_id FK
+  }
+  month_correction_events {
+    uuid month_correction_event_id PK
+    uuid correction_id FK
+  }
+  report_packages {
+    uuid package_id PK
+    uuid project_id FK
+  }
+  report_package_snapshots {
+    uuid snapshot_id PK
+    uuid package_id FK
+  }
+
+  app_audit_log {
+    uuid audit_event_id PK
+    uuid project_id FK
+    text action
+  }
+
+  accounting_api_raw_ledger_lines {
+    uuid raw_ledger_line_id PK
+    uuid project_id FK
+    uuid import_batch_id FK
+  }
+
+  organizations ||--o{ projects : owns
+  tenants ||--o{ projects : owns
+  users ||--o{ organization_role_assignments : has
+  users ||--o{ project_role_assignments : has
+  roles ||--o{ role_permissions : includes
+  permissions ||--o{ role_permissions : grants
+  organizations ||--o{ organization_role_assignments : assigns
+  projects ||--o{ project_role_assignments : assigns
+
+  projects ||--o{ litteras : has
+  projects ||--o{ mapping_versions : has
+  mapping_versions ||--o{ mapping_lines : has
+  projects ||--o{ mapping_event_log : logs
+
+  projects ||--o{ planning_events : has
+  projects ||--o{ forecast_events : has
+  forecast_events ||--o{ forecast_event_lines : has
+  forecast_events ||--o{ forecast_row_memos : has
+  forecast_events ||--o{ forecast_calc_panel_snapshots : has
+
+  projects ||--o{ import_batches : has
+  import_batches ||--o{ budget_lines : has
+  import_batches ||--o{ budget_items : has
+  import_batches ||--o{ actual_cost_lines : has
+
+  projects ||--o{ work_phases : has
+  work_phases ||--o{ work_phase_versions : has
+  work_phase_versions ||--o{ work_phase_members : has
+  work_phases ||--o{ work_phase_baselines : has
+  work_phase_baselines ||--o{ work_phase_baseline_lines : has
+  work_phases ||--o{ work_phase_weekly_updates : has
+  work_phases ||--o{ ghost_cost_entries : has
+  ghost_cost_entries ||--o{ ghost_cost_settlements : has
+  work_phases ||--o{ work_phase_change_events : has
+  work_phase_change_events ||--o{ work_phase_change_approvals : has
+  work_phases ||--o{ work_phase_corrections : has
+
+  projects ||--o{ import_jobs : has
+  import_jobs ||--o{ import_job_events : has
+  projects ||--o{ import_mappings : has
+
+  projects ||--o{ months : has
+  projects ||--o{ month_state_events : has
+  projects ||--o{ month_forecasts : has
+  projects ||--o{ month_forecast_events : has
+  projects ||--o{ month_corrections : has
+  month_corrections ||--o{ month_correction_events : has
+  projects ||--o{ report_packages : has
+  report_packages ||--o{ report_package_snapshots : has
+  projects ||--o{ app_audit_log : has
+
+  projects ||--o{ accounting_api_raw_ledger_lines : has

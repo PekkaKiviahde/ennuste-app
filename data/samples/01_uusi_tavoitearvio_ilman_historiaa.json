@@ -1,0 +1,12 @@
+{
+  "scenario": "uusi tavoitearvio-littera ilman historiaa",
+  "project": "Demo projekti",
+  "target_littera": {
+    "code": "3100",
+    "title": "Perustus",
+    "group_code": 3
+  },
+  "planning_events": [],
+  "forecast_events": [],
+  "expected": "Littera naytetaan tavoitteena, mutta ennustetapahtumia ei ole. Suunnittelu on tyhja."
+}

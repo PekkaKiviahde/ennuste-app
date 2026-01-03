@@ -1,0 +1,24 @@
+services:
+  web_next:
+    image: node:20
+    container_name: codex_next_web
+    working_dir: /app
+    volumes:
+      - .:/app
+      - web_next_node_modules:/app/node_modules
+    environment:
+      SESSION_SECRET: dev-secret
+      DEMO_MODE: "true"
+      PORT: "3002"
+      DATABASE_URL: postgresql://codex:codex@db:5432/codex
+    ports:
+      - "3002:3002"
+    stdin_open: true
+    tty: true
+    command: sh -lc "npm ci && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3002"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  web_next_node_modules:

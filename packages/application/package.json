@@ -1,0 +1,15 @@
+{
+  "name": "@ennuste/application",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@ennuste/domain": "*",
+    "@ennuste/shared": "*"
+  }
+}

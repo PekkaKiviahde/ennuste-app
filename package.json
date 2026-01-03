@@ -1,0 +1,22 @@
+{
+  "name": "ennuste-app-mvp",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:start": "docker compose up -d",
+    "db:migrate": "node tools/scripts/db-migrate.mjs",
+    "db:seed-demo": "node tools/scripts/db-seed-demo.mjs",
+    "dev": "npm --workspace apps/web run dev",
+    "test": "npm --workspace packages/domain run test && npm --workspace packages/application run test && npm --workspace packages/infrastructure run test"
+  },
+  "dependencies": {
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

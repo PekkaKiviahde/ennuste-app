@@ -1,0 +1,18 @@
+{
+  "scenario": "mapping, jossa 3 tyolitteraa yhdistyy yhteen tavoitearvio-litteraan",
+  "project": "Demo projekti",
+  "target_littera": {
+    "code": "1100",
+    "title": "Runko"
+  },
+  "work_litteras": [
+    { "code": "1110", "title": "Runko - valu" },
+    { "code": "1120", "title": "Runko - raudoitus" },
+    { "code": "1130", "title": "Runko - muotti" }
+  ],
+  "mapping": {
+    "allocation_rule": "FULL",
+    "allocation_value": 1.0
+  },
+  "expected": "Kaikki kolme tyolitteraa kohdistuvat yhteen tavoitearvio-litteraan raportoinnissa."
+}
