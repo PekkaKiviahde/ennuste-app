@@ -69,6 +69,7 @@ export type ReportPort = {
   getForecastReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getPlanningReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getTargetEstimate(projectId: string, tenantId: string): Promise<unknown[]>;
+  getMappingVersions(projectId: string, tenantId: string): Promise<unknown[]>;
   getMappingLines(projectId: string, tenantId: string): Promise<unknown[]>;
   getAuditLog(projectId: string, tenantId: string): Promise<unknown[]>;
 };

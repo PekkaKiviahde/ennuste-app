@@ -6,13 +6,32 @@ import FormStatus from "../form-status";
 
 const initialState: PlanningFormState = { ok: false, message: null, error: null };
 
-export default function PlanningForm() {
+type TargetOption = {
+  id: string;
+  label: string;
+};
+
+export default function PlanningForm({ targetOptions = [] }: { targetOptions?: TargetOption[] }) {
   const [state, formAction] = useFormState(createPlanningAction, initialState);
 
   return (
     <form className="form-grid" action={formAction}>
-      <label className="label" htmlFor="targetLitteraId">Tavoitearvio-littera (UUID)</label>
-      <input className="input" id="targetLitteraId" name="targetLitteraId" placeholder="littera-id" required />
+      <label className="label" htmlFor="targetLitteraId">Tavoitearvio-littera</label>
+      {targetOptions.length > 0 ? (
+        <select className="input" id="targetLitteraId" name="targetLitteraId" required>
+          <option value="">Valitse tavoitearvio-littera</option>
+          {targetOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <div>
+          <div className="notice">Ei tavoitearvio-litteroita. Syota UUID kasin.</div>
+          <input className="input" id="targetLitteraId" name="targetLitteraId" placeholder="littera-id" required />
+        </div>
+      )}
 
       <label className="label" htmlFor="status">Tila</label>
       <select className="input" id="status" name="status">

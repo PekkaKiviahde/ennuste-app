@@ -6,16 +6,60 @@ import FormStatus from "../form-status";
 
 const initialState: ForecastFormState = { ok: false, message: null, error: null };
 
-export default function ForecastForm() {
+type TargetOption = {
+  id: string;
+  label: string;
+};
+
+type MappingVersionOption = {
+  id: string;
+  label: string;
+};
+
+export default function ForecastForm({
+  targetOptions = [],
+  mappingVersionOptions = []
+}: {
+  targetOptions?: TargetOption[];
+  mappingVersionOptions?: MappingVersionOption[];
+}) {
   const [state, formAction] = useFormState(createForecastAction, initialState);
 
   return (
     <form className="form-grid" action={formAction}>
-      <label className="label" htmlFor="targetLitteraId">Tavoitearvio-littera (UUID)</label>
-      <input className="input" id="targetLitteraId" name="targetLitteraId" required />
+      <label className="label" htmlFor="targetLitteraId">Tavoitearvio-littera</label>
+      {targetOptions.length > 0 ? (
+        <select className="input" id="targetLitteraId" name="targetLitteraId" required>
+          <option value="">Valitse tavoitearvio-littera</option>
+          {targetOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <div>
+          <div className="notice">Ei tavoitearvio-litteroita. Syota UUID kasin.</div>
+          <input className="input" id="targetLitteraId" name="targetLitteraId" required />
+        </div>
+      )}
 
-      <label className="label" htmlFor="mappingVersionId">Mapping-versio (UUID)</label>
-      <input className="input" id="mappingVersionId" name="mappingVersionId" />
+      <label className="label" htmlFor="mappingVersionId">Mapping-versio</label>
+      {mappingVersionOptions.length > 0 ? (
+        <select className="input" id="mappingVersionId" name="mappingVersionId">
+          <option value="">Ei mappingia</option>
+          {mappingVersionOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <div>
+          <div className="notice">Ei mapping-versioita. Syota UUID kasin.</div>
+          <input className="input" id="mappingVersionId" name="mappingVersionId" />
+        </div>
+      )}
 
       <div className="grid grid-2">
         <div>

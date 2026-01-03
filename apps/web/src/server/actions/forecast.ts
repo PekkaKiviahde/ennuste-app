@@ -30,7 +30,7 @@ export const createForecastAction = async (
     const mappingVersionId = String(formData.get("mappingVersionId") ?? "").trim() || null;
 
     if (!targetLitteraId) {
-      return { ok: false, message: null, error: "Tavoitearvio-littera puuttuu." };
+      return { ok: false, message: null, error: "Valitse tavoitearvio-littera ennen tallennusta." };
     }
 
     const lines = [
@@ -70,7 +70,7 @@ export const createForecastAction = async (
     const hasMeta = Boolean(comment) || technicalProgress > 0 || financialProgress > 0 || kpiValue > 0;
 
     if (!hasLineValues && !hasMeta) {
-      return { ok: false, message: null, error: "Syota ainakin yksi ennustearvo tai perustelu." };
+      return { ok: false, message: null, error: "Anna ennustearvo tai perustelu (kommentti tai valmiusprosentti)." };
     }
 
     const result = await createForecastEvent(services, {

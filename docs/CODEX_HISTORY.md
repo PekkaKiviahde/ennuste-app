@@ -572,3 +572,91 @@
 - Next LUKITTU suggestion: LUKITTU #4 workflow-UI viimeistely (valinnat UUID-kenttien tilalle, status-nakyma, paremmat virhetekstit).
 - Key files: apps/web/src/ui/form-status.tsx, apps/web/src/ui/planning/PlanningForm.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/ui/baseline/BaselineForms.tsx, apps/web/src/server/actions/*.ts, apps/web/src/app/(app)/*/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test; docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next; avaa /suunnittelu ja /ennuste
+
+[2026-01-03] [HANDOFF] [L-20260103-018]
+- Where we are: LUKITTU #3 on viety valmiiksi ja pushattu; työpuu on puhdas.
+- What changed: lisatty handoff-merkinta nykyisella tilannekuvalla.
+- What remains: jos jatketaan, tee LUKITTU #4 ja ratkaise testiajon tsx IPC -rajoitus.
+- Next LUKITTU suggestion: LUKITTU #4 workflow-UI viimeistely (valinnat UUID-kenttien tilalle, status-nakyma, paremmat virhetekstit).
+- Key files: docs/CODEX_HISTORY.md, apps/web/src/ui/form-status.tsx, apps/web/src/ui/planning/PlanningForm.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/ui/baseline/BaselineForms.tsx, apps/web/src/app/(app)/baseline/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx
+- How to resume: git status; npm run lint; npm run typecheck; npm run test; docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-019] LUKITTU: Foundation: migrations logic analysis + runnable web app skeleton + auth/RBAC/tenant + demo roles
+- Goal: toteuttaa migraatioanalyysi ja pystyttaa web-sovellusrunko autentikoinnilla, RBACilla ja tenant-eristyksella.
+- Scope: Docs + UI + Application + Domain + Infrastructure + Tests.
+- Deliverables: migraatioanalyysi ja ER-kaavio, Next.js-runko kerrosjaolla, migraatioajuri + demo-seed, auth/RBAC/tenant, demo-login ja testit.
+- Key files: docs/MIGRATION_LOGIC_ANALYSIS.md, diagrams/schema_overview.mmd, apps/web/src/app/login/page.tsx, packages/infrastructure/src/db.ts, tools/scripts/db-seed-demo.mjs, packages/domain/src, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-019] LUKITTU: Foundation: migrations logic analysis + runnable web app skeleton + auth/RBAC/tenant + demo roles
+- Summary: lisatty littera-ryhmittelyn domain-apuri ja yksikkotestit; domain-exportit paivitetty.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/459399.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-019]
+- Where we are: domain-ryhmittelyapuri on lisatty ja testattu paikallisesti lint/typecheck; test-runner kaatuu sandboxin IPC-rajoitukseen.
+- What changed: lisatty littera-ryhmittelyfunktio ja testit; paivitetty domain-index.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: LUKITTU #2 workflow-nakymat + endpointit (suunnittelu/ennuste/baseline/raportti/loki/admin).
+- Key files: packages/domain/src/litteraGrouping.ts, packages/domain/src/litteraGrouping.test.ts, packages/domain/src/index.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-020] LUKITTU: Workflow-nakymat: tavoitearvio-valinnat suunnittelu/ennuste
+- Goal: korvata UUID-syotto tavoitearvio-valinnalla suunnittelu- ja ennuste-polussa.
+- Scope: UI + Application.
+- Deliverables: tavoitearvio-valinnat suunnittelu/ennuste; taulukoissa naytettava tavoitearvio-koodi.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/ui/planning/PlanningForm.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-020] LUKITTU: Workflow-nakymat: tavoitearvio-valinnat suunnittelu/ennuste
+- Summary: lisatty tavoitearvio-valinta suunnittelu- ja ennuste-lomakkeisiin; naytetaan tavoitearvio-koodi taulukoissa; fallback UUID-syotolle jos tavoitearvioita ei ole.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/467655.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-020]
+- Where we are: suunnittelu- ja ennuste-nakyma hakevat tavoitearviot ja tarjoavat valinnan; taulukoissa naytetaan koodi.
+- What changed: paivitetty suunnittelu/ennuste-sivut ja lomakkeet tavoitearvio-valintaan; lisatty lookup taulukoihin.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: LUKITTU #3 workflow-UI viimeistely (mapping-version valinta, paremmat virhetekstit, status-nakyma).
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/ui/planning/PlanningForm.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-021] LUKITTU: Workflow-UI viimeistely: mapping-versio valinta ennusteessa
+- Goal: tarjota mapping-version valinta ennuste-lomakkeessa ja nayttaa lyhyt selite.
+- Scope: UI + Application + Infrastructure.
+- Deliverables: mapping-versioiden haku, valintalista ennustelomakkeessa, taustadata porttien kautta.
+- Key files: apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-021] LUKITTU: Workflow-UI viimeistely: mapping-versio valinta ennusteessa
+- Summary: lisatty mapping-versioiden haku report-porttiin; ennustelomakkeessa valintalista, joka nayttaa status/validiteetti/reason; fallback UUID-syotolle jos versioita ei ole.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/473256.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-021]
+- Where we are: ennustelomake tarjoilee mapping-version valinnan report-portin kautta.
+- What changed: lisatty getMappingVersions porttiin ja repoihin; paivitetty ennustelomake ja sivu.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: Workflow-UI viimeistely (virhetekstien tarkennus + status-nakyma).
+- Key files: apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-022] LUKITTU: Workflow-UI viimeistely: status-nakyma + virhetekstit
+- Goal: selkeyttaa virheteksteja ja lisata tilannekuva suunnittelu- ja ennuste-nakymaan.
+- Scope: UI + Application.
+- Deliverables: status-kortti suunnittelu/ennuste, tarkennetut validointiviestit.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/server/actions/*.ts, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-022] LUKITTU: Workflow-UI viimeistely: status-nakyma + virhetekstit
+- Summary: lisatty tilannekuva suunnittelu- ja ennuste-nakymaan; lisatty status-pill-tyylit; tarkennettu validointivirheteksteja.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/477161.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-022]
+- Where we are: suunnittelu ja ennuste nayttavat tilannekuvan ja pill-tilan; virhetekstit ovat tarkemmat.
+- What changed: paivitetty suunnittelu/ennuste-sivut, lisatty status-tyylit, tarkennettu validointiviestit.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: Workflow-UI viimeistely (status-nakymaan linkit ja parannetut taulukot) tai test-runnerin korjaus.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, apps/web/src/server/actions/planning.ts, apps/web/src/server/actions/forecast.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

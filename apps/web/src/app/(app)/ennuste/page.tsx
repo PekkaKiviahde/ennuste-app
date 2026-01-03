@@ -1,4 +1,4 @@
-import { loadForecastReport } from "@ennuste/application";
+import { loadForecastReport, loadMappingVersions, loadTargetEstimate } from "@ennuste/application";
 import ForecastForm from "../../../ui/forecast/ForecastForm";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
@@ -11,15 +11,58 @@ export default async function ForecastPage() {
     tenantId: session.tenantId,
     username: session.username
   });
+  const mappingVersions = await loadMappingVersions(services, {
+    projectId: session.projectId,
+    tenantId: session.tenantId,
+    username: session.username
+  });
+  const targets = await loadTargetEstimate(services, {
+    projectId: session.projectId,
+    tenantId: session.tenantId,
+    username: session.username
+  });
+  const targetOptions = Array.from(
+    new Map(
+      (targets as any[]).map((row) => [
+        row.target_littera_id,
+        { id: row.target_littera_id as string, label: `${row.littera_code} ${row.littera_title}`.trim() }
+      ])
+    ).values()
+  );
+  const targetLookup = new Map(targetOptions.map((option) => [option.id, option.label]));
+  const mappingVersionOptions = (mappingVersions as any[]).map((row) => ({
+    id: row.mapping_version_id as string,
+    label: `${row.status} ${row.valid_from}${row.valid_to ? `-${row.valid_to}` : ""} ${row.reason}`.trim()
+  }));
+  const latestForecast = rows[0] as any | undefined;
+  const latestForecastTarget = latestForecast
+    ? targetLookup.get(latestForecast.target_littera_id) ?? latestForecast.target_littera_id
+    : "Ei ennustetta";
 
   return (
     <div className="grid grid-2">
       <section className="card">
         <h1>Ennuste</h1>
         <p>Kirjaa ennustetapahtuma kustannuslajeittain.</p>
-        <ForecastForm />
+        <ForecastForm targetOptions={targetOptions} mappingVersionOptions={mappingVersionOptions} />
       </section>
       <section className="card">
+        <h2>Tilannekuva</h2>
+        <div className="status-grid">
+          <div className="status-item">
+            <div className="label">Viimeisin tavoitearvio</div>
+            <div className="value">{latestForecastTarget}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">Aika</div>
+            <div className="value">{latestForecast?.event_time ?? "-"}</div>
+          </div>
+          <div className="status-item">
+            <div className="label">Tekija</div>
+            <div className="value">{latestForecast?.created_by ?? "-"}</div>
+          </div>
+        </div>
+
         <h2>Viimeisimmat ennusteet</h2>
         <table className="table">
           <thead>
@@ -40,7 +83,7 @@ export default async function ForecastPage() {
             ) : (
               rows.map((row: any) => (
                 <tr key={row.forecast_event_id}>
-                  <td>{row.target_littera_id}</td>
+                  <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
                   <td>{row.event_time}</td>
                   <td>{row.created_by}</td>
                   <td>{row.comment}</td>

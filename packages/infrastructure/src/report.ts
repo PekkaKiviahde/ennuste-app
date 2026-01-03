@@ -44,6 +44,15 @@ export const reportRepository = (): ReportPort => ({
     );
     return result.rows;
   },
+  async getMappingVersions(projectId, tenantId) {
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query(
+      "SELECT mapping_version_id, status, valid_from, valid_to, reason, created_at, created_by, approved_at, approved_by FROM mapping_versions WHERE project_id = $1::uuid ORDER BY created_at DESC",
+      [projectId]
+    );
+    return result.rows;
+  },
   async getMappingLines(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);

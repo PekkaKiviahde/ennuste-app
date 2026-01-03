@@ -96,6 +96,11 @@ export const loadTargetEstimate = async (services: AppServices, input: { project
   return services.report.getTargetEstimate(input.projectId, input.tenantId);
 };
 
+export const loadMappingVersions = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.report.getMappingVersions(input.projectId, input.tenantId);
+};
+
 export const loadMappingLines = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getMappingLines(input.projectId, input.tenantId);

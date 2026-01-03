@@ -191,6 +191,54 @@ textarea {
   color: #1c4a2b;
 }
 
+.status-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 1.5rem;
+}
+
+.status-item .value {
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #efe2d7;
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.status-pill.ready {
+  background: #e5f3ea;
+  border-color: #9fd3b0;
+  color: #1c4a2b;
+}
+
+.status-pill.locked {
+  background: #f5e1d1;
+  border-color: #d9a37a;
+  color: #5c3a1f;
+}
+
+.status-pill.draft {
+  background: #fff3dd;
+  border-color: #e8cfa5;
+  color: #5a3e1a;
+}
+
+.status-pill.missing {
+  background: #f4f1ee;
+  border-color: #d6c7bc;
+  color: #6a5c54;
+}
+
 @media (max-width: 720px) {
   .navbar {
     padding: 1rem;

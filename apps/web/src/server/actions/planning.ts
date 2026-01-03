@@ -22,7 +22,7 @@ export const createPlanningAction = async (
     const status = String(formData.get("status") ?? "DRAFT") as "DRAFT" | "READY_FOR_FORECAST" | "LOCKED";
 
     if (!targetLitteraId) {
-      return { ok: false, message: null, error: "Tavoitearvio-littera puuttuu." };
+      return { ok: false, message: null, error: "Valitse tavoitearvio-littera ennen tallennusta." };
     }
 
     const result = await createPlanningEvent(services, {
