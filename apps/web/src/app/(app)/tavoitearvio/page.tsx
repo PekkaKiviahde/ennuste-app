@@ -7,10 +7,12 @@ export default async function TargetEstimatePage() {
   const services = createServices();
   const rows = await loadTargetEstimate(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
   const mappingLines = await loadMappingLines(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 
@@ -47,7 +49,7 @@ export default async function TargetEstimatePage() {
 
       <section className="card">
         <h2>Mapping</h2>
-        <p>Tyolittera -> tavoitearvio-littera mapping, status ja saanto.</p>
+        <p>Tyolittera {"->"} tavoitearvio-littera mapping, status ja saanto.</p>
         <table className="table">
           <thead>
             <tr>

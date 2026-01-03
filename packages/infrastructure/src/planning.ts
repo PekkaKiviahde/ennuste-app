@@ -1,8 +1,10 @@
 import type { PlanningPort } from "@ennuste/application";
 import { query } from "./db";
+import { requireProjectTenant } from "./tenant";
 
 export const planningRepository = (): PlanningPort => ({
   async createPlanningEvent(input) {
+    await requireProjectTenant(input.projectId, input.tenantId);
     const result = await query<{ planning_event_id: string }>(
       `
         INSERT INTO planning_events (
@@ -31,7 +33,8 @@ export const planningRepository = (): PlanningPort => ({
 
     return { planningEventId: result.rows[0].planning_event_id };
   },
-  async listPlanningCurrent(projectId) {
+  async listPlanningCurrent(projectId, tenantId) {
+    await requireProjectTenant(projectId, tenantId);
     const result = await query(
       "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
       [projectId]

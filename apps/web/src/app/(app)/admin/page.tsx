@@ -7,6 +7,7 @@ export default async function AdminPage() {
   const services = createServices();
   const overview = await loadAdminOverview(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

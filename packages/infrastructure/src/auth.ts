@@ -44,14 +44,18 @@ export const authRepository = (): AuthPort => ({
       throw new AuthError("Kayttajalla ei ole yhtaan projektia");
     }
 
-    const orgResult = await query<{ organization_id: string }>(
-      "SELECT organization_id FROM projects WHERE project_id = $1",
+    const orgResult = await query<{ organization_id: string; tenant_id: string }>(
+      "SELECT organization_id, tenant_id FROM projects WHERE project_id = $1",
       [projectId]
     );
 
     const organizationId = orgResult.rows[0]?.organization_id;
+    const tenantId = orgResult.rows[0]?.tenant_id;
     if (!organizationId) {
       throw new AuthError("Projektin organisaatiota ei loytynyt");
+    }
+    if (!tenantId) {
+      throw new AuthError("Projektin tenant puuttuu");
     }
 
     const permissionsResult = await query<{ permission_code: string }>(
@@ -59,13 +63,18 @@ export const authRepository = (): AuthPort => ({
       [projectId, user.username]
     );
 
+    const permissions = (permissionsResult.rows as Array<{ permission_code: SessionUser["permissions"][number] }>).map(
+      (row) => row.permission_code
+    );
+
     const session: SessionUser = {
       userId: user.user_id,
       username: user.username,
       displayName: user.display_name,
       organizationId,
+      tenantId,
       projectId,
-      permissions: permissionsResult.rows.map((row) => row.permission_code as SessionUser["permissions"][number])
+      permissions
     };
 
     return { session };

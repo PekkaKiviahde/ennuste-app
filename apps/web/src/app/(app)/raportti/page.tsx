@@ -7,6 +7,7 @@ export default async function ReportPage() {
   const services = createServices();
   const rows = await loadWorkPhaseReport(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

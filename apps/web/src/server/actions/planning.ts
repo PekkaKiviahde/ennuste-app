@@ -13,6 +13,7 @@ export const createPlanningAction = async (formData: FormData) => {
 
   const result = await createPlanningEvent(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     targetLitteraId,
     status,
     summary: String(formData.get("summary") ?? "") || null,
@@ -22,5 +23,5 @@ export const createPlanningAction = async (formData: FormData) => {
     createdBy: session.username
   });
 
-  return { ok: true, planningEventId: result.planningEventId };
+  void result;
 };

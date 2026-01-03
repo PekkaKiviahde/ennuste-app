@@ -15,10 +15,12 @@ export default async function BaselinePage() {
   const services = createServices();
   const reportRows = await loadWorkPhaseReport(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
   const workPhases = await loadWorkPhases(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

@@ -7,6 +7,7 @@ export default async function AuditLogPage() {
   const services = createServices();
   const rows = await loadAuditLog(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

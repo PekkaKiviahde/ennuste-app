@@ -41,6 +41,7 @@ export const createForecastAction = async (formData: FormData) => {
 
   const result = await createForecastEvent(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     targetLitteraId,
     mappingVersionId,
     comment: String(formData.get("comment") ?? "") || null,
@@ -51,5 +52,5 @@ export const createForecastAction = async (formData: FormData) => {
     lines
   });
 
-  return { ok: true, forecastEventId: result.forecastEventId };
+  void result;
 };

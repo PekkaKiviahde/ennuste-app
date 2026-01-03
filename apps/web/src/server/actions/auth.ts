@@ -5,15 +5,24 @@ import { createServices } from "../services";
 import { clearSessionCookie, setSessionCookie } from "../session";
 import { redirect } from "next/navigation";
 
-export const loginAction = async (formData: FormData) => {
+export type LoginFormState = {
+  error?: string | null;
+};
+
+export const loginAction = async (_state: LoginFormState, formData: FormData): Promise<LoginFormState> => {
   const username = String(formData.get("username") ?? "").trim();
   const pin = String(formData.get("pin") ?? "").trim();
   const projectId = formData.get("projectId") ? String(formData.get("projectId")) : undefined;
 
   const services = createServices();
-  const result = await login(services, { username, pin, projectId });
-  setSessionCookie(result.session);
-  redirect("/ylataso");
+  try {
+    const result = await login(services, { username, pin, projectId });
+    setSessionCookie(result.session);
+    redirect("/ylataso");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
+    return { error: message };
+  }
 };
 
 export const logoutAction = async () => {
@@ -35,6 +44,7 @@ export const quickRoleLoginAction = async (formData: FormData) => {
 
   await services.audit.recordEvent({
     projectId: result.session.projectId,
+    tenantId: result.session.tenantId,
     actor: result.session.username,
     action: "auth.quick_login",
     payload: {

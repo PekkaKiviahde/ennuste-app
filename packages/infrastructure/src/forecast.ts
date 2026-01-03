@@ -1,8 +1,10 @@
 import type { ForecastPort } from "@ennuste/application";
 import { pool } from "./db";
+import { requireProjectTenant } from "./tenant";
 
 export const forecastRepository = (): ForecastPort => ({
   async createForecastEvent(input) {
+    await requireProjectTenant(input.projectId, input.tenantId);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -67,7 +69,8 @@ export const forecastRepository = (): ForecastPort => ({
       client.release();
     }
   },
-  async listForecastCurrent(projectId) {
+  async listForecastCurrent(projectId, tenantId) {
+    await requireProjectTenant(projectId, tenantId);
     const result = await pool.query(
       "SELECT * FROM v_report_forecast_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
       [projectId]

@@ -5,10 +5,11 @@ import { requireSession } from "../../../server/session";
 export default async function DashboardPage() {
   const session = requireSession();
   const services = createServices();
-  const dashboard = await loadDashboard(services, {
+  const dashboard = (await loadDashboard(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
-  });
+  })) as any;
 
   return (
     <div className="grid grid-2">

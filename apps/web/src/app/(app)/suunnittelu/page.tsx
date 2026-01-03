@@ -8,6 +8,7 @@ export default async function PlanningPage() {
   const services = createServices();
   const rows = await loadPlanningReport(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

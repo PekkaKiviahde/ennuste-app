@@ -8,6 +8,7 @@ export default async function ForecastPage() {
   const services = createServices();
   const rows = await loadForecastReport(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     username: session.username
   });
 

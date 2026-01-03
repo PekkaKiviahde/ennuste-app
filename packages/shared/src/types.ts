@@ -24,6 +24,7 @@ export type SessionUser = {
   username: string;
   displayName?: string | null;
   organizationId: string;
+  tenantId: string;
   projectId: string;
   permissions: PermissionCode[];
 };

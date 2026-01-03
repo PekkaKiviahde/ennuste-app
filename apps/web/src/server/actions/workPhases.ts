@@ -14,8 +14,9 @@ import { requireSession } from "../session";
 export const createWeeklyUpdateAction = async (formData: FormData) => {
   const session = requireSession();
   const services = createServices();
-  const result = await createWeeklyUpdate(services, {
+  await createWeeklyUpdate(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     workPhaseId: String(formData.get("workPhaseId") ?? ""),
     weekEnding: String(formData.get("weekEnding") ?? ""),
     percentComplete: Number(formData.get("percentComplete") ?? 0),
@@ -23,14 +24,14 @@ export const createWeeklyUpdateAction = async (formData: FormData) => {
     risks: String(formData.get("risks") ?? "") || null,
     username: session.username
   });
-  return { ok: true, workPhaseWeeklyUpdateId: result.workPhaseWeeklyUpdateId };
 };
 
 export const createGhostEntryAction = async (formData: FormData) => {
   const session = requireSession();
   const services = createServices();
-  const result = await createGhostEntry(services, {
+  await createGhostEntry(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     workPhaseId: String(formData.get("workPhaseId") ?? ""),
     weekEnding: String(formData.get("weekEnding") ?? ""),
     costType: String(formData.get("costType") ?? "LABOR") as "LABOR" | "MATERIAL" | "SUBCONTRACT" | "RENTAL" | "OTHER",
@@ -38,34 +39,33 @@ export const createGhostEntryAction = async (formData: FormData) => {
     description: String(formData.get("description") ?? "") || null,
     username: session.username
   });
-  return { ok: true, ghostCostEntryId: result.ghostCostEntryId };
 };
 
 export const lockBaselineAction = async (formData: FormData) => {
   const session = requireSession();
   const services = createServices();
-  const result = await lockBaseline(services, {
+  await lockBaseline(services, {
     projectId: session.projectId,
     workPhaseId: String(formData.get("workPhaseId") ?? ""),
     workPhaseVersionId: String(formData.get("workPhaseVersionId") ?? ""),
     targetImportBatchId: String(formData.get("targetImportBatchId") ?? ""),
+    tenantId: session.tenantId,
     notes: String(formData.get("notes") ?? "") || null,
     username: session.username
   });
-  return { ok: true, workPhaseBaselineId: result.workPhaseBaselineId };
 };
 
 export const proposeCorrectionAction = async (formData: FormData) => {
   const session = requireSession();
   const services = createServices();
-  const result = await proposeCorrection(services, {
+  await proposeCorrection(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     workPhaseId: String(formData.get("workPhaseId") ?? ""),
     itemCode: String(formData.get("itemCode") ?? ""),
     notes: String(formData.get("notes") ?? "") || null,
     username: session.username
   });
-  return { ok: true, correctionId: result.correctionId };
 };
 
 export const approveCorrectionPmAction = async (formData: FormData) => {
@@ -73,21 +73,21 @@ export const approveCorrectionPmAction = async (formData: FormData) => {
   const services = createServices();
   await approveCorrectionPm(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     correctionId: String(formData.get("correctionId") ?? ""),
     comment: String(formData.get("comment") ?? "") || null,
     username: session.username
   });
-  return { ok: true };
 };
 
 export const approveCorrectionFinalAction = async (formData: FormData) => {
   const session = requireSession();
   const services = createServices();
-  const result = await approveCorrectionFinal(services, {
+  await approveCorrectionFinal(services, {
     projectId: session.projectId,
+    tenantId: session.tenantId,
     correctionId: String(formData.get("correctionId") ?? ""),
     comment: String(formData.get("comment") ?? "") || null,
     username: session.username
   });
-  return { ok: true, baselineId: result.baselineId };
 };

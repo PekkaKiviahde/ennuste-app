@@ -6,6 +6,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "TSX_DISABLE_IPC=1 tsx --test src/**/*.test.ts"
   }
 }

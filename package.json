@@ -10,7 +10,9 @@
     "db:migrate": "node tools/scripts/db-migrate.mjs",
     "db:seed-demo": "node tools/scripts/db-seed-demo.mjs",
     "dev": "npm --workspace apps/web run dev",
-    "test": "npm --workspace packages/domain run test && npm --workspace packages/application run test && npm --workspace packages/infrastructure run test"
+    "lint": "npm run typecheck",
+    "test": "npm --workspace packages/domain run test && npm --workspace packages/application run test && npm --workspace packages/infrastructure run test",
+    "typecheck": "tsc -p packages/domain/tsconfig.json && tsc -p packages/application/tsconfig.json && tsc -p packages/infrastructure/tsconfig.json && tsc -p packages/shared/tsconfig.json && tsc -p apps/web/tsconfig.json"
   },
   "dependencies": {
     "pg": "^8.12.0"
