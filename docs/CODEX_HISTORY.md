@@ -532,3 +532,23 @@
 - Next LUKITTU suggestion: LUKITTU #2 workflow-nakymat + endpointit (suunnittelu/ennuste/baseline/raportti/loki/admin).
 - Key files: packages/infrastructure/src/db.ts, tools/scripts/db-seed-demo.mjs, apps/web/src/app/api/health/route.ts, apps/web/src/app/login/quick-panel.tsx, packages/infrastructure/src/integration.test.ts, apps/web/src/server/env.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test; node tools/scripts/db-seed-demo.mjs
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-017] LUKITTU: Workflow-nakymat + endpointit
+- Goal: toteuttaa workflow-nakymat (suunnittelu, ennuste, baseline, raportti, loki, admin) ja niihin liittyvat endpointit.
+- Scope: UI + API + Infrastructure + Tests.
+- Deliverables: UI-nakymat, API/route handlerit, service layer -eristys, virheviestit.
+- Key files: apps/web/src/app/(app)/*/page.tsx, apps/web/src/app/api/*/route.ts, packages/application/src/usecases.ts, packages/infrastructure/src/*.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint, npm run typecheck, npm run test
+
+[2026-01-03] [DONE] [L-20260103-017] LUKITTU: Workflow-nakymat + endpointit
+- Summary: lisatty workflow-endpointit (planning/forecast/work-phases/report/audit/admin); UI-virheiden globaalirajaus lisatty; virheet palautuvat suomeksi API:ssa.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-017]
+- Where we are: workflow-endpointit ja UI error boundary ovat valmiit.
+- What changed: lisatty API-reitit ja error.tsx; laajennettu planning/forecast GET;
+- What remains: korjaa/kierrata tsx IPC -testirajoitus (tai vaihtoehtoinen test-runner).
+- Next LUKITTU suggestion: LUKITTU #3 workflow-formien tilannekuvat + validoinnit + onnistumisviestit.
+- Key files: apps/web/src/app/api/forecast/route.ts, apps/web/src/app/api/planning/route.ts, apps/web/src/app/api/work-phases/*, apps/web/src/app/api/report/*, apps/web/src/app/error.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test; docker compose -f docker-compose.yml -f docker-compose.next.yml up -d web_next
