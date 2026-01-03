@@ -350,6 +350,18 @@ textarea {
   background: #b85b2d;
 }
 
+.kpi-notes {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--ink-muted);
+  display: grid;
+  gap: 0.4rem;
+}
+
+.kpi-notes strong {
+  color: var(--ink);
+}
+
 @media (max-width: 720px) {
   .navbar {
     padding: 1rem;

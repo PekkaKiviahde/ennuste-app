@@ -177,6 +177,18 @@ export default async function ReportPage() {
       </section>
 
       <section className="card">
+        <h2>KPI-selitteet</h2>
+        <p>Nain tulkitset raportin mittarit.</p>
+        <ul className="kpi-notes">
+          <li><strong>BAC</strong> = budjetoitu kokonaiskustannus.</li>
+          <li><strong>EV</strong> = ansaittu arvo suhteessa valmiusasteeseen.</li>
+          <li><strong>AC*</strong> = toteuma sisaltaen ghost-rivit.</li>
+          <li><strong>CPI</strong> = EV / AC* (miten tehokkaasti edetaan).</li>
+          <li><strong>Poikkeama</strong> = EV - AC* (plus = ahead, miinus = overrun).</li>
+        </ul>
+      </section>
+
+      <section className="card">
         <h2>Tyovaiheet</h2>
         <p>Tyovaiheiden yhteenveto, KPI ja poikkeamat.</p>
       <table className="table">

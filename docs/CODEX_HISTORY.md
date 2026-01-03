@@ -1081,6 +1081,26 @@
 - Key files: apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
 
+[2026-01-03] [IN_PROGRESS] [L-20260103-044] LUKITTU: Ennuste + loki + raportti (laaja testikierros)
+- Goal: laajentaa ennusteen syoton tukea, lisata lokiin suodatusryhmat ja selitteet seka vahvistaa KPI-selitteet raportissa.
+- Scope: UI (kayttoliittyma) + Application (sovelluskerros).
+- Deliverables: ennusteen syoton ohjaus ja validoinnit, lokin laajat suodattimet, KPI-selitekortti raporttiin.
+- Key files: apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/(app)/loki/page.tsx, apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-044] LUKITTU: Ennuste + loki + raportti (laaja testikierros)
+- Summary: lisatty lokin suodatusryhmat auth- ja tyovaihetapahtumille; lisatty ennusteen syoton ohjaus; lisatty KPI-selitekortti raporttiin; KPI-graafi saa tooltipit.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: KPI-selitteissa huomioidaan EV/AC*-poikkeama.
+
+[2026-01-03] [HANDOFF] [L-20260103-044]
+- Where we are: loki tukee useampaa suodatusryhmaa ja raportti selittaa KPI-mittarit.
+- What changed: lokiin lisatty auth- ja tyovaihesuodattimet, ennustelomake ohjaa syottoa, raporttiin lisatty KPI-selitteet.
+- What remains: halutessasi laajenna lokin suodattimia muille action-tyypeille ja lisaa ennusteen testiskenaariot dataan.
+- Next LUKITTU suggestion: LUKITTU: ennusteen testiskenaariot + lokin suodatus lisatapahtumille.
+- Key files: apps/web/src/app/(app)/loki/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
 [2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
 - Summary: lisatty KPI-yhteenvetokortti raporttiin; projektitason luvut muotoillaan; lukittujen ja viikkopaivitettyjen tyovaiheiden laskuri lisatty.
 - Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).

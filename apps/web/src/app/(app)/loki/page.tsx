@@ -2,11 +2,20 @@ import { loadAuditLog, loadFilteredAuditLog } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
-type AuditLogFilter = "all" | "planning" | "forecast";
+type AuditLogFilter = "all" | "planning" | "forecast" | "auth" | "work-phase";
 
 const FILTER_ACTIONS: Record<Exclude<AuditLogFilter, "all">, string[]> = {
   planning: ["planning.create"],
-  forecast: ["forecast.create"]
+  forecast: ["forecast.create"],
+  auth: ["auth.login", "auth.logout", "auth.quick_login"],
+  "work-phase": [
+    "work_phase.weekly_update",
+    "work_phase.ghost_entry",
+    "work_phase.baseline_lock",
+    "work_phase.correction_proposed",
+    "work_phase.correction_pm_approved",
+    "work_phase.correction_final_approved"
+  ]
 };
 
 const extractSummary = (payload: unknown) => {
@@ -21,7 +30,13 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
   const session = await requireSession();
   const services = createServices();
   const rawType = searchParams?.type ?? "all";
-  const type = rawType === "planning" || rawType === "forecast" ? rawType : "all";
+  const type =
+    rawType === "planning" ||
+    rawType === "forecast" ||
+    rawType === "auth" ||
+    rawType === "work-phase"
+      ? rawType
+      : "all";
   const actionFilter = type === "all" ? null : FILTER_ACTIONS[type];
   const rows = actionFilter
     ? await loadFilteredAuditLog(services, {
@@ -68,6 +83,18 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
           href="/loki?type=forecast"
         >
           Ennuste
+        </a>
+        <a
+          className={`btn btn-secondary btn-sm ${type === "auth" ? "active" : ""}`}
+          href="/loki?type=auth"
+        >
+          Kirjautuminen
+        </a>
+        <a
+          className={`btn btn-secondary btn-sm ${type === "work-phase" ? "active" : ""}`}
+          href="/loki?type=work-phase"
+        >
+          Työvaihe
         </a>
       </div>
       <table className="table">

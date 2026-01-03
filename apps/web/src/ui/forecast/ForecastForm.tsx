@@ -273,6 +273,14 @@ export default function ForecastForm({
       >
         <strong>Suunnitelman tila:</strong> {planningStatusLabel()}
       </div>
+      {!planningReady && targetLitteraId && (
+        <div className="notice">
+          Ennusteen tallennus on estetty, kunnes suunnitelma on READY_FOR_FORECAST tai LOCKED.
+        </div>
+      )}
+      <div className="notice">
+        Syota vahintaan yksi kustannusarvo tai perustelu. Valmiusprosenttien tulee olla 0-100.
+      </div>
 
       <div className="grid grid-2">
         <div>
