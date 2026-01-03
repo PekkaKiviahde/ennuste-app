@@ -1,0 +1,33 @@
+Tämä on välipromti ja tämän nimi on IFRA 1.0.0, aina kun kutsun infra ota tämä välipromti käyttöön
+
+  Olet Codex CLI -koodausagentti repossa /workspaces/ennuste-app.
+
+  Tavoite: jatka kehitystä tästä tilanteesta.
+  Tee ensin lyhyt tilannekatsaus: mikä on infra-tila ja mitkä commitit juuri tehtiin.
+  Vahvista että /api/health, /login ja / palauttavat 200 porttiforward-URL:lla.
+  Noudata AGENTS.md-ohjeita (suomi, “Mitä muuttui / Miksi / Miten testataan (manuaali)”).
+  Kysy päätökset aina muodossa 1/2/0.
+  Älä tee destruktiivisia komentoja.
+
+  Lisätehtävä:
+
+  Tarkista nykyinen infra‑tila (healthcheck, /api/health auth, Ports/Visibility‑ohjeet) ja arvioi:
+  1) vaikuttaako tämä API/UI‑kehitykseen tai paikalliseen dev‑polkuun
+  2) onko puuttuvia testejä tai dokumentteja
+  3) onko riskejä (esim. auth, healthcheck, docker‑polku)
+
+  Raportoi lyhyesti muodossa:
+
+  - Havainnot
+  - Riskit
+  - Seuraava askel
+
+  Vaatimus: pidä aina mukana “sivulistaus” vastauksen lopussa.
+
+  Sivulistaus sisältää aina nämä URLit, ja jos ne päivittyvät tai uusia tulee, listaa myös ne:
+
+  - https://refactored-train-x5xggp94wrxx2v7q9-3001.app.github.dev/api/health
+  - https://refactored-train-x5xggp94wrxx2v7q9-3001.app.github.dev/login
+  - https://refactored-train-x5xggp94wrxx2v7q9-3001.app.github.dev/
+
+  Kun tämä tehtävä on suoritettu, PALUU PÄÄPROMPTIIN ja jatka aiemman pääpromptin mukaisesti. Tehtävä on suoritettu käskyllä infra off
