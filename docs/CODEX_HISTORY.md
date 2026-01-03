@@ -800,3 +800,23 @@
 - Next LUKITTU suggestion: ennusteen autotaytto tai suodattimien URL-resetointi.
 - Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-030] LUKITTU: Ennusteen autotaytto
+- Summary: lisatty ennuste-snapshot-endpointti; ennustelomake autotayttaa viimeisimman ennusteen tiedot.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-030]
+- Where we are: ennustelomake hakee viimeisimman ennusteen ja tayttaa kentat valitulle tavoitearviolle.
+- What changed: lisatty /api/forecast/snapshot; paivitetty forecast-portit ja lomakkeen autotaytto.
+- What remains: halutessasi lisaa manuaalinen "Autotaytto" -nappi tai autoskip, jos kayttaja on jo muokannut kenttia.
+- Next LUKITTU suggestion: ennusteen autotayton hienosaatö (manuaalinen nappi) tai suodattimien URL-resetointi.
+- Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/forecast/snapshot/route.ts, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/forecast.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-030] LUKITTU: Ennusteen autotaytto
+- Goal: autotayttaa ennustelomake viimeisimmalla ennusteella, kun tavoitearvio valitaan.
+- Scope: UI + Application + Infrastructure.
+- Deliverables: ennusteen snapshot-endpointti ja lomakkeen autotaytto.
+- Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/forecast/snapshot/route.ts, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/forecast.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test

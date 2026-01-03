@@ -86,6 +86,14 @@ export const loadForecastReport = async (services: AppServices, input: { project
   return services.report.getForecastReport(input.projectId, input.tenantId);
 };
 
+export const loadForecastSnapshot = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; targetLitteraId: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.forecast.getForecastSnapshot(input.projectId, input.tenantId, input.targetLitteraId);
+};
+
 export const loadPlanningReport = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getPlanningReport(input.projectId, input.tenantId);

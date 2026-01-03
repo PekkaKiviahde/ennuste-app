@@ -69,5 +69,32 @@ export const forecastRepository = (): ForecastPort => ({
       [projectId]
     );
     return result.rows;
+  },
+  async getForecastSnapshot(projectId, tenantId, targetLitteraId) {
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const eventResult = await tenantDb.query<{
+      forecast_event_id: string;
+      mapping_version_id: string | null;
+      comment: string | null;
+      technical_progress: number | null;
+      financial_progress: number | null;
+      kpi_value: number | null;
+    }>(
+      "SELECT forecast_event_id, mapping_version_id, comment, technical_progress, financial_progress, kpi_value FROM v_forecast_current WHERE project_id = $1::uuid AND target_littera_id = $2::uuid",
+      [projectId, targetLitteraId]
+    );
+    const event = eventResult.rows[0] ?? null;
+    const linesResult = await tenantDb.query<{
+      cost_type: "LABOR" | "MATERIAL" | "SUBCONTRACT" | "RENTAL" | "OTHER";
+      forecast_value: number;
+      memo_general: string | null;
+      memo_procurement: string | null;
+      memo_calculation: string | null;
+    }>(
+      "SELECT cost_type, forecast_value, memo_general, memo_procurement, memo_calculation FROM v_forecast_current_lines WHERE project_id = $1::uuid AND target_littera_id = $2::uuid",
+      [projectId, targetLitteraId]
+    );
+    return { event, lines: linesResult.rows };
   }
 });

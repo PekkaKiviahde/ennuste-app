@@ -61,6 +61,27 @@ export type PlanningPort = {
 export type ForecastPort = {
   createForecastEvent(input: ForecastEventInput): Promise<{ forecastEventId: string }>;
   listForecastCurrent(projectId: string, tenantId: string): Promise<unknown[]>;
+  getForecastSnapshot(
+    projectId: string,
+    tenantId: string,
+    targetLitteraId: string
+  ): Promise<{
+    event: {
+      forecast_event_id: string;
+      mapping_version_id: string | null;
+      comment: string | null;
+      technical_progress: number | null;
+      financial_progress: number | null;
+      kpi_value: number | null;
+    } | null;
+    lines: Array<{
+      cost_type: "LABOR" | "MATERIAL" | "SUBCONTRACT" | "RENTAL" | "OTHER";
+      forecast_value: number;
+      memo_general: string | null;
+      memo_procurement: string | null;
+      memo_calculation: string | null;
+    }>;
+  }>;
 };
 
 export type ReportPort = {
