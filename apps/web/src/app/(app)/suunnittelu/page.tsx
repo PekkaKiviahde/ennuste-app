@@ -65,6 +65,8 @@ export default async function PlanningPage() {
         <div className="status-actions">
           <a className="btn btn-secondary btn-sm" href="#suunnitelmat">Siirry suunnitelmiin</a>
           <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Avaa tavoitearvio</a>
+          <a className="btn btn-secondary btn-sm" href="/ylataso">Avaa projekti</a>
+          <a className="btn btn-secondary btn-sm" href="/raportti">Avaa raportti</a>
         </div>
 
         <h2 id="suunnitelmat">Nykyiset suunnitelmat</h2>
@@ -93,8 +95,14 @@ export default async function PlanningPage() {
                     <span className={`status-pill ${statusClass(row.status)}`}>{row.status}</span>
                   </td>
                   <td>{row.event_time}</td>
-                  <td>{row.created_by}</td>
-                  <td className="muted">{row.summary ?? "-"}</td>
+                  <td>
+                    <div>{row.created_by}</div>
+                    <div className="muted">{row.planning_event_id}</div>
+                  </td>
+                  <td>
+                    <div>{row.summary ?? "-"}</div>
+                    <div className="muted">{row.observations ?? "-"}</div>
+                  </td>
                 </tr>
               ))
             )}

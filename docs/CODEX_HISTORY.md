@@ -680,3 +680,23 @@
 - Next LUKITTU suggestion: paranna tilannekuvan linkit (projekti/raportti) tai kierrata test-runner.
 - Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-024] LUKITTU: Workflow-UI viimeistely: tilannekuvan projekti/raportti-linkit
+- Goal: lisata tilannekuvaan projekti- ja raporttilinkit suunnittelu/ennuste-sivuilla.
+- Scope: UI.
+- Deliverables: tilannekuvan linkit projektiin/raporttiin, taulukon selkeytetyt rivit.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-024] LUKITTU: Workflow-UI viimeistely: tilannekuvan projekti/raportti-linkit
+- Summary: lisatty projekti- ja raporttilinkit tilannekuvaan; taulukoissa naytetaan lisarivit (event id, KPI, havainnot); lisatty pienet spacing-tyylit.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/499996.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-024]
+- Where we are: tilannekuvassa on projekti/raportti-linkit ja taulukot nayttavat lisarivit.
+- What changed: paivitetty suunnittelu/ennuste-sivut linkeilla ja lisariveilla; lisatty muted-rivien valitystyyli.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: viimeistele taulukoiden jaksotus (esim. date-formatointi) tai kierrata test-runner.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
