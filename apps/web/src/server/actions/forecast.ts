@@ -12,10 +12,10 @@ export type ForecastFormState = {
 
 const parseNumber = (value: FormDataEntryValue | null) => {
   if (value === null || value === "") {
-    return 0;
+    return null;
   }
   const parsed = Number(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
+  return Number.isNaN(parsed) ? null : parsed;
 };
 
 export const createForecastAction = async (
@@ -36,38 +36,56 @@ export const createForecastAction = async (
     const lines = [
       {
         costType: "LABOR" as const,
-        forecastValue: parseNumber(formData.get("laborValue")),
+        forecastValue: parseNumber(formData.get("laborValue")) ?? 0,
         memoGeneral: String(formData.get("laborMemo") ?? "") || null
       },
       {
         costType: "MATERIAL" as const,
-        forecastValue: parseNumber(formData.get("materialValue")),
+        forecastValue: parseNumber(formData.get("materialValue")) ?? 0,
         memoGeneral: String(formData.get("materialMemo") ?? "") || null
       },
       {
         costType: "SUBCONTRACT" as const,
-        forecastValue: parseNumber(formData.get("subcontractValue")),
+        forecastValue: parseNumber(formData.get("subcontractValue")) ?? 0,
         memoGeneral: String(formData.get("subcontractMemo") ?? "") || null
       },
       {
         costType: "RENTAL" as const,
-        forecastValue: parseNumber(formData.get("rentalValue")),
+        forecastValue: parseNumber(formData.get("rentalValue")) ?? 0,
         memoGeneral: String(formData.get("rentalMemo") ?? "") || null
       },
       {
         costType: "OTHER" as const,
-        forecastValue: parseNumber(formData.get("otherValue")),
+        forecastValue: parseNumber(formData.get("otherValue")) ?? 0,
         memoGeneral: String(formData.get("otherMemo") ?? "") || null
       }
     ];
 
     const comment = String(formData.get("comment") ?? "").trim();
-    const technicalProgress = parseNumber(formData.get("technicalProgress")) / 100;
-    const financialProgress = parseNumber(formData.get("financialProgress")) / 100;
-    const kpiValue = parseNumber(formData.get("kpiValue"));
+    const technicalRaw = parseNumber(formData.get("technicalProgress"));
+    const financialRaw = parseNumber(formData.get("financialProgress"));
+    const kpiRaw = parseNumber(formData.get("kpiValue"));
+
+    if (technicalRaw !== null && (technicalRaw < 0 || technicalRaw > 100)) {
+      return { ok: false, message: null, error: "Tekninen valmius tulee olla 0-100." };
+    }
+    if (financialRaw !== null && (financialRaw < 0 || financialRaw > 100)) {
+      return { ok: false, message: null, error: "Taloudellinen valmius tulee olla 0-100." };
+    }
+    if (kpiRaw !== null && kpiRaw < 0) {
+      return { ok: false, message: null, error: "KPI-arvo ei voi olla negatiivinen." };
+    }
+    if (lines.some((line) => line.forecastValue < 0)) {
+      return { ok: false, message: null, error: "Kustannuslajien ennusteet eivat voi olla negatiivisia." };
+    }
+
+    const technicalProgress = technicalRaw !== null ? technicalRaw / 100 : null;
+    const financialProgress = financialRaw !== null ? financialRaw / 100 : null;
+    const kpiValue = kpiRaw ?? null;
 
     const hasLineValues = lines.some((line) => line.forecastValue > 0 || Boolean(line.memoGeneral));
-    const hasMeta = Boolean(comment) || technicalProgress > 0 || financialProgress > 0 || kpiValue > 0;
+    const hasMeta =
+      Boolean(comment) || (technicalProgress ?? 0) > 0 || (financialProgress ?? 0) > 0 || (kpiValue ?? 0) > 0;
 
     if (!hasLineValues && !hasMeta) {
       return { ok: false, message: null, error: "Anna ennustearvo tai perustelu (kommentti tai valmiusprosentti)." };
@@ -79,9 +97,9 @@ export const createForecastAction = async (
       targetLitteraId,
       mappingVersionId,
       comment: comment || null,
-      technicalProgress: technicalProgress || null,
-      financialProgress: financialProgress || null,
-      kpiValue: kpiValue || null,
+      technicalProgress,
+      financialProgress,
+      kpiValue,
       createdBy: session.username,
       lines
     });

@@ -1020,3 +1020,23 @@
 - Next LUKITTU suggestion: LUKITTU: lokin suodatus laajemmille tapahtumille + suodatus parametreilla.
 - Key files: apps/web/src/app/(app)/loki/page.tsx, packages/application/src/usecases.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-041] LUKITTU: Ennuste: validoinnit + raportin KPI-tarkistus
+- Goal: vahvistaa ennusteen syotto ja raportin KPI-arvojen esitys.
+- Scope: UI (kayttoliittyma) + Application (sovelluskerros).
+- Deliverables: ennusteen validoinnit palvelimella, KPI-arvojen muotoilu raportissa, virheilmoitukset suomeksi.
+- Key files: apps/web/src/server/actions/forecast.ts, apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-041] LUKITTU: Ennuste: validoinnit + raportin KPI-tarkistus
+- Summary: lisatty palvelinpuolen validoinnit ennusteen syottoon; KPI ja numerot muotoillaan raportissa; KPI-arvo ei naytaudu, jos data puuttuu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: ennusteen negatiiviset arvot ja valmiusprosenttien ylitykset estetaan.
+
+[2026-01-03] [HANDOFF] [L-20260103-041]
+- Where we are: ennusteen validoinnit ja raportin KPI-esitys ovat tiukemmat.
+- What changed: lisatty ennusteen valmiusprosentti- ja arvorajaukset, KPI muotoilu ja varoitus logiikka raporttiin.
+- What remains: halutessasi lisaa raportin KPI-summat tai graafinen nosto.
+- Next LUKITTU suggestion: LUKITTU: raportin KPI-yhteenveto + ennusteen syoton testikierros.
+- Key files: apps/web/src/server/actions/forecast.ts, apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/ui/forecast/ForecastForm.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

@@ -25,6 +25,20 @@ export default async function ReportPage() {
       timeStyle: "short"
     }).format(date);
   };
+  const formatNumber = (value: number | null | undefined, decimals = 2) => {
+    if (value === null || value === undefined) return "-";
+    if (Number.isNaN(value)) return String(value);
+    return new Intl.NumberFormat("fi-FI", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(value);
+  };
+  const formatCpi = (value: number | null | undefined, hasCpi: boolean | null | undefined) => {
+    if (!hasCpi || value === null || value === undefined) {
+      return "Ei laskettavissa";
+    }
+    return formatNumber(value, 3);
+  };
   const planningLabel = status.planning?.status ?? "Ei suunnitelmaa";
   const planningTime = formatDateTime(status.planning?.event_time);
   const planningSummary = status.planning?.summary?.trim();
@@ -79,11 +93,11 @@ export default async function ReportPage() {
             rows.map((row: any) => (
               <tr key={row.work_phase_id}>
                 <td>{row.work_phase_name}</td>
-                <td>{row.bac_total}</td>
-                <td>{row.ev_value}</td>
-                <td>{row.ac_star_total}</td>
-                <td>{row.cpi ?? "-"}</td>
-                <td>{row.cost_variance_eur ?? 0}</td>
+                <td>{formatNumber(row.bac_total)}</td>
+                <td>{formatNumber(row.ev_value)}</td>
+                <td>{formatNumber(row.ac_star_total)}</td>
+                <td>{formatCpi(row.cpi, row.has_cpi)}</td>
+                <td>{formatNumber(row.cost_variance_eur)}</td>
               </tr>
             ))
           )}

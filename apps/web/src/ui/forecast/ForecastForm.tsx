@@ -339,7 +339,7 @@ export default function ForecastForm({
         </div>
         <div>
           <label className="label">KPI-arvo</label>
-          <input className="input" name="kpiValue" type="number" step="0.01" ref={kpiRef} />
+          <input className="input" name="kpiValue" type="number" step="0.01" min="0" ref={kpiRef} />
         </div>
       </div>
 
