@@ -940,3 +940,23 @@
 - Next LUKITTU suggestion: ennusteen tilakortti tyonohjaukseen tai lukituksen selite UI:hin.
 - Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/planning/status/route.ts, packages/application/src/usecases.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-037] LUKITTU: Tyonohjaus: suunnitelman tila ennusteessa + lukituksen selite
+- Goal: nayttaa suunnitelman tila ennustekortissa ja lukituksen selite tyonohjauksessa.
+- Scope: UI (kayttoliittyma) + Application (sovelluskerros) + Infrastructure (infrastruktuuri).
+- Deliverables: workflow-tilaan lisataan lukituksen selite, tyonohjauksen ennustekortti nayttaa suunnitelman tilan, lukitus-kortti nayttaa selitteen.
+- Key files: packages/application/src/ports.ts, packages/infrastructure/src/report.ts, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-037] LUKITTU: Tyonohjaus: suunnitelman tila ennusteessa + lukituksen selite
+- Summary: lisatty lukituksen selite workflow-tilaan; tyonohjauksen ennustekortti nayttaa suunnitelman tilan; lukitus-kortti nayttaa selitteen.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: lukituksen selite tulee viimeisimmasta suunnitelmatapahtumasta.
+
+[2026-01-03] [HANDOFF] [L-20260103-037]
+- Where we are: tyonohjaus nayttaa suunnitelman tilan ja lukituksen selitteen.
+- What changed: workflow-tilaan lisatty summary-kentta ja tyonohjaus paivitetty.
+- What remains: halutessasi nosta lukituksen selite myos raportin yhteyteen.
+- Next LUKITTU suggestion: raportin lukitusyhteenveto tai tyonohjauksen varoitus ilman suunnitelmaa.
+- Key files: packages/application/src/ports.ts, packages/infrastructure/src/report.ts, apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

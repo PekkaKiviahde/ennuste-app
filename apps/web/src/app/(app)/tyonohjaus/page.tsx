@@ -34,6 +34,10 @@ export default async function WorkflowPage() {
 
   const planningLabel = status.planning?.status ?? "Ei suunnitelmaa";
   const planningTime = formatDateTime(status.planning?.event_time);
+  const planningSummary = status.planning?.summary?.trim();
+  const lockSummaryLabel = status.isLocked
+    ? planningSummary || "Ei lukituksen selitetta."
+    : "Lukitus ei ole voimassa.";
   const forecastTime = formatDateTime(status.forecast?.event_time);
   const auditTime = formatDateTime(status.audit?.event_time);
   const lockLabel = status.isLocked ? "Lukittu" : "Ei lukittu";
@@ -71,12 +75,14 @@ export default async function WorkflowPage() {
           <div className="status-item">
             <div className="label">Ennustetapahtuma</div>
             <div className="value">{forecastTime}</div>
+            <div className="value muted">Suunnitelma: {planningLabel}</div>
             <div className="value muted">{status.forecast?.created_by ?? "-"}</div>
           </div>
           <div className="status-item">
             <div className="label">Lukitus</div>
             <div className="value">{lockLabel}</div>
             <div className="value muted">{planningTime}</div>
+            <div className="value muted">{lockSummaryLabel}</div>
           </div>
           <div className="status-item">
             <div className="label">Loki</div>

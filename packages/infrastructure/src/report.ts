@@ -80,8 +80,9 @@ export const reportRepository = (): ReportPort => ({
       status: string | null;
       event_time: string | null;
       created_by: string | null;
+      summary: string | null;
     }>(
-      "SELECT target_littera_id, status, event_time, created_by FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
+      "SELECT target_littera_id, status, event_time, created_by, summary FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
       [projectId]
     );
 

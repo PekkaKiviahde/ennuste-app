@@ -111,6 +111,7 @@ export type WorkflowStatus = {
     status: string | null;
     event_time: string | null;
     created_by: string | null;
+    summary: string | null;
   } | null;
   forecast: {
     target_littera_id: string | null;
