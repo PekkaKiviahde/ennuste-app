@@ -1049,6 +1049,19 @@
 - Tests (planned): npm run lint; npm run typecheck; npm run test
 
 [2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
+- Summary: lisatty KPI-sparkline ja poikkeamavarit raporttiin; projektitason KPI-yhteenveto laajennettu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: KPI-graafi skaalautuu suurimman projektitason luvun mukaan.
+
+[2026-01-03] [HANDOFF] [L-20260103-042]
+- Where we are: raportti nayttaa KPI-sparkline-graafin ja poikkeamavarit.
+- What changed: lisatty KPI-sparkline ja poikkeamavari, laajennettu KPI-yhteenvetokortti.
+- What remains: halutessasi lisaa tooltipit tai tarkemmat trendit.
+- Next LUKITTU suggestion: LUKITTU: KPI-graafin tooltipit + poikkeamien selitteet.
+- Key files: apps/web/src/app/(app)/raportti/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-042] LUKITTU: Raportti: KPI-yhteenveto + visuaalinen nosto
 - Summary: lisatty KPI-yhteenvetokortti raporttiin; projektitason luvut muotoillaan; lukittujen ja viikkopaivitettyjen tyovaiheiden laskuri lisatty.
 - Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
 - Notes: KPI-yhteenveto perustuu v_report_project_current -nakymaan.

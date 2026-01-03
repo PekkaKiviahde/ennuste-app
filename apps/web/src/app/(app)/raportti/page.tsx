@@ -63,6 +63,17 @@ export default async function ReportPage() {
     | null;
   const summaryBaseline = summary?.work_phases_baseline_locked ?? 0;
   const summaryWeekly = summary?.work_phases_with_week_update ?? 0;
+  const varianceTotal =
+    summary?.ev_total != null && summary?.ac_star_total != null
+      ? summary.ev_total - summary.ac_star_total
+      : null;
+  const varianceClass =
+    varianceTotal == null ? "" : varianceTotal >= 0 ? "variance-positive" : "variance-negative";
+  const maxKpi = Math.max(summary?.bac_total ?? 0, summary?.ev_total ?? 0, summary?.ac_star_total ?? 0, 0);
+  const toPercent = (value: number | null | undefined) => {
+    if (!value || maxKpi <= 0) return "0%";
+    return `${Math.round((value / maxKpi) * 100)}%`;
+  };
 
   return (
     <div className="grid">
@@ -107,6 +118,10 @@ export default async function ReportPage() {
             <div className="value">{formatCpi(summary?.cpi ?? null, Boolean(summary?.cpi))}</div>
           </div>
           <div className="status-item">
+            <div className="label">Poikkeama (EV - AC*)</div>
+            <div className={`value ${varianceClass}`}>{formatNumber(varianceTotal)}</div>
+          </div>
+          <div className="status-item">
             <div className="label">Toteuma (sis. unmapped)</div>
             <div className="value">{formatNumber(summary?.actual_including_unmapped_total ?? null)}</div>
           </div>
@@ -115,6 +130,29 @@ export default async function ReportPage() {
             <div className="value">
               {summaryBaseline} / {summaryWeekly}
             </div>
+          </div>
+        </div>
+        <div className="kpi-sparkline">
+          <div className="kpi-row">
+            <div className="label">BAC</div>
+            <div className="kpi-bar">
+              <span className="kpi-fill bac" style={{ width: toPercent(summary?.bac_total) }} />
+            </div>
+            <div className="value">{formatNumber(summary?.bac_total ?? null)}</div>
+          </div>
+          <div className="kpi-row">
+            <div className="label">EV</div>
+            <div className="kpi-bar">
+              <span className="kpi-fill ev" style={{ width: toPercent(summary?.ev_total) }} />
+            </div>
+            <div className="value">{formatNumber(summary?.ev_total ?? null)}</div>
+          </div>
+          <div className="kpi-row">
+            <div className="label">AC*</div>
+            <div className="kpi-bar">
+              <span className="kpi-fill ac" style={{ width: toPercent(summary?.ac_star_total) }} />
+            </div>
+            <div className="value">{formatNumber(summary?.ac_star_total ?? null)}</div>
           </div>
         </div>
       </section>
