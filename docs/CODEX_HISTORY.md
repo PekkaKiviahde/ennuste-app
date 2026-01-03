@@ -9,6 +9,22 @@
 - Miksi: vika ilmeni tilanteissa, joissa app ei käynnistynyt (npm-asennus/porttiohjeiden puute) ja dev-näkymä ei avautunut.
 - Miten testataan (manuaali): `docker compose up -d`, `docker compose ps`, `curl -s http://localhost:${APP_PORT:-3000}/health`.
 
+## 2026-01-03 — DEV-INFRA: healthcheckin korjaus (ajossa)
+
+- Mitä muuttui
+  - App-kontti recreoitiin ja käynnistettiin uudelleen, jolloin healthcheck päivittyi oikein.
+
+- Miksi
+  - “Unhealthy” johtui väärästä healthcheck-polusta (vanha `/health`), vaikka `/api/health` toimi.
+
+- Miten testataan (manuaali)
+  - Tarkista http://localhost:3001/api/health → 200
+
+- EN-termi (FI-käännös) — rakennusvertaus: healthcheck (terveystarkistus) — kuin työmaan portin läpäisevä turvatarkastus.
+
+- Sanasto
+  - healthcheck (terveystarkistus) — kuin työmaan portin läpäisevä turvatarkastus.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE
