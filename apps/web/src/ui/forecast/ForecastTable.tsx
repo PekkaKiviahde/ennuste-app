@@ -27,6 +27,16 @@ const formatDateTime = (value: string | null | undefined) => {
   }).format(date);
 };
 
+const formatDateKey = (value: string | null | undefined) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function ForecastTable({
   rows,
   targetOptions
@@ -36,6 +46,8 @@ export default function ForecastTable({
 }) {
   const [query, setQuery] = useState("");
   const [mappingFilter, setMappingFilter] = useState("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const targetLookup = useMemo(
     () => new Map(targetOptions.map((option) => [option.id, option.label])),
@@ -51,13 +63,22 @@ export default function ForecastTable({
       if (mappingFilter === "UNMAPPED" && row.mapping_version_id) {
         return false;
       }
+      if (startDate || endDate) {
+        const rowDate = formatDateKey(row.event_time);
+        if (startDate && rowDate < startDate) {
+          return false;
+        }
+        if (endDate && rowDate > endDate) {
+          return false;
+        }
+      }
       if (!normalized) {
         return true;
       }
       const label = (targetLookup.get(row.target_littera_id) ?? row.target_littera_id).toLowerCase();
       return label.includes(normalized) || row.target_littera_id.toLowerCase().includes(normalized);
     });
-  }, [rows, query, mappingFilter, targetLookup]);
+  }, [rows, query, mappingFilter, startDate, endDate, targetLookup]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, ForecastRow[]>();
@@ -77,6 +98,11 @@ export default function ForecastTable({
         items: items.sort((a, b) => b.event_time.localeCompare(a.event_time))
       }));
   }, [filtered, targetLookup]);
+
+  const resetDates = () => {
+    setStartDate("");
+    setEndDate("");
+  };
 
   return (
     <>
@@ -103,6 +129,31 @@ export default function ForecastTable({
             <option value="MAPPED">Valittu</option>
             <option value="UNMAPPED">Ei mappingia</option>
           </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="forecast-start-date">Alkaen</label>
+          <input
+            className="input"
+            id="forecast-start-date"
+            type="date"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="forecast-end-date">Asti</label>
+          <input
+            className="input"
+            id="forecast-end-date"
+            type="date"
+            value={endDate}
+            onChange={(event) => setEndDate(event.target.value)}
+          />
+          {(startDate || endDate) && (
+            <button className="btn btn-secondary btn-sm" type="button" onClick={resetDates}>
+              Tyhjenna
+            </button>
+          )}
         </div>
       </div>
 

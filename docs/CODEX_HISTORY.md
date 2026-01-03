@@ -760,3 +760,23 @@
 - Next LUKITTU suggestion: taulukoiden lisasuodatus (aikavalit) tai UX-parannus ennusteeseen.
 - Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-028] LUKITTU: Taulukoiden lisasuodatus (aikavalit)
+- Goal: lisata aikavali-suodatus suunnittelu- ja ennuste-taulukoihin.
+- Scope: UI.
+- Deliverables: aloitus/lopetus-pvm suodattimet ja suodatettu lista.
+- Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-028] LUKITTU: Taulukoiden lisasuodatus (aikavalit)
+- Summary: lisatty aloitus/paatos-pvm suodatus suunnittelu- ja ennuste-taulukoihin; tyhjennysnappi lisaa nopean resetoinnin.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-028]
+- Where we are: suodatus toimii tavoitearvion, tilan/mappingin ja aikavalin mukaan.
+- What changed: paivitetty PlanningTable ja ForecastTable date-suodattimilla; lisatty reset-nappi ja suodatustilan logiikka.
+- What remains: halutessasi muista suodattimet URL-parametreissa.
+- Next LUKITTU suggestion: suodattimien URL-parametrit tai ennusteen autotaytto.
+- Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

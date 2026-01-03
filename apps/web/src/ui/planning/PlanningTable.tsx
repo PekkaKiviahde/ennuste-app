@@ -34,6 +34,16 @@ const formatDateTime = (value: string | null | undefined) => {
   }).format(date);
 };
 
+const formatDateKey = (value: string | null | undefined) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function PlanningTable({
   rows,
   targetOptions
@@ -43,6 +53,8 @@ export default function PlanningTable({
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const targetLookup = useMemo(
     () => new Map(targetOptions.map((option) => [option.id, option.label])),
@@ -55,13 +67,22 @@ export default function PlanningTable({
       if (statusFilter !== "ALL" && row.status !== statusFilter) {
         return false;
       }
+      if (startDate || endDate) {
+        const rowDate = formatDateKey(row.event_time);
+        if (startDate && rowDate < startDate) {
+          return false;
+        }
+        if (endDate && rowDate > endDate) {
+          return false;
+        }
+      }
       if (!normalized) {
         return true;
       }
       const label = (targetLookup.get(row.target_littera_id) ?? row.target_littera_id).toLowerCase();
       return label.includes(normalized) || row.target_littera_id.toLowerCase().includes(normalized);
     });
-  }, [rows, query, statusFilter, targetLookup]);
+  }, [rows, query, statusFilter, startDate, endDate, targetLookup]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, PlanningRow[]>();
@@ -81,6 +102,11 @@ export default function PlanningTable({
         items: items.sort((a, b) => b.event_time.localeCompare(a.event_time))
       }));
   }, [filtered, targetLookup]);
+
+  const resetDates = () => {
+    setStartDate("");
+    setEndDate("");
+  };
 
   return (
     <>
@@ -108,6 +134,31 @@ export default function PlanningTable({
             <option value="READY_FOR_FORECAST">Valmis ennusteeseen</option>
             <option value="LOCKED">Lukittu</option>
           </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="planning-start-date">Alkaen</label>
+          <input
+            className="input"
+            id="planning-start-date"
+            type="date"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="planning-end-date">Asti</label>
+          <input
+            className="input"
+            id="planning-end-date"
+            type="date"
+            value={endDate}
+            onChange={(event) => setEndDate(event.target.value)}
+          />
+          {(startDate || endDate) && (
+            <button className="btn btn-secondary btn-sm" type="button" onClick={resetDates}>
+              Tyhjenna
+            </button>
+          )}
         </div>
       </div>
 
