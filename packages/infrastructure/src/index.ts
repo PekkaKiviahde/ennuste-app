@@ -1,5 +1,6 @@
 export * from "./db";
 export * from "./auth";
+export * from "./health";
 export * from "./rbac";
 export * from "./planning";
 export * from "./forecast";

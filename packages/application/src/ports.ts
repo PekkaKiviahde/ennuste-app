@@ -17,6 +17,10 @@ export type AuthPort = {
   deleteSession(sessionId: string): Promise<void>;
 };
 
+export type HealthPort = {
+  check(): Promise<{ ok: boolean }>;
+};
+
 export type RbacPort = {
   requirePermission(projectId: string, tenantId: string, username: string, permission: PermissionCode): Promise<void>;
   listPermissions(projectId: string, tenantId: string, username: string): Promise<PermissionCode[]>;

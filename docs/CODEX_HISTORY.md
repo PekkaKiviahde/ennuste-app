@@ -880,3 +880,23 @@
 - Next LUKITTU suggestion: lukitus-dialogin auto-refresh tai raportin ryhmittely UI:ssa.
 - Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/ui/planning/LockPlanningDialog.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-034] LUKITTU: Perusta: migraatioanalyysi + ajettava web-runko + auth/RBAC/tenant + demo-roolit
+- Goal: varmistaa pohjarakenteet ja health-tarkistus (health check) ennen seuraavia workflow (tyonkulku) -vaiheita.
+- Scope: API (rajapinta) + Application (sovelluskerros) + Infrastructure (infrastruktuuri).
+- Deliverables: health use case (terveystarkistus-kayttotapaus) ja infra (infrastruktuuri) -toteutus, health endpoint (terveystarkistus-paatepiste) -kytkenta, palvelukerros-paivitys.
+- Key files: packages/application/src/ports.ts, packages/application/src/usecases.ts, packages/infrastructure/src/health.ts, apps/web/src/app/api/health/route.ts, apps/web/src/server/services.ts, packages/infrastructure/src/index.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-034] LUKITTU: Perusta: migraatioanalyysi + ajettava web-runko + auth/RBAC/tenant + demo-roolit
+- Summary: lisatty health use case (terveystarkistus-kayttotapaus) sovelluskerrokseen; lisatty infra (infrastruktuuri) -health repository (terveystarkistus-repositorio); /api/health kutsuu health-tarkistusta palvelukerroksen kautta.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: health-tarkistus palauttaa virheen, jos DATABASE_URL puuttuu tai yhteys katkeaa.
+
+[2026-01-03] [HANDOFF] [L-20260103-034]
+- Where we are: /api/health tarkistaa nyt db-yhteyden health use case (terveystarkistus-kayttotapaus) -ketjulla.
+- What changed: lisatty health repository (terveystarkistus-repositorio) infraan ja kytketty AppServicesiin, paivitetty /api/health.
+- What remains: LUKITTU #2 workflow-sivut + endpointit.
+- Next LUKITTU suggestion: LUKITTU #2: workflow-sivut + endpointit + raportoinnin lisareitit.
+- Key files: packages/application/src/usecases.ts, packages/infrastructure/src/health.ts, apps/web/src/app/api/health/route.ts, apps/web/src/server/services.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

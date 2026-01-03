@@ -4,6 +4,7 @@ import type {
   AuthPort,
   ForecastEventInput,
   ForecastPort,
+  HealthPort,
   PlanningEventInput,
   PlanningPort,
   RbacPort,
@@ -14,6 +15,7 @@ import { ForbiddenError } from "@ennuste/shared";
 
 export type AppServices = {
   auth: AuthPort;
+  health: HealthPort;
   rbac: RbacPort;
   planning: PlanningPort;
   forecast: ForecastPort;
@@ -21,6 +23,10 @@ export type AppServices = {
   admin: AdminPort;
   workPhases: WorkPhasePort;
   audit: AuditPort;
+};
+
+export const checkHealth = async (services: AppServices) => {
+  return services.health.check();
 };
 
 export const login = async (services: AppServices, input: { username: string; pin: string; projectId?: string }) => {
