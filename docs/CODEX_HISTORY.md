@@ -25,6 +25,17 @@
 - Sanasto
   - healthcheck (terveystarkistus) — kuin työmaan portin läpäisevä turvatarkastus.
 
+## 2026-01-03 — DEV-INFRA: healthcheckin käynnistysikkuna
+
+- Mitä muuttui
+  - Pidennettiin app‑palvelun healthcheckin `start_period` 30s:iin ja `interval` 15s:iin.
+
+- Miksi
+  - Vähennetään käynnistyksen aikaisia false‑negative “unhealthy”‑tiloja, kun db:setup voi kestää.
+
+- Miten testataan (manuaali)
+  - `docker compose up -d` ja tarkista `docker compose ps` → app “healthy”.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE
