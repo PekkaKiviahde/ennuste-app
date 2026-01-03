@@ -101,7 +101,11 @@ export type ReportPort = {
   getTargetEstimate(projectId: string, tenantId: string): Promise<unknown[]>;
   getMappingVersions(projectId: string, tenantId: string): Promise<unknown[]>;
   getMappingLines(projectId: string, tenantId: string): Promise<unknown[]>;
-  getAuditLog(projectId: string, tenantId: string): Promise<unknown[]>;
+  getAuditLog(
+    projectId: string,
+    tenantId: string,
+    actionFilter?: string[] | null
+  ): Promise<unknown[]>;
   getWorkflowStatus(projectId: string, tenantId: string): Promise<WorkflowStatus>;
 };
 

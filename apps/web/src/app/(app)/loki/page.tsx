@@ -1,15 +1,40 @@
-import { loadAuditLog } from "@ennuste/application";
+import { loadAuditLog, loadFilteredAuditLog } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
-export default async function AuditLogPage() {
+type AuditLogFilter = "all" | "planning" | "forecast";
+
+const FILTER_ACTIONS: Record<Exclude<AuditLogFilter, "all">, string[]> = {
+  planning: ["planning.create"],
+  forecast: ["forecast.create"]
+};
+
+const extractSummary = (payload: unknown) => {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  const summary = (payload as { summary?: unknown }).summary;
+  return typeof summary === "string" && summary.trim() ? summary.trim() : null;
+};
+
+export default async function AuditLogPage({ searchParams }: { searchParams?: { type?: string } }) {
   const session = await requireSession();
   const services = createServices();
-  const rows = await loadAuditLog(services, {
-    projectId: session.projectId,
-    tenantId: session.tenantId,
-    username: session.username
-  });
+  const rawType = searchParams?.type ?? "all";
+  const type = rawType === "planning" || rawType === "forecast" ? rawType : "all";
+  const actionFilter = type === "all" ? null : FILTER_ACTIONS[type];
+  const rows = actionFilter
+    ? await loadFilteredAuditLog(services, {
+        projectId: session.projectId,
+        tenantId: session.tenantId,
+        username: session.username,
+        actionFilter
+      })
+    : await loadAuditLog(services, {
+        projectId: session.projectId,
+        tenantId: session.tenantId,
+        username: session.username
+      });
 
   const formatDateTime = (value: unknown) => {
     if (!value) return "";
@@ -28,20 +53,38 @@ export default async function AuditLogPage() {
     <div className="card">
       <h1>Loki</h1>
       <p>Kaikki suunnitelma- ja ennustetapahtumat tallentuvat append-only lokiin.</p>
+      <div className="status-actions">
+        <a className={`btn btn-secondary btn-sm ${type === "all" ? "active" : ""}`} href="/loki">
+          Kaikki
+        </a>
+        <a
+          className={`btn btn-secondary btn-sm ${type === "planning" ? "active" : ""}`}
+          href="/loki?type=planning"
+        >
+          Suunnitelma
+        </a>
+        <a
+          className={`btn btn-secondary btn-sm ${type === "forecast" ? "active" : ""}`}
+          href="/loki?type=forecast"
+        >
+          Ennuste
+        </a>
+      </div>
       <table className="table">
         <thead>
           <tr>
             <th>Aika</th>
-            <th>Tekija</th>
+            <th>Tekijä</th>
             <th>Tapahtuma</th>
+            <th>Selite</th>
             <th>Payload</th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={4}>
-                <div className="notice">Ei lokitapahtumia viela.</div>
+              <td colSpan={5}>
+                <div className="notice">Ei lokitapahtumia vielä.</div>
               </td>
             </tr>
           ) : (
@@ -50,6 +93,7 @@ export default async function AuditLogPage() {
                 <td>{formatDateTime(row.event_time)}</td>
                 <td>{row.actor}</td>
                 <td>{row.action}</td>
+                <td>{extractSummary(row.payload) ?? "-"}</td>
                 <td>{JSON.stringify(row.payload)}</td>
               </tr>
             ))

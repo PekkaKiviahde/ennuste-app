@@ -62,12 +62,13 @@ export const reportRepository = (): ReportPort => ({
     );
     return result.rows;
   },
-  async getAuditLog(projectId, tenantId) {
+  async getAuditLog(projectId, tenantId, actionFilter) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
+    const actionList = actionFilter && actionFilter.length > 0 ? actionFilter : null;
     const result = await tenantDb.query(
-      "SELECT * FROM app_audit_log WHERE project_id = $1::uuid ORDER BY event_time DESC",
-      [projectId]
+      "SELECT * FROM app_audit_log WHERE project_id = $1::uuid AND ($2::text[] IS NULL OR action = ANY($2::text[])) ORDER BY event_time DESC",
+      [projectId, actionList]
     );
     return result.rows;
   },

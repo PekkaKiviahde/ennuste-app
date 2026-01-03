@@ -54,7 +54,8 @@ export const createPlanningEvent = async (services: AppServices, input: Planning
     payload: {
       planningEventId: result.planningEventId,
       targetLitteraId: input.targetLitteraId,
-      status: input.status
+      status: input.status,
+      summary: input.summary ?? null
     }
   });
   return result;
@@ -86,7 +87,8 @@ export const createForecastEvent = async (services: AppServices, input: Forecast
     payload: {
       forecastEventId: result.forecastEventId,
       targetLitteraId: input.targetLitteraId,
-      lineCount: input.lines.length
+      lineCount: input.lines.length,
+      summary: input.comment ?? null
     }
   });
   return result;
@@ -146,6 +148,14 @@ export const loadMappingLines = async (services: AppServices, input: { projectId
 export const loadAuditLog = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getAuditLog(input.projectId, input.tenantId);
+};
+
+export const loadFilteredAuditLog = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; actionFilter?: string[] | null }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.report.getAuditLog(input.projectId, input.tenantId, input.actionFilter ?? null);
 };
 
 export const loadWorkflowStatus = async (

@@ -1000,3 +1000,23 @@
 - Next LUKITTU suggestion: lokin suodatus suunnitelma/ennuste tai session-listaus adminiin.
 - Key files: migrations/0025_sessions.sql, packages/infrastructure/src/auth.ts, apps/web/src/server/session.ts, apps/web/src/server/actions/auth.ts, docs/adr/0011-stateful-sessions.md, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-040] LUKITTU: Loki: suodatus suunnitelma/ennuste + selite riville
+- Goal: lisata lokiin suodatus ja selite, jotta suunnitelma- ja ennustetapahtumat erottuvat.
+- Scope: UI (kayttoliittyma) + Application (sovelluskerros) + Infrastructure (infrastruktuuri).
+- Deliverables: lokisuodattimet (suunnitelma/ennuste), selite-sarake lokissa, audit-logi tukee action-filteria.
+- Key files: apps/web/src/app/(app)/loki/page.tsx, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-040] LUKITTU: Loki: suodatus suunnitelma/ennuste + selite riville
+- Summary: lisatty lokisuodattimet suunnitelma/ennuste; audit-logi tukee action-filteria; selite nostetaan riville audit-payloadista; planning/forecast audit payloadiin lisatty summary.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: selite naytetaan audit payloadin summary-kentasta.
+
+[2026-01-03] [HANDOFF] [L-20260103-040]
+- Where we are: loki tukee suodatusta suunnitelma/ennuste ja selite nousee riville.
+- What changed: lisatty loadFilteredAuditLog kayttotapaus, audit-logi suodattaa actionin mukaan, UI nayttaa selitteen.
+- What remains: halutessasi lisaa suodatus useammille tapahtumatyypeille (esim. auth, work_phase).
+- Next LUKITTU suggestion: LUKITTU: lokin suodatus laajemmille tapahtumille + suodatus parametreilla.
+- Key files: apps/web/src/app/(app)/loki/page.tsx, packages/application/src/usecases.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
