@@ -840,3 +840,23 @@
 - Next LUKITTU suggestion: workflow-polun lisatoiminnot (lukitus-CTA, tavoitearvio-kortti) tai raportin ryhmittely.
 - Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/app/api/workflow/status/route.ts, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, packages/infrastructure/src/integration.test.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-032] LUKITTU: Tyonohjauksen lukitus-CTA ja mapping-nosto
+- Goal: lisata tyonohjaukseen lukitus-CTA ja tavoitearvio/mapping -nostot.
+- Scope: UI.
+- Deliverables: tyonohjaus-nakymaan lukitus-CTA ja tavoitearvio/mapping -kortti.
+- Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-032] LUKITTU: Tyonohjauksen lukitus-CTA ja mapping-nosto
+- Summary: lisatty tyonohjaukseen CTA seuraavaa vaihetta varten; lisatty tavoitearvio/mapping -kortti ja linkki; tyonohjauksen statuskortit nayttavat rivimaara- ja mapping-tiedot.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-032]
+- Where we are: tyonohjaus-nakyma ohjaa seuraavaan vaiheeseen ja nostaa mapping/target summaryn.
+- What changed: tyonohjaus-sivulle CTA-logiikka, tavoitearvio- ja mapping-summaryt, linkki tavoitearvioon.
+- What remains: halutessasi tee CTA:sta suora lukitus-dialogi tai nosta mappingin puutteet (0-rivit) esiin.
+- Next LUKITTU suggestion: tyonohjauksen lukitus-dialogi tai raportin ryhmittely UI:ssa.
+- Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
