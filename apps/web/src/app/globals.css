@@ -140,6 +140,13 @@ textarea {
   gap: 1rem;
 }
 
+.table-filters {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 1rem 0 1.25rem;
+}
+
 .input {
   width: 100%;
   padding: 0.7rem 0.9rem;

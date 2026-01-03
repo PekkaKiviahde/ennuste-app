@@ -1,5 +1,6 @@
 import { loadPlanningReport, loadTargetEstimate } from "@ennuste/application";
 import PlanningForm from "../../../ui/planning/PlanningForm";
+import PlanningTable from "../../../ui/planning/PlanningTable";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
@@ -39,19 +40,6 @@ export default async function PlanningPage() {
       timeStyle: "short"
     }).format(date);
   };
-  const groupedRows = rows.reduce(
-    (acc: Array<{ label: string; items: any[] }>, row: any) => {
-      const label = targetLookup.get(row.target_littera_id) ?? row.target_littera_id;
-      const last = acc[acc.length - 1];
-      if (last && last.label === label) {
-        last.items.push(row);
-      } else {
-        acc.push({ label, items: [row] });
-      }
-      return acc;
-    },
-    []
-  );
   const statusClass = (status: string | null | undefined) => {
     if (status === "READY_FOR_FORECAST") return "ready";
     if (status === "LOCKED") return "locked";
@@ -80,7 +68,7 @@ export default async function PlanningPage() {
           </div>
           <div className="status-item">
             <div className="label">Aika</div>
-            <div className="value">{latestPlanning?.event_time ?? "-"}</div>
+            <div className="value">{formatDateTime(latestPlanning?.event_time)}</div>
           </div>
         </div>
 
@@ -92,49 +80,7 @@ export default async function PlanningPage() {
         </div>
 
         <h2 id="suunnitelmat">Nykyiset suunnitelmat</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Tavoitearvio</th>
-              <th>Tila</th>
-              <th>Aika</th>
-              <th>Tekija</th>
-              <th>Yhteenveto</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="notice">Ei suunnitelmia viela.</div>
-                </td>
-              </tr>
-            ) : (
-              groupedRows.flatMap((group) => [
-                <tr key={`group-${group.label}`} className="table-group">
-                  <td colSpan={5}>{group.label}</td>
-                </tr>,
-                ...group.items.map((row: any) => (
-                  <tr key={row.planning_event_id}>
-                    <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
-                    <td>
-                      <span className={`status-pill ${statusClass(row.status)}`}>{row.status}</span>
-                    </td>
-                    <td>{formatDateTime(row.event_time)}</td>
-                    <td>
-                      <div>{row.created_by}</div>
-                      <div className="muted">{row.planning_event_id}</div>
-                    </td>
-                    <td>
-                      <div>{row.summary ?? "-"}</div>
-                      <div className="muted">{row.observations ?? "-"}</div>
-                    </td>
-                  </tr>
-                ))
-              ])
-            )}
-          </tbody>
-        </table>
+        <PlanningTable rows={rows as any[]} targetOptions={targetOptions} />
       </section>
     </div>
   );

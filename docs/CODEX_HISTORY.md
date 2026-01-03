@@ -740,3 +740,23 @@
 - Next LUKITTU suggestion: taulukoiden suodatus tai seuraava toiminnallisuus (UX).
 - Key files: packages/domain/package.json, packages/application/package.json, packages/infrastructure/package.json, packages/infrastructure/src/integration.test.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-027] LUKITTU: Taulukoiden suodatus (tavoitearvio/tila)
+- Goal: lisata suodatus suunnittelu- ja ennuste-taulukoihin (tavoitearvio, tila/mapping).
+- Scope: UI.
+- Deliverables: suodatuskentat ja suodatettu taulukko.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-027] LUKITTU: Taulukoiden suodatus (tavoitearvio/tila)
+- Summary: lisatty suodatuskentat suunnittelu- ja ennuste-taulukoihin; taulukot renderoidaan client-komponenteissa; aikaleimat pidetaan selkeina.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-027]
+- Where we are: suodatus toimii tavoitearvion ja tilan/mappingin mukaan.
+- What changed: lisatty PlanningTable ja ForecastTable client-komponentit; paivitetty suunnittelu/ennuste-sivut ja suodatin-tyylit.
+- What remains: harkitse suodattimien muistamista URL-parametreilla, jos halutaan jaettava linkki.
+- Next LUKITTU suggestion: taulukoiden lisasuodatus (aikavalit) tai UX-parannus ennusteeseen.
+- Key files: apps/web/src/ui/planning/PlanningTable.tsx, apps/web/src/ui/forecast/ForecastTable.tsx, apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

@@ -1,5 +1,6 @@
 import { loadForecastReport, loadMappingVersions, loadTargetEstimate } from "@ennuste/application";
 import ForecastForm from "../../../ui/forecast/ForecastForm";
+import ForecastTable from "../../../ui/forecast/ForecastTable";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
@@ -47,19 +48,6 @@ export default async function ForecastPage() {
       timeStyle: "short"
     }).format(date);
   };
-  const groupedRows = rows.reduce(
-    (acc: Array<{ label: string; items: any[] }>, row: any) => {
-      const label = targetLookup.get(row.target_littera_id) ?? row.target_littera_id;
-      const last = acc[acc.length - 1];
-      if (last && last.label === label) {
-        last.items.push(row);
-      } else {
-        acc.push({ label, items: [row] });
-      }
-      return acc;
-    },
-    []
-  );
 
   return (
     <div className="grid grid-2">
@@ -77,7 +65,7 @@ export default async function ForecastPage() {
           </div>
           <div className="status-item">
             <div className="label">Aika</div>
-            <div className="value">{latestForecast?.event_time ?? "-"}</div>
+            <div className="value">{formatDateTime(latestForecast?.event_time)}</div>
           </div>
           <div className="status-item">
             <div className="label">Tekija</div>
@@ -93,47 +81,7 @@ export default async function ForecastPage() {
         </div>
 
         <h2 id="ennusteet">Viimeisimmat ennusteet</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Tavoitearvio</th>
-              <th>Mapping</th>
-              <th>Aika</th>
-              <th>Tekija</th>
-              <th>Kommentti</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="notice">Ei ennustetapahtumia viela.</div>
-                </td>
-              </tr>
-            ) : (
-              groupedRows.flatMap((group) => [
-                <tr key={`group-${group.label}`} className="table-group">
-                  <td colSpan={5}>{group.label}</td>
-                </tr>,
-                ...group.items.map((row: any) => (
-                  <tr key={row.forecast_event_id}>
-                    <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
-                    <td>{row.mapping_version_id ? "Valittu" : "Ei mappingia"}</td>
-                    <td>{formatDateTime(row.event_time)}</td>
-                    <td>
-                      <div>{row.created_by}</div>
-                      <div className="muted">{row.forecast_event_id}</div>
-                    </td>
-                    <td>
-                      <div>{row.comment ?? "-"}</div>
-                      <div className="muted">KPI: {row.kpi_value ?? "-"}</div>
-                    </td>
-                  </tr>
-                ))
-              ])
-            )}
-          </tbody>
-        </table>
+        <ForecastTable rows={rows as any[]} targetOptions={targetOptions} />
       </section>
     </div>
   );
