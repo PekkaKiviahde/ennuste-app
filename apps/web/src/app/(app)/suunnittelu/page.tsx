@@ -30,14 +30,12 @@ export default async function PlanningPage() {
   const latestTargetLabel = latestPlanning
     ? targetLookup.get(latestPlanning.target_littera_id) ?? latestPlanning.target_littera_id
     : "Ei suunnitelmaa";
-  const statusClass =
-    latestPlanning?.status === "READY_FOR_FORECAST"
-      ? "ready"
-      : latestPlanning?.status === "LOCKED"
-        ? "locked"
-        : latestPlanning?.status === "DRAFT"
-          ? "draft"
-          : "missing";
+  const statusClass = (status: string | null | undefined) => {
+    if (status === "READY_FOR_FORECAST") return "ready";
+    if (status === "LOCKED") return "locked";
+    if (status === "DRAFT") return "draft";
+    return "missing";
+  };
   const statusLabel = latestPlanning?.status ?? "Ei tietoa";
 
   return (
@@ -56,7 +54,7 @@ export default async function PlanningPage() {
           </div>
           <div className="status-item">
             <div className="label">Tila</div>
-            <span className={`status-pill ${statusClass}`}>{statusLabel}</span>
+            <span className={`status-pill ${statusClass(latestPlanning?.status)}`}>{statusLabel}</span>
           </div>
           <div className="status-item">
             <div className="label">Aika</div>
@@ -64,7 +62,12 @@ export default async function PlanningPage() {
           </div>
         </div>
 
-        <h2>Nykyiset suunnitelmat</h2>
+        <div className="status-actions">
+          <a className="btn btn-secondary btn-sm" href="#suunnitelmat">Siirry suunnitelmiin</a>
+          <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Avaa tavoitearvio</a>
+        </div>
+
+        <h2 id="suunnitelmat">Nykyiset suunnitelmat</h2>
         <table className="table">
           <thead>
             <tr>
@@ -72,12 +75,13 @@ export default async function PlanningPage() {
               <th>Tila</th>
               <th>Aika</th>
               <th>Tekija</th>
+              <th>Yhteenveto</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={4}>
+                <td colSpan={5}>
                   <div className="notice">Ei suunnitelmia viela.</div>
                 </td>
               </tr>
@@ -85,9 +89,12 @@ export default async function PlanningPage() {
               rows.map((row: any) => (
                 <tr key={row.planning_event_id}>
                   <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
-                  <td className="status">{row.status}</td>
+                  <td>
+                    <span className={`status-pill ${statusClass(row.status)}`}>{row.status}</span>
+                  </td>
                   <td>{row.event_time}</td>
                   <td>{row.created_by}</td>
+                  <td className="muted">{row.summary ?? "-"}</td>
                 </tr>
               ))
             )}

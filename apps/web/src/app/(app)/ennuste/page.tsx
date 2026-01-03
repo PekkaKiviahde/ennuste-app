@@ -63,11 +63,17 @@ export default async function ForecastPage() {
           </div>
         </div>
 
-        <h2>Viimeisimmat ennusteet</h2>
+        <div className="status-actions">
+          <a className="btn btn-secondary btn-sm" href="#ennusteet">Siirry ennusteisiin</a>
+          <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Avaa mapping</a>
+        </div>
+
+        <h2 id="ennusteet">Viimeisimmat ennusteet</h2>
         <table className="table">
           <thead>
             <tr>
               <th>Tavoitearvio</th>
+              <th>Mapping</th>
               <th>Aika</th>
               <th>Tekija</th>
               <th>Kommentti</th>
@@ -76,7 +82,7 @@ export default async function ForecastPage() {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={4}>
+                <td colSpan={5}>
                   <div className="notice">Ei ennustetapahtumia viela.</div>
                 </td>
               </tr>
@@ -84,9 +90,10 @@ export default async function ForecastPage() {
               rows.map((row: any) => (
                 <tr key={row.forecast_event_id}>
                   <td>{targetLookup.get(row.target_littera_id) ?? row.target_littera_id}</td>
+                  <td>{row.mapping_version_id ? "Valittu" : "Ei mappingia"}</td>
                   <td>{row.event_time}</td>
                   <td>{row.created_by}</td>
-                  <td>{row.comment}</td>
+                  <td className="muted">{row.comment ?? "-"}</td>
                 </tr>
               ))
             )}

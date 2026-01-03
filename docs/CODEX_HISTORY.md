@@ -660,3 +660,23 @@
 - Next LUKITTU suggestion: Workflow-UI viimeistely (status-nakymaan linkit ja parannetut taulukot) tai test-runnerin korjaus.
 - Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, apps/web/src/server/actions/planning.ts, apps/web/src/server/actions/forecast.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-023] LUKITTU: Workflow-UI viimeistely: tilannekuvan linkit + selkeammat taulukot
+- Goal: lisata tilannekuvaan oikopolut ja selkeyttaa suunnittelu/ennuste-taulukoita.
+- Scope: UI.
+- Deliverables: tilannekuvan linkit, taulukkojen uudet sarakkeet ja status-pill.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-023] LUKITTU: Workflow-UI viimeistely: tilannekuvan linkit + selkeammat taulukot
+- Summary: lisatty tilannekuvan oikopolut suunnittelu/ennuste-sivuille; taulukoihin lisatty sarakkeita ja status-pill; lisatty pienet apu-tyylit.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000/494176.pipe).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-023]
+- Where we are: tilannekuvan oikopolut ja selkeammat taulukot ovat valmiit.
+- What changed: paivitetty suunnittelu/ennuste-sivut ankkurilinkeilla ja uusilla sarakkeilla; lisatty button- ja taulukko-tyylit.
+- What remains: ratkaise tsx IPC -testirajoitus (tai vaihda test-runner), jos halutaan vihrea testiajo.
+- Next LUKITTU suggestion: paranna tilannekuvan linkit (projekti/raportti) tai kierrata test-runner.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
