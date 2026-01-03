@@ -1,4 +1,4 @@
-const baseUrl = process.env.SMOKE_BASE_URL || 'http://localhost:3000';
+const baseUrl = process.env.SMOKE_BASE_URL || 'http://localhost:3001';
 
 async function requestRaw(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
@@ -60,10 +60,15 @@ async function runStep(name, fn) {
 
 async function run() {
   await runStep('Health check', async () => {
-    const health = await request('/health');
-    const version = await request('/version');
+    const health = await request('/api/health');
     console.log('health:', health);
-    console.log('version:', version);
+  });
+
+  await runStep('Login page responds', async () => {
+    const { status } = await requestRaw('/login');
+    if (status !== 200) {
+      throw new Error(`Expected 200 from /login, got ${status}`);
+    }
   });
 
   const annaToken = await runStep('Login anna', () => login('anna', '1234'));
@@ -160,6 +165,13 @@ async function run() {
   });
 
   const paavoToken = await runStep('Login paavo', () => login('paavo', '1234'));
+
+  await runStep('Logout anna', async () => {
+    const { status } = await authedRequestRaw('/api/logout', annaToken, { method: 'POST' });
+    if (status !== 204) {
+      throw new Error(`Expected 204 from /api/logout, got ${status}`);
+    }
+  });
 
   await runStep('Negative: member add blocked when baseline locked', async () => {
     const litteras = await authedRequest(`/api/projects/${context.projectId}/litteras`, paavoToken);

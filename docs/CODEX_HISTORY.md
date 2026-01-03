@@ -49,6 +49,19 @@
   - Avaa `Promts/`‑tiedostot ja varmista “KÄYTTÖ”‑otsikko.
   - Avaa `Promts/README.md` ja varmista uudet maininnat.
 
+## 2026-01-03 — Login-polkujen testaus yhtenäistetty
+
+- Mitä muuttui
+  - Päivitettiin `api/scripts/smoke-api.js` käyttämään `/api/health` ja lisäämään login/logout-smoke.
+  - Lisättiin login + logout -skenaario `docs/runbooks/integration-tests.md`.
+
+- Miksi
+  - Login on kriittinen polku ja tarvitsee vakioidun testin.
+
+- Miten testataan (manuaali)
+  - `node api/scripts/smoke-api.js` (asetuksilla `SMOKE_BASE_URL` tarvittaessa).
+  - Avaa runbook ja seuraa login + logout -skenaario.
+
 ## 2026-01-02 — LUKITTU: Migraatiot + raportointi-indeksit
 
 - Tila: DONE

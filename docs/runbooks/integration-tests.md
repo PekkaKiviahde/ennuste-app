@@ -1,6 +1,6 @@
 # Integration tests (MVP) – Ennustus
 
-Päivitetty: 2026-01-02
+Päivitetty: 2026-01-03
 
 Tama runbook kuvaa integraatiotestaus-skenaariot, joilla varmistetaan
 MVP-tyonkulkujen yhtenevyys (UI + API + DB).
@@ -66,13 +66,24 @@ Odotus:
 ---
 
 ## Mitä muuttui
-- Päivitetty päivämäärä 2026-01-02.
-- Lisatty MVP-integraatiotestaus-skenaariot.
+- Päivitetty päivämäärä 2026-01-03.
+- Lisatty login + logout -skenaario (peruspolku).
 
 ## Miksi
-- Päivämäärä pidetään linjassa päätöslokin kanssa.
-- Integraatiotestit varmistavat, ettei tyonkulku hajoa eri tasojen valissa.
+- Päivämäärä pidetään linjassa päivitysten kanssa.
+- Login-polku on kriittinen asiakaspolku ja tarvitsee vakioskenaarion.
 
 ## Miten testataan (manuaali)
-- Varmista, että päivämäärä vastaa päätöslokia.
-- Aja kaikki skenaariot ja varmista odotetut tulokset.
+- Varmista, että päivämäärä on 2026-01-03.
+- Aja login-skenaario ja muut skenaariot ja varmista odotetut tulokset.
+## 0) Login + logout (peruspolku)
+
+1. Avaa /login ja varmista että sivu vastaa (200).
+2. Kirjaudu sisään (anna / 1234).
+3. Varmista /api/me palauttaa käyttäjän.
+4. Kirjaudu ulos (/api/logout).
+5. Varmista, että /login näyttää loggedOut-tilan ja kirjautuminen toimii uudelleen.
+
+Odotus:
+- Login ja logout toimivat ilman automaattista uudelleenohjausta.
+- /api/logout palauttaa 204.
