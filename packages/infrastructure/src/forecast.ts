@@ -1,13 +1,11 @@
 import type { ForecastPort } from "@ennuste/application";
-import { pool } from "./db";
-import { requireProjectTenant } from "./tenant";
+import { dbForTenant } from "./db";
 
 export const forecastRepository = (): ForecastPort => ({
   async createForecastEvent(input) {
-    await requireProjectTenant(input.projectId, input.tenantId);
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    return tenantDb.transaction(async (client) => {
       const eventResult = await client.query<{ forecast_event_id: string }>(
         `
           INSERT INTO forecast_events (
@@ -60,18 +58,13 @@ export const forecastRepository = (): ForecastPort => ({
         );
       }
 
-      await client.query("COMMIT");
       return { forecastEventId };
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   },
   async listForecastCurrent(projectId, tenantId) {
-    await requireProjectTenant(projectId, tenantId);
-    const result = await pool.query(
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query(
       "SELECT * FROM v_report_forecast_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
       [projectId]
     );

@@ -186,6 +186,85 @@ test("planning endpoint denies without permissions", async () => {
   await client.end();
 });
 
+test("tenant isolation blocks cross-tenant project access", async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+
+  const orgA = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') RETURNING organization_id",
+    [`tenant-a-${suffix}`, `Tenant A ${suffix}`]
+  );
+  const orgB = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') RETURNING organization_id",
+    [`tenant-b-${suffix}`, `Tenant B ${suffix}`]
+  );
+
+  const tenantA = await client.query(
+    "INSERT INTO tenants (name, created_by) VALUES ($1, 'seed') RETURNING tenant_id",
+    [`Tenant A ${suffix}`]
+  );
+  const tenantB = await client.query(
+    "INSERT INTO tenants (name, created_by) VALUES ($1, 'seed') RETURNING tenant_id",
+    [`Tenant B ${suffix}`]
+  );
+
+  const projectA = await client.query(
+    "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state) VALUES ($1, 'A', $2::uuid, $3::uuid, 'P1_PROJECT_ACTIVE') RETURNING project_id",
+    [`Project A ${suffix}`, orgA.rows[0].organization_id, tenantA.rows[0].tenant_id]
+  );
+  const projectB = await client.query(
+    "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state) VALUES ($1, 'B', $2::uuid, $3::uuid, 'P1_PROJECT_ACTIVE') RETURNING project_id",
+    [`Project B ${suffix}`, orgB.rows[0].organization_id, tenantB.rows[0].tenant_id]
+  );
+
+  const userResult = await client.query(
+    "INSERT INTO users (username, display_name, created_by, pin_hash) VALUES ($1, $2, 'seed', crypt('1234', gen_salt('bf'))) RETURNING user_id",
+    [`tenant.a.user.${suffix}`, `Tenant A User ${suffix}`]
+  );
+  const userId = userResult.rows[0].user_id;
+
+  await client.query(
+    "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
+    [projectA.rows[0].project_id, userId]
+  );
+
+  const litteraResult = await client.query(
+    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9200', 'Tenant B Littera', 9) RETURNING littera_id",
+    [projectB.rows[0].project_id]
+  );
+  const targetLitteraId = litteraResult.rows[0].littera_id;
+
+  const sessionToken = createSessionToken({
+    userId,
+    username: `tenant.a.user.${suffix}`,
+    displayName: `Tenant A User ${suffix}`,
+    organizationId: orgA.rows[0].organization_id,
+    tenantId: tenantA.rows[0].tenant_id,
+    projectId: projectB.rows[0].project_id,
+    permissions: ["REPORT_READ"]
+  });
+
+  const request = new Request("http://localhost/api/planning", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      targetLitteraId,
+      status: "READY_FOR_FORECAST",
+      summary: "Cross-tenant attempt"
+    })
+  });
+
+  const response = await planningPost(request);
+  assert.equal(response.status, 403);
+
+  await client.end();
+});
+
 test("login endpoint writes audit log entry", async () => {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();

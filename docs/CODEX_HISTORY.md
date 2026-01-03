@@ -512,3 +512,23 @@
   - docker compose -f docker-compose.yml -f docker-compose.next.yml logs --tail=200 web_next
   - npm run test
   - codex resume --last
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-016] LUKITTU: Foundation: migrations logic analysis + runnable web app skeleton + auth/RBAC/tenant + demo roles
+- Goal: vahvistaa LUKITTU #1 vaatimukset tenant-eristyksella, demo-rooleilla ja API-paatepisteilla.
+- Scope: UI + API + Infrastructure + Data + Tests.
+- Deliverables: migraatioanalyysi + ER-kaavio, tenant-aware DB wrapper, /api/health + /api/me, demo-seed kahdelle tenantille, testit.
+- Key files: docs/MIGRATION_LOGIC_ANALYSIS.md, diagrams/schema_overview.mmd, packages/infrastructure/src/db.ts, tools/scripts/db-seed-demo.mjs, apps/web/src/app/api/health/route.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint, npm run typecheck, npm run test
+
+[2026-01-03] [DONE] [L-20260103-016] LUKITTU: Foundation: migrations logic analysis + runnable web app skeleton + auth/RBAC/tenant + demo roles
+- Summary: tenant-aware DB wrapper kaytossa infra-repoissa; demo-seed luo Tenant A/B roolit ja projektit; /api/health lisatty ja demo-tilan tuotantoesto kaynnistyy.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (EPERM: tsx IPC pipe /tmp/tsx-1000).
+- Notes: testiajo ei onnistu sandboxissa tsx IPC -rajoituksen vuoksi.
+
+[2026-01-03] [HANDOFF] [L-20260103-016]
+- Where we are: tenant-aware DB wrapper paivitetty, demo-seed kahdelle tenantille, /api/health lisatty.
+- What changed: infra-repot kayttavat dbForTenant; demo-quick login roolit tuplattu A/B; tuotanto estaa DEMO_MODE.
+- What remains: korjaa/kierrata tsx IPC -testirajoitus (tai vaihtoehtoinen test-runner).
+- Next LUKITTU suggestion: LUKITTU #2 workflow-nakymat + endpointit (suunnittelu/ennuste/baseline/raportti/loki/admin).
+- Key files: packages/infrastructure/src/db.ts, tools/scripts/db-seed-demo.mjs, apps/web/src/app/api/health/route.ts, apps/web/src/app/login/quick-panel.tsx, packages/infrastructure/src/integration.test.ts, apps/web/src/server/env.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test; node tools/scripts/db-seed-demo.mjs

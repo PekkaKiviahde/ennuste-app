@@ -1,13 +1,13 @@
 import type { PermissionCode } from "@ennuste/shared";
 import type { RbacPort } from "@ennuste/application";
 import { ForbiddenError } from "@ennuste/shared";
-import { query } from "./db";
-import { requireProjectTenant } from "./tenant";
+import { dbForTenant } from "./db";
 
 export const rbacRepository = (): RbacPort => ({
   async requirePermission(projectId, tenantId, username, permission) {
-    await requireProjectTenant(projectId, tenantId);
-    const result = await query<{ allowed: boolean }>(
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query<{ allowed: boolean }>(
       "SELECT rbac_user_has_permission($1::uuid, $2::text, $3::text) AS allowed",
       [projectId, username, permission]
     );
@@ -17,8 +17,9 @@ export const rbacRepository = (): RbacPort => ({
     }
   },
   async listPermissions(projectId, tenantId, username) {
-    await requireProjectTenant(projectId, tenantId);
-    const result = await query<{ permission_code: PermissionCode }>(
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query<{ permission_code: PermissionCode }>(
       "SELECT permission_code FROM v_rbac_user_project_permissions WHERE project_id = $1::uuid AND username = $2::text",
       [projectId, username]
     );

@@ -1,19 +1,20 @@
 import type { WorkPhasePort } from "@ennuste/application";
-import { pool, query } from "./db";
-import { requireCorrectionTenant, requireProjectTenant, requireWorkPhaseTenant } from "./tenant";
+import { dbForTenant } from "./db";
 
 export const workPhaseRepository = (): WorkPhasePort => ({
   async listWorkPhases(projectId, tenantId) {
-    await requireProjectTenant(projectId, tenantId);
-    const result = await query(
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query(
       "SELECT work_phase_id, name, status, created_at FROM work_phases WHERE project_id = $1::uuid ORDER BY created_at DESC",
       [projectId]
     );
     return result.rows;
   },
   async createWeeklyUpdate(input) {
-    await requireProjectTenant(input.projectId, input.tenantId);
-    const result = await query<{ work_phase_weekly_update_id: string }>(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    const result = await tenantDb.query<{ work_phase_weekly_update_id: string }>(
       "INSERT INTO work_phase_weekly_updates (project_id, work_phase_id, week_ending, percent_complete, progress_notes, risks, created_by) VALUES ($1::uuid, $2::uuid, $3::date, $4, $5, $6, $7) RETURNING work_phase_weekly_update_id",
       [
         input.projectId,
@@ -28,8 +29,9 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     return { workPhaseWeeklyUpdateId: result.rows[0].work_phase_weekly_update_id };
   },
   async createGhostEntry(input) {
-    await requireProjectTenant(input.projectId, input.tenantId);
-    const result = await query<{ ghost_cost_entry_id: string }>(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    const result = await tenantDb.query<{ ghost_cost_entry_id: string }>(
       "INSERT INTO ghost_cost_entries (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by) VALUES ($1::uuid, $2::uuid, $3::date, $4, $5, $6, $7) RETURNING ghost_cost_entry_id",
       [
         input.projectId,
@@ -44,8 +46,9 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     return { ghostCostEntryId: result.rows[0].ghost_cost_entry_id };
   },
   async lockBaseline(input) {
-    await requireWorkPhaseTenant(input.workPhaseId, input.tenantId);
-    const result = await pool.query<{ work_phase_lock_baseline_secure: string }>(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireWorkPhase(input.workPhaseId);
+    const result = await tenantDb.query<{ work_phase_lock_baseline_secure: string }>(
       "SELECT work_phase_lock_baseline_secure($1::uuid, $2::uuid, $3::uuid, $4::text, $5::text) AS work_phase_lock_baseline_secure",
       [
         input.workPhaseId,
@@ -58,23 +61,26 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     return { workPhaseBaselineId: result.rows[0].work_phase_lock_baseline_secure };
   },
   async proposeCorrection(input) {
-    await requireWorkPhaseTenant(input.workPhaseId, input.tenantId);
-    const result = await query<{ work_phase_propose_add_littera_from_item_secure: string }>(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireWorkPhase(input.workPhaseId);
+    const result = await tenantDb.query<{ work_phase_propose_add_littera_from_item_secure: string }>(
       "SELECT work_phase_propose_add_littera_from_item_secure($1::uuid, $2::text, $3::text, $4::text) AS work_phase_propose_add_littera_from_item_secure",
       [input.workPhaseId, input.itemCode, input.username, input.notes ?? null]
     );
     return { correctionId: result.rows[0].work_phase_propose_add_littera_from_item_secure };
   },
   async approveCorrectionPm(input) {
-    await requireCorrectionTenant(input.correctionId, input.tenantId);
-    await query(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireCorrection(input.correctionId);
+    await tenantDb.query(
       "SELECT work_phase_approve_correction_pm_secure($1::uuid, $2::text, $3::text)",
       [input.correctionId, input.username, input.comment ?? null]
     );
   },
   async approveCorrectionFinal(input) {
-    await requireCorrectionTenant(input.correctionId, input.tenantId);
-    const result = await query<{ work_phase_approve_correction_final_secure: string }>(
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireCorrection(input.correctionId);
+    const result = await tenantDb.query<{ work_phase_approve_correction_final_secure: string }>(
       "SELECT work_phase_approve_correction_final_secure($1::uuid, $2::text, $3::text) AS work_phase_approve_correction_final_secure",
       [input.correctionId, input.username, input.comment ?? null]
     );

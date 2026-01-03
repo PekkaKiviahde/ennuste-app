@@ -4,13 +4,20 @@ import { useEffect } from "react";
 import { quickRoleLoginAction } from "../../server/actions/auth";
 
 const demoRoles = [
-  { label: "Tyonjohtaja", username: "site.foreman", pin: "1234" },
-  { label: "Vastaava mestari", username: "general.foreman", pin: "1234" },
-  { label: "Tyopaallikko", username: "project.manager", pin: "1234" },
-  { label: "Tuotantojohtaja", username: "production.manager", pin: "1234" },
-  { label: "Hankinta", username: "procurement", pin: "1234" },
-  { label: "Johto (luku)", username: "exec.readonly", pin: "1234" },
-  { label: "Organisaatio-admin", username: "org.admin", pin: "1234" }
+  { label: "Tyonjohtaja (Tenant A)", username: "site.foreman.a", pin: "1234" },
+  { label: "Vastaava mestari (Tenant A)", username: "general.foreman.a", pin: "1234" },
+  { label: "Tyopaallikko (Tenant A)", username: "project.manager.a", pin: "1234" },
+  { label: "Tuotantojohtaja (Tenant A)", username: "production.manager.a", pin: "1234" },
+  { label: "Hankinta (Tenant A)", username: "procurement.a", pin: "1234" },
+  { label: "Johto (luku) (Tenant A)", username: "exec.readonly.a", pin: "1234" },
+  { label: "Organisaatio-admin (Tenant A)", username: "org.admin.a", pin: "1234" },
+  { label: "Tyonjohtaja (Tenant B)", username: "site.foreman.b", pin: "1234" },
+  { label: "Vastaava mestari (Tenant B)", username: "general.foreman.b", pin: "1234" },
+  { label: "Tyopaallikko (Tenant B)", username: "project.manager.b", pin: "1234" },
+  { label: "Tuotantojohtaja (Tenant B)", username: "production.manager.b", pin: "1234" },
+  { label: "Hankinta (Tenant B)", username: "procurement.b", pin: "1234" },
+  { label: "Johto (luku) (Tenant B)", username: "exec.readonly.b", pin: "1234" },
+  { label: "Organisaatio-admin (Tenant B)", username: "org.admin.b", pin: "1234" }
 ];
 
 const isTextInput = (element: Element | null) => {

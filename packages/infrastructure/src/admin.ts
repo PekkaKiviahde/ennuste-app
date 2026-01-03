@@ -1,11 +1,11 @@
 import type { AdminPort } from "@ennuste/application";
-import { query } from "./db";
-import { getProjectContext } from "./tenant";
+import { dbForTenant } from "./db";
 
 export const adminRepository = (): AdminPort => ({
   async getAdminOverview(projectId, tenantId) {
-    const { organizationId } = await getProjectContext(projectId, tenantId);
-    const usersResult = await query<{ username: string; display_name: string | null }>(
+    const tenantDb = dbForTenant(tenantId);
+    const { organizationId } = await tenantDb.getProjectContext(projectId);
+    const usersResult = await tenantDb.query<{ username: string; display_name: string | null }>(
       `
       SELECT DISTINCT u.username, u.display_name
       FROM users u
@@ -22,11 +22,11 @@ export const adminRepository = (): AdminPort => ({
       [projectId, organizationId]
     );
 
-    const rolesResult = await query<{ role_code: string; role_name_fi: string }>(
+    const rolesResult = await tenantDb.query<{ role_code: string; role_name_fi: string }>(
       "SELECT role_code, role_name_fi FROM roles ORDER BY role_code"
     );
 
-    const assignmentsResult = await query<{
+    const assignmentsResult = await tenantDb.query<{
       scope: "project" | "organization";
       username: string;
       role_code: string;

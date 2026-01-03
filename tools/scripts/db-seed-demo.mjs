@@ -18,42 +18,70 @@ const demoUsers = [
 
 const costTypes = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
 
-const run = async () => {
-  const client = new Client({ connectionString: databaseUrl });
-  await client.connect();
+const tenantConfigs = [
+  {
+    suffix: "a",
+    orgSlug: "demo-a",
+    orgName: "Demo organisaatio A",
+    tenantName: "Demo tenant A",
+    projectName: "Demo projekti A",
+    projectCustomer: "Demo asiakas A"
+  },
+  {
+    suffix: "b",
+    orgSlug: "demo-b",
+    orgName: "Demo organisaatio B",
+    tenantName: "Demo tenant B",
+    projectName: "Demo projekti B",
+    projectCustomer: "Demo asiakas B"
+  }
+];
 
-  const orgResult = await client.query(
-    "INSERT INTO organizations (slug, name, created_by) VALUES ('demo', 'Demo organisaatio', 'seed') ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name RETURNING organization_id"
-  );
-  const organizationId = orgResult.rows[0].organization_id;
-
+const ensureTenant = async (client, tenantName) => {
   const tenantResult = await client.query(
-    "INSERT INTO tenants (name, created_by) VALUES ('Demo tenant', 'seed') ON CONFLICT DO NOTHING RETURNING tenant_id"
+    "INSERT INTO tenants (name, created_by) VALUES ($1, 'seed') ON CONFLICT DO NOTHING RETURNING tenant_id",
+    [tenantName]
   );
   let tenantId = tenantResult.rows[0]?.tenant_id;
   if (!tenantId) {
-    const fallback = await client.query("SELECT tenant_id FROM tenants ORDER BY created_at DESC LIMIT 1");
+    const fallback = await client.query(
+      "SELECT tenant_id FROM tenants WHERE name = $1 ORDER BY created_at DESC LIMIT 1",
+      [tenantName]
+    );
     tenantId = fallback.rows[0]?.tenant_id;
   }
+  return tenantId;
+};
+
+const seedTenant = async (client, config) => {
+  const orgResult = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name RETURNING organization_id",
+    [config.orgSlug, config.orgName]
+  );
+  const organizationId = orgResult.rows[0].organization_id;
+
+  const tenantId = await ensureTenant(client, config.tenantName);
 
   const existingProject = await client.query(
-    "SELECT project_id FROM projects WHERE name = 'Demo projekti' AND organization_id = $1::uuid",
-    [organizationId]
+    "SELECT project_id FROM projects WHERE name = $1 AND organization_id = $2::uuid",
+    [config.projectName, organizationId]
   );
 
   let projectId = existingProject.rows[0]?.project_id;
   if (!projectId) {
     const projectResult = await client.query(
-      "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, created_at) VALUES ('Demo projekti', 'Demo asiakas', $1::uuid, $2::uuid, 'P1_PROJECT_ACTIVE', now()) RETURNING project_id",
-      [organizationId, tenantId]
+      "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, 'P1_PROJECT_ACTIVE', now()) RETURNING project_id",
+      [config.projectName, config.projectCustomer, organizationId, tenantId]
     );
     projectId = projectResult.rows[0].project_id;
   }
 
   for (const user of demoUsers) {
+    const username = `${user.username}.${config.suffix}`;
+    const display = `${user.display} (${config.suffix.toUpperCase()})`;
     const userResult = await client.query(
       "INSERT INTO users (username, display_name, email, created_by, pin_hash) VALUES ($1, $2, $3, 'seed', crypt('1234', gen_salt('bf'))) ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name, pin_hash = EXCLUDED.pin_hash RETURNING user_id",
-      [user.username, user.display, `${user.username}@demo.local`]
+      [username, display, `${username}@demo.local`]
     );
     const userId = userResult.rows[0].user_id;
 
@@ -168,7 +196,7 @@ const run = async () => {
       if (exists.rowCount === 0) {
         await client.query(
           "INSERT INTO mapping_lines (project_id, mapping_version_id, work_littera_id, target_littera_id, allocation_rule, allocation_value, created_by) VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'FULL', 1.0, 'seed')",
-        [projectId, versionId, litteraByCode[code], litteraByCode["1100"]]
+          [projectId, versionId, litteraByCode[code], litteraByCode["1100"]]
         );
       }
     }
@@ -277,14 +305,14 @@ const run = async () => {
   }
 
   const workPhaseExisting = await client.query(
-    "SELECT work_phase_id FROM work_phases WHERE project_id = $1::uuid AND name = 'Runko'",
-    [projectId]
+    "SELECT work_phase_id FROM work_phases WHERE project_id = $1::uuid AND name = $2",
+    [projectId, `Runko ${config.suffix.toUpperCase()}`]
   );
   let workPhaseId = workPhaseExisting.rows[0]?.work_phase_id;
   if (!workPhaseId) {
     const workPhaseResult = await client.query(
-      "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, status, created_by) VALUES ($1::uuid, 'Runko', 'Runko tyovaihe', 'seed', $2::uuid, 'ACTIVE', 'seed') RETURNING work_phase_id",
-      [projectId, litteraByCode["1100"]]
+      "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, status, created_by) VALUES ($1::uuid, $2, $3, 'seed', $4::uuid, 'ACTIVE', 'seed') RETURNING work_phase_id",
+      [projectId, `Runko ${config.suffix.toUpperCase()}`, "Runko tyovaihe", litteraByCode["1100"]]
     );
     workPhaseId = workPhaseResult.rows[0].work_phase_id;
   }
@@ -344,6 +372,15 @@ const run = async () => {
       "INSERT INTO ghost_cost_entries (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by) VALUES ($1::uuid, $2::uuid, current_date, 'LABOR', 300, 'demo ghost', 'seed')",
       [projectId, workPhaseId]
     );
+  }
+};
+
+const run = async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  for (const config of tenantConfigs) {
+    await seedTenant(client, config);
   }
 
   console.log("Demo seed valmis");
