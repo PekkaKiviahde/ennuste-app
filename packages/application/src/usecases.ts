@@ -119,6 +119,14 @@ export const loadAuditLog = async (services: AppServices, input: { projectId: st
   return services.report.getAuditLog(input.projectId, input.tenantId);
 };
 
+export const loadWorkflowStatus = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.report.getWorkflowStatus(input.projectId, input.tenantId);
+};
+
 export const loadAdminOverview = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "MEMBERS_MANAGE");
   return services.admin.getAdminOverview(input.projectId, input.tenantId);

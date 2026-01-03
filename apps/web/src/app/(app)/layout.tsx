@@ -15,6 +15,7 @@ export default function AuthedLayout({ children }: { children: ReactNode }) {
       <nav className="navbar">
         <strong>Ennuste MVP</strong>
         <Link href="/ylataso">Ylataso</Link>
+        <Link href="/tyonohjaus">Tyonohjaus</Link>
         <Link href="/tavoitearvio">Tavoitearvio</Link>
         <Link href="/suunnittelu">Suunnittelu</Link>
         <Link href="/baseline">Baseline</Link>

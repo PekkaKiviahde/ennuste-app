@@ -70,5 +70,48 @@ export const reportRepository = (): ReportPort => ({
       [projectId]
     );
     return result.rows;
+  },
+  async getWorkflowStatus(projectId, tenantId) {
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+
+    const planningResult = await tenantDb.query<{
+      target_littera_id: string | null;
+      status: string | null;
+      event_time: string | null;
+      created_by: string | null;
+    }>(
+      "SELECT target_littera_id, status, event_time, created_by FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
+      [projectId]
+    );
+
+    const forecastResult = await tenantDb.query<{
+      target_littera_id: string | null;
+      event_time: string | null;
+      created_by: string | null;
+    }>(
+      "SELECT target_littera_id, event_time, created_by FROM v_report_forecast_current WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
+      [projectId]
+    );
+
+    const auditResult = await tenantDb.query<{
+      action: string | null;
+      actor: string | null;
+      event_time: string | null;
+    }>(
+      "SELECT action, actor, event_time FROM app_audit_log WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
+      [projectId]
+    );
+
+    const planning = planningResult.rows[0] ?? null;
+    const forecast = forecastResult.rows[0] ?? null;
+    const audit = auditResult.rows[0] ?? null;
+
+    return {
+      planning,
+      forecast,
+      audit,
+      isLocked: planning?.status === "LOCKED"
+    };
   }
 });

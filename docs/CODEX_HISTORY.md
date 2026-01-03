@@ -820,3 +820,23 @@
 - Deliverables: ennusteen snapshot-endpointti ja lomakkeen autotaytto.
 - Key files: apps/web/src/ui/forecast/ForecastForm.tsx, apps/web/src/app/api/forecast/snapshot/route.ts, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/forecast.ts, docs/CODEX_HISTORY.md
 - Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-031] LUKITTU: Workflow-sivut ja status-endpointit
+- Goal: tehda workflow-nakyma, joka listaa suunnittelu/ennuste/lukitus/loki/raportti -tilanteen.
+- Scope: UI + Application + Infrastructure.
+- Deliverables: workflow-status API-endpointti ja workflow-hub UI-nakyma.
+- Key files: apps/web/src/app/api/workflow/status/route.ts, apps/web/src/app/(app)/tyonohjaus/page.tsx, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-031] LUKITTU: Workflow-sivut ja status-endpointit
+- Summary: lisatty workflow-status use case ja API-endpointti; rakennettu tyonohjaus-nakyma status-korteilla; paivitetty navigointi ja ylataso-linkki; lisatty workflow-status integraatiotesti.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-031]
+- Where we are: tyonohjaus-nakyma ja workflow-status API ovat kaytossa.
+- What changed: uusi /tyonohjaus-sivu, /api/workflow/status-endpointti, report-portin workflow-status, integraatiotesti.
+- What remains: halutessasi nayta tavoitearvio- ja mapping-tiedot workflow-korteilla tai lisaa lukitus-CTA.
+- Next LUKITTU suggestion: workflow-polun lisatoiminnot (lukitus-CTA, tavoitearvio-kortti) tai raportin ryhmittely.
+- Key files: apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/app/api/workflow/status/route.ts, packages/application/src/usecases.ts, packages/application/src/ports.ts, packages/infrastructure/src/report.ts, packages/infrastructure/src/integration.test.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

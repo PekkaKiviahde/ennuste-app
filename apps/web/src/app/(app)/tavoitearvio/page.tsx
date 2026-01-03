@@ -16,6 +16,16 @@ export default async function TargetEstimatePage() {
     username: session.username
   });
 
+  const formatDate = (value: unknown) => {
+    if (!value) return "";
+    const date =
+      value instanceof Date ? value : typeof value === "string" ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+    return new Intl.DateTimeFormat("fi-FI", { dateStyle: "short" }).format(date);
+  };
+
   return (
     <div className="grid">
       <section className="card">
@@ -46,7 +56,7 @@ export default async function TargetEstimatePage() {
                 <td>{row.cost_type}</td>
                 <td>{row.amount}</td>
                 <td>
-                  {row.valid_from} - {row.valid_to ?? "inf"}
+                  {formatDate(row.valid_from)} - {row.valid_to ? formatDate(row.valid_to) : "inf"}
                 </td>
               </tr>
             ))

@@ -93,6 +93,27 @@ export type ReportPort = {
   getMappingVersions(projectId: string, tenantId: string): Promise<unknown[]>;
   getMappingLines(projectId: string, tenantId: string): Promise<unknown[]>;
   getAuditLog(projectId: string, tenantId: string): Promise<unknown[]>;
+  getWorkflowStatus(projectId: string, tenantId: string): Promise<WorkflowStatus>;
+};
+
+export type WorkflowStatus = {
+  planning: {
+    target_littera_id: string | null;
+    status: string | null;
+    event_time: string | null;
+    created_by: string | null;
+  } | null;
+  forecast: {
+    target_littera_id: string | null;
+    event_time: string | null;
+    created_by: string | null;
+  } | null;
+  audit: {
+    action: string | null;
+    actor: string | null;
+    event_time: string | null;
+  } | null;
+  isLocked: boolean;
 };
 
 export type AdminPort = {

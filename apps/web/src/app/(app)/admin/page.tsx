@@ -1,15 +1,45 @@
 import { loadAdminOverview } from "@ennuste/application";
+import { ForbiddenError } from "@ennuste/shared";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function AdminPage() {
   const session = requireSession();
   const services = createServices();
-  const overview = await loadAdminOverview(services, {
-    projectId: session.projectId,
-    tenantId: session.tenantId,
-    username: session.username
-  });
+  let overview: Awaited<ReturnType<typeof loadAdminOverview>> | null = null;
+  try {
+    overview = await loadAdminOverview(services, {
+      projectId: session.projectId,
+      tenantId: session.tenantId,
+      username: session.username
+    });
+  } catch (error) {
+    if (!(error instanceof ForbiddenError)) {
+      throw error;
+    }
+  }
+
+  const formatDateTime = (value: unknown) => {
+    if (!value) return "";
+    const date =
+      value instanceof Date ? value : typeof value === "string" ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+    return new Intl.DateTimeFormat("fi-FI", {
+      dateStyle: "short",
+      timeStyle: "short"
+    }).format(date);
+  };
+
+  if (!overview) {
+    return (
+      <div className="card">
+        <h1>Admin</h1>
+        <div className="notice error">Ei oikeuksia admin-nakymiin.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-2">
@@ -53,7 +83,7 @@ export default async function AdminPage() {
                   <td>{row.scope}</td>
                   <td>{row.username}</td>
                   <td>{row.role_code}</td>
-                  <td>{row.granted_at}</td>
+                  <td>{formatDateTime(row.granted_at)}</td>
                 </tr>
               ))
             )}

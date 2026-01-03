@@ -48,6 +48,9 @@ export default async function DashboardPage() {
             <div>Seuraa tyovaiheita ja paaryhmia.</div>
           </div>
         </div>
+        <div className="status-actions">
+          <a className="btn btn-secondary btn-sm" href="/tyonohjaus">Avaa tyonohjaus</a>
+        </div>
       </section>
     </div>
   );

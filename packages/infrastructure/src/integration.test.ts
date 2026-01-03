@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { Client } from "pg";
 import { POST as planningPost } from "../../../apps/web/src/app/api/planning/route";
 import { POST as loginPost } from "../../../apps/web/src/app/api/login/route";
+import { GET as workflowStatusGet } from "../../../apps/web/src/app/api/workflow/status/route";
 import { pool } from "./db";
 
 const databaseUrl = process.env.DATABASE_URL ?? "";
@@ -319,6 +320,93 @@ test("login endpoint writes audit log entry", { skip: !databaseUrl || !sessionSe
     [projectId]
   );
   assert.equal(auditCheck.rowCount, 1);
+
+  await client.end();
+});
+
+test("workflow status endpoint returns latest planning status", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+
+  const orgResult = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name RETURNING organization_id",
+    [`workflow-org-${suffix}`, `Workflow Org ${suffix}`]
+  );
+  const organizationId = orgResult.rows[0].organization_id;
+
+  const tenantResult = await client.query(
+    "INSERT INTO tenants (name, created_by) VALUES ('Workflow Tenant', 'seed') ON CONFLICT DO NOTHING RETURNING tenant_id"
+  );
+  let tenantId = tenantResult.rows[0]?.tenant_id;
+  if (!tenantId) {
+    const fallback = await client.query("SELECT tenant_id FROM tenants ORDER BY created_at DESC LIMIT 1");
+    tenantId = fallback.rows[0]?.tenant_id;
+  }
+
+  const projectResult = await client.query(
+    "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state) VALUES ($1, 'Test', $2::uuid, $3::uuid, 'P1_PROJECT_ACTIVE') RETURNING project_id",
+    [`Workflow Projekti ${suffix}`, organizationId, tenantId]
+  );
+  const projectId = projectResult.rows[0].project_id;
+
+  const userResult = await client.query(
+    "INSERT INTO users (username, display_name, created_by, pin_hash) VALUES ($1, $2, 'seed', crypt('1234', gen_salt('bf'))) RETURNING user_id",
+    [`workflow.user.${suffix}`, `Workflow User ${suffix}`]
+  );
+  const userId = userResult.rows[0].user_id;
+
+  await client.query(
+    "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
+    [projectId, userId]
+  );
+
+  const litteraResult = await client.query(
+    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9300', 'Workflow Littera', 9) RETURNING littera_id",
+    [projectId]
+  );
+  const targetLitteraId = litteraResult.rows[0].littera_id;
+
+  const sessionToken = createSessionToken({
+    userId,
+    username: `workflow.user.${suffix}`,
+    displayName: `Workflow User ${suffix}`,
+    organizationId,
+    tenantId,
+    projectId,
+    permissions: ["REPORT_READ"]
+  });
+
+  const planningRequest = new Request("http://localhost/api/planning", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      targetLitteraId,
+      status: "READY_FOR_FORECAST",
+      summary: "Workflow planning"
+    })
+  });
+
+  const planningResponse = await planningPost(planningRequest);
+  assert.equal(planningResponse.status, 201);
+
+  const workflowRequest = new Request("http://localhost/api/workflow/status", {
+    method: "GET",
+    headers: {
+      cookie: `ennuste_session=${sessionToken}`
+    }
+  });
+  const response = await workflowStatusGet(workflowRequest);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.status.planning?.status, "READY_FOR_FORECAST");
+  assert.equal(body.status.planning?.target_littera_id, targetLitteraId);
+  assert.equal(body.status.isLocked, false);
+  assert.ok(body.status.audit?.action);
 
   await client.end();
 });
