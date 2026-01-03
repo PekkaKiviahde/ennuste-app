@@ -60,6 +60,11 @@ export type ForecastEventInput = {
 export type PlanningPort = {
   createPlanningEvent(input: PlanningEventInput): Promise<{ planningEventId: string }>;
   listPlanningCurrent(projectId: string, tenantId: string): Promise<unknown[]>;
+  getLatestPlanningStatus(
+    projectId: string,
+    tenantId: string,
+    targetLitteraId: string
+  ): Promise<{ status: "DRAFT" | "READY_FOR_FORECAST" | "LOCKED" } | null>;
 };
 
 export type ForecastPort = {

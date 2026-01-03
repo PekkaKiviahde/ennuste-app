@@ -900,3 +900,23 @@
 - Next LUKITTU suggestion: LUKITTU #2: workflow-sivut + endpointit + raportoinnin lisareitit.
 - Key files: packages/application/src/usecases.ts, packages/infrastructure/src/health.ts, apps/web/src/app/api/health/route.ts, apps/web/src/server/services.ts, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-035] LUKITTU: Workflow: ennustetapahtuma-esto ilman suunnitelmaa
+- Goal: varmistaa, etta ennustetapahtuma estyy ilman READY_FOR_FORECAST tai LOCKED -suunnitelmaa.
+- Scope: Application (sovelluskerros) + Infrastructure (infrastruktuuri).
+- Deliverables: planning-status (suunnitelman tila) -haku, ennusteen luonti estetaan sovelluskerroksessa, selkea virheilmoitus.
+- Key files: packages/application/src/ports.ts, packages/application/src/usecases.ts, packages/infrastructure/src/planning.ts, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-035] LUKITTU: Workflow: ennustetapahtuma-esto ilman suunnitelmaa
+- Summary: lisatty suunnitelman tilan haku sovelluskerrokseen; ennustetapahtuma estetaan ilman READY_FOR_FORECAST/LOCKED; virheilmoitus palautetaan API-kutsussa.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: DB-triggeri estaa edelleen ennusteen ilman suunnitelmaa, mutta nyt virheviesti on selkea jo sovelluskerroksessa.
+
+[2026-01-03] [HANDOFF] [L-20260103-035]
+- Where we are: ennustetapahtuma vaatii suunnitelman tilan READY_FOR_FORECAST tai LOCKED ennen luontia.
+- What changed: lisatty planning-status-haku ja tarkistus createForecastEvent-kayttotapaukseen.
+- What remains: halutessasi nayta suunnitelman tila ennuste-UI:ssa ennen tallennusta.
+- Next LUKITTU suggestion: LUKITTU #3: ennuste-UI:n suunnitelma-tila + lukituksen esteviesti.
+- Key files: packages/application/src/usecases.ts, packages/infrastructure/src/planning.ts, packages/application/src/ports.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test

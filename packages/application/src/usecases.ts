@@ -11,7 +11,7 @@ import type {
   ReportPort,
   WorkPhasePort
 } from "./ports";
-import { ForbiddenError } from "@ennuste/shared";
+import { AppError, ForbiddenError } from "@ennuste/shared";
 
 export type AppServices = {
   auth: AuthPort;
@@ -62,6 +62,21 @@ export const createPlanningEvent = async (services: AppServices, input: Planning
 
 export const createForecastEvent = async (services: AppServices, input: ForecastEventInput) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "REPORT_READ");
+  const planning = await services.planning.getLatestPlanningStatus(
+    input.projectId,
+    input.tenantId,
+    input.targetLitteraId
+  );
+  if (!planning) {
+    throw new AppError("Suunnitelma puuttuu tavoitearvio-litteralta.", "PLANNING_MISSING", 409);
+  }
+  if (planning.status !== "READY_FOR_FORECAST" && planning.status !== "LOCKED") {
+    throw new AppError(
+      `Suunnitelman tila on ${planning.status}. Ennustaminen vaatii tilan READY_FOR_FORECAST tai LOCKED.`,
+      "PLANNING_NOT_READY",
+      409
+    );
+  }
   const result = await services.forecast.createForecastEvent(input);
   await services.audit.recordEvent({
     projectId: input.projectId,

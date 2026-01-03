@@ -41,5 +41,14 @@ export const planningRepository = (): PlanningPort => ({
       [projectId]
     );
     return result.rows;
+  },
+  async getLatestPlanningStatus(projectId, tenantId, targetLitteraId) {
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query<{ status: "DRAFT" | "READY_FOR_FORECAST" | "LOCKED" }>(
+      "SELECT status FROM planning_events WHERE project_id = $1::uuid AND target_littera_id = $2::uuid ORDER BY event_time DESC LIMIT 1",
+      [projectId, targetLitteraId]
+    );
+    return result.rows[0] ?? null;
   }
 });
