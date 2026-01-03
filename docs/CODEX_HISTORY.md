@@ -720,3 +720,23 @@
 - Next LUKITTU suggestion: test-runnerin IPC-kierto tai taulukkojen suodatus.
 - Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [IN_PROGRESS] [L-20260103-026] LUKITTU: Test-runnerin IPC-kierto
+- Goal: vaihtaa testikomennot ilman tsx IPC -palvelinta, jotta testit ajautuvat sandboxissa.
+- Scope: Tooling + Tests.
+- Deliverables: paivitetyt testiskriptit workspacessa, onnistuva testiajo (jos mahdollista).
+- Key files: packages/domain/package.json, packages/application/package.json, packages/infrastructure/package.json, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-03] [DONE] [L-20260103-026] LUKITTU: Test-runnerin IPC-kierto
+- Summary: vaihdettu testiskriptit node --test --import tsx -muotoon; integraatiotesti skipataan ilman env-avaimia; testit ajautuvat sandboxissa.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: integraatiotesti vaatii DATABASE_URL + SESSION_SECRET, muuten skip.
+
+[2026-01-03] [HANDOFF] [L-20260103-026]
+- Where we are: testit ajautuvat ilman tsx IPC -palvelinta.
+- What changed: testiskriptit paivitetty; integraatiotesti skipataan ilman env-avaimia.
+- What remains: halutessasi konfiguroi DATABASE_URL ja SESSION_SECRET, jotta integraatiotesti ajetaan oikeasti.
+- Next LUKITTU suggestion: taulukoiden suodatus tai seuraava toiminnallisuus (UX).
+- Key files: packages/domain/package.json, packages/application/package.json, packages/infrastructure/package.json, packages/infrastructure/src/integration.test.ts, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
