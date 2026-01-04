@@ -1271,3 +1271,9 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
 - Next: paata LUKITTU #2 sulkeminen (DONE + HANDOFF) tai jatkotoimet
+
+[2026-01-04] [PROGRESS] [L-20260104-049] UI-kavely vahvistettu (step 5)
+- What I did: kayttaja vahvisti uuden suunnitelman (1450 Ponttaus) + ennusteen (1100 Runko) luomisen, lokimerkinnat ja KPI-raportin nakymisen.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
+- Next: paata LUKITTU #2 sulkeminen (DONE + HANDOFF) tai jatkotoimet
