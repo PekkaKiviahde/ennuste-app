@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "none",
   "branch": "main",
-  "sha": "f447da1",
+  "sha": "8eb14f6",
   "timestamp": "2026-01-04",
-  "next_step": "Vahvista raportti + projekti-vaihto yhdistelmatestin tulos."
+  "next_step": "Aja infra-testit env-arvoilla tai kirjaa este ja tee UI-kavely (raportti + projekti-vaihto)."
 }

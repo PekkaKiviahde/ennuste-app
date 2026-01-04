@@ -1827,3 +1827,41 @@
 - Next LUKITTU suggestion: LUKITTU: raportti + projekti-vaihto yhdistelmatesti.
 - Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - How to resume: tee raportti + projekti-vaihto yhdistelmatesti
+
+[2026-01-04] [SESSION_START] main 8eb14f6
+- Active LUKITTU: L-20260104-065
+- History tail: [HANDOFF] [L-20260104-064]
+- Repo: clean, ahead 0/behind 0
+- DB status: unknown
+- Next action: aja db:status ja aloita LUKITTU #1 deliverables
+
+[2026-01-04] [PROGRESS] [L-20260104-065] LUKITTU aloitus
+- What I did: lisasin SESSION_START-merkinnan ja paivitin .codex/state.json.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: aja db:status ja tee migraatioanalyysi
+
+[2026-01-04] [PROGRESS] [L-20260104-065] Db-status tarkistettu
+- What I did: ajoin db:status ja paivitin LUKITTU #1 status-merkinnan.
+- Key files: docs/LUKITTU1_STATUS.md, docs/CODEX_HISTORY.md
+- Tests run: db:status (pending 0)
+- Next: arvioi LUKITTU #1 deliverable-aukot ja seuraavat tyovaiheet
+
+[2026-01-04] [PROGRESS] [L-20260104-065] Laaturutiinit ajettu
+- What I did: ajoin lintin ja testit; infrastruktuurin testit vaativat ymparistomuuttujat.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: npm run lint (ok), npm test (infra testit keskeytyi: puuttuu DATABASE_URL, SESSION_SECRET)
+- Next: paata jatketaanko infra-testit ymparistomuuttujilla vai jatketaanko UI-kavelyyn
+
+[2026-01-04] [DONE] [L-20260104-065] LUKITTU: kaynnistys + db-status + laaturutiinit
+- Summary: SESSION_START kirjattu, db:status ajettu (pending 0) ja lint ok; infra-testit keskeytyi env-puutteeseen.
+- Tests: db:status (ok), npm run lint (ok), npm test (epakunnossa: DATABASE_URL, SESSION_SECRET puuttuu)
+- Notes: LUKITTU #1 deliverable-lista ennallaan; UI-kavely (raportti + projekti-vaihto) avoin.
+
+[2026-01-04] [HANDOFF] [L-20260104-065]
+- Where we are: LUKITTU #1 jatko kesken; db:status ok, lint ok, infra-testit keskeytyivat env-puutteeseen.
+- What changed: paivitetty SESSION_START/PROGRESS, LUKITTU1_STATUS ja laaturutiinien loki.
+- What remains: aja infra-testit env-arvoilla TAI kirjaa este ja tee UI-kavely raportti + projekti-vaihto.
+- Next LUKITTU suggestion: LUKITTU: infra-testit env-arvoilla ja UI-kavelyvahvistus.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json, docs/LUKITTU1_STATUS.md
+- How to resume: aseta DATABASE_URL + SESSION_SECRET ja aja npm test; tee UI-kavely raportti + projekti-vaihto

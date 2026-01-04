@@ -19,11 +19,9 @@ Perusta: migraatioanalyysi + ajettava web-runko + auth (tunnistus) / RBAC (rooli
 ## Huomiot ja aukot
 - db:status ok (pending 0), viimeisin ajo 2026-01-04.
 - Myyjan onboarding + kutsulinkki on toteutettu (apps/web/src/app/sales/page.tsx, apps/web/src/app/invite/[token]/page.tsx).
-- Untracked tiedosto: logo_draft_jp_v2.png (repo-hygienia auki).
 - UI-kavely kesken: kirjautumisessa ilmeni NEXT_REDIRECT (tarvitsee varmistuksen kayttajalta).
 
 ## Seuraavat tarkistukset
-- Aja db:status jos DATABASE_URL on saatavilla.
 - Varmista UI-kavely login -> role-based redirect -> raportit.
 
 ## Mitä muuttui
