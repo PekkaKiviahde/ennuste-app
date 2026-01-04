@@ -1247,3 +1247,9 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: laadi workflow-sivut + endpointit kartoitus ja toteutusjarjestys
+
+[2026-01-04] [PROGRESS] [L-20260104-049] /api/report/planning fallback lisatty
+- What I did: lisasin fallbackin v_planning_current -nakymaan, jos v_report_planning_current puuttuu (SQLSTATE 42P01).
+- Key files: packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: testaa /api/report/planning uudelleen ja varmista 502 korjattu
