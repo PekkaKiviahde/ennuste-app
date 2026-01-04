@@ -1259,3 +1259,9 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (login + /api/report/planning)
 - Next: paata lint/typecheck/test ajosta tai jatka seuraaviin LUKITTU #2 tehtaviin
+
+[2026-01-04] [PROGRESS] [L-20260104-049] Endpointit verifioitu (2-9)
+- What I did: kayttaja vahvisti /api/me 401 + suomenkielinen virhe; /api/health ok; /api/report/planning/forecast/target-estimate/mapping-lines/work-phases ok; /api/audit palautti tapahtumat.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (login + API-kutsut)
+- Next: paata lint/typecheck/test ajosta tai jatka workflow-kartoitusta
