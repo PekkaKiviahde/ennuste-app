@@ -1420,3 +1420,22 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #7 tavoite ja deliverablet
+
+[2026-01-04] [DONE] [L-20260104-054] LUKITTU: Handoff + prompt-ohjaus
+- Summary: handoff-dokumentti kirjoitettu; koottu selvitys kayttajan prompt-ohjauksista.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: LUKITTU #7 fokus paattamatta.
+
+[2026-01-04] [HANDOFF] [L-20260104-054]
+- Where we are: handoff valmis; LUKITTU #7 odottaa fokusta.
+- What changed: lisatty docs/HANDOFF_20260104_LUKITTU7.md ja historia paivitetty.
+- What remains: paata LUKITTU #7 fokus.
+- Next LUKITTU suggestion: LUKITTU: UI-parannukset tai raportoinnin lisaselitteet.
+- Key files: docs/HANDOFF_20260104_LUKITTU7.md, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-055] LUKITTU #8 aloitus
+- What I did: suljettu LUKITTU #7 handoffilla; alustettu uusi LUKITTU #8.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #8 tavoite ja deliverablet
