@@ -1178,3 +1178,22 @@
 - Next LUKITTU suggestion: LUKITTU: raporttinakyma ja selitteet NPSS/cutover-erottelulle.
 - Key files: docs/HANDOFF_20260104.md, docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [SESSION_START] main e7ba9c7
+- Active LUKITTU: L-20260104-048
+- History tail: viimeisin HANDOFF L-20260104-047 (NPSS/cutover-verifiointi handoff)
+- Repo: clean, no ahead/behind
+- DB status: unknown
+- Next action: kartoita HENKI-MVP LUKITTU #1 deliverable-tila ja käynnista migraatioanalyysi + runko
+
+[2026-01-04] [PROGRESS] [L-20260104-048] Session start + state
+- What I did: luotu .codex/state.json; lisatty SESSION_START; tarkistettu git-tila ja historia.
+- Key files: .codex/state.json, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu (ei pyyntoa)
+- Next: kartoita HENKI-MVP LUKITTU #1 deliverable-tila ja tee suunnitelma
+
+[2026-01-04] [PROGRESS] [L-20260104-048] db:status-skripti lisatty
+- What I did: lisasin tools/scripts/db-status.mjs; lisasin npm-skriptin db:status; paivitin .codex/state.json.
+- Key files: tools/scripts/db-status.mjs, package.json, .codex/state.json, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu (DB-yhteys puuttuu)
+- Next: aja npm run db:status ja tarkista .env.example + tenant-isolation testit

@@ -1,0 +1,7 @@
+{
+  "current_lukittu_id": "L-20260104-048",
+  "branch": "main",
+  "sha": "e7ba9c7",
+  "timestamp": "2026-01-04",
+  "next_step": "Aja db:status ja tarkista .env.example + tenant-testit; paivita PROGRESS."
+}

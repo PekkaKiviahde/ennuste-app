@@ -5,8 +5,9 @@
     "apps/*",
     "packages/*"
   ],
-  "scripts": {
+    "scripts": {
     "db:start": "docker compose up -d",
+    "db:status": "node tools/scripts/db-status.mjs",
     "db:migrate": "node tools/scripts/db-migrate.mjs",
     "db:seed-demo": "node tools/scripts/db-seed-demo.mjs",
     "dev": "npm --workspace apps/web run dev",
