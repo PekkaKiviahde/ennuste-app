@@ -1358,3 +1358,9 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #5 tavoite ja deliverablet
+
+[2026-01-04] [PROGRESS] [L-20260104-052] Mapping-versioille oma suodatus
+- What I did: lisasin mapping-versioille oman mv-hakukentan tavoitearvio-sivulle.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: verifioi mapping-versioiden suodatus UI:ssa ja paata LUKITTU #5 sulkeminen

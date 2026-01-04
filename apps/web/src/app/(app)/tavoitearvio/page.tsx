@@ -2,7 +2,11 @@ import { loadMappingLines, loadMappingVersions, loadTargetEstimate } from "@ennu
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
-export default async function TargetEstimatePage({ searchParams }: { searchParams?: { q?: string } }) {
+export default async function TargetEstimatePage({
+  searchParams
+}: {
+  searchParams?: { q?: string; mv?: string };
+}) {
   const session = await requireSession();
   const services = createServices();
   const rows = await loadTargetEstimate(services, {
@@ -21,7 +25,10 @@ export default async function TargetEstimatePage({ searchParams }: { searchParam
     username: session.username
   });
   const query = (searchParams?.q ?? "").trim().toLowerCase();
+  const mappingQuery = (searchParams?.mv ?? "").trim().toLowerCase();
   const filterMatch = (value: unknown) => String(value ?? "").toLowerCase().includes(query);
+  const mappingFilterMatch = (value: unknown) =>
+    String(value ?? "").toLowerCase().includes(mappingQuery);
 
   const formatDate = (value: unknown) => {
     if (!value) return "";
@@ -57,12 +64,12 @@ export default async function TargetEstimatePage({ searchParams }: { searchParam
         filterMatch(row.cost_type)
       )
     : mappingLines;
-  const filteredMappingVersions = query
+  const filteredMappingVersions = mappingQuery
     ? mappingVersions.filter((row: any) =>
-        filterMatch(row.status) ||
-        filterMatch(row.reason) ||
-        filterMatch(row.created_by) ||
-        filterMatch(row.approved_by)
+        mappingFilterMatch(row.status) ||
+        mappingFilterMatch(row.reason) ||
+        mappingFilterMatch(row.created_by) ||
+        mappingFilterMatch(row.approved_by)
       )
     : mappingVersions;
 
@@ -73,7 +80,13 @@ export default async function TargetEstimatePage({ searchParams }: { searchParam
         <p>Tavoitearvio-litterat ja kustannuslajit projektissa.</p>
         <form className="form-grid" method="get">
           <label className="label" htmlFor="q">Suodatus</label>
-          <input className="input" id="q" name="q" placeholder="Hae littera, nimi tai kustannuslaji" defaultValue={searchParams?.q ?? ""} />
+          <input
+            className="input"
+            id="q"
+            name="q"
+            placeholder="Hae littera, nimi tai kustannuslaji"
+            defaultValue={searchParams?.q ?? ""}
+          />
           <div className="status-actions">
             <button className="btn btn-primary btn-sm" type="submit">Suodata</button>
             <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Nollaa</a>
@@ -156,6 +169,25 @@ export default async function TargetEstimatePage({ searchParams }: { searchParam
       <section className="card">
         <h2>Mapping-versiot</h2>
         <p>Mapping-versiot, voimassaolo ja hyvaksynta.</p>
+        <form className="form-grid" method="get">
+          <label className="label" htmlFor="mv">Mapping-versiot haku</label>
+          <input
+            className="input"
+            id="mv"
+            name="mv"
+            placeholder="Hae status, peruste tai hyvaksyja"
+            defaultValue={searchParams?.mv ?? ""}
+          />
+          <div className="status-actions">
+            <button className="btn btn-primary btn-sm" type="submit">Suodata</button>
+            <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Nollaa</a>
+          </div>
+        </form>
+        {mappingQuery && (
+          <div className="notice">
+            Naytetaan mapping-versiot haulla: "{mappingQuery}"
+          </div>
+        )}
         <table className="table">
           <thead>
             <tr>
