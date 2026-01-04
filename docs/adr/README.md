@@ -14,6 +14,7 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0007: Kaikki merkittävät päätökset kirjataan ADR:iin
 - ADR-0010: Ensisijainen UI-polku
 - ADR-0013: Next-UI ainoa käyttöliittymä
+- ADR-0014: Konserni/yhtiö/projekti-hierarkia ja onboarding
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
@@ -27,3 +28,4 @@ Päätösdokumentit: miksi teimme näin.
 - Avaa `docs/adr/README.md` ja tarkista, että listan otsikot vastaavat ADR-tiedostojen otsikoita.
 - Varmista, että ADR-0010 näkyy listassa.
 - Varmista, että ADR-0013 näkyy listassa.
+- Varmista, että ADR-0014 näkyy listassa.
