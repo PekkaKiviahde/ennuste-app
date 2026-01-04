@@ -459,6 +459,10 @@
           </label>
           <div class="stack">
             <h3>Staging + puhdistus</h3>
+            <div class="job-actions">
+              <button type="button" id="budget-staging-list">Hae batchit</button>
+            </div>
+            <div class="history" id="budget-staging-batches">Ei batch-listaa.</div>
             <label>
               Staging-batch ID (jatka aiempaa)
               <input id="budget-staging-batch-id" placeholder="uuid" />
@@ -481,6 +485,31 @@
                 Salli duplikaatti
               </label>
               <button type="button" id="budget-staging-summary">Esikatsele siirto</button>
+              <label>
+                Rivinäkymä
+                <select id="budget-staging-mode">
+                  <option value="issues">Vain virheet</option>
+                  <option value="clean">Vain puhtaat</option>
+                  <option value="all">Kaikki rivit</option>
+                </select>
+              </label>
+              <label>
+                Severity
+                <select id="budget-staging-severity">
+                  <option value="">Kaikki</option>
+                  <option value="ERROR">ERROR</option>
+                  <option value="WARN">WARN</option>
+                  <option value="INFO">INFO</option>
+                </select>
+              </label>
+              <label>
+                Export mode
+                <select id="budget-staging-export-mode">
+                  <option value="clean">Puhdas</option>
+                  <option value="all">Kaikki</option>
+                </select>
+              </label>
+              <button type="button" id="budget-staging-export">Lataa CSV</button>
               <button type="button" id="budget-staging-commit">Siirrä budjettiin</button>
             </div>
             <div class="hint" id="budget-staging-result"></div>

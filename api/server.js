@@ -9,6 +9,12 @@ import { createHash, randomBytes } from "crypto";
 import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
 import { query, withClient } from "./db.js";
+import {
+  buildHeaderLookup,
+  computeBudgetAggregates,
+  parseFiNumber,
+  selectActiveCostHeaders,
+} from "./import-staging.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,31 +81,6 @@ function toNumber(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-function parseFiNumber(value) {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const raw = String(value).trim();
-  if (!raw) {
-    return null;
-  }
-  let normalized = raw.replace(/\u00a0/g, " ").replace(/ /g, "");
-  if (normalized.includes(",") && normalized.includes(".")) {
-    normalized = normalized.replace(/\./g, "").replace(",", ".");
-  } else {
-    normalized = normalized.replace(",", ".");
-  }
-  const n = Number(normalized);
-  return Number.isFinite(n) ? n : null;
-}
-
-function buildHeaderLookup(headers) {
-  const map = new Map();
-  headers.forEach((header) => {
-    map.set(String(header || "").trim().toLowerCase(), header);
-  });
-  return map;
-}
 
 function groupCodeFromLittera(code) {
   const s = String(code || "").trim();
@@ -403,6 +384,13 @@ async function logMappingEvent({ projectId, actor, action, payload }) {
 async function logMappingEventWithClient(client, { projectId, actor, action, payload }) {
   await client.query(
     "INSERT INTO mapping_event_log (project_id, actor, action, payload) VALUES ($1,$2,$3,$4)",
+    [projectId, actor, action, payload || {}]
+  );
+}
+
+async function logAppAudit({ projectId, actor, action, payload }) {
+  await query(
+    "INSERT INTO app_audit_log (project_id, actor, action, payload) VALUES ($1,$2,$3,$4)",
     [projectId, actor, action, payload || {}]
   );
 }
@@ -2283,6 +2271,28 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
       return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
     }
 
+    const warnings = [];
+    const { rows: dupImportRows } = await query(
+      `SELECT 1
+       FROM import_batches
+       WHERE project_id=$1 AND source_system='TARGET_ESTIMATE' AND signature=$2
+       LIMIT 1`,
+      [projectId, signature]
+    );
+    if (dupImportRows.length > 0) {
+      warnings.push("Duplikaatti: sama signature on jo importoitu.");
+    }
+    const { rows: dupStagingRows } = await query(
+      `SELECT 1
+       FROM import_staging_batches
+       WHERE project_id=$1 AND import_type='BUDGET' AND signature=$2
+       LIMIT 1`,
+      [projectId, signature]
+    );
+    if (dupStagingRows.length > 0) {
+      warnings.push("Duplikaatti: sama signature on jo stagingissa.");
+    }
+
     const result = await withClient(async (client) => {
       await client.query("BEGIN");
       try {
@@ -2385,6 +2395,12 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
         }
 
         await client.query("COMMIT");
+        await logAppAudit({
+          projectId,
+          actor: String(importedBy).trim(),
+          action: "import_staging.create",
+          payload: { staging_batch_id: batchId, file_name: safeName, signature },
+        });
         return { batchId, lineCount, issueCount };
       } catch (err) {
         await client.query("ROLLBACK");
@@ -2397,7 +2413,50 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
       staging_batch_id: result.batchId,
       line_count: result.lineCount,
       issue_count: result.issueCount,
+      warnings,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-staging", async (req, res, next) => {
+  try {
+    const projectId = req.query.projectId ? String(req.query.projectId).trim() : "";
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+    const { rows } = await query(
+      `SELECT b.staging_batch_id,
+              b.project_id,
+              b.import_type,
+              b.source_system,
+              b.file_name,
+              b.signature,
+              b.created_at,
+              b.created_by,
+              (
+                SELECT status
+                FROM import_staging_batch_events e
+                WHERE e.staging_batch_id=b.staging_batch_id
+                ORDER BY e.created_at DESC
+                LIMIT 1
+              ) AS status,
+              (
+                SELECT count(*)::int
+                FROM import_staging_issues i
+                JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+                WHERE l.staging_batch_id=b.staging_batch_id
+              ) AS issue_count
+       FROM import_staging_batches b
+       WHERE b.project_id=$1
+       ORDER BY b.created_at DESC`,
+      [projectId]
+    );
+    res.json({ ok: true, batches: rows });
   } catch (err) {
     next(err);
   }
@@ -2443,6 +2502,104 @@ app.get("/api/import-staging/:batchId/issues", async (req, res, next) => {
   }
 });
 
+app.get("/api/import-staging/:batchId/lines", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    const mode = req.query.mode ? String(req.query.mode).toLowerCase() : "issues";
+    const severity = req.query.severity ? String(req.query.severity).toUpperCase() : null;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    const { rows: batchRows } = await query(
+      "SELECT project_id FROM import_staging_batches WHERE staging_batch_id=$1",
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const projectId = batchRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+
+    const { rows: lineRows } = await query(
+      `SELECT l.staging_line_id,
+              l.row_no,
+              l.raw_json,
+              (
+                SELECT e.edit_json
+                FROM import_staging_line_edits e
+                WHERE e.staging_line_id=l.staging_line_id
+                ORDER BY e.edited_at DESC
+                LIMIT 1
+              ) AS edit_json
+       FROM import_staging_lines_raw l
+       WHERE l.staging_batch_id=$1
+       ORDER BY l.row_no ASC`,
+      [batchId]
+    );
+
+    const { rows: issueLineRowsAll } = await query(
+      `SELECT DISTINCT l.staging_line_id
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1`,
+      [batchId]
+    );
+    const issueLineIdsAll = new Set(issueLineRowsAll.map((row) => row.staging_line_id));
+
+    const issueParams = [batchId];
+    let severitySql = "";
+    if (severity) {
+      issueParams.push(severity);
+      severitySql = " AND i.severity=$2";
+    }
+
+    const { rows: issueRows } = await query(
+      `SELECT i.staging_line_id,
+              i.issue_code,
+              i.issue_message,
+              i.severity,
+              i.created_at
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1${severitySql}
+       ORDER BY l.row_no ASC, i.created_at ASC`,
+      issueParams
+    );
+
+    const issuesByLine = new Map();
+    for (const issue of issueRows) {
+      if (!issuesByLine.has(issue.staging_line_id)) {
+        issuesByLine.set(issue.staging_line_id, []);
+      }
+      issuesByLine.get(issue.staging_line_id).push(issue);
+    }
+
+    const filtered = lineRows.filter((line) => {
+      if (mode === "all") {
+        return true;
+      }
+      if (mode === "clean") {
+        return !issueLineIdsAll.has(line.staging_line_id);
+      }
+      return issuesByLine.has(line.staging_line_id);
+    });
+
+    const lines = filtered.map((line) => ({
+      staging_line_id: line.staging_line_id,
+      row_no: line.row_no,
+      raw_json: line.raw_json,
+      edit_json: line.edit_json,
+      issues: issuesByLine.get(line.staging_line_id) || [],
+    }));
+
+    res.json({ ok: true, lines });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post("/api/import-staging/lines/:lineId/edits", async (req, res, next) => {
   try {
     const { lineId } = req.params;
@@ -2479,6 +2636,16 @@ app.post("/api/import-staging/lines/:lineId/edits", async (req, res, next) => {
        RETURNING staging_line_edit_id`,
       [lineId, edit, reason ? String(reason).trim() : null, String(editedBy).trim()]
     );
+    await logAppAudit({
+      projectId,
+      actor: String(editedBy).trim(),
+      action: "import_staging.edit",
+      payload: {
+        staging_line_id: lineId,
+        reason: reason ? String(reason).trim() : null,
+        edit,
+      },
+    });
     res.status(201).json({ ok: true, staging_line_edit_id: rows[0].staging_line_edit_id });
   } catch (err) {
     next(err);
@@ -2515,6 +2682,12 @@ app.post("/api/import-staging/:batchId/approve", async (req, res, next) => {
        RETURNING staging_batch_event_id`,
       [batchId, message ? String(message).trim() : "Hyvaksytty", String(approvedBy).trim()]
     );
+    await logAppAudit({
+      projectId,
+      actor: String(approvedBy).trim(),
+      action: "import_staging.approve",
+      payload: { staging_batch_id: batchId, message: message ? String(message).trim() : "Hyvaksytty" },
+    });
     res.status(201).json({ ok: true, staging_batch_event_id: rows[0].staging_batch_event_id });
   } catch (err) {
     next(err);
@@ -2551,6 +2724,12 @@ app.post("/api/import-staging/:batchId/reject", async (req, res, next) => {
        RETURNING staging_batch_event_id`,
       [batchId, message ? String(message).trim() : "Hylatty", String(rejectedBy).trim()]
     );
+    await logAppAudit({
+      projectId,
+      actor: String(rejectedBy).trim(),
+      action: "import_staging.reject",
+      payload: { staging_batch_id: batchId, message: message ? String(message).trim() : "Hylatty" },
+    });
     res.status(201).json({ ok: true, staging_batch_event_id: rows[0].staging_batch_event_id });
   } catch (err) {
     next(err);
@@ -2638,80 +2817,21 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
       return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
     }
 
-    const costHeaderConfig = [
-      { name: "Työ €", costType: "LABOR" },
-      { name: "Aine €", costType: "MATERIAL" },
-      { name: "Alih €", costType: "SUBCONTRACT" },
-      { name: "Vmiehet €", costType: "RENTAL" },
-      { name: "Muu €", costType: "OTHER" },
-      { name: "Summa", costType: "OTHER" },
-    ];
-
-    const hasDetailed = costHeaderConfig
-      .filter((entry) => entry.name !== "Summa")
-      .some((entry) => headerLookup.has(entry.name.toLowerCase()));
-
-    const activeCostHeaders = costHeaderConfig.filter((entry) => {
-      if (!headerLookup.has(entry.name.toLowerCase())) {
-        return false;
-      }
-      if (hasDetailed && entry.name === "Summa") {
-        return false;
-      }
-      return true;
-    });
+    const { activeCostHeaders } = selectActiveCostHeaders(headerLookup);
 
     if (activeCostHeaders.length === 0) {
       return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
     }
 
-    const totals = new Map();
-    const titles = new Map();
-    let skippedRows = 0;
-    let skippedValues = 0;
+    const aggregates = computeBudgetAggregates({
+      lines: lineRows,
+      codeHeader,
+      titleHeader,
+      activeCostHeaders,
+      issueLineIds: new Set(),
+    });
 
-    for (const row of lineRows) {
-      const effective = {
-        ...(row.raw_json || {}),
-        ...(row.edit_json || {}),
-      };
-      const code = String(effective[codeHeader] || "").trim();
-      if (!code || !/^\d{4}$/.test(code)) {
-        skippedRows += 1;
-        continue;
-      }
-      if (titleHeader && !titles.has(code)) {
-        const title = String(effective[titleHeader] || "").trim();
-        if (title) {
-          titles.set(code, title);
-        }
-      }
-
-      let hasAmount = false;
-      for (const header of activeCostHeaders) {
-        const rawValue = String(effective[header.name] || "").trim();
-        if (!rawValue) {
-          continue;
-        }
-        const num = parseFiNumber(rawValue);
-        if (num === null || num < 0) {
-          skippedValues += 1;
-          continue;
-        }
-        if (num === 0) {
-          continue;
-        }
-        hasAmount = true;
-        const key = `${code}:${header.costType}`;
-        const prev = totals.get(key) || 0;
-        totals.set(key, prev + num);
-      }
-      if (!hasAmount) {
-        skippedRows += 1;
-      }
-    }
-
-    if (totals.size === 0) {
+    if (aggregates.totalsByCodeTypeAll.size === 0) {
       return badRequest(res, "Ei kelvollisia kustannusriveja siirtoon.");
     }
 
@@ -2731,13 +2851,9 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
           }
         }
 
-        const codeSet = new Set();
-        for (const key of totals.keys()) {
-          codeSet.add(key.split(":")[0]);
-        }
-        const codes = [...codeSet.values()];
+        const codes = [...aggregates.codes.values()];
         for (const code of codes) {
-          const title = titles.get(code) || null;
+          const title = aggregates.titlesByCode.get(code) || null;
           const groupCode = groupCodeFromLittera(code);
           await client.query(
             `INSERT INTO litteras (project_id, code, title, group_code)
@@ -2766,7 +2882,7 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
         const importBatchId = batchInsertRows[0].import_batch_id;
 
         let inserted = 0;
-        for (const [key, amount] of totals.entries()) {
+        for (const [key, amount] of aggregates.totalsByCodeTypeAll.entries()) {
           const [code, costType] = key.split(":");
           const litteraId = litteraByCode.get(code);
           if (!litteraId) {
@@ -2794,6 +2910,20 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
            VALUES ($1, 'COMMITTED', $2, $3)`,
           [batchId, message ? String(message).trim() : "Siirretty budget_lines-tauluun", String(committedBy).trim()]
         );
+        await client.query(
+          "INSERT INTO app_audit_log (project_id, actor, action, payload) VALUES ($1,$2,$3,$4)",
+          [
+            batch.project_id,
+            String(committedBy).trim(),
+            "import_staging.commit",
+            {
+              staging_batch_id: batchId,
+              import_batch_id: importBatchId,
+              inserted_rows: inserted,
+              message: message ? String(message).trim() : "Siirretty budget_lines-tauluun",
+            },
+          ]
+        );
 
         await client.query("COMMIT");
         return { importBatchId, inserted };
@@ -2807,8 +2937,8 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
       ok: true,
       import_batch_id: result.importBatchId,
       inserted_rows: result.inserted,
-      skipped_rows: skippedRows,
-      skipped_values: skippedValues,
+      skipped_rows: aggregates.skippedRows,
+      skipped_values: aggregates.skippedValues,
       error_issues: errorCount,
     });
   } catch (err) {
@@ -2885,121 +3015,45 @@ app.get("/api/import-staging/:batchId/summary", async (req, res, next) => {
       return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
     }
 
-    const costHeaderConfig = [
-      { name: "Työ €", costType: "LABOR" },
-      { name: "Aine €", costType: "MATERIAL" },
-      { name: "Alih €", costType: "SUBCONTRACT" },
-      { name: "Vmiehet €", costType: "RENTAL" },
-      { name: "Muu €", costType: "OTHER" },
-      { name: "Summa", costType: "OTHER" },
-    ];
-
-    const hasDetailed = costHeaderConfig
-      .filter((entry) => entry.name !== "Summa")
-      .some((entry) => headerLookup.has(entry.name.toLowerCase()));
-
-    const activeCostHeaders = costHeaderConfig.filter((entry) => {
-      if (!headerLookup.has(entry.name.toLowerCase())) {
-        return false;
-      }
-      if (hasDetailed && entry.name === "Summa") {
-        return false;
-      }
-      return true;
-    });
+    const { activeCostHeaders } = selectActiveCostHeaders(headerLookup);
 
     if (activeCostHeaders.length === 0) {
       return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
     }
 
-    const totals = new Map();
-    const totalsByCode = new Map();
-    const totalsByCodeType = new Map();
-    const cleanTotalsByCostType = new Map();
-    const cleanTotalsByCode = new Map();
-    const cleanTotalsByCodeType = new Map();
-    const titlesByCode = new Map();
-    const codes = new Set();
-    let skippedRows = 0;
-    let skippedValues = 0;
-
-    for (const row of lineRows) {
-      const effective = {
-        ...(row.raw_json || {}),
-        ...(row.edit_json || {}),
-      };
-      const hasIssue = issueLineIds.has(row.staging_line_id);
-      const code = String(effective[codeHeader] || "").trim();
-      if (!code || !/^\d{4}$/.test(code)) {
-        skippedRows += 1;
-        continue;
-      }
-      codes.add(code);
-      if (titleHeader && !titlesByCode.has(code)) {
-        const title = String(effective[titleHeader] || "").trim();
-        if (title) {
-          titlesByCode.set(code, title);
-        }
-      }
-
-      let hasAmount = false;
-      for (const header of activeCostHeaders) {
-        const rawValue = String(effective[header.name] || "").trim();
-        if (!rawValue) {
-          continue;
-        }
-        const num = parseFiNumber(rawValue);
-        if (num === null || num < 0) {
-          skippedValues += 1;
-          continue;
-        }
-        if (num === 0) {
-          continue;
-        }
-        hasAmount = true;
-        const key = header.costType;
-        const prev = totals.get(key) || 0;
-        totals.set(key, prev + num);
-        const codeKey = code;
-        totalsByCode.set(codeKey, (totalsByCode.get(codeKey) || 0) + num);
-        const lineKey = `${code}:${header.costType}`;
-        totalsByCodeType.set(lineKey, (totalsByCodeType.get(lineKey) || 0) + num);
-        if (!hasIssue) {
-          cleanTotalsByCostType.set(key, (cleanTotalsByCostType.get(key) || 0) + num);
-          cleanTotalsByCode.set(codeKey, (cleanTotalsByCode.get(codeKey) || 0) + num);
-          cleanTotalsByCodeType.set(lineKey, (cleanTotalsByCodeType.get(lineKey) || 0) + num);
-        }
-      }
-      if (!hasAmount) {
-        skippedRows += 1;
-      }
-    }
+    const aggregates = computeBudgetAggregates({
+      lines: lineRows,
+      codeHeader,
+      titleHeader,
+      activeCostHeaders,
+      issueLineIds,
+    });
 
     const totalsByCostType = {};
-    for (const [key, value] of cleanTotalsByCostType.entries()) {
+    for (const [key, value] of aggregates.totalsByCostTypeClean.entries()) {
       totalsByCostType[key] = value;
     }
     const totalsByCostTypeAll = {};
-    for (const [key, value] of totals.entries()) {
+    for (const [key, value] of aggregates.totalsByCostTypeAll.entries()) {
       totalsByCostTypeAll[key] = value;
     }
 
-    const topCodes = [...cleanTotalsByCode.entries()]
+    const topCodes = [...aggregates.totalsByCodeClean.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([code, total]) => ({
         code,
-        title: titlesByCode.get(code) || null,
+        title: aggregates.titlesByCode.get(code) || null,
         total,
       }));
-    const topLines = [...cleanTotalsByCodeType.entries()]
+    const topLines = [...aggregates.totalsByCodeTypeClean.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([key, total]) => {
         const [code, costType] = key.split(":");
         return {
           code,
-          title: titlesByCode.get(code) || null,
+          title: aggregates.titlesByCode.get(code) || null,
           cost_type: costType,
           total,
         };
@@ -3009,15 +3063,152 @@ app.get("/api/import-staging/:batchId/summary", async (req, res, next) => {
       ok: true,
       staging_batch_id: batchId,
       line_count: lineRows.length,
-      skipped_rows: skippedRows,
-      skipped_values: skippedValues,
+      skipped_rows: aggregates.skippedRows,
+      skipped_values: aggregates.skippedValues,
       error_issues: errorCount,
-      codes_count: codes.size,
+      codes_count: aggregates.codes.size,
       totals_by_cost_type: totalsByCostType,
       totals_by_cost_type_all: totalsByCostTypeAll,
       top_codes: topCodes,
       top_lines: topLines,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-staging/:batchId/export", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    const mode = req.query.mode ? String(req.query.mode).toLowerCase() : "clean";
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    if (!["clean", "all"].includes(mode)) {
+      return badRequest(res, "mode on virheellinen (clean|all).");
+    }
+
+    const { rows: batchRows } = await query(
+      `SELECT staging_batch_id, project_id, import_type
+       FROM import_staging_batches
+       WHERE staging_batch_id=$1`,
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const batch = batchRows[0];
+    if (!requireProjectAccess(req, res, batch.project_id, "manager")) {
+      return;
+    }
+    if (String(batch.import_type).toUpperCase() !== "BUDGET") {
+      return badRequest(res, "Vain BUDGET staging voidaan exportata.");
+    }
+
+    const { rows: lineRows } = await query(
+      `SELECT l.staging_line_id,
+              l.row_no,
+              l.raw_json,
+              (
+                SELECT e.edit_json
+                FROM import_staging_line_edits e
+                WHERE e.staging_line_id=l.staging_line_id
+                ORDER BY e.edited_at DESC
+                LIMIT 1
+              ) AS edit_json
+       FROM import_staging_lines_raw l
+       WHERE l.staging_batch_id=$1
+       ORDER BY l.row_no ASC`,
+      [batchId]
+    );
+    if (lineRows.length === 0) {
+      return badRequest(res, "Staging-batchissa ei ole riveja.");
+    }
+
+    let issueLineIds = new Set();
+    if (mode === "clean") {
+      const { rows: issueLineRows } = await query(
+        `SELECT DISTINCT l.staging_line_id
+         FROM import_staging_issues i
+         JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+         WHERE l.staging_batch_id=$1`,
+        [batchId]
+      );
+      issueLineIds = new Set(issueLineRows.map((row) => row.staging_line_id));
+    }
+
+    const headers = Object.keys(lineRows[0].raw_json || {});
+    const headerLookup = buildHeaderLookup(headers);
+    const codeHeader = headerLookup.get("litterakoodi");
+    const titleHeader = headerLookup.get("litteraselite");
+    if (!codeHeader) {
+      return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
+    }
+
+    const { activeCostHeaders } = selectActiveCostHeaders(headerLookup);
+    if (activeCostHeaders.length === 0) {
+      return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
+    }
+
+    const aggregates = computeBudgetAggregates({
+      lines: lineRows,
+      codeHeader,
+      titleHeader,
+      activeCostHeaders,
+      issueLineIds,
+    });
+
+    const totalsMap =
+      mode === "clean" ? aggregates.totalsByCodeTypeClean : aggregates.totalsByCodeTypeAll;
+
+    if (totalsMap.size === 0) {
+      return badRequest(res, "Ei kelvollisia riveja exportiin.");
+    }
+
+    const perCode = new Map();
+    for (const [key, amount] of totalsMap.entries()) {
+      const [code, costType] = key.split(":");
+      if (!perCode.has(code)) {
+        perCode.set(code, { LABOR: 0, MATERIAL: 0, SUBCONTRACT: 0, RENTAL: 0, OTHER: 0 });
+      }
+      perCode.get(code)[costType] = amount;
+    }
+
+    const header = [
+      "Litterakoodi",
+      "Litteraselite",
+      "Työ €",
+      "Aine €",
+      "Alih €",
+      "Vmiehet €",
+      "Muu €",
+    ];
+    const lines = [header.join(";")];
+    const codes = [...perCode.keys()].sort();
+    for (const code of codes) {
+      const title = aggregates.titlesByCode.get(code) || "";
+      const row = perCode.get(code);
+      lines.push(
+        [
+          code,
+          title,
+          row.LABOR || 0,
+          row.MATERIAL || 0,
+          row.SUBCONTRACT || 0,
+          row.RENTAL || 0,
+          row.OTHER || 0,
+        ]
+          .map((value) => csvEscape(value, ";"))
+          .join(";")
+      );
+    }
+
+    res.type("text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=\"staging-${batchId}-${mode}.csv\"`
+    );
+    res.send(lines.join("\n") + "\n");
   } catch (err) {
     next(err);
   }

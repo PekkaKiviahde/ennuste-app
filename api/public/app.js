@@ -283,6 +283,12 @@ const budgetStagingResult = document.getElementById("budget-staging-result");
 const budgetStagingSummary = document.getElementById("budget-staging-summary");
 const budgetStagingSummaryResult = document.getElementById("budget-staging-summary-result");
 const budgetStagingIssues = document.getElementById("budget-staging-issues");
+const budgetStagingBatches = document.getElementById("budget-staging-batches");
+const budgetStagingList = document.getElementById("budget-staging-list");
+const budgetStagingMode = document.getElementById("budget-staging-mode");
+const budgetStagingSeverity = document.getElementById("budget-staging-severity");
+const budgetStagingExportMode = document.getElementById("budget-staging-export-mode");
+const budgetStagingExport = document.getElementById("budget-staging-export");
 const jydaPreviewNote = document.getElementById("jyda-preview-note");
 const jydaPreviewTable = document.getElementById("jyda-preview-table");
 const jydaValidation = document.getElementById("jyda-validation");
@@ -699,43 +705,37 @@ function buildBudgetMappedCsv(headers, rows, mapping) {
   return outputRows.map((r) => r.map(csvEscape).join(";")).join("\n");
 }
 
-function renderBudgetStagingIssues(issues) {
+function renderBudgetStagingIssues(lines) {
   if (!budgetStagingIssues) {
     return;
   }
   budgetStagingIssues.innerHTML = "";
-  if (!issues || issues.length === 0) {
-    budgetStagingIssues.textContent = "Ei issueita.";
+  if (!lines || lines.length === 0) {
+    budgetStagingIssues.textContent = "Ei riveja.";
     return;
   }
-
-  const grouped = new Map();
-  issues.forEach((issue) => {
-    const lineId = issue.staging_line_id;
-    if (!grouped.has(lineId)) {
-      grouped.set(lineId, {
-        rowNo: issue.row_no,
-        raw: issue.raw_json || {},
-        issues: [],
-      });
-    }
-    grouped.get(lineId).issues.push(issue);
-  });
-
-  [...grouped.entries()].forEach(([lineId, entry]) => {
+  lines.forEach((entry) => {
+    const lineId = entry.staging_line_id;
     const item = document.createElement("div");
     item.className = "history-item";
 
     const title = document.createElement("strong");
-    title.textContent = `Rivi ${entry.rowNo}`;
+    title.textContent = `Rivi ${entry.row_no}`;
 
     const issueText = document.createElement("div");
-    issueText.textContent = entry.issues
-      .map((i) => `${i.issue_code}: ${i.issue_message || ""}`)
-      .join(" | ");
+    const issueList = entry.issues || [];
+    issueText.textContent =
+      issueList.length === 0
+        ? "Ei issueita."
+        : issueList
+            .map((i) => `${i.severity || "INFO"} ${i.issue_code}: ${i.issue_message || ""}`)
+            .join(" | ");
 
     const rawPre = document.createElement("pre");
-    rawPre.textContent = JSON.stringify(entry.raw, null, 2);
+    rawPre.textContent = JSON.stringify(entry.raw_json || {}, null, 2);
+
+    const previewPre = document.createElement("pre");
+    previewPre.textContent = "Yhdistelma: (ei esikatselua)";
 
     const editLabel = document.createElement("label");
     editLabel.textContent = "Korjaus JSON (vain muuttuvat kentät)";
@@ -766,7 +766,48 @@ function renderBudgetStagingIssues(issues) {
           }),
         });
         editArea.value = "";
-        setHint(budgetStagingResult, `Korjaus tallennettu (rivi ${entry.rowNo}).`);
+        setHint(budgetStagingResult, `Korjaus tallennettu (rivi ${entry.row_no}).`);
+      } catch (err) {
+        setHint(budgetStagingResult, err.message, true);
+      }
+    });
+
+    const previewButton = document.createElement("button");
+    previewButton.type = "button";
+    previewButton.textContent = "Esikatsele yhdistelma";
+    previewButton.addEventListener("click", () => {
+      try {
+        const edit = editArea.value ? JSON.parse(editArea.value) : {};
+        const merged = {
+          ...(entry.raw_json || {}),
+          ...(entry.edit_json || {}),
+          ...edit,
+        };
+        previewPre.textContent = JSON.stringify(merged, null, 2);
+      } catch (err) {
+        previewPre.textContent = `Virhe: ${err.message}`;
+      }
+    });
+
+    const undoButton = document.createElement("button");
+    undoButton.type = "button";
+    undoButton.textContent = "Peru korjaus";
+    undoButton.addEventListener("click", async () => {
+      try {
+        const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+        if (!actor) {
+          throw new Error("Pääkäyttäjä puuttuu.");
+        }
+        await fetchJson(`/api/import-staging/lines/${lineId}/edits`, {
+          method: "POST",
+          body: JSON.stringify({
+            editedBy: actor,
+            edit: {},
+            reason: "Peruutus",
+          }),
+        });
+        previewPre.textContent = "Yhdistelma: (peruttu)";
+        setHint(budgetStagingResult, `Korjaus peruttu (rivi ${entry.row_no}).`);
       } catch (err) {
         setHint(budgetStagingResult, err.message, true);
       }
@@ -775,9 +816,12 @@ function renderBudgetStagingIssues(issues) {
     item.appendChild(title);
     item.appendChild(issueText);
     item.appendChild(rawPre);
+    item.appendChild(previewPre);
     item.appendChild(editLabel);
     item.appendChild(editArea);
     item.appendChild(saveButton);
+    item.appendChild(previewButton);
+    item.appendChild(undoButton);
     budgetStagingIssues.appendChild(item);
   });
 }
@@ -2535,7 +2579,7 @@ budgetImportForm.addEventListener("submit", async (e) => {
   }
 });
 
-async function loadBudgetStagingIssues(batchId) {
+async function loadBudgetStagingLines(batchId) {
   if (!budgetStagingIssues) {
     return;
   }
@@ -2543,8 +2587,64 @@ async function loadBudgetStagingIssues(batchId) {
     budgetStagingIssues.textContent = "Anna staging-batch ID.";
     return;
   }
-  const data = await fetchJson(`/api/import-staging/${batchId}/issues`);
-  renderBudgetStagingIssues(data.issues || []);
+  const params = new URLSearchParams();
+  if (budgetStagingMode?.value) {
+    params.set("mode", budgetStagingMode.value);
+  }
+  if (budgetStagingSeverity?.value) {
+    params.set("severity", budgetStagingSeverity.value);
+  }
+  const query = params.toString();
+  const url = query
+    ? `/api/import-staging/${batchId}/lines?${query}`
+    : `/api/import-staging/${batchId}/lines`;
+  const data = await fetchJson(url);
+  renderBudgetStagingIssues(data.lines || []);
+}
+
+async function loadBudgetStagingBatches(projectId) {
+  if (!budgetStagingBatches) {
+    return;
+  }
+  if (!projectId) {
+    budgetStagingBatches.textContent = "Valitse projekti.";
+    return;
+  }
+  const data = await fetchJson(`/api/import-staging?projectId=${encodeURIComponent(projectId)}`);
+  const batches = data.batches || [];
+  budgetStagingBatches.innerHTML = "";
+  if (batches.length === 0) {
+    budgetStagingBatches.textContent = "Ei batch-listaa.";
+    return;
+  }
+  batches.forEach((batch) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+
+    const title = document.createElement("strong");
+    title.textContent = `${batch.staging_batch_id} (${batch.status || "DRAFT"})`;
+
+    const detail = document.createElement("div");
+    detail.textContent = `${batch.file_name || "-"} · ${new Date(batch.created_at).toLocaleString(
+      "fi-FI"
+    )} · issueita=${batch.issue_count}`;
+
+    const selectButton = document.createElement("button");
+    selectButton.type = "button";
+    selectButton.textContent = "Valitse batch";
+    selectButton.addEventListener("click", () => {
+      currentBudgetStagingBatchId = batch.staging_batch_id;
+      if (budgetStagingBatchInput) {
+        budgetStagingBatchInput.value = batch.staging_batch_id;
+      }
+      setHint(budgetStagingResult, `Valittu batch ${batch.staging_batch_id}.`);
+    });
+
+    item.appendChild(title);
+    item.appendChild(detail);
+    item.appendChild(selectButton);
+    budgetStagingBatches.appendChild(item);
+  });
 }
 
 if (budgetStagingCreate) {
@@ -2582,11 +2682,13 @@ if (budgetStagingCreate) {
       if (budgetStagingBatchInput) {
         budgetStagingBatchInput.value = res.staging_batch_id;
       }
+      const warningText =
+        res.warnings && res.warnings.length > 0 ? ` · varoitukset: ${res.warnings.join(" | ")}` : "";
       setHint(
         budgetStagingResult,
-        `Staging luotu. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}`
+        `Staging luotu. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}${warningText}`
       );
-      await loadBudgetStagingIssues(res.staging_batch_id);
+      await loadBudgetStagingLines(res.staging_batch_id);
     } catch (err) {
       setHint(budgetStagingResult, err.message, true);
     }
@@ -2597,8 +2699,34 @@ if (budgetStagingReload) {
   budgetStagingReload.addEventListener("click", async () => {
     try {
       const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
-      await loadBudgetStagingIssues(batchId);
-      setHint(budgetStagingResult, `Virheet ladattu (batch=${batchId}).`);
+      await loadBudgetStagingLines(batchId);
+      setHint(budgetStagingResult, `Rivit ladattu (batch=${batchId}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingMode) {
+  budgetStagingMode.addEventListener("change", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      if (batchId) {
+        await loadBudgetStagingLines(batchId);
+      }
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingSeverity) {
+  budgetStagingSeverity.addEventListener("change", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      if (batchId) {
+        await loadBudgetStagingLines(batchId);
+      }
     } catch (err) {
       setHint(budgetStagingResult, err.message, true);
     }
@@ -2615,6 +2743,10 @@ if (budgetStagingApprove) {
       }
       if (!actor) {
         throw new Error("Pääkäyttäjä puuttuu.");
+      }
+      const summary = await fetchJson(`/api/import-staging/${batchId}/summary`);
+      if (summary.error_issues > 0) {
+        throw new Error("Batchissa on ERROR-issueita. Korjaa ennen hyväksyntää.");
       }
       const res = await fetchJson(`/api/import-staging/${batchId}/approve`, {
         method: "POST",
@@ -2729,6 +2861,52 @@ if (budgetStagingSummary) {
         budgetStagingSummaryResult.innerHTML = `<pre>${lines.join("\n")}</pre>`;
       }
       setHint(budgetStagingResult, `Yhteenveto ladattu (batch=${batchId}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingList) {
+  budgetStagingList.addEventListener("click", async () => {
+    try {
+      const form = new FormData(budgetImportForm);
+      const projectId = form.get("projectId");
+      await loadBudgetStagingBatches(projectId);
+      setHint(budgetStagingResult, "Batch-lista ladattu.");
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingExport) {
+  budgetStagingExport.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      if (!batchId) {
+        throw new Error("Staging-batch ID puuttuu.");
+      }
+      const mode = budgetStagingExportMode?.value || "clean";
+      const token = getToken();
+      const res = await fetch(`/api/import-staging/${batchId}/export?mode=${encodeURIComponent(mode)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || "CSV export epäonnistui.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `budget-staging-${batchId}-${mode}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setHint(budgetStagingResult, `CSV ladattu (${mode}).`);
     } catch (err) {
       setHint(budgetStagingResult, err.message, true);
     }
