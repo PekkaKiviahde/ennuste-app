@@ -22,7 +22,7 @@ export default async function SalesPage() {
       </nav>
       <section className="card">
         <h1>Myyjan nakyma</h1>
-        <p>Tama on SaaS-myyjan demokayttoon tarkoitettu nakyma.</p>
+        <p>Tama on SaaS-myyjan onboarding-nakyma.</p>
         <div className="grid">
           <div className="notice">
             <strong>Myyntimallit</strong>

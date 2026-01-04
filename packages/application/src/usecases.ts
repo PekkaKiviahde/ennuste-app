@@ -13,7 +13,7 @@ import type {
   ReportPort,
   WorkPhasePort
 } from "./ports";
-import { AppError, ForbiddenError } from "@ennuste/shared";
+import { AppError } from "@ennuste/shared";
 
 export type AppServices = {
   auth: AuthPort;
@@ -637,10 +637,4 @@ export const approveCorrectionFinal = async (
     payload: { correctionId: input.correctionId, baselineId: result.baselineId }
   });
   return result;
-};
-
-export const ensureDemoRoleSwitchAllowed = (isDemo: boolean) => {
-  if (!isDemo) {
-    throw new ForbiddenError("Pikavaihto on sallittu vain demo-tilassa");
-  }
 };
