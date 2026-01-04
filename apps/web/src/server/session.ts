@@ -4,8 +4,8 @@ import type { SessionUser } from "@ennuste/shared";
 import { AuthError } from "@ennuste/shared";
 import { createServices } from "./services";
 
-const COOKIE_NAME = "ennuste_session";
-const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 8; // 8h
+export const COOKIE_NAME = "ennuste_session";
+export const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 8; // 8h
 
 const getSecret = () => {
   const secret = process.env.SESSION_SECRET;

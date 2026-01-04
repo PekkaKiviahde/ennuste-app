@@ -73,6 +73,18 @@ Hotfix‑ohjeet ovat runbookeja:
 
 ---
 
+## ✅ CI‑minimi (integraatiotestit)
+
+Pakolliset ympäristömuuttujat, jotta integraatiotestit eivät skippaa:
+
+- `DATABASE_URL`
+- `SESSION_SECRET`
+- `NODE_ENV=test` (suositus)
+
+Lisätiedot: `docs/env-setup.md`.
+
+---
+
 ## Dokumentaatiokäytäntö
 
 - Tämä on ainoa master‑README dokumentaatiolle
