@@ -1133,3 +1133,28 @@
 - Next LUKITTU suggestion: LUKITTU: KPI-graafit + poikkeamavarit raporttiin.
 - Key files: apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
 - How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [IN_PROGRESS] [L-20260104-046] LUKITTU: NPSS/cutover verifiointi tulosdokumentti
+- Goal: dokumentoida NPSS/cutover-verifioinnin tulokset demo-projektille.
+- Scope: Docs (dokumentaatio) + DB (tietokanta) + Tests (testit).
+- Deliverables: docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md ja paivitetty docs/CODEX_HISTORY.md.
+- Key files: docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [DONE] [L-20260104-046] LUKITTU: NPSS/cutover verifiointi tulosdokumentti
+- Summary: verifiointitulokset dokumentoitu; SQL-ajo kuvattu; COST-only vs NPSS opening -summat kirjattu.
+- Tests: npm run lint (pending); npm run typecheck (pending); npm run test (pending).
+- Notes: COST-only 5662555.33, NPSS opening 5635055.33, kuukausiketjussa 0 NPSS-rivia.
+
+[2026-01-04] [HANDOFF] [L-20260104-046]
+- Where we are: NPSS/cutover-verifiointi dokumentoitu Demo projekti A:lle.
+- What changed: lisatty docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md ja paivitetty docs/CODEX_HISTORY.md.
+- What remains: vahvista haluttu raportointinakyma ja mahdollinen ADR-tarkennus.
+- Next LUKITTU suggestion: LUKITTU: raporttinakyma ja selitteet NPSS/cutover-erottelulle.
+- Key files: docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [DONE] [L-20260104-046] LUKITTU: NPSS/cutover verifiointi tulosdokumentti (test update)
+- Summary: testit ajettu ja onnistui.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: paivitys aiemman DONE-merkinnan testitilaan.
