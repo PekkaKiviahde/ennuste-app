@@ -1458,3 +1458,16 @@
 - Key files: apps/web/src/app/sales/page.tsx, tools/scripts/ui-workflow-test.mjs, docs/CODEX_HISTORY.md
 - Tests run: BASE_URL=... ROLE_SUFFIX=a PIN=1234 node tools/scripts/ui-workflow-test.mjs (ok)
 - Next: commitoi muutokset ja paivita state.json
+
+[2026-01-04] [SESSION_START] main 2fedbca
+- Active LUKITTU: L-20260104-055
+- History tail: [PROGRESS] [L-20260104-055] UI-workflow-testi korjattu
+- Repo: clean, ahead 0/behind 0
+- DB status: unknown
+- Next action: tarkista LUKITTU #1 deliverablet ja paata seuraavat tyot
+
+[2026-01-04] [PROGRESS] [L-20260104-055] Repo-hygienia: uudet tiedostot seurantaan
+- What I did: lisasin .vscode-asetukset, testidata-csv:t ja zip-paketin seurantaan kayttajan pyynnosta.
+- Key files: .vscode/settings.json, excel/testdata_generated_kaarna/bad_codes.csv, excel/testdata_generated_kaarna/broken_totals.csv, excel/testdata_generated_kaarna/duplicates_conflicts.csv, excel/testdata_generated_kaarna/numbers_formats.csv, excel/testdata_generated_kaarna/seed_control.csv, excel/testdata_generated_kaarna/text_encoding.csv, generate_testdata_from_tavoitearvio.py, testdata_generated_kaarna.zip, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: tarkista LUKITTU #1 deliverablet ja paata seuraavat tyot
