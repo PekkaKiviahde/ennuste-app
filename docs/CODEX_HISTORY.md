@@ -1209,3 +1209,9 @@
 - Key files: apps/web/src/app/api/health/route.ts, apps/web/src/app/api/me/route.ts, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: jatka audit-loki- ja raportointireitteihin tai tee puutteiden koonti
+
+[2026-01-04] [PROGRESS] [L-20260104-048] Audit-loki ja raportointireitit tarkistettu
+- What I did: tarkistettu /api/audit ja /api/report/* virheilmoitukset + permissionit; ei muutoksia.
+- Key files: apps/web/src/app/api/audit/route.ts, apps/web/src/app/api/report/forecast/route.ts, apps/web/src/app/api/report/planning/route.ts, apps/web/src/app/api/report/target-estimate/route.ts, apps/web/src/app/api/report/mapping-lines/route.ts, apps/web/src/app/api/report/work-phases/route.ts, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: koosta LUKITTU #1 puutelista ja tarvittavat muutokset
