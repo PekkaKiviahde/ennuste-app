@@ -1471,3 +1471,15 @@
 - Key files: .vscode/settings.json, excel/testdata_generated_kaarna/bad_codes.csv, excel/testdata_generated_kaarna/broken_totals.csv, excel/testdata_generated_kaarna/duplicates_conflicts.csv, excel/testdata_generated_kaarna/numbers_formats.csv, excel/testdata_generated_kaarna/seed_control.csv, excel/testdata_generated_kaarna/text_encoding.csv, generate_testdata_from_tavoitearvio.py, testdata_generated_kaarna.zip, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: tarkista LUKITTU #1 deliverablet ja paata seuraavat tyot
+
+[2026-01-04] [PROGRESS] [L-20260104-055] DB-status yritetty
+- What I did: ajoin npm run db:status, mutta DATABASE_URL puuttui.
+- Key files: tools/scripts/db-status.mjs, docs/CODEX_HISTORY.md
+- Tests run: npm run db:status (fail: DATABASE_URL puuttuu)
+- Next: pyyda DATABASE_URL tai paata ohitetaanko DB-status
+
+[2026-01-04] [PROGRESS] [L-20260104-055] DB-status ok + seed-muutos hyvaksytty
+- What I did: ajoin db:status onnistuneesti (.env DATABASE_URL); jatkan db-seed-demo.mjs laajennuksen kanssa.
+- Key files: tools/scripts/db-status.mjs, tools/scripts/db-seed-demo.mjs, docs/CODEX_HISTORY.md
+- Tests run: DATABASE_URL=postgresql://codex:codex@127.0.0.1:5433/codex npm run db:status (ok)
+- Next: paata LUKITTU #1 jatko ja arvioi tarvittavat muutokset

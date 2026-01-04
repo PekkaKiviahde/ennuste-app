@@ -6,18 +6,242 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-const demoUsers = [
-  { username: "site.foreman", display: "Tyonjohtaja", role: "SITE_FOREMAN", scope: "project" },
-  { username: "general.foreman", display: "Vastaava mestari", role: "GENERAL_FOREMAN", scope: "project" },
-  { username: "project.manager", display: "Tyopaallikko", role: "PROJECT_MANAGER", scope: "project" },
-  { username: "production.manager", display: "Tuotantojohtaja", role: "PRODUCTION_MANAGER", scope: "project" },
-  { username: "procurement", display: "Hankinta", role: "PROCUREMENT", scope: "project" },
-  { username: "exec.readonly", display: "Johto (luku)", role: "EXEC_READONLY", scope: "project" },
-  { username: "org.admin", display: "Organisaatio-admin", role: "ORG_ADMIN", scope: "org" },
-  { username: "seller", display: "Myyja", role: "SELLER", scope: "org" }
+const baseDemoUsers = [
+  { username: "site.foreman", display: "Tyonjohtaja", projectRoles: ["SITE_FOREMAN"] },
+  { username: "general.foreman", display: "Vastaava mestari", projectRoles: ["GENERAL_FOREMAN"] },
+  { username: "project.manager", display: "Tyopaallikko", projectRoles: ["PROJECT_MANAGER"] },
+  { username: "production.manager", display: "Tuotantojohtaja", projectRoles: ["PRODUCTION_MANAGER"] },
+  { username: "procurement", display: "Hankinta", projectRoles: ["PROCUREMENT"] },
+  { username: "exec.readonly", display: "Johto (luku)", projectRoles: ["EXEC_READONLY"] },
+  { username: "org.admin", display: "Organisaatio-admin", orgRoles: ["ORG_ADMIN"] },
+  { username: "seller", display: "Myyja", orgRoles: ["SELLER"] }
 ];
 
+const buildUsersWithSuffix = (users, suffix) =>
+  users.map((user) => ({
+    ...user,
+    username: `${user.username}.${suffix}`,
+    display: `${user.display} (${suffix.toUpperCase()})`,
+    email: `${user.username}.${suffix}@demo.local`,
+    projects: ["*"]
+  }));
+
 const costTypes = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
+
+const kideProjects = [
+  {
+    name: "Kide Kaarna",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P0_PROJECT_DRAFT",
+    details: {
+      phase: "Suunnittelu",
+      address: "Kaarenkuja 1, Oulu",
+      startDate: "2026-01-15",
+      endDate: "2026-12-15",
+      managerName: "Petri Paallikko",
+      managerEmail: "petri.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/seed_control.csv"
+    }
+  },
+  {
+    name: "Kide Puro",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P1_PROJECT_ACTIVE",
+    details: {
+      phase: "Maanrakennus",
+      address: "Puronkuja 4, Oulu",
+      startDate: "2026-02-01",
+      endDate: "2026-12-20",
+      managerName: "Petri Paallikko",
+      managerEmail: "petri.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/numbers_formats.csv"
+    }
+  },
+  {
+    name: "Kide Kivi",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P1_PROJECT_ACTIVE",
+    details: {
+      phase: "Perustukset",
+      address: "Kivikatu 9, Oulu",
+      startDate: "2026-02-10",
+      endDate: "2027-01-15",
+      managerName: "Petri Paallikko",
+      managerEmail: "petri.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/broken_totals.csv"
+    }
+  },
+  {
+    name: "Kide Sointu",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P1_PROJECT_ACTIVE",
+    details: {
+      phase: "Runko",
+      address: "Soinnintie 6, Oulu",
+      startDate: "2026-03-01",
+      endDate: "2027-02-28",
+      managerName: "Sari Paallikko",
+      managerEmail: "sari.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/bad_codes.csv"
+    }
+  },
+  {
+    name: "Kide Kajo",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P1_PROJECT_ACTIVE",
+    details: {
+      phase: "Julkisivu",
+      address: "Kajokuja 3, Oulu",
+      startDate: "2026-03-20",
+      endDate: "2027-03-15",
+      managerName: "Sari Paallikko",
+      managerEmail: "sari.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/duplicates_conflicts.csv"
+    }
+  },
+  {
+    name: "Kide Utu",
+    customer: "Kide-Asunnot Ot",
+    projectState: "P2_PROJECT_ARCHIVED",
+    details: {
+      phase: "Sisavalmius",
+      address: "Utukuja 2, Oulu",
+      startDate: "2025-04-10",
+      endDate: "2025-12-01",
+      managerName: "Sari Paallikko",
+      managerEmail: "sari.paallikko@kide.local",
+      targetEstimateFile: "excel/testdata_generated_kaarna/text_encoding.csv"
+    }
+  }
+];
+
+const kideUsers = [
+  {
+    username: "kide.pm1",
+    display: "Petri Paallikko",
+    email: "petri.paallikko@kide.local",
+    projectRoles: ["PROJECT_MANAGER"],
+    projects: ["Kide Kaarna", "Kide Puro", "Kide Kivi"]
+  },
+  {
+    username: "kide.pm2",
+    display: "Sari Paallikko",
+    email: "sari.paallikko@kide.local",
+    projectRoles: ["PROJECT_MANAGER"],
+    projects: ["Kide Sointu", "Kide Kajo", "Kide Utu"]
+  },
+  {
+    username: "kide.gf1",
+    display: "Vastaava Mestari 1",
+    email: "gf1@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Kaarna"]
+  },
+  {
+    username: "kide.gf2",
+    display: "Vastaava Mestari 2",
+    email: "gf2@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Puro"]
+  },
+  {
+    username: "kide.gf3",
+    display: "Vastaava Mestari 3",
+    email: "gf3@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Kivi"]
+  },
+  {
+    username: "kide.gf4",
+    display: "Vastaava Mestari 4",
+    email: "gf4@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Sointu"]
+  },
+  {
+    username: "kide.gf5",
+    display: "Vastaava Mestari 5",
+    email: "gf5@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Kajo"]
+  },
+  {
+    username: "kide.gf6",
+    display: "Vastaava Mestari 6",
+    email: "gf6@kide.local",
+    projectRoles: ["GENERAL_FOREMAN"],
+    projects: ["Kide Utu"]
+  },
+  {
+    username: "kide.sf1",
+    display: "Tyonjohtaja 1",
+    email: "sf1@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Kaarna"]
+  },
+  {
+    username: "kide.sf2",
+    display: "Tyonjohtaja 2",
+    email: "sf2@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Puro"]
+  },
+  {
+    username: "kide.sf3",
+    display: "Tyonjohtaja 3",
+    email: "sf3@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Kivi"]
+  },
+  {
+    username: "kide.sf4",
+    display: "Tyonjohtaja 4",
+    email: "sf4@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Sointu"]
+  },
+  {
+    username: "kide.sf5",
+    display: "Tyonjohtaja 5",
+    email: "sf5@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Kajo"]
+  },
+  {
+    username: "kide.sf6",
+    display: "Tyonjohtaja 6",
+    email: "sf6@kide.local",
+    projectRoles: ["SITE_FOREMAN"],
+    projects: ["Kide Utu"]
+  },
+  {
+    username: "kide.prod",
+    display: "Tuotantojohtaja",
+    email: "tuotanto@kide.local",
+    projectRoles: ["PRODUCTION_MANAGER"],
+    projects: ["*"]
+  },
+  {
+    username: "kide.proc",
+    display: "Hankinta",
+    email: "hankinta@kide.local",
+    projectRoles: ["PROCUREMENT"],
+    projects: ["*"]
+  },
+  {
+    username: "kide.exec",
+    display: "Johto Luku",
+    email: "johto@kide.local",
+    projectRoles: ["EXEC_READONLY"],
+    projects: ["*"]
+  },
+  {
+    username: "kide.orgadmin",
+    display: "Organisaatio-admin",
+    email: "admin@kide.local",
+    orgRoles: ["ORG_ADMIN"]
+  }
+];
 
 const tenantConfigs = [
   {
@@ -25,16 +249,40 @@ const tenantConfigs = [
     orgSlug: "demo-a",
     orgName: "Demo organisaatio A",
     tenantName: "Demo tenant A",
-    projectName: "Demo projekti A",
-    projectCustomer: "Demo asiakas A"
+    users: buildUsersWithSuffix(baseDemoUsers, "a"),
+    projects: [
+      {
+        name: "Demo projekti A",
+        customer: "Demo asiakas A",
+        projectState: "P1_PROJECT_ACTIVE",
+        seedDemoData: true,
+        seedLabel: "A"
+      }
+    ]
   },
   {
     suffix: "b",
     orgSlug: "demo-b",
     orgName: "Demo organisaatio B",
     tenantName: "Demo tenant B",
-    projectName: "Demo projekti B",
-    projectCustomer: "Demo asiakas B"
+    users: buildUsersWithSuffix(baseDemoUsers, "b"),
+    projects: [
+      {
+        name: "Demo projekti B",
+        customer: "Demo asiakas B",
+        projectState: "P1_PROJECT_ACTIVE",
+        seedDemoData: true,
+        seedLabel: "B"
+      }
+    ]
+  },
+  {
+    suffix: "kide",
+    orgSlug: "kide-asunnot-ot",
+    orgName: "Kide-Asunnot Ot",
+    tenantName: "Kide-Asunnot Ot",
+    users: kideUsers,
+    projects: kideProjects
   }
 ];
 
@@ -63,28 +311,38 @@ const seedTenant = async (client, config) => {
 
   const tenantId = await ensureTenant(client, config.tenantName);
 
-  const existingProject = await client.query(
-    "SELECT project_id FROM projects WHERE name = $1 AND organization_id = $2::uuid",
-    [config.projectName, organizationId]
-  );
-
-  let projectId = existingProject.rows[0]?.project_id;
-  if (!projectId) {
-    const projectResult = await client.query(
-      "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, 'P1_PROJECT_ACTIVE', now()) RETURNING project_id",
-      [config.projectName, config.projectCustomer, organizationId, tenantId]
+  const projectIdsByName = new Map();
+  for (const project of config.projects) {
+    const existingProject = await client.query(
+      "SELECT project_id FROM projects WHERE name = $1 AND organization_id = $2::uuid",
+      [project.name, organizationId]
     );
-    projectId = projectResult.rows[0].project_id;
+    let projectId = existingProject.rows[0]?.project_id;
+    if (!projectId) {
+      const projectResult = await client.query(
+        "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, project_details, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, $5::project_state, $6::jsonb, now()) RETURNING project_id",
+        [
+          project.name,
+          project.customer || null,
+          organizationId,
+          tenantId,
+          project.projectState || "P1_PROJECT_ACTIVE",
+          JSON.stringify(project.details || {})
+        ]
+      );
+      projectId = projectResult.rows[0].project_id;
+    }
+    projectIdsByName.set(project.name, projectId);
   }
 
-  for (const user of demoUsers) {
-    const username = `${user.username}.${config.suffix}`;
-    const display = `${user.display} (${config.suffix.toUpperCase()})`;
+  const userIdsByUsername = new Map();
+  for (const user of config.users) {
     const userResult = await client.query(
       "INSERT INTO users (username, display_name, email, created_by, pin_hash) VALUES ($1, $2, $3, 'seed', crypt('1234', gen_salt('bf'))) ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name, pin_hash = EXCLUDED.pin_hash RETURNING user_id",
-      [username, display, `${username}@demo.local`]
+      [user.username, user.display, user.email || `${user.username}@demo.local`]
     );
     const userId = userResult.rows[0].user_id;
+    userIdsByUsername.set(user.username, userId);
 
     const membershipExists = await client.query(
       "SELECT 1 FROM organization_memberships WHERE organization_id = $1::uuid AND user_id = $2::uuid AND left_at IS NULL",
@@ -97,31 +355,67 @@ const seedTenant = async (client, config) => {
       );
     }
 
-    if (user.scope === "org") {
+    for (const orgRole of user.orgRoles || []) {
       const orgRoleExists = await client.query(
         "SELECT 1 FROM organization_role_assignments WHERE organization_id = $1::uuid AND user_id = $2::uuid AND role_code = $3 AND revoked_at IS NULL",
-        [organizationId, userId, user.role]
+        [organizationId, userId, orgRole]
       );
       if (orgRoleExists.rowCount === 0) {
         await client.query(
           "INSERT INTO organization_role_assignments (organization_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, $3, 'seed')",
-          [organizationId, userId, user.role]
-        );
-      }
-    } else {
-      const projectRoleExists = await client.query(
-        "SELECT 1 FROM project_role_assignments WHERE project_id = $1::uuid AND user_id = $2::uuid AND role_code = $3 AND revoked_at IS NULL",
-        [projectId, userId, user.role]
-      );
-      if (projectRoleExists.rowCount === 0) {
-        await client.query(
-          "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, $3, 'seed')",
-          [projectId, userId, user.role]
+          [organizationId, userId, orgRole]
         );
       }
     }
   }
 
+  const allProjectNames = [...projectIdsByName.keys()];
+  for (const user of config.users) {
+    const projectRoles = user.projectRoles || [];
+    if (projectRoles.length === 0) {
+      continue;
+    }
+    const targetProjects =
+      user.projects && user.projects.includes("*")
+        ? allProjectNames
+        : user.projects && user.projects.length > 0
+          ? user.projects
+          : allProjectNames;
+    const userId = userIdsByUsername.get(user.username);
+    if (!userId) {
+      continue;
+    }
+    for (const projectName of targetProjects) {
+      const projectId = projectIdsByName.get(projectName);
+      if (!projectId) {
+        continue;
+      }
+      for (const roleCode of projectRoles) {
+        const projectRoleExists = await client.query(
+          "SELECT 1 FROM project_role_assignments WHERE project_id = $1::uuid AND user_id = $2::uuid AND role_code = $3 AND revoked_at IS NULL",
+          [projectId, userId, roleCode]
+        );
+        if (projectRoleExists.rowCount === 0) {
+          await client.query(
+            "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, $3, 'seed')",
+            [projectId, userId, roleCode]
+          );
+        }
+      }
+    }
+  }
+
+  for (const project of config.projects) {
+    if (project.seedDemoData) {
+      const projectId = projectIdsByName.get(project.name);
+      if (projectId) {
+        await seedDemoProjectData(client, projectId, project.seedLabel || config.suffix);
+      }
+    }
+  }
+};
+
+const seedDemoProjectData = async (client, projectId, label) => {
   const litteraCodes = [
     { code: "1100", title: "Runko", group: 1 },
     { code: "1110", title: "Runko - valu", group: 1 },
@@ -307,13 +601,13 @@ const seedTenant = async (client, config) => {
 
   const workPhaseExisting = await client.query(
     "SELECT work_phase_id FROM work_phases WHERE project_id = $1::uuid AND name = $2",
-    [projectId, `Runko ${config.suffix.toUpperCase()}`]
+    [projectId, `Runko ${label.toUpperCase()}`]
   );
   let workPhaseId = workPhaseExisting.rows[0]?.work_phase_id;
   if (!workPhaseId) {
     const workPhaseResult = await client.query(
       "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, status, created_by) VALUES ($1::uuid, $2, $3, 'seed', $4::uuid, 'ACTIVE', 'seed') RETURNING work_phase_id",
-      [projectId, `Runko ${config.suffix.toUpperCase()}`, "Runko tyovaihe", litteraByCode["1100"]]
+      [projectId, `Runko ${label.toUpperCase()}`, "Runko tyovaihe", litteraByCode["1100"]]
     );
     workPhaseId = workPhaseResult.rows[0].work_phase_id;
   }
