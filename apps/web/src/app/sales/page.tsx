@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { requireSession } from "../server/session";
-import { logoutAction } from "../server/actions/auth";
+import { requireSession } from "../../server/session";
+import { logoutAction } from "../../server/actions/auth";
 
 export default async function SalesPage() {
   const session = await requireSession();

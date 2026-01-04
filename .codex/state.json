@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-055",
   "branch": "main",
-  "sha": "50ede3d",
+  "sha": "950ba6e",
   "timestamp": "2026-01-04",
-  "next_step": "Paatetaan LUKITTU #7 fokus (UI-parannukset tai raportoinnin lisaselitteet)."
+  "next_step": "Commitoi korjaus /sales import-polkuun ja UI-workflow-testin cookie-parsimiseen; push."
 }

@@ -89,8 +89,11 @@ const login = async (username) => {
     throw new Error(`Missing set-cookie for ${username}.`);
   }
 
-  const cookie = setCookie.split(";")[0];
-  return cookie;
+  const match = setCookie.match(/ennuste_session=[^;]+/);
+  if (!match) {
+    throw new Error(`Missing ennuste_session cookie for ${username}.`);
+  }
+  return match[0];
 };
 
 const assertPermissions = (username, permissions, expected) => {

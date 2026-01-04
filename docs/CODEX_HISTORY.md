@@ -1439,3 +1439,22 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #8 tavoite ja deliverablet
+
+[2026-01-04] [SESSION_START] main 950ba6e
+- Active LUKITTU: L-20260104-055
+- History tail: [PROGRESS] [L-20260104-055] LUKITTU #8 aloitus
+- Repo: dirty, ahead 0/behind 0
+- DB status: pending 0 (applied 27)
+- Next action: aja migraatiot/seed ja UI-workflow-testi SELLER-roolille
+
+[2026-01-04] [PROGRESS] [L-20260104-055] UI-workflow-testi (SELLER)
+- What I did: ajoin 0010_migraation ja demo-seedauksen; ajoin UI-workflow-testin (fail); korjasin set-cookie parsimisen; ajoin testin uudelleen (fail /sales 500).
+- Key files: tools/scripts/ui-workflow-test.mjs, tools/scripts/db-seed-demo.mjs, migrations/0010_add_seller_role.sql, docs/CODEX_HISTORY.md
+- Tests run: DATABASE_URL=... node tools/scripts/db-migrate.mjs; DATABASE_URL=... node tools/scripts/db-seed-demo.mjs; BASE_URL=... node tools/scripts/ui-workflow-test.mjs (fail: /sales 500)
+- Next: selvita miksi /api/login ja /sales palauttavat 500 Codespaces-ymparistossa; aja UI-testi uudelleen
+
+[2026-01-04] [PROGRESS] [L-20260104-055] UI-workflow-testi korjattu
+- What I did: korjasin /sales-sivun import-polun; ajoin UI-workflow-testin onnistuneesti kaikille rooleille.
+- Key files: apps/web/src/app/sales/page.tsx, tools/scripts/ui-workflow-test.mjs, docs/CODEX_HISTORY.md
+- Tests run: BASE_URL=... ROLE_SUFFIX=a PIN=1234 node tools/scripts/ui-workflow-test.mjs (ok)
+- Next: commitoi muutokset ja paivita state.json
