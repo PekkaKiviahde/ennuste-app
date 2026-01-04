@@ -1277,3 +1277,22 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
 - Next: paata LUKITTU #2 sulkeminen (DONE + HANDOFF) tai jatkotoimet
+
+[2026-01-04] [DONE] [L-20260104-049] LUKITTU: Workflow-sivut + endpointit
+- Summary: workflow-polku UI/endpointit kartoitettu ja verifioitu; /api/report/planning korjattu fallbackilla; UI-kavelyt vahvistettu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: /api/me 401 + suomenkielinen virhe ok; /api/report/* palauttaa dataa kirjautuneena.
+
+[2026-01-04] [HANDOFF] [L-20260104-049]
+- Where we are: workflow-sivut ja endpointit vahvistettu; LUKITTU #2 valmis.
+- What changed: report-planning fallback lisatty; UI/endpoint-verifioinnit kirjattu.
+- What remains: mahdolliset lisaparannukset (esim. mapping-versions endpointin UI-avaus).
+- Next LUKITTU suggestion: LUKITTU: seuraavat workflow-sivut/endpointit tai lisaparannukset raportointiin.
+- Key files: packages/infrastructure/src/report.ts, apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/(app)/loki/page.tsx, apps/web/src/app/(app)/raportti/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-050] LUKITTU #3 aloitus
+- What I did: suljettu LUKITTU #2 DONE + HANDOFF; alustettu uusi LUKITTU #3.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #3 tavoite ja deliverablet
