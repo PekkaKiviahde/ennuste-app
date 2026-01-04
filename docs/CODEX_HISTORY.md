@@ -1738,3 +1738,54 @@
 - Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/server/actions/auth.ts, packages/infrastructure/src/auth.ts, packages/application/src/ports.ts, packages/application/src/usecases.ts
 - Tests run: ei ajettu
 - Next: tarkenna navin tyyli + aja UI-kavely
+
+[2026-01-04] [PROGRESS] [L-20260104-062] UI-kavely ok (navin konteksti)
+- What I did: kirjattu kayttajan vahvistus navin kontekstista ja valikoista.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, header konteksti + navilinkit)
+- Next: sulje LUKITTU #8
+
+[2026-01-04] [DONE] [L-20260104-062] LUKITTU: navin modernisointi
+- Summary: navissa naytetaan organisaatio + projekti ja projektivalitsin lisatty.
+- Tests: UI-kavely (ok, header konteksti + navilinkit).
+- Notes: projektivalitsin toimii usealle projektille (edellyttaa kayttajan useita projekteja).
+
+[2026-01-04] [HANDOFF] [L-20260104-062]
+- Where we are: LUKITTU #8 suljettu; navin konteksti näkyy ja valitsin lisatty.
+- What changed: navin konteksti + projektivalitsin; auth-porttiin listaus/vaihto.
+- What remains: vahvista projektivalitsin kaytannossa (jos useita projekteja).
+- Next LUKITTU suggestion: LUKITTU: paranna navin ulkoasua ja lisää projektilistaus-näkymä.
+- Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/server/actions/auth.ts, packages/infrastructure/src/auth.ts, packages/application/src/ports.ts, packages/application/src/usecases.ts, docs/CODEX_HISTORY.md
+- How to resume: kokeile vaihtaa projektia (jos useita) ja tarkista raportti
+
+[2026-01-04] [SESSION_START] main be39641
+- Active LUKITTU: L-20260104-063
+- History tail: [HANDOFF] [L-20260104-062]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: testaa projektivalitsin useamman projektin kayttajalla
+
+[2026-01-04] [PROGRESS] [L-20260104-063] Repo-hygienia: logo seurantaan
+- What I did: lisasin logo_draft_jp_v2.png seurantaan kayttajan pyynnolla.
+- Key files: logo_draft_jp_v2.png, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: testaa projektivalitsin useamman projektin kayttajalla
+
+[2026-01-04] [PROGRESS] [L-20260104-063] Projektivalitsin testattu
+- What I did: kirjattu kayttajan vahvistus projektivalitsimen kontekstista.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, header konteksti + navilinkit + valitsin)
+- Next: sulje LUKITTU #9
+
+[2026-01-04] [DONE] [L-20260104-063] LUKITTU: projektivalitsimen testi
+- Summary: projektivalitsin naytti kontekstin ja navigaatio latautui oikein.
+- Tests: UI-kavely (ok, header konteksti + navilinkit + valitsin).
+- Notes: raportti ei erikseen vahvistettu.
+
+[2026-01-04] [HANDOFF] [L-20260104-063]
+- Where we are: LUKITTU #9 suljettu; projektivalitsin vahvistettu.
+- What changed: paivitetty docs/CODEX_HISTORY.md; logo lisatty seurantaan.
+- What remains: vahvista raportti projektivalitsimen vaihdon jalkeen.
+- Next LUKITTU suggestion: LUKITTU: raportti + projekti-vaihto yhdistelmatesti.
+- Key files: docs/CODEX_HISTORY.md, logo_draft_jp_v2.png
+- How to resume: testaa projektin vaihto ja raportti
