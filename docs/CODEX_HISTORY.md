@@ -1221,3 +1221,29 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: paata tarvittavat korjaukset tai siirry LUKITTU #2 suunnitteluun
+
+[2026-01-04] [DONE] [L-20260104-048] LUKITTU: Perusta: migraatioanalyysi + ajettava web-runko + auth/RBAC/tenant + demo-roolit + katkosjatko
+- Summary: db:status lisatty ja ajettu; auth/RBAC/tenant + demo-login auditoitu; health/me + audit/report reitit varmistettu; katkosjatko paivitetty.
+- Tests: npm run db:status (ok); npm run lint (pending); npm run typecheck (pending); npm run test (pending).
+- Notes: APP_PORT pidetaan 3001 (.env), vaikka 3000-URL toimii reitityksella; pending-migraatioita 0.
+
+[2026-01-04] [HANDOFF] [L-20260104-048]
+- Where we are: LUKITTU #1 valmis; pohja kasassa ja auditit tehty.
+- What changed: db:status-skripti ja auditointimerkinnat lisatty; katkosjatko paivitetty.
+- What remains: suoritettavat lint/typecheck/test jos halutaan DoD valmiiksi.
+- Next LUKITTU suggestion: LUKITTU: workflow-sivut + endpointit (suunnitelma -> ennustetapahtuma -> lukitus -> loki -> raportti).
+- Key files: tools/scripts/db-status.mjs, docs/CODEX_HISTORY.md, apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/(app)/tyonohjaus/page.tsx
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [IN_PROGRESS] [L-20260104-049] LUKITTU: Workflow-sivut + endpointit
+- Goal: tarkentaa MVP-tyonohjausvirran sivut ja endpointit (suunnitelma -> ennustetapahtuma -> lukitus -> loki -> raportti).
+- Scope: UI + API + Docs.
+- Deliverables: suunnittelukartoitus ja puutteiden paikkaus.
+- Key files: apps/web/src/app/(app)/suunnittelu/page.tsx, apps/web/src/app/(app)/ennuste/page.tsx, apps/web/src/app/(app)/tyonohjaus/page.tsx, apps/web/src/app/(app)/loki/page.tsx, apps/web/src/app/(app)/raportti/page.tsx
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-049] LUKITTU #2 aloitettu
+- What I did: suljettu LUKITTU #1 DONE + HANDOFF; avattu LUKITTU #2 IN_PROGRESS; paivitetty .codex/state.json.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: laadi workflow-sivut + endpointit kartoitus ja toteutusjarjestys

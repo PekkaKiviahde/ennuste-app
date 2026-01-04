@@ -1,7 +1,7 @@
 {
-  "current_lukittu_id": "L-20260104-048",
+  "current_lukittu_id": "L-20260104-049",
   "branch": "main",
-  "sha": "b3894d2",
+  "sha": "c5cfe0b",
   "timestamp": "2026-01-04",
-  "next_step": "Vahvista LUKITTU #1 puutelista ja paata korjaukset; vaihtoehtoisesti siirry LUKITTU #2 suunnitteluun."
+  "next_step": "Laadi LUKITTU #2 kartoitus: workflow-sivut + endpointit ja mahdolliset puutteet."
 }
