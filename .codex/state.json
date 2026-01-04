@@ -1,7 +1,7 @@
 {
-  "current_lukittu_id": "L-20260104-055",
+  "current_lukittu_id": "none",
   "branch": "main",
-  "sha": "2fedbca",
+  "sha": "73bf8c9",
   "timestamp": "2026-01-04",
-  "next_step": "Tarkista LUKITTU #1 deliverablet ja paata seuraavat tyot."
+  "next_step": "Selvita NEXT_REDIRECT kirjautumisessa ja tee UI-kavely (login -> roolireititys -> raportit)."
 }

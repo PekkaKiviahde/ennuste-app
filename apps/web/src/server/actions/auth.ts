@@ -1,12 +1,14 @@
 "use server";
 
 import { login } from "@ennuste/application";
+import { AppError } from "@ennuste/shared";
 import { createServices } from "../services";
 import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, setSessionCookie } from "../session";
 import { redirect } from "next/navigation";
 
 export type LoginFormState = {
   error?: string | null;
+  errorLog?: string | null;
 };
 
 const resolvePostLoginRedirect = (permissions: string[]) => {
@@ -28,8 +30,28 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
     setSessionCookie(sessionId);
     redirect(resolvePostLoginRedirect(result.session.permissions));
   } catch (error) {
+    if (error instanceof Error) {
+      const digest = (error as { digest?: string }).digest;
+      if (error.message === "NEXT_REDIRECT" || (digest && digest.startsWith("NEXT_REDIRECT"))) {
+        throw error;
+      }
+    }
     const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
-    return { error: message };
+    const details: string[] = [];
+    details.push(`time=${new Date().toISOString()}`);
+    details.push(`username=${username || "-"}`);
+    details.push(`projectId=${projectId ?? "-"}`);
+    details.push(`error=${message}`);
+    if (error instanceof AppError) {
+      details.push(`code=${error.code}`);
+      details.push(`status=${error.status}`);
+      if (error.details) {
+        details.push(`details=${JSON.stringify(error.details)}`);
+      }
+    } else if (error instanceof Error) {
+      details.push(`type=${error.name}`);
+    }
+    return { error: message, errorLog: details.join("\n") };
   }
 };
 

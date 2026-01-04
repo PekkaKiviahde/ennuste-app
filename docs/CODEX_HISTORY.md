@@ -1483,3 +1483,53 @@
 - Key files: tools/scripts/db-status.mjs, tools/scripts/db-seed-demo.mjs, docs/CODEX_HISTORY.md
 - Tests run: DATABASE_URL=postgresql://codex:codex@127.0.0.1:5433/codex npm run db:status (ok)
 - Next: paata LUKITTU #1 jatko ja arvioi tarvittavat muutokset
+
+[2026-01-04] [SESSION_START] main 73bf8c9
+- Active LUKITTU: L-20260104-055
+- History tail: [PROGRESS] [L-20260104-055] DB-status ok + seed-muutos hyvaksytty
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: kirjaa LUKITTU #1 deliverablet ja aloita migraatioanalyysi
+
+[2026-01-04] [PROGRESS] [L-20260104-055] Session-start + tila paivitetty
+- What I did: kirjattu SESSION_START ja paivitetty .codex/state.json jatkoa varten.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: tarkenna LUKITTU #1 deliverablet ja aloita migraatioanalyysi
+
+[2026-01-04] [PROGRESS] [L-20260104-055] Migraatioanalyysi paivitetty (0025-0027)
+- What I did: lisasin migraatioanalyysiin sessions-, import staging- ja konserni-onboarding -muutokset.
+- Key files: docs/MIGRATION_LOGIC_ANALYSIS.md, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: tarkenna LUKITTU #1 deliverablet (web-runko + auth/RBAC/tenant + demo-roolit)
+
+[2026-01-04] [PROGRESS] [L-20260104-055] LUKITTU #1 tilannekuva kirjattu
+- What I did: lisasin LUKITTU #1 deliverable-status -dokumentin.
+- Key files: docs/LUKITTU1_STATUS.md, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: paata seuraava LUKITTU #1 korjaus tai varmennus (db:status / UI-kavely)
+
+[2026-01-04] [PROGRESS] [L-20260104-055] DB-status ok
+- What I did: ajoin db:status .env DATABASE_URL:lla.
+- Key files: tools/scripts/db-status.mjs, docs/CODEX_HISTORY.md
+- Tests run: DATABASE_URL=postgresql://codex:codex@127.0.0.1:5433/codex npm run db:status (ok, pending 0)
+- Next: suorita UI-kavely ja valmistele LUKITTU #1 sulku
+
+[2026-01-04] [PROGRESS] [L-20260104-055] UI-kavely-aukko kirjattu
+- What I did: paivitin LUKITTU #1 tilannekuvaan UI-kavelyn puutteen ja katselmoin kirjautumisen muutokset.
+- Key files: docs/LUKITTU1_STATUS.md, apps/web/src/app/login/login-form.tsx, apps/web/src/server/actions/auth.ts
+- Tests run: ei ajettu
+- Next: sulje LUKITTU #1 ilman UI-kavelya (kayttajan pyynto)
+
+[2026-01-04] [DONE] [L-20260104-055] LUKITTU #1: migraatioanalyysi + web-runko + auth/RBAC/tenant + demo-roolit
+- Summary: migraatioanalyysi paivitetty (0025-0027); LUKITTU #1 status-dokki lisatty; db:status vahvistettu.
+- Tests: DATABASE_URL=postgresql://codex:codex@127.0.0.1:5433/codex npm run db:status (ok, pending 0); UI-kavely (ei suoritettu, NEXT_REDIRECT).
+- Notes: kirjautumisen demo- ja virheloki-parannukset lisatty (kayttajan muutos); UI-kavely jaa auki.
+
+[2026-01-04] [HANDOFF] [L-20260104-055]
+- Where we are: LUKITTU #1 suljettu ilman UI-kavelya; db:status ok; kirjautumisen demo/virheloki-muutokset mukana.
+- What changed: migraatioanalyysi paivitetty; LUKITTU #1 status-dokki lisatty; login UI + auth error log laajennettu (kayttajan muutos).
+- What remains: selvita NEXT_REDIRECT kirjautumisessa ja tee UI-kavely (login -> roolireititys -> raportit).
+- Next LUKITTU suggestion: LUKITTU: kirjautumisen NEXT_REDIRECT-juurisyyn korjaus + UI-kavely.
+- Key files: docs/MIGRATION_LOGIC_ANALYSIS.md, docs/LUKITTU1_STATUS.md, apps/web/src/app/login/login-form.tsx, apps/web/src/server/actions/auth.ts
+- How to resume: npm run db:status; yrita kirjautumista demo-tunnuksilla (PIN 1234)

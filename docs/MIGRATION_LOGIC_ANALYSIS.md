@@ -57,6 +57,12 @@ Paivitys: 2026-01-01
   - liitteet (attachments) append-only.
 - 0024_app_audit_log.sql
   - yleinen sovelluksen audit log (app_audit_log).
+- 0025_sessions.sql
+  - session-taulu tenant- ja projekti-sidonnalla (revokointi + expiry).
+- 0026_import_staging.sql
+  - importin staging-alue: batchit, tapahtumat, raakalinjat, editit ja issue-logit (append-only).
+- 0027_group_onboarding.sql
+  - konserni (groups), org-kutsulinkit (org_invites) ja konserniroolit + permissionit.
 
 ## Core entities + relationships
 
@@ -85,10 +91,17 @@ Paivitys: 2026-01-01
 - audit
   - app_audit_log yleinen append-only tapahtuma
   - mapping_event_log erillinen mapping-audit
+- sessions
+  - sessions: user_id + project_id + tenant_id sidottu kirjautuminen
+- import staging
+  - import_staging_*: esikäsittelyn audit trail ja korjaukset ennen varsinaista importtia
+- konserni
+  - groups + org_invites + group_role_assignments
 
 ## Invariants + constraints (what must always be true)
 
 - Append-only: triggerit estavat UPDATE/DELETE (planning_events, forecast_events, budget_lines, actual_cost_lines, audit-logit, ym.).
+- Import staging: append-only triggerit batch/even/line/issue-tauluihin (audit trail).
 - mapping_versions: ACTIVE ei saa overlapata (gist exclude).
 - mapping_lines: saa muokata vain DRAFT-tilassa (triggerit).
 - planning_events -> forecast_events: ennustetapahtuma vaatii viimeisimman suunnitelman status READY_FOR_FORECAST tai LOCKED.
@@ -109,6 +122,7 @@ Paivitys: 2026-01-01
 - projects.organization_id ja projects.tenant_id ovat tenant-rajat.
 - tenant_state_events + project_state_events tarjoavat audit trail -logiikan.
 - enforcement kaytannossa vaatii project_id + tenant_id rajausta kyselyissa ja session-scopessa.
+- sessions-taulu sitoo tenant_id:n session-kontekstiin (sovelluskerroksen tarkistus).
 
 ## Risks / gaps
 
@@ -117,3 +131,4 @@ Paivitys: 2026-01-01
 - app_audit_log on projekti-sidonnainen; org/tenant tapahtumat vaativat mahdollisen laajennuksen.
 - Joissain rooli- ja permission-kyselyissa ei ole explicit tenant-filteria (vaatii API-guard).
 - Useissa tauluissa actor/created_by on text -> heikko viite users-tauluun.
+- Konserniroolit ja -permissionit vaativat sovelluskerroksen enforce-polun, muuten ne eivat vaikuta.
