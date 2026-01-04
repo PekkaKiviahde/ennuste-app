@@ -71,6 +71,7 @@ Hotfix‑ohjeet ovat runbookeja:
 - decisions/
 - compliance/
 - tools-scripts.md
+- ui-workflow-test.md
 
 ---
 

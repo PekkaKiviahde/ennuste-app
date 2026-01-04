@@ -7,13 +7,14 @@ if (!databaseUrl) {
 }
 
 const demoUsers = [
-  { username: "site.foreman", display: "Tyonjohtaja", role: "SITE_FOREMAN" },
-  { username: "general.foreman", display: "Vastaava mestari", role: "GENERAL_FOREMAN" },
-  { username: "project.manager", display: "Tyopaallikko", role: "PROJECT_MANAGER" },
-  { username: "production.manager", display: "Tuotantojohtaja", role: "PRODUCTION_MANAGER" },
-  { username: "procurement", display: "Hankinta", role: "PROCUREMENT" },
-  { username: "exec.readonly", display: "Johto (luku)", role: "EXEC_READONLY" },
-  { username: "org.admin", display: "Organisaatio-admin", role: "ORG_ADMIN" }
+  { username: "site.foreman", display: "Tyonjohtaja", role: "SITE_FOREMAN", scope: "project" },
+  { username: "general.foreman", display: "Vastaava mestari", role: "GENERAL_FOREMAN", scope: "project" },
+  { username: "project.manager", display: "Tyopaallikko", role: "PROJECT_MANAGER", scope: "project" },
+  { username: "production.manager", display: "Tuotantojohtaja", role: "PRODUCTION_MANAGER", scope: "project" },
+  { username: "procurement", display: "Hankinta", role: "PROCUREMENT", scope: "project" },
+  { username: "exec.readonly", display: "Johto (luku)", role: "EXEC_READONLY", scope: "project" },
+  { username: "org.admin", display: "Organisaatio-admin", role: "ORG_ADMIN", scope: "org" },
+  { username: "seller", display: "Myyja", role: "SELLER", scope: "org" }
 ];
 
 const costTypes = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
@@ -96,7 +97,7 @@ const seedTenant = async (client, config) => {
       );
     }
 
-    if (user.role === "ORG_ADMIN") {
+    if (user.scope === "org") {
       const orgRoleExists = await client.query(
         "SELECT 1 FROM organization_role_assignments WHERE organization_id = $1::uuid AND user_id = $2::uuid AND role_code = $3 AND revoked_at IS NULL",
         [organizationId, userId, user.role]

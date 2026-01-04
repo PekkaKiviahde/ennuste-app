@@ -5,7 +5,8 @@ export type RoleCode =
   | "PRODUCTION_MANAGER"
   | "PROCUREMENT"
   | "EXEC_READONLY"
-  | "ORG_ADMIN";
+  | "ORG_ADMIN"
+  | "SELLER";
 
 export type PermissionCode =
   | "REPORT_READ"
@@ -17,7 +18,8 @@ export type PermissionCode =
   | "CORRECTION_APPROVE_FINAL"
   | "BASELINE_LOCK"
   | "MEMBERS_MANAGE"
-  | "TERMINOLOGY_MANAGE";
+  | "TERMINOLOGY_MANAGE"
+  | "SELLER_UI";
 
 export type SessionUser = {
   userId: string;

@@ -11,13 +11,15 @@ const demoRoles = [
   { label: "Hankinta (Tenant A)", username: "procurement.a", pin: "1234" },
   { label: "Johto (luku) (Tenant A)", username: "exec.readonly.a", pin: "1234" },
   { label: "Organisaatio-admin (Tenant A)", username: "org.admin.a", pin: "1234" },
+  { label: "Myyja (Tenant A)", username: "seller.a", pin: "1234" },
   { label: "Tyonjohtaja (Tenant B)", username: "site.foreman.b", pin: "1234" },
   { label: "Vastaava mestari (Tenant B)", username: "general.foreman.b", pin: "1234" },
   { label: "Tyopaallikko (Tenant B)", username: "project.manager.b", pin: "1234" },
   { label: "Tuotantojohtaja (Tenant B)", username: "production.manager.b", pin: "1234" },
   { label: "Hankinta (Tenant B)", username: "procurement.b", pin: "1234" },
   { label: "Johto (luku) (Tenant B)", username: "exec.readonly.b", pin: "1234" },
-  { label: "Organisaatio-admin (Tenant B)", username: "org.admin.b", pin: "1234" }
+  { label: "Organisaatio-admin (Tenant B)", username: "org.admin.b", pin: "1234" },
+  { label: "Myyja (Tenant B)", username: "seller.b", pin: "1234" }
 ];
 
 const isTextInput = (element: Element | null) => {

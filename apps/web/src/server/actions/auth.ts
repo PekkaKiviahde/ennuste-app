@@ -9,6 +9,13 @@ export type LoginFormState = {
   error?: string | null;
 };
 
+const resolvePostLoginRedirect = (permissions: string[]) => {
+  if (permissions.includes("SELLER_UI") && !permissions.includes("REPORT_READ")) {
+    return "/sales";
+  }
+  return "/ylataso";
+};
+
 export const loginAction = async (_state: LoginFormState, formData: FormData): Promise<LoginFormState> => {
   const username = String(formData.get("username") ?? "").trim();
   const pin = String(formData.get("pin") ?? "").trim();
@@ -19,7 +26,7 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
     const result = await login(services, { username, pin, projectId });
     const sessionId = await services.auth.createSession(result.session);
     setSessionCookie(sessionId);
-    redirect("/ylataso");
+    redirect(resolvePostLoginRedirect(result.session.permissions));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
     return { error: message };
@@ -69,5 +76,5 @@ export const quickRoleLoginAction = async (formData: FormData) => {
     }
   });
 
-  redirect("/ylataso");
+  redirect(resolvePostLoginRedirect(result.session.permissions));
 };

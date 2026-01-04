@@ -20,6 +20,9 @@ ja niiden nykyisen kayton.
   Vaatii `DATABASE_URL`.
 - `env-check.mjs`
   Failaa, jos `DATABASE_URL` tai `SESSION_SECRET` puuttuu (integraatiotesteille).
+- `ui-workflow-test.mjs`
+  UI-testi: kirjaudu rooleilla, tarkista workflow-sivut ja admin-nakyvyys.
+  Kaytto: `BASE_URL=... ROLE_SUFFIX=a PIN=1234 node tools/scripts/ui-workflow-test.mjs`.
 
 ## Python (importit ja apurit)
 
