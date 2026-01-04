@@ -1,9 +1,9 @@
 "use server";
 
-import { login } from "@ennuste/application";
+import { login, switchProject } from "@ennuste/application";
 import { AppError } from "@ennuste/shared";
 import { createServices } from "../services";
-import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, setSessionCookie } from "../session";
+import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, requireSession, setSessionCookie } from "../session";
 import { redirect } from "next/navigation";
 
 export type LoginFormState = {
@@ -73,4 +73,24 @@ export const logoutAction = async () => {
     });
   }
   redirect("/login?loggedOut=1");
+};
+
+export const switchProjectAction = async (formData: FormData) => {
+  const projectId = String(formData.get("projectId") ?? "").trim();
+  if (!projectId) {
+    return;
+  }
+  const session = await requireSession();
+  const services = createServices();
+  const result = await switchProject(services, {
+    username: session.username,
+    projectId
+  });
+  const sessionId = getSessionIdForLogout();
+  if (sessionId) {
+    await services.auth.deleteSession(sessionId);
+  }
+  const newSessionId = await services.auth.createSession(result.session);
+  setSessionCookie(newSessionId);
+  redirect(resolvePostLoginRedirect(result.session.permissions));
 };

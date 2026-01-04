@@ -10,8 +10,17 @@ export type LoginResult = {
   session: SessionUser;
 };
 
+export type UserProject = {
+  projectId: string;
+  projectName: string;
+  organizationId: string;
+  organizationName: string;
+};
+
 export type AuthPort = {
   loginWithPin(input: LoginInput): Promise<LoginResult>;
+  switchProject(input: { username: string; projectId: string }): Promise<LoginResult>;
+  listUserProjects(username: string): Promise<UserProject[]>;
   getSession(sessionId: string): Promise<SessionUser | null>;
   createSession(session: SessionUser): Promise<string>;
   deleteSession(sessionId: string): Promise<void>;

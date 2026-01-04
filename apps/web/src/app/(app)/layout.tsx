@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { listUserProjects } from "@ennuste/application";
 import { getSessionFromCookies } from "../../server/session";
 import { redirect } from "next/navigation";
-import { logoutAction } from "../../server/actions/auth";
+import { logoutAction, switchProjectAction } from "../../server/actions/auth";
+import { createServices } from "../../server/services";
 
 export default async function AuthedLayout({ children }: { children: ReactNode }) {
   let session = null;
@@ -21,10 +23,18 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
     redirect(hasSellerUi ? "/sales" : "/login");
   }
 
+  const services = createServices();
+  const projects = await listUserProjects(services, { username: session.username });
+  const currentProject = projects.find((project) => project.projectId === session.projectId) ?? null;
+  const contextLabel = currentProject
+    ? `${currentProject.organizationName} · ${currentProject.projectName}`
+    : `${session.organizationId} · ${session.projectId}`;
+
   return (
     <div>
       <nav className="navbar">
         <strong>Ennuste MVP</strong>
+        <span className="badge">{contextLabel}</span>
         {hasReportRead && (
           <>
             <Link href="/ylataso">Ylataso</Link>
@@ -36,6 +46,19 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
             <Link href="/raportti">Raportti</Link>
             <Link href="/loki">Loki</Link>
           </>
+        )}
+        {projects.length > 1 && (
+          <form className="project-switcher" action={switchProjectAction}>
+            <label className="label" htmlFor="projectId">Projekti</label>
+            <select className="input" id="projectId" name="projectId" defaultValue={session.projectId}>
+              {projects.map((project) => (
+                <option key={project.projectId} value={project.projectId}>
+                  {project.organizationName} / {project.projectName}
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-secondary btn-sm" type="submit">Vaihda</button>
+          </form>
         )}
         {hasMembersManage && <Link href="/admin">Admin</Link>}
         <span className="badge">{session.displayName ?? session.username}</span>

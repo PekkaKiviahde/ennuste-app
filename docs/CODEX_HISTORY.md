@@ -1725,3 +1725,16 @@
 - Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeita tarvittaessa.
 - Key files: docs/CODEX_HISTORY.md
 - How to resume: seuraa docs/LOGIN_REGRESSION_CHECKLIST.md ohjetta
+
+[2026-01-04] [SESSION_START] main 3cedd92
+- Active LUKITTU: L-20260104-062
+- History tail: [HANDOFF] [L-20260104-061]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: modernisoi navigaatio (projekti + organisaatio + vaihtaja)
+
+[2026-01-04] [PROGRESS] [L-20260104-062] Navin modernisointi aloitettu
+- What I did: lisatty projektilistan haku ja vaihto + organisaatio/projekti-konteksti navissa.
+- Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/server/actions/auth.ts, packages/infrastructure/src/auth.ts, packages/application/src/ports.ts, packages/application/src/usecases.ts
+- Tests run: ei ajettu
+- Next: tarkenna navin tyyli + aja UI-kavely

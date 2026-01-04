@@ -47,6 +47,33 @@ export const login = async (services: AppServices, input: { username: string; pi
   return result;
 };
 
+export const switchProject = async (
+  services: AppServices,
+  input: { username: string; projectId: string }
+) => {
+  const result = await services.auth.switchProject({
+    username: input.username,
+    projectId: input.projectId
+  });
+  await services.audit.recordEvent({
+    projectId: result.session.projectId,
+    tenantId: result.session.tenantId,
+    actor: result.session.username,
+    action: "auth.switch_project",
+    payload: {
+      projectId: result.session.projectId
+    }
+  });
+  return result;
+};
+
+export const listUserProjects = async (
+  services: AppServices,
+  input: { username: string }
+) => {
+  return services.auth.listUserProjects(input.username);
+};
+
 export const createPlanningEvent = async (services: AppServices, input: PlanningEventInput) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "REPORT_READ");
   const result = await services.planning.createPlanningEvent(input);

@@ -1,7 +1,7 @@
 {
-  "current_lukittu_id": "none",
+  "current_lukittu_id": "L-20260104-062",
   "branch": "main",
-  "sha": "3f1fd79",
+  "sha": "3cedd92",
   "timestamp": "2026-01-04",
-  "next_step": "Seuraa regressioita; kirjaa logit jos ongelma palaa."
+  "next_step": "Tarkenna navin tyyli ja aja UI-kavely."
 }

@@ -135,6 +135,17 @@ textarea {
   font-weight: 600;
 }
 
+.project-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-switcher .label {
+  margin: 0;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

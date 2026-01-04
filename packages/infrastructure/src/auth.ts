@@ -1,4 +1,4 @@
-import type { AuthPort, LoginInput, LoginResult } from "@ennuste/application";
+import type { AuthPort, LoginInput, LoginResult, UserProject } from "@ennuste/application";
 import type { SessionUser } from "@ennuste/shared";
 import { AuthError } from "@ennuste/shared";
 import { query } from "./db";
@@ -81,6 +81,91 @@ export const authRepository = (): AuthPort => ({
     };
 
     return { session };
+  },
+  async switchProject(input: { username: string; projectId: string }): Promise<LoginResult> {
+    const userResult = await query<{
+      user_id: string;
+      username: string;
+      display_name: string | null;
+    }>(
+      "SELECT user_id, username, display_name FROM users WHERE username = $1 AND is_active = true",
+      [input.username]
+    );
+
+    const user = userResult.rows[0];
+    if (!user) {
+      throw new AuthError("Kayttajaa ei loytynyt");
+    }
+
+    const allowedResult = await query<{ allowed: boolean }>(
+      `
+      SELECT
+        rbac_user_has_permission($1::uuid, $2::text, 'REPORT_READ')
+        OR rbac_user_has_permission($1::uuid, $2::text, 'SELLER_UI')
+        AS allowed
+      `,
+      [input.projectId, user.username]
+    );
+    if (!allowedResult.rows[0]?.allowed) {
+      throw new AuthError("Ei oikeutta projektiin");
+    }
+
+    const orgResult = await query<{ organization_id: string; tenant_id: string }>(
+      "SELECT organization_id, tenant_id FROM projects WHERE project_id = $1",
+      [input.projectId]
+    );
+
+    const organizationId = orgResult.rows[0]?.organization_id;
+    const tenantId = orgResult.rows[0]?.tenant_id;
+    if (!organizationId) {
+      throw new AuthError("Projektin organisaatiota ei loytynyt");
+    }
+    if (!tenantId) {
+      throw new AuthError("Projektin tenant puuttuu");
+    }
+
+    const permissions = await loadPermissions(input.projectId, user.username);
+
+    const session: SessionUser = {
+      userId: user.user_id,
+      username: user.username,
+      displayName: user.display_name,
+      organizationId,
+      tenantId,
+      projectId: input.projectId,
+      permissions
+    };
+
+    return { session };
+  },
+  async listUserProjects(username: string): Promise<UserProject[]> {
+    const result = await query<{
+      project_id: string;
+      project_name: string;
+      organization_id: string;
+      organization_name: string;
+    }>(
+      `
+      SELECT DISTINCT
+        p.project_id,
+        p.name AS project_name,
+        o.organization_id,
+        o.name AS organization_name
+      FROM v_rbac_user_project_permissions v
+      JOIN projects p ON p.project_id = v.project_id
+      JOIN organizations o ON o.organization_id = p.organization_id
+      WHERE v.username = $1
+      ORDER BY o.name, p.name
+      `,
+      [username]
+    );
+
+    return result.rows.map((row) => ({
+      projectId: row.project_id,
+      projectName: row.project_name,
+      organizationId: row.organization_id,
+      organizationName: row.organization_name
+    }));
   },
   async getSession(sessionId: string) {
     const sessionResult = await query<{
