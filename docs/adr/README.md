@@ -13,6 +13,7 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0006: Yhtenäinen kirjautumis- ja uloskirjautumisvirta
 - ADR-0007: Kaikki merkittävät päätökset kirjataan ADR:iin
 - ADR-0010: Ensisijainen UI-polku
+- ADR-0013: Next-UI ainoa käyttöliittymä
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
@@ -25,3 +26,4 @@ Päätösdokumentit: miksi teimme näin.
 ## Miten testataan (manuaali)
 - Avaa `docs/adr/README.md` ja tarkista, että listan otsikot vastaavat ADR-tiedostojen otsikoita.
 - Varmista, että ADR-0010 näkyy listassa.
+- Varmista, että ADR-0013 näkyy listassa.

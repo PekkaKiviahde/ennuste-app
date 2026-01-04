@@ -1,6 +1,6 @@
 # ADR-0010: Ensisijainen UI-polku
 
-**Status:** Accepted  
+**Status:** Superseded by ADR-0013  
 **Date:** 2026-01-02
 
 ## Konteksti
@@ -11,7 +11,7 @@ Repossa on kaksi UI-polkuja:
 Kaksipolkuisuus aiheuttaa epäselvyyttä kehitykseen, testaukseen ja tukiin.
 
 ## Päätös
-- Ensisijainen UI-polku on `api/public/`.
+- Ensisijainen UI-polku on `api/public/` (korvattu ADR-0013:lla).
 - `ui/` merkitään legacyksi, eikä sinne lisätä uusia ominaisuuksia.
 - UI-muutokset tehdään jatkossa `api/public/`-polkuun.
 
