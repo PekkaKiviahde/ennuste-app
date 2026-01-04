@@ -1197,3 +1197,9 @@
 - Key files: tools/scripts/db-status.mjs, package.json, .codex/state.json, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu (DB-yhteys puuttuu)
 - Next: aja npm run db:status ja tarkista .env.example + tenant-isolation testit
+
+[2026-01-04] [PROGRESS] [L-20260104-048] APP_PORT-linjaus pidetaan ennallaan
+- What I did: kirjattu paatos pitaa APP_PORT=3001 ennallaan koska 3000-URL toimii.
+- Key files: .codex/state.json, docs/CODEX_HISTORY.md
+- Tests run: npm run db:status (ok)
+- Next: tarkista .env.example + tenant-isolation testit ja jatka LUKITTU #1 auditointia
