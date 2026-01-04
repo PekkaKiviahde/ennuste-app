@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-049",
   "branch": "main",
-  "sha": "4f99641",
+  "sha": "3ad8508",
   "timestamp": "2026-01-04",
-  "next_step": "Paata lint/typecheck/test ajosta tai jatka LUKITTU #2 workflow-kartoitusta (UI/endpointit)."
+  "next_step": "Paatetaan LUKITTU #2 (DONE + HANDOFF) tai tehdään lisaparannus ennen sulkemista."
 }

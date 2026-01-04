@@ -1265,3 +1265,9 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (login + API-kutsut)
 - Next: paata lint/typecheck/test ajosta tai jatka workflow-kartoitusta
+
+[2026-01-04] [PROGRESS] [L-20260104-049] UI-kavely vahvistettu (tyonohjauspolku)
+- What I did: kirjattu kayttajan manuaalinen UI-kavely (login, tyonohjaus, suunnittelu, ennuste, loki, raportti) onnistuneeksi.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
+- Next: paata LUKITTU #2 sulkeminen (DONE + HANDOFF) tai jatkotoimet
