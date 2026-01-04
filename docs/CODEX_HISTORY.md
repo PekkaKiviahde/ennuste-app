@@ -1395,3 +1395,28 @@
 - Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: verifioi UI-nakyma ja paata LUKITTU #6 sulkeminen
+
+[2026-01-04] [PROGRESS] [L-20260104-053] Tavoitearvio-tiiviys verifioitu
+- What I did: kayttaja vahvisti rivilaskurit (417/3/1) ja taulukoiden tiiviin rivikorkeuden.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tavoitearvio)
+- Next: sulje LUKITTU #6 (DONE + HANDOFF)
+
+[2026-01-04] [DONE] [L-20260104-053] LUKITTU: UI-viimeistelyt (tavoitearvio)
+- Summary: lisatty table-compact + rivilaskurit; UI verifioitu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: rivilaskurit 417/3/1 ja tiiviit rivit vahvistettu.
+
+[2026-01-04] [HANDOFF] [L-20260104-053]
+- Where we are: tavoitearvio UI-viimeistelyt valmiit; LUKITTU #6 suljettu.
+- What changed: table-compact-tyyli + rivilaskurit lisatty; verifiointi kirjattu.
+- What remains: mahdolliset muut UI-viimeistelyt.
+- Next LUKITTU suggestion: LUKITTU: seuraavat UI-parannukset tai raportoinnin lisaselitteet.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-054] LUKITTU #7 aloitus
+- What I did: suljettu LUKITTU #6 DONE + HANDOFF; alustettu uusi LUKITTU #7.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #7 tavoite ja deliverablet
