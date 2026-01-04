@@ -51,6 +51,25 @@ body.login-body {
   animation: fadeUp 0.8s ease;
 }
 
+.legacy-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 20px;
+  background: #1c1c1c;
+  color: #fbe3d4;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.legacy-banner strong {
+  text-transform: uppercase;
+  margin-right: 6px;
+  color: #fff3ea;
+}
+
 .login-shell {
   min-height: 100vh;
   display: grid;

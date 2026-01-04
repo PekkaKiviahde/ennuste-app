@@ -27,17 +27,6 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/login", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-app.get("/logout", (_req, res) => {
-  res.setHeader(
-    "Set-Cookie",
-    "authToken=; Path=/; Max-Age=0; SameSite=Lax"
-  );
-  res.redirect("/login?loggedOut=1");
-});
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && origin.includes(".app.github.dev")) {
@@ -4475,23 +4464,10 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Palvelinvirhe", detail: err.message });
 });
 
-app.get(
-  [
-    "/",
-    "/setup",
-    "/sales",
-    "/mapping",
-    "/planning",
-    "/weekly",
-    "/forecast",
-    "/report",
-    "/history",
-  ],
-  (_req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-  }
-);
+app.use((_req, res) => {
+  res.status(404).json({ error: "Express-UI poistettu. Kayta Next-UI:ta." });
+});
 
 app.listen(port, () => {
-  console.log(`MVP API/UI: http://localhost:${port}`);
+  console.log(`MVP API: http://localhost:${port}`);
 });

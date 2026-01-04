@@ -109,6 +109,95 @@ export type ReportPort = {
   getWorkflowStatus(projectId: string, tenantId: string): Promise<WorkflowStatus>;
 };
 
+export type ImportStagingPort = {
+  createBudgetStagingBatch(input: {
+    projectId: string;
+    tenantId: string;
+    importedBy: string;
+    fileName: string | null;
+    csvText: string;
+  }): Promise<{
+    stagingBatchId: string;
+    lineCount: number;
+    issueCount: number;
+    warnings: string[];
+  }>;
+  listBatches(projectId: string, tenantId: string): Promise<unknown[]>;
+  listLines(input: {
+    projectId: string;
+    tenantId: string;
+    batchId: string;
+    mode: "issues" | "clean" | "all";
+    severity?: "ERROR" | "WARN" | "INFO" | null;
+  }): Promise<{
+    lines: Array<{
+      staging_line_id: string;
+      row_no: number;
+      raw_json: Record<string, unknown>;
+      edit_json: Record<string, unknown> | null;
+      issues: Array<{
+        issue_code: string;
+        issue_message: string | null;
+        severity: string;
+        created_at: string;
+      }>;
+    }>;
+  }>;
+  editLine(input: {
+    projectId: string;
+    tenantId: string;
+    lineId: string;
+    editedBy: string;
+    edit: Record<string, unknown>;
+    reason?: string | null;
+  }): Promise<{ stagingLineEditId: string }>;
+  addBatchEvent(input: {
+    projectId: string;
+    tenantId: string;
+    batchId: string;
+    status: "APPROVED" | "REJECTED" | "COMMITTED";
+    message?: string | null;
+    actor: string;
+  }): Promise<{ stagingBatchEventId: string }>;
+  getSummary(input: {
+    projectId: string;
+    tenantId: string;
+    batchId: string;
+  }): Promise<{
+    staging_batch_id: string;
+    line_count: number;
+    skipped_rows: number;
+    skipped_values: number;
+    error_issues: number;
+    codes_count: number;
+    totals_by_cost_type: Record<string, number>;
+    totals_by_cost_type_all: Record<string, number>;
+    top_codes: Array<{ code: string; title: string | null; total: number }>;
+    top_lines: Array<{ code: string; title: string | null; cost_type: string; total: number }>;
+  }>;
+  commitBatch(input: {
+    projectId: string;
+    tenantId: string;
+    batchId: string;
+    committedBy: string;
+    message?: string | null;
+    allowDuplicate?: boolean;
+    force?: boolean;
+  }): Promise<{
+    importBatchId: string;
+    insertedRows: number;
+    skippedRows: number;
+    skippedValues: number;
+    errorIssues: number;
+  }>;
+  exportBatch(input: {
+    projectId: string;
+    tenantId: string;
+    batchId: string;
+    mode: "clean" | "all";
+  }): Promise<{ fileName: string; csv: string }>;
+};
+
 export type WorkflowStatus = {
   planning: {
     target_littera_id: string | null;

@@ -61,6 +61,13 @@ Hotfix‑ohjeet ovat runbookeja:
 
 ---
 
+## 🧭 UI (ainoastaan Next)
+
+- Ainoa aktiivisesti kehitettava UI on Next-sovellus `apps/web/`.
+- Express-palvelin on API-only (ei UI:ta).
+
+---
+
 ## 📚 Docs‑kartta
 
 - workflows/

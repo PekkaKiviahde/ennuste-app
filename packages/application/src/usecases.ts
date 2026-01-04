@@ -5,6 +5,7 @@ import type {
   ForecastEventInput,
   ForecastPort,
   HealthPort,
+  ImportStagingPort,
   PlanningEventInput,
   PlanningPort,
   RbacPort,
@@ -20,6 +21,7 @@ export type AppServices = {
   planning: PlanningPort;
   forecast: ForecastPort;
   report: ReportPort;
+  importStaging: ImportStagingPort;
   admin: AdminPort;
   workPhases: WorkPhasePort;
   audit: AuditPort;
@@ -164,6 +166,199 @@ export const loadWorkflowStatus = async (
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getWorkflowStatus(input.projectId, input.tenantId);
+};
+
+export const createBudgetStaging = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; importedBy: string; fileName?: string | null; csvText: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const result = await services.importStaging.createBudgetStagingBatch({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    importedBy: input.importedBy,
+    fileName: input.fileName ?? null,
+    csvText: input.csvText
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.importedBy,
+    action: "import_staging.create",
+    payload: {
+      staging_batch_id: result.stagingBatchId,
+      file_name: input.fileName ?? null,
+      warnings: result.warnings
+    }
+  });
+  return result;
+};
+
+export const loadStagingBatches = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.importStaging.listBatches(input.projectId, input.tenantId);
+};
+
+export const loadStagingLines = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    batchId: string;
+    mode: "issues" | "clean" | "all";
+    severity?: "ERROR" | "WARN" | "INFO" | null;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.importStaging.listLines({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId,
+    mode: input.mode,
+    severity: input.severity ?? null
+  });
+};
+
+export const editStagingLine = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    lineId: string;
+    edit: Record<string, unknown>;
+    reason?: string | null;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const result = await services.importStaging.editLine({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    lineId: input.lineId,
+    editedBy: input.username,
+    edit: input.edit,
+    reason: input.reason ?? null
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "import_staging.edit",
+    payload: { staging_line_id: input.lineId, reason: input.reason ?? null }
+  });
+  return result;
+};
+
+export const approveStagingBatch = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; batchId: string; message?: string | null }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const result = await services.importStaging.addBatchEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId,
+    status: "APPROVED",
+    message: input.message ?? null,
+    actor: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "import_staging.approve",
+    payload: { staging_batch_id: input.batchId, message: input.message ?? null }
+  });
+  return result;
+};
+
+export const rejectStagingBatch = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; batchId: string; message?: string | null }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const result = await services.importStaging.addBatchEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId,
+    status: "REJECTED",
+    message: input.message ?? null,
+    actor: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "import_staging.reject",
+    payload: { staging_batch_id: input.batchId, message: input.message ?? null }
+  });
+  return result;
+};
+
+export const loadStagingSummary = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; batchId: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.importStaging.getSummary({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId
+  });
+};
+
+export const commitStagingBatch = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    batchId: string;
+    message?: string | null;
+    allowDuplicate?: boolean;
+    force?: boolean;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const result = await services.importStaging.commitBatch({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId,
+    committedBy: input.username,
+    message: input.message ?? null,
+    allowDuplicate: input.allowDuplicate ?? false,
+    force: input.force ?? false
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "import_staging.commit",
+    payload: {
+      staging_batch_id: input.batchId,
+      import_batch_id: result.importBatchId,
+      inserted_rows: result.insertedRows,
+      message: input.message ?? null
+    }
+  });
+  return result;
+};
+
+export const exportStagingBatch = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; batchId: string; mode: "clean" | "all" }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.importStaging.exportBatch({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    batchId: input.batchId,
+    mode: input.mode
+  });
 };
 
 export const loadAdminOverview = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {

@@ -31,7 +31,8 @@ Se sisältää:
 docker compose up
 ```
 
-UI + API: http://localhost:3000
+UI ajetaan Next-sovelluksena `apps/web/`-hakemistosta.
+Express-palvelin tarjoaa vain API:n (ei UI:ta).
 
 ---
 

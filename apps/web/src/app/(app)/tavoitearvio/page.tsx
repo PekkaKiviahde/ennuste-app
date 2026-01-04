@@ -1,6 +1,7 @@
 import { loadMappingLines, loadMappingVersions, loadTargetEstimate } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
+import ImportStagingPanel from "../../../ui/tavoitearvio/ImportStagingPanel";
 
 export default async function TargetEstimatePage({
   searchParams
@@ -78,6 +79,8 @@ export default async function TargetEstimatePage({
 
   return (
     <div className="grid">
+      <ImportStagingPanel username={session.username} />
+
       <section className="card">
         <h1>Tavoitearvio</h1>
         <p>Tavoitearvio-litterat ja kustannuslajit projektissa.</p>
