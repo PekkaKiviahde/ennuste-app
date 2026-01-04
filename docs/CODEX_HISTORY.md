@@ -1693,3 +1693,35 @@
 - Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeita tarvittaessa.
 - Key files: docs/CODEX_HISTORY.md
 - How to resume: seuraa docs/LOGIN_REGRESSION_CHECKLIST.md ohjetta
+
+[2026-01-04] [SESSION_START] main 3f1fd79
+- Active LUKITTU: L-20260104-061
+- History tail: [HANDOFF] [L-20260104-060]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: seuraa regressioita ja kirjaa havainto tarvittaessa
+
+[2026-01-04] [PROGRESS] [L-20260104-061] LUKITTU aloitus
+- What I did: aloitettu regressioseurannan uusi sykli ja paivitetty tila.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: kirjaa, havaittiinko regressio (kylla/ei)
+
+[2026-01-04] [PROGRESS] [L-20260104-061] Regressiohavainto kirjattu
+- What I did: kirjattu havainto, ettei regressiota havaittu.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, login + roolireititys + raportti)
+- Next: sulje LUKITTU #7
+
+[2026-01-04] [DONE] [L-20260104-061] LUKITTU: regressioseurannan sykli
+- Summary: regressiota ei havaittu.
+- Tests: UI-kavely (ok, login + roolireititys + raportti).
+- Notes: ei lisamuutoksia.
+
+[2026-01-04] [HANDOFF] [L-20260104-061]
+- Where we are: LUKITTU #7 suljettu; regressiota ei havaittu.
+- What changed: paivitetty docs/CODEX_HISTORY.md.
+- What remains: seuraa regressioita tarvittaessa; kerää logit jos ongelma palaa.
+- Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeita tarvittaessa.
+- Key files: docs/CODEX_HISTORY.md
+- How to resume: seuraa docs/LOGIN_REGRESSION_CHECKLIST.md ohjetta
