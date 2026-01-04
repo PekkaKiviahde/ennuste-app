@@ -1565,3 +1565,35 @@
 - Next LUKITTU suggestion: LUKITTU: vahvista kirjautumisen polut ja dokumentoi, jos virhe uusii.
 - Key files: docs/CODEX_HISTORY.md
 - How to resume: yrita kirjautumista demo-tunnuksilla (PIN 1234)
+
+[2026-01-04] [SESSION_START] main 506d692
+- Active LUKITTU: L-20260104-057
+- History tail: [HANDOFF] [L-20260104-056]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: vahvista kirjautumisen polut ja kokoa logien keruuohje
+
+[2026-01-04] [PROGRESS] [L-20260104-057] LUKITTU aloitus
+- What I did: aloitettu kirjautumisen polkujen vahvistuksen LUKITTU ja paivitetty tila.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita kirjautumisen polkujen tarkistuslista ja logien keruuohje
+
+[2026-01-04] [PROGRESS] [L-20260104-057] Kirjautumisen tarkistuslista dokumentoitu
+- What I did: lisasin kirjautumisen polkujen tarkistuslistan ja logien keruuohjeen.
+- Key files: docs/LOGIN_FLOW_CHECKLIST.md, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: sulje LUKITTU #3 tai paata jatkosta
+
+[2026-01-04] [DONE] [L-20260104-057] LUKITTU: kirjautumisen polut + logiohje
+- Summary: kirjautumisen polkujen tarkistuslista ja logien keruuohje dokumentoitu.
+- Tests: ei ajettu.
+- Notes: odottaa manuaalista UI-kavelya check-listan mukaan.
+
+[2026-01-04] [HANDOFF] [L-20260104-057]
+- Where we are: LUKITTU #3 suljettu; uusi ohje docs-hakemistossa.
+- What changed: lisatty kirjautumisen polkujen tarkistuslista + logiohje.
+- What remains: aja UI-kavely check-listan mukaan ja kirjaa tulos tarvittaessa.
+- Next LUKITTU suggestion: LUKITTU: UI-kavely + tulosten dokumentointi.
+- Key files: docs/LOGIN_FLOW_CHECKLIST.md, docs/CODEX_HISTORY.md
+- How to resume: avaa docs/LOGIN_FLOW_CHECKLIST.md ja seuraa askeleet
