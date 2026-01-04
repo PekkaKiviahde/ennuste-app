@@ -1533,3 +1533,35 @@
 - Next LUKITTU suggestion: LUKITTU: kirjautumisen NEXT_REDIRECT-juurisyyn korjaus + UI-kavely.
 - Key files: docs/MIGRATION_LOGIC_ANALYSIS.md, docs/LUKITTU1_STATUS.md, apps/web/src/app/login/login-form.tsx, apps/web/src/server/actions/auth.ts
 - How to resume: npm run db:status; yrita kirjautumista demo-tunnuksilla (PIN 1234)
+
+[2026-01-04] [SESSION_START] main 2f27f0f
+- Active LUKITTU: L-20260104-056
+- History tail: [HANDOFF] [L-20260104-055]
+- Repo: dirty, ahead 0/behind 0
+- DB status: pending 0 (applied 28)
+- Next action: selvita NEXT_REDIRECT kirjautumisessa ja tee UI-kavely
+
+[2026-01-04] [PROGRESS] [L-20260104-056] LUKITTU aloitus
+- What I did: aloitettu NEXT_REDIRECT-selvityksen LUKITTU ja paivitetty tila.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: kerää virheloki (selain + server) ja toista kirjautuminen
+
+[2026-01-04] [PROGRESS] [L-20260104-056] UI-kavely onnistui
+- What I did: kirjattu kayttajan vahvistus onnistuneesta UI-kavelysta.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, login + roolireititys)
+- Next: sulje LUKITTU #2
+
+[2026-01-04] [DONE] [L-20260104-056] LUKITTU: NEXT_REDIRECT tarkistus + UI-kavely
+- Summary: UI-kavely vahvistettu; NEXT_REDIRECT ei toistunut kayttajan mukaan.
+- Tests: UI-kavely (ok, login + roolireititys).
+- Notes: ei kerattyja logeja, koska ongelma ei toistunut.
+
+[2026-01-04] [HANDOFF] [L-20260104-056]
+- Where we are: LUKITTU #2 suljettu; kirjautuminen toimii kayttajan mukaan.
+- What changed: ei koodimuutoksia; paivitetty historia ja tila.
+- What remains: jos NEXT_REDIRECT palaa, kerää logit (selain + server).
+- Next LUKITTU suggestion: LUKITTU: vahvista kirjautumisen polut ja dokumentoi, jos virhe uusii.
+- Key files: docs/CODEX_HISTORY.md
+- How to resume: yrita kirjautumista demo-tunnuksilla (PIN 1234)
