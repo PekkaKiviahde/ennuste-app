@@ -1215,3 +1215,9 @@
 - Key files: apps/web/src/app/api/audit/route.ts, apps/web/src/app/api/report/forecast/route.ts, apps/web/src/app/api/report/planning/route.ts, apps/web/src/app/api/report/target-estimate/route.ts, apps/web/src/app/api/report/mapping-lines/route.ts, apps/web/src/app/api/report/work-phases/route.ts, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: koosta LUKITTU #1 puutelista ja tarvittavat muutokset
+
+[2026-01-04] [PROGRESS] [L-20260104-048] LUKITTU #1 puutelista koottu
+- What I did: koottu LUKITTU #1 deliverable-tila; tunnistettu puutteet ja valmiit kohdat.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: paata tarvittavat korjaukset tai siirry LUKITTU #2 suunnitteluun
