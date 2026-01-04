@@ -1339,3 +1339,22 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tavoitearvio)
 - Next: paata LUKITTU #4 sulkeminen (DONE + HANDOFF)
+
+[2026-01-04] [DONE] [L-20260104-051] LUKITTU: Tavoitearvio-suodatus
+- Summary: lisatty suodatus tavoitearvio-sivulle; suodatus ja nollaus verifioitu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: q=1100 suodattaa Runko-rivit.
+
+[2026-01-04] [HANDOFF] [L-20260104-051]
+- Where we are: tavoitearvio-suodatus valmis; LUKITTU #4 suljettu.
+- What changed: tavoitearvio-sivulle lisatty suodatus; verifiointi kirjattu.
+- What remains: mahdolliset lisasuodattimet (mapping-versiot erillinen haku).
+- Next LUKITTU suggestion: LUKITTU: lisasuodattimet tai UI-viimeistelyt.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-052] LUKITTU #5 aloitus
+- What I did: suljettu LUKITTU #4 DONE + HANDOFF; alustettu uusi LUKITTU #5.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #5 tavoite ja deliverablet

@@ -1,7 +1,7 @@
 {
-  "current_lukittu_id": "L-20260104-051",
+  "current_lukittu_id": "L-20260104-052",
   "branch": "main",
-  "sha": "e6f97ad",
+  "sha": "9f02356",
   "timestamp": "2026-01-04",
-  "next_step": "Sulje LUKITTU #4 (DONE + HANDOFF) tai tee lisaparannus ennen sulkemista."
+  "next_step": "Odota seuraavaa LUKITTU-paatosta (lisasuodattimet tai UI-viimeistelyt)."
 }
