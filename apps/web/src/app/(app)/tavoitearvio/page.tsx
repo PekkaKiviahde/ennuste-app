@@ -2,7 +2,7 @@ import { loadMappingLines, loadMappingVersions, loadTargetEstimate } from "@ennu
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
-export default async function TargetEstimatePage() {
+export default async function TargetEstimatePage({ searchParams }: { searchParams?: { q?: string } }) {
   const session = await requireSession();
   const services = createServices();
   const rows = await loadTargetEstimate(services, {
@@ -20,6 +20,8 @@ export default async function TargetEstimatePage() {
     tenantId: session.tenantId,
     username: session.username
   });
+  const query = (searchParams?.q ?? "").trim().toLowerCase();
+  const filterMatch = (value: unknown) => String(value ?? "").toLowerCase().includes(query);
 
   const formatDate = (value: unknown) => {
     if (!value) return "";
@@ -39,12 +41,49 @@ export default async function TargetEstimatePage() {
     }
     return new Intl.DateTimeFormat("fi-FI", { dateStyle: "short", timeStyle: "short" }).format(date);
   };
+  const filteredRows = query
+    ? rows.filter((row: any) =>
+        filterMatch(row.littera_code) || filterMatch(row.littera_title) || filterMatch(row.cost_type)
+      )
+    : rows;
+  const filteredMappingLines = query
+    ? mappingLines.filter((row: any) =>
+        filterMatch(row.mapping_status) ||
+        filterMatch(row.work_code) ||
+        filterMatch(row.work_title) ||
+        filterMatch(row.target_code) ||
+        filterMatch(row.target_title) ||
+        filterMatch(row.allocation_rule) ||
+        filterMatch(row.cost_type)
+      )
+    : mappingLines;
+  const filteredMappingVersions = query
+    ? mappingVersions.filter((row: any) =>
+        filterMatch(row.status) ||
+        filterMatch(row.reason) ||
+        filterMatch(row.created_by) ||
+        filterMatch(row.approved_by)
+      )
+    : mappingVersions;
 
   return (
     <div className="grid">
       <section className="card">
         <h1>Tavoitearvio</h1>
         <p>Tavoitearvio-litterat ja kustannuslajit projektissa.</p>
+        <form className="form-grid" method="get">
+          <label className="label" htmlFor="q">Suodatus</label>
+          <input className="input" id="q" name="q" placeholder="Hae littera, nimi tai kustannuslaji" defaultValue={searchParams?.q ?? ""} />
+          <div className="status-actions">
+            <button className="btn btn-primary btn-sm" type="submit">Suodata</button>
+            <a className="btn btn-secondary btn-sm" href="/tavoitearvio">Nollaa</a>
+          </div>
+        </form>
+        {query && (
+          <div className="notice">
+            Naytetaan suodatetut rivit haulla: "{query}"
+          </div>
+        )}
         <table className="table">
           <thead>
             <tr>
@@ -56,14 +95,14 @@ export default async function TargetEstimatePage() {
             </tr>
         </thead>
         <tbody>
-          {rows.length === 0 ? (
+          {filteredRows.length === 0 ? (
             <tr>
               <td colSpan={5}>
                 <div className="notice">Ei tavoitearvioriveja viela.</div>
               </td>
             </tr>
           ) : (
-            rows.map((row: any) => (
+            filteredRows.map((row: any) => (
               <tr key={`${row.target_littera_id}-${row.cost_type}-${row.valid_from}`}>
                 <td>{row.littera_code}</td>
                 <td>{row.littera_title}</td>
@@ -76,7 +115,7 @@ export default async function TargetEstimatePage() {
             ))
           )}
         </tbody>
-      </table>
+        </table>
     </section>
 
       <section className="card">
@@ -93,14 +132,14 @@ export default async function TargetEstimatePage() {
             </tr>
         </thead>
         <tbody>
-          {mappingLines.length === 0 ? (
+          {filteredMappingLines.length === 0 ? (
             <tr>
               <td colSpan={5}>
                 <div className="notice">Ei mapping-riveja viela.</div>
               </td>
             </tr>
           ) : (
-            mappingLines.map((row: any) => (
+            filteredMappingLines.map((row: any) => (
               <tr key={row.mapping_line_id}>
                 <td>{row.mapping_status}</td>
                 <td>{row.work_code} {row.work_title}</td>
@@ -128,14 +167,14 @@ export default async function TargetEstimatePage() {
             </tr>
           </thead>
           <tbody>
-            {mappingVersions.length === 0 ? (
+            {filteredMappingVersions.length === 0 ? (
               <tr>
                 <td colSpan={5}>
                   <div className="notice">Ei mapping-versioita viela.</div>
                 </td>
               </tr>
             ) : (
-              mappingVersions.map((row: any) => (
+              filteredMappingVersions.map((row: any) => (
                 <tr key={row.mapping_version_id}>
                   <td>{row.status}</td>
                   <td>

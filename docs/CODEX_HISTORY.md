@@ -1327,3 +1327,9 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #4 tavoite ja deliverablet
+
+[2026-01-04] [PROGRESS] [L-20260104-051] Tavoitearvio-suodatus lisatty
+- What I did: lisasin suodatuskentat tavoitearvio-, mapping- ja mapping-versiot taulukoihin query-parametrilla q.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: verifioi suodatus UI:ssa ja paata LUKITTU #4 sulkeminen
