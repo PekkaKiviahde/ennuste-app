@@ -1,7 +1,7 @@
 {
-  "current_lukittu_id": "L-20260104-052",
+  "current_lukittu_id": "L-20260104-053",
   "branch": "main",
-  "sha": "598660e",
+  "sha": "79c4c6c",
   "timestamp": "2026-01-04",
-  "next_step": "Verifioi mapping-versioiden suodatus (mv-parametri) ja paata LUKITTU #5 sulkeminen."
+  "next_step": "Odota seuraavaa LUKITTU-paatosta (UI-viimeistelyt tai raportoinnin lisaselitteet)."
 }

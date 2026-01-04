@@ -1364,3 +1364,28 @@
 - Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: verifioi mapping-versioiden suodatus UI:ssa ja paata LUKITTU #5 sulkeminen
+
+[2026-01-04] [PROGRESS] [L-20260104-052] Mapping-versioiden suodatus verifioitu
+- What I did: kayttaja vahvisti mv-suodatus toimii (demo mapping/ACTIVE); nollaus palauttaa; tavoitearvio-taulukko pysyy ennallaan.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tavoitearvio)
+- Next: sulje LUKITTU #5 (DONE + HANDOFF)
+
+[2026-01-04] [DONE] [L-20260104-052] LUKITTU: Mapping-versiot suodatus
+- Summary: lisatty mv-suodatus mapping-versioille; suodatus ja nollaus verifioitu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: mv-haku ei vaikuta tavoitearvio-taulukkoon.
+
+[2026-01-04] [HANDOFF] [L-20260104-052]
+- Where we are: mapping-versioiden suodatus valmis; LUKITTU #5 suljettu.
+- What changed: mapping-versioille oma hakukentta; verifiointi kirjattu.
+- What remains: mahdolliset lisaparannukset (esim. suodattimien yhdistaminen).
+- Next LUKITTU suggestion: LUKITTU: UI-viimeistelyt tai raportoinnin lisaselitteet.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-053] LUKITTU #6 aloitus
+- What I did: suljettu LUKITTU #5 DONE + HANDOFF; alustettu uusi LUKITTU #6.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #6 tavoite ja deliverablet
