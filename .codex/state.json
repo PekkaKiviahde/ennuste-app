@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "none",
   "branch": "main",
-  "sha": "267e8d9",
+  "sha": "3aeb793",
   "timestamp": "2026-01-04",
-  "next_step": "Ei avoimia tehtavia; seuraa kirjautumisen regressioita tarvittaessa."
+  "next_step": "Seuraa regressioita; aja UI-kavely vain jos ongelma ilmenee."
 }

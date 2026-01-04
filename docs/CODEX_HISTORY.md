@@ -1629,3 +1629,35 @@
 - Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeet tarvittaessa.
 - Key files: docs/CODEX_HISTORY.md
 - How to resume: seuraa docs/LOGIN_FLOW_CHECKLIST.md ohjetta
+
+[2026-01-04] [SESSION_START] main 3aeb793
+- Active LUKITTU: L-20260104-059
+- History tail: [HANDOFF] [L-20260104-058]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: maarita regressioseurannan tarkistuslista ja kirjaustapa
+
+[2026-01-04] [PROGRESS] [L-20260104-059] LUKITTU aloitus
+- What I did: aloitettu regressioseurannan LUKITTU ja paivitetty tila.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: luo regressioseurannan tarkistuslista (login-polut + logit)
+
+[2026-01-04] [PROGRESS] [L-20260104-059] Regressioseurannan tarkistuslista dokumentoitu
+- What I did: lisasin regressioseurannan tarkistuslistan ja logien keruuohjeen.
+- Key files: docs/LOGIN_REGRESSION_CHECKLIST.md, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: sulje LUKITTU #5 tai paata jatkosta
+
+[2026-01-04] [DONE] [L-20260104-059] LUKITTU: regressioseurannan ohje
+- Summary: regressioseurannan tarkistuslista ja logien keruuohje dokumentoitu.
+- Tests: ei ajettu.
+- Notes: UI-kavely tehdään tarpeen mukaan, jos regressio ilmenee.
+
+[2026-01-04] [HANDOFF] [L-20260104-059]
+- Where we are: LUKITTU #5 suljettu; regressioseurannan ohje docs-hakemistossa.
+- What changed: lisatty regressioseurannan tarkistuslista + logiohje.
+- What remains: aja UI-kavely check-listan mukaan vain jos regressio havaitaan.
+- Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeita tarvittaessa.
+- Key files: docs/LOGIN_REGRESSION_CHECKLIST.md, docs/CODEX_HISTORY.md
+- How to resume: avaa docs/LOGIN_REGRESSION_CHECKLIST.md ja seuraa askeleet
