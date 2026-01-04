@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-049",
   "branch": "main",
-  "sha": "43908f7",
+  "sha": "8899b17",
   "timestamp": "2026-01-04",
-  "next_step": "Testaa /api/report/planning (kirjautuneena) ja varmista 502 korjattu; aja lint/typecheck/test jos halutaan DoD." 
+  "next_step": "Aja lint/typecheck/test tai jatka LUKITTU #2 kartoitusta muiden workflow-kohtien osalta."
 }

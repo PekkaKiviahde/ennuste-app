@@ -1253,3 +1253,9 @@
 - Key files: packages/infrastructure/src/report.ts, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: testaa /api/report/planning uudelleen ja varmista 502 korjattu
+
+[2026-01-04] [PROGRESS] [L-20260104-049] /api/report/planning verifioitu
+- What I did: kayttaja vahvisti /api/report/planning palauttaa 200 + JSON-rivit kirjautuneena; 502 poistui.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (login + /api/report/planning)
+- Next: paata lint/typecheck/test ajosta tai jatka seuraaviin LUKITTU #2 tehtaviin
