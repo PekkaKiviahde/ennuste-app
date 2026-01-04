@@ -166,18 +166,29 @@ def normalize_mapping(raw_mapping: Optional[Dict[str, str]]) -> Dict[str, str]:
 
 def read_and_aggregate_csv(
     csv_path: Path, column_mapping: Dict[str, str]
-) -> Tuple[Dict[str, CostAgg], Dict[str, str], int, int]:
+) -> Tuple[Dict[str, CostAgg], Dict[str, str], int, int, Dict[str, int]]:
     """
     Returns:
       - agg_by_littera_code: { '0100': CostAgg(...) }
       - title_by_littera_code: { '0100': 'Tontti...' } (first non-empty)
       - rows_read
       - rows_skipped
+      - invalid_value_counts: { 'non_finite': 0, 'negative': 0 }
     """
     agg: Dict[str, CostAgg] = {}
     titles: Dict[str, str] = {}
     rows_read = 0
     rows_skipped = 0
+    invalid_value_counts = {"non_finite": 0, "negative": 0}
+
+    def sanitize_amount(value: Decimal) -> Decimal:
+        if not value.is_finite():
+            invalid_value_counts["non_finite"] += 1
+            return Decimal("0")
+        if value < 0:
+            invalid_value_counts["negative"] += 1
+            return Decimal("0")
+        return value
 
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter=";")
@@ -214,25 +225,35 @@ def read_and_aggregate_csv(
             code = raw_code
 
             # Parse cost euros
-            labor = parse_fi_number(
-                row.get(column_mapping[FIELD_LABOR_EUR]),
-                field_name=column_mapping[FIELD_LABOR_EUR],
+            labor = sanitize_amount(
+                parse_fi_number(
+                    row.get(column_mapping[FIELD_LABOR_EUR]),
+                    field_name=column_mapping[FIELD_LABOR_EUR],
+                )
             )
-            material = parse_fi_number(
-                row.get(column_mapping[FIELD_MATERIAL_EUR]),
-                field_name=column_mapping[FIELD_MATERIAL_EUR],
+            material = sanitize_amount(
+                parse_fi_number(
+                    row.get(column_mapping[FIELD_MATERIAL_EUR]),
+                    field_name=column_mapping[FIELD_MATERIAL_EUR],
+                )
             )
-            subcontract = parse_fi_number(
-                row.get(column_mapping[FIELD_SUBCONTRACT_EUR]),
-                field_name=column_mapping[FIELD_SUBCONTRACT_EUR],
+            subcontract = sanitize_amount(
+                parse_fi_number(
+                    row.get(column_mapping[FIELD_SUBCONTRACT_EUR]),
+                    field_name=column_mapping[FIELD_SUBCONTRACT_EUR],
+                )
             )
-            rental = parse_fi_number(
-                row.get(column_mapping[FIELD_RENTAL_EUR]),
-                field_name=column_mapping[FIELD_RENTAL_EUR],
+            rental = sanitize_amount(
+                parse_fi_number(
+                    row.get(column_mapping[FIELD_RENTAL_EUR]),
+                    field_name=column_mapping[FIELD_RENTAL_EUR],
+                )
             )
-            other = parse_fi_number(
-                row.get(column_mapping[FIELD_OTHER_EUR]),
-                field_name=column_mapping[FIELD_OTHER_EUR],
+            other = sanitize_amount(
+                parse_fi_number(
+                    row.get(column_mapping[FIELD_OTHER_EUR]),
+                    field_name=column_mapping[FIELD_OTHER_EUR],
+                )
             )
 
             # If everything is zero, skip row (no effect)
@@ -248,7 +269,7 @@ def read_and_aggregate_csv(
             if t and code not in titles:
                 titles[code] = t
 
-    return agg, titles, rows_read, rows_skipped
+    return agg, titles, rows_read, rows_skipped, invalid_value_counts
 
 
 def fetch_littera_id(conn: psycopg.Connection, project_id: str, code: str) -> Optional[str]:
@@ -365,6 +386,20 @@ def print_summary(agg: Dict[str, CostAgg], titles: Dict[str, str]) -> None:
     print("")
 
 
+def load_mapping_from_db(conn, project_id: str, import_type: str) -> Optional[Dict[str, str]]:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT mapping FROM import_mappings WHERE project_id=%s AND import_type=%s",
+            (project_id, import_type),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        if isinstance(row[0], dict):
+            return row[0]
+        return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Import budget (CSV-only) into Postgres.")
     parser.add_argument("--project-id", required=True, help="Project UUID.")
@@ -418,7 +453,9 @@ def main() -> None:
 
         # Read & aggregate
         try:
-            agg, titles, rows_read, rows_skipped = read_and_aggregate_csv(csv_path, column_mapping)
+            agg, titles, rows_read, rows_skipped, invalid_counts = read_and_aggregate_csv(
+                csv_path, column_mapping
+            )
         except Exception as e:
             die(f"Failed reading CSV: {e}")
 
@@ -427,6 +464,12 @@ def main() -> None:
 
         print(f"CSV read ok: {rows_read} rows, {rows_skipped} skipped (empty/zero/footer).")
         print_summary(agg, titles)
+        if invalid_counts.get("non_finite") or invalid_counts.get("negative"):
+            print(
+                "Warning: sanitized invalid values -> "
+                f"non-finite={invalid_counts.get('non_finite', 0)}, "
+                f"negative={invalid_counts.get('negative', 0)} (set to 0)."
+            )
 
         # Validate litteras exist + map codes
         missing: List[str] = []
@@ -497,15 +540,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-def load_mapping_from_db(conn, project_id: str, import_type: str) -> Optional[Dict[str, str]]:
-    with conn.cursor() as cur:
-        cur.execute(
-            "SELECT mapping FROM import_mappings WHERE project_id=%s AND import_type=%s",
-            (project_id, import_type),
-        )
-        row = cur.fetchone()
-        if not row:
-            return None
-        if isinstance(row[0], dict):
-            return row[0]
-        return None

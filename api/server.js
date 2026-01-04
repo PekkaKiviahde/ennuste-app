@@ -75,6 +75,32 @@ function toNumber(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+function parseFiNumber(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const raw = String(value).trim();
+  if (!raw) {
+    return null;
+  }
+  let normalized = raw.replace(/\u00a0/g, " ").replace(/ /g, "");
+  if (normalized.includes(",") && normalized.includes(".")) {
+    normalized = normalized.replace(/\./g, "").replace(",", ".");
+  } else {
+    normalized = normalized.replace(",", ".");
+  }
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function buildHeaderLookup(headers) {
+  const map = new Map();
+  headers.forEach((header) => {
+    map.set(String(header || "").trim().toLowerCase(), header);
+  });
+  return map;
+}
+
 function groupCodeFromLittera(code) {
   const s = String(code || "").trim();
   if (!s || s[0] < "0" || s[0] > "9") {
@@ -514,6 +540,72 @@ function csvEscape(value) {
     return `"${escaped}"`;
   }
   return escaped;
+}
+
+function parseCsvRows(text, delimiter = ";") {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i += 1;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inQuotes = true;
+      continue;
+    }
+    if (ch === delimiter) {
+      row.push(field);
+      field = "";
+      continue;
+    }
+    if (ch === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+      continue;
+    }
+    if (ch === "\r") {
+      continue;
+    }
+    field += ch;
+  }
+
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  if (rows.length === 0) {
+    return { headers: [], rows: [] };
+  }
+
+  const headerRow = rows.shift() || [];
+  const headers = headerRow.map((value, idx) => {
+    let clean = String(value || "").trim();
+    if (idx === 0 && clean.startsWith("\ufeff")) {
+      clean = clean.slice(1);
+    }
+    return clean;
+  });
+
+  const dataRows = rows.filter((r) => r.some((value) => String(value || "").trim() !== ""));
+  return { headers, rows: dataRows };
 }
 
 function formatSnapshotCsv(rows) {
@@ -2145,6 +2237,788 @@ app.post("/api/budget-import", async (req, res, next) => {
         // cleanup best-effort
       }
     }
+    next(err);
+  }
+});
+
+app.post("/api/import-staging/budget", async (req, res, next) => {
+  try {
+    if (!requireProjectAccess(req, res, req.body.projectId, "manager")) {
+      return;
+    }
+    const { projectId, importedBy, filename, csvText } = req.body;
+    if (!projectId) {
+      return badRequest(res, "projectId puuttuu.");
+    }
+    if (!importedBy || String(importedBy).trim() === "") {
+      return badRequest(res, "importedBy puuttuu.");
+    }
+    if (!csvText || String(csvText).trim() === "") {
+      return badRequest(res, "CSV-teksti puuttuu.");
+    }
+
+    const safeName = filename ? String(filename).replace(/[^\w.\-]/g, "_") : "budget.csv";
+    const signature = createHash("sha256").update(String(csvText)).digest("hex");
+    const { headers, rows } = parseCsvRows(String(csvText), ";");
+    if (headers.length === 0) {
+      return badRequest(res, "CSV-otsikkorivi puuttuu.");
+    }
+
+    const headerMap = new Map(headers.map((h) => [String(h).trim().toLowerCase(), h]));
+    const codeHeader = headerMap.get("litterakoodi");
+    if (!codeHeader) {
+      return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
+    }
+
+    const budgetHeaders = [
+      "Työ €",
+      "Aine €",
+      "Alih €",
+      "Vmiehet €",
+      "Muu €",
+      "Summa",
+    ].map((name) => headerMap.get(name.toLowerCase())).filter(Boolean);
+
+    if (budgetHeaders.length === 0) {
+      return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
+    }
+
+    const result = await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        const { rows: batchRows } = await client.query(
+          `INSERT INTO import_staging_batches
+           (project_id, import_type, source_system, file_name, signature, created_by)
+           VALUES ($1, 'BUDGET', 'CSV', $2, $3, $4)
+           RETURNING staging_batch_id`,
+          [projectId, safeName, signature, String(importedBy).trim()]
+        );
+        const batchId = batchRows[0].staging_batch_id;
+
+        await client.query(
+          `INSERT INTO import_staging_batch_events
+           (staging_batch_id, status, message, created_by)
+           VALUES ($1, 'DRAFT', 'Staging luotu', $2)`,
+          [batchId, String(importedBy).trim()]
+        );
+
+        let lineCount = 0;
+        let issueCount = 0;
+
+        for (let idx = 0; idx < rows.length; idx += 1) {
+          const row = rows[idx];
+          const raw = {};
+          for (let i = 0; i < headers.length; i += 1) {
+            raw[headers[i]] = row[i] !== undefined ? row[i] : "";
+          }
+
+          const rowNo = idx + 2;
+          const { rows: lineRows } = await client.query(
+            `INSERT INTO import_staging_lines_raw
+             (staging_batch_id, row_no, raw_json, created_by)
+             VALUES ($1, $2, $3, $4)
+             RETURNING staging_line_id`,
+            [batchId, rowNo, raw, String(importedBy).trim()]
+          );
+          lineCount += 1;
+
+          const stagingLineId = lineRows[0].staging_line_id;
+          const issues = [];
+
+          const codeValue = String(raw[codeHeader] || "").trim();
+          if (!codeValue) {
+            issues.push({
+              code: "MISSING_CODE",
+              message: "Litterakoodi puuttuu.",
+              severity: "ERROR",
+            });
+          } else if (!/^\d{4}$/.test(codeValue)) {
+            issues.push({
+              code: "INVALID_CODE",
+              message: "Litterakoodi ei ole 4 numeroa.",
+              severity: "ERROR",
+            });
+          }
+
+          let hasBudgetValue = false;
+          for (const header of budgetHeaders) {
+            const rawValue = String(raw[header] || "").trim();
+            if (!rawValue) {
+              continue;
+            }
+            hasBudgetValue = true;
+            const num = parseFiNumber(rawValue);
+            if (num === null) {
+              issues.push({
+                code: "NON_NUMERIC",
+                message: `${header} ei ole numero.`,
+                severity: "ERROR",
+              });
+              continue;
+            }
+            if (num < 0) {
+              issues.push({
+                code: "NEGATIVE_VALUE",
+                message: `${header} on negatiivinen.`,
+                severity: "ERROR",
+              });
+            }
+          }
+
+          if (!hasBudgetValue) {
+            issues.push({
+              code: "MISSING_AMOUNT",
+              message: "Kustannusarvo puuttuu.",
+              severity: "ERROR",
+            });
+          }
+
+          for (const issue of issues) {
+            await client.query(
+              `INSERT INTO import_staging_issues
+               (staging_line_id, issue_code, issue_message, severity, created_by)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [stagingLineId, issue.code, issue.message, issue.severity, String(importedBy).trim()]
+            );
+            issueCount += 1;
+          }
+        }
+
+        await client.query("COMMIT");
+        return { batchId, lineCount, issueCount };
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+
+    res.status(201).json({
+      ok: true,
+      staging_batch_id: result.batchId,
+      line_count: result.lineCount,
+      issue_count: result.issueCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-staging/:batchId/issues", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    const { rows: batchRows } = await query(
+      "SELECT project_id FROM import_staging_batches WHERE staging_batch_id=$1",
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const projectId = batchRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+
+    const { rows } = await query(
+      `SELECT i.staging_issue_id,
+              i.issue_code,
+              i.issue_message,
+              i.severity,
+              i.created_at,
+              l.staging_line_id,
+              l.row_no,
+              l.raw_json
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1
+       ORDER BY l.row_no ASC, i.created_at ASC`,
+      [batchId]
+    );
+
+    res.json({ ok: true, issues: rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/import-staging/lines/:lineId/edits", async (req, res, next) => {
+  try {
+    const { lineId } = req.params;
+    const { editedBy, edit, reason } = req.body;
+    if (!lineId) {
+      return badRequest(res, "lineId puuttuu.");
+    }
+    if (!editedBy || String(editedBy).trim() === "") {
+      return badRequest(res, "editedBy puuttuu.");
+    }
+    if (!edit || typeof edit !== "object") {
+      return badRequest(res, "edit puuttuu tai on virheellinen.");
+    }
+
+    const { rows: lineRows } = await query(
+      `SELECT b.project_id
+       FROM import_staging_lines_raw l
+       JOIN import_staging_batches b ON b.staging_batch_id=l.staging_batch_id
+       WHERE l.staging_line_id=$1`,
+      [lineId]
+    );
+    if (lineRows.length === 0) {
+      return res.status(404).json({ error: "Staging-rivia ei loydy." });
+    }
+    const projectId = lineRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+
+    const { rows } = await query(
+      `INSERT INTO import_staging_line_edits
+       (staging_line_id, edit_json, reason, edited_by)
+       VALUES ($1, $2, $3, $4)
+       RETURNING staging_line_edit_id`,
+      [lineId, edit, reason ? String(reason).trim() : null, String(editedBy).trim()]
+    );
+    res.status(201).json({ ok: true, staging_line_edit_id: rows[0].staging_line_edit_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/import-staging/:batchId/approve", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    const { approvedBy, message } = req.body;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    if (!approvedBy || String(approvedBy).trim() === "") {
+      return badRequest(res, "approvedBy puuttuu.");
+    }
+
+    const { rows: batchRows } = await query(
+      "SELECT project_id FROM import_staging_batches WHERE staging_batch_id=$1",
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const projectId = batchRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+
+    const { rows } = await query(
+      `INSERT INTO import_staging_batch_events
+       (staging_batch_id, status, message, created_by)
+       VALUES ($1, 'APPROVED', $2, $3)
+       RETURNING staging_batch_event_id`,
+      [batchId, message ? String(message).trim() : "Hyvaksytty", String(approvedBy).trim()]
+    );
+    res.status(201).json({ ok: true, staging_batch_event_id: rows[0].staging_batch_event_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/import-staging/:batchId/reject", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    const { rejectedBy, message } = req.body;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    if (!rejectedBy || String(rejectedBy).trim() === "") {
+      return badRequest(res, "rejectedBy puuttuu.");
+    }
+
+    const { rows: batchRows } = await query(
+      "SELECT project_id FROM import_staging_batches WHERE staging_batch_id=$1",
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const projectId = batchRows[0].project_id;
+    if (!requireProjectAccess(req, res, projectId, "manager")) {
+      return;
+    }
+
+    const { rows } = await query(
+      `INSERT INTO import_staging_batch_events
+       (staging_batch_id, status, message, created_by)
+       VALUES ($1, 'REJECTED', $2, $3)
+       RETURNING staging_batch_event_id`,
+      [batchId, message ? String(message).trim() : "Hylatty", String(rejectedBy).trim()]
+    );
+    res.status(201).json({ ok: true, staging_batch_event_id: rows[0].staging_batch_event_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    const { committedBy, message, allowDuplicate, force } = req.body;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    if (!committedBy || String(committedBy).trim() === "") {
+      return badRequest(res, "committedBy puuttuu.");
+    }
+
+    const { rows: batchRows } = await query(
+      `SELECT staging_batch_id, project_id, import_type, signature, file_name
+       FROM import_staging_batches
+       WHERE staging_batch_id=$1`,
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const batch = batchRows[0];
+    if (!requireProjectAccess(req, res, batch.project_id, "manager")) {
+      return;
+    }
+    if (String(batch.import_type).toUpperCase() !== "BUDGET") {
+      return badRequest(res, "Vain BUDGET staging voidaan siirtaa.");
+    }
+
+    const { rows: statusRows } = await query(
+      `SELECT status
+       FROM import_staging_batch_events
+       WHERE staging_batch_id=$1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [batchId]
+    );
+    const latestStatus = statusRows[0]?.status || null;
+    if (latestStatus !== "APPROVED") {
+      return badRequest(res, "Staging-batch ei ole hyvaksytty.");
+    }
+
+    const { rows: issueRows } = await query(
+      `SELECT count(*)::int AS cnt
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1 AND i.severity='ERROR'`,
+      [batchId]
+    );
+    const errorCount = issueRows[0]?.cnt || 0;
+    if (errorCount > 0 && !force) {
+      return badRequest(res, "Staging-batchissa on ERROR-issueita. Korjaa tai kayta force=true.");
+    }
+
+    const { rows: lineRows } = await query(
+      `SELECT l.staging_line_id,
+              l.row_no,
+              l.raw_json,
+              (
+                SELECT e.edit_json
+                FROM import_staging_line_edits e
+                WHERE e.staging_line_id=l.staging_line_id
+                ORDER BY e.edited_at DESC
+                LIMIT 1
+              ) AS edit_json
+       FROM import_staging_lines_raw l
+       WHERE l.staging_batch_id=$1
+       ORDER BY l.row_no ASC`,
+      [batchId]
+    );
+    if (lineRows.length === 0) {
+      return badRequest(res, "Staging-batchissa ei ole riveja.");
+    }
+
+    const headers = Object.keys(lineRows[0].raw_json || {});
+    const headerLookup = buildHeaderLookup(headers);
+    const codeHeader = headerLookup.get("litterakoodi");
+    const titleHeader = headerLookup.get("litteraselite");
+    if (!codeHeader) {
+      return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
+    }
+
+    const costHeaderConfig = [
+      { name: "Työ €", costType: "LABOR" },
+      { name: "Aine €", costType: "MATERIAL" },
+      { name: "Alih €", costType: "SUBCONTRACT" },
+      { name: "Vmiehet €", costType: "RENTAL" },
+      { name: "Muu €", costType: "OTHER" },
+      { name: "Summa", costType: "OTHER" },
+    ];
+
+    const hasDetailed = costHeaderConfig
+      .filter((entry) => entry.name !== "Summa")
+      .some((entry) => headerLookup.has(entry.name.toLowerCase()));
+
+    const activeCostHeaders = costHeaderConfig.filter((entry) => {
+      if (!headerLookup.has(entry.name.toLowerCase())) {
+        return false;
+      }
+      if (hasDetailed && entry.name === "Summa") {
+        return false;
+      }
+      return true;
+    });
+
+    if (activeCostHeaders.length === 0) {
+      return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
+    }
+
+    const totals = new Map();
+    const titles = new Map();
+    let skippedRows = 0;
+    let skippedValues = 0;
+
+    for (const row of lineRows) {
+      const effective = {
+        ...(row.raw_json || {}),
+        ...(row.edit_json || {}),
+      };
+      const code = String(effective[codeHeader] || "").trim();
+      if (!code || !/^\d{4}$/.test(code)) {
+        skippedRows += 1;
+        continue;
+      }
+      if (titleHeader && !titles.has(code)) {
+        const title = String(effective[titleHeader] || "").trim();
+        if (title) {
+          titles.set(code, title);
+        }
+      }
+
+      let hasAmount = false;
+      for (const header of activeCostHeaders) {
+        const rawValue = String(effective[header.name] || "").trim();
+        if (!rawValue) {
+          continue;
+        }
+        const num = parseFiNumber(rawValue);
+        if (num === null || num < 0) {
+          skippedValues += 1;
+          continue;
+        }
+        if (num === 0) {
+          continue;
+        }
+        hasAmount = true;
+        const key = `${code}:${header.costType}`;
+        const prev = totals.get(key) || 0;
+        totals.set(key, prev + num);
+      }
+      if (!hasAmount) {
+        skippedRows += 1;
+      }
+    }
+
+    if (totals.size === 0) {
+      return badRequest(res, "Ei kelvollisia kustannusriveja siirtoon.");
+    }
+
+    const result = await withClient(async (client) => {
+      await client.query("BEGIN");
+      try {
+        if (!allowDuplicate && batch.signature) {
+          const { rows: dupRows } = await client.query(
+            `SELECT 1
+             FROM import_batches
+             WHERE project_id=$1 AND source_system='TARGET_ESTIMATE' AND signature=$2
+             LIMIT 1`,
+            [batch.project_id, batch.signature]
+          );
+          if (dupRows.length > 0) {
+            throw new Error("Tama tiedosto on jo importattu (signature).");
+          }
+        }
+
+        const codeSet = new Set();
+        for (const key of totals.keys()) {
+          codeSet.add(key.split(":")[0]);
+        }
+        const codes = [...codeSet.values()];
+        for (const code of codes) {
+          const title = titles.get(code) || null;
+          const groupCode = groupCodeFromLittera(code);
+          await client.query(
+            `INSERT INTO litteras (project_id, code, title, group_code)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (project_id, code) DO NOTHING`,
+            [batch.project_id, code, title, groupCode]
+          );
+        }
+
+        const { rows: litteraRows } = await client.query(
+          `SELECT code, littera_id
+           FROM litteras
+           WHERE project_id=$1 AND code = ANY($2)`,
+          [batch.project_id, codes]
+        );
+        const litteraByCode = new Map(litteraRows.map((r) => [r.code, r.littera_id]));
+
+        const notes = `Staging commit: ${batch.file_name || "budget.csv"}`;
+        const { rows: batchInsertRows } = await client.query(
+          `INSERT INTO import_batches
+           (project_id, source_system, imported_by, signature, notes)
+           VALUES ($1, 'TARGET_ESTIMATE', $2, $3, $4)
+           RETURNING import_batch_id`,
+          [batch.project_id, String(committedBy).trim(), batch.signature || null, notes]
+        );
+        const importBatchId = batchInsertRows[0].import_batch_id;
+
+        let inserted = 0;
+        for (const [key, amount] of totals.entries()) {
+          const [code, costType] = key.split(":");
+          const litteraId = litteraByCode.get(code);
+          if (!litteraId) {
+            continue;
+          }
+          await client.query(
+            `INSERT INTO budget_lines
+             (project_id, target_littera_id, cost_type, amount, source, import_batch_id, created_by)
+             VALUES ($1, $2, $3::cost_type, $4, 'IMPORT'::budget_source, $5, $6)`,
+            [
+              batch.project_id,
+              litteraId,
+              costType,
+              amount,
+              importBatchId,
+              String(committedBy).trim(),
+            ]
+          );
+          inserted += 1;
+        }
+
+        await client.query(
+          `INSERT INTO import_staging_batch_events
+           (staging_batch_id, status, message, created_by)
+           VALUES ($1, 'COMMITTED', $2, $3)`,
+          [batchId, message ? String(message).trim() : "Siirretty budget_lines-tauluun", String(committedBy).trim()]
+        );
+
+        await client.query("COMMIT");
+        return { importBatchId, inserted };
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      }
+    });
+
+    res.status(201).json({
+      ok: true,
+      import_batch_id: result.importBatchId,
+      inserted_rows: result.inserted,
+      skipped_rows: skippedRows,
+      skipped_values: skippedValues,
+      error_issues: errorCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/import-staging/:batchId/summary", async (req, res, next) => {
+  try {
+    const { batchId } = req.params;
+    if (!batchId) {
+      return badRequest(res, "batchId puuttuu.");
+    }
+    const { rows: batchRows } = await query(
+      `SELECT staging_batch_id, project_id, import_type
+       FROM import_staging_batches
+       WHERE staging_batch_id=$1`,
+      [batchId]
+    );
+    if (batchRows.length === 0) {
+      return res.status(404).json({ error: "Staging-batchia ei loydy." });
+    }
+    const batch = batchRows[0];
+    if (!requireProjectAccess(req, res, batch.project_id, "manager")) {
+      return;
+    }
+    if (String(batch.import_type).toUpperCase() !== "BUDGET") {
+      return badRequest(res, "Vain BUDGET staging voidaan esikatsella.");
+    }
+
+    const { rows: issueRows } = await query(
+      `SELECT count(*)::int AS cnt
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1 AND i.severity='ERROR'`,
+      [batchId]
+    );
+    const errorCount = issueRows[0]?.cnt || 0;
+
+    const { rows: issueLineRows } = await query(
+      `SELECT DISTINCT l.staging_line_id
+       FROM import_staging_issues i
+       JOIN import_staging_lines_raw l ON l.staging_line_id=i.staging_line_id
+       WHERE l.staging_batch_id=$1`,
+      [batchId]
+    );
+    const issueLineIds = new Set(issueLineRows.map((row) => row.staging_line_id));
+
+    const { rows: lineRows } = await query(
+      `SELECT l.staging_line_id,
+              l.row_no,
+              l.raw_json,
+              (
+                SELECT e.edit_json
+                FROM import_staging_line_edits e
+                WHERE e.staging_line_id=l.staging_line_id
+                ORDER BY e.edited_at DESC
+                LIMIT 1
+              ) AS edit_json
+       FROM import_staging_lines_raw l
+       WHERE l.staging_batch_id=$1
+       ORDER BY l.row_no ASC`,
+      [batchId]
+    );
+    if (lineRows.length === 0) {
+      return badRequest(res, "Staging-batchissa ei ole riveja.");
+    }
+
+    const headers = Object.keys(lineRows[0].raw_json || {});
+    const headerLookup = buildHeaderLookup(headers);
+    const codeHeader = headerLookup.get("litterakoodi");
+    const titleHeader = headerLookup.get("litteraselite");
+    if (!codeHeader) {
+      return badRequest(res, "CSV: Litterakoodi-sarake puuttuu.");
+    }
+
+    const costHeaderConfig = [
+      { name: "Työ €", costType: "LABOR" },
+      { name: "Aine €", costType: "MATERIAL" },
+      { name: "Alih €", costType: "SUBCONTRACT" },
+      { name: "Vmiehet €", costType: "RENTAL" },
+      { name: "Muu €", costType: "OTHER" },
+      { name: "Summa", costType: "OTHER" },
+    ];
+
+    const hasDetailed = costHeaderConfig
+      .filter((entry) => entry.name !== "Summa")
+      .some((entry) => headerLookup.has(entry.name.toLowerCase()));
+
+    const activeCostHeaders = costHeaderConfig.filter((entry) => {
+      if (!headerLookup.has(entry.name.toLowerCase())) {
+        return false;
+      }
+      if (hasDetailed && entry.name === "Summa") {
+        return false;
+      }
+      return true;
+    });
+
+    if (activeCostHeaders.length === 0) {
+      return badRequest(res, "CSV: kustannussarakkeet puuttuvat (Työ/Aine/Alih/Vmiehet/Muu/Summa).");
+    }
+
+    const totals = new Map();
+    const totalsByCode = new Map();
+    const totalsByCodeType = new Map();
+    const cleanTotalsByCostType = new Map();
+    const cleanTotalsByCode = new Map();
+    const cleanTotalsByCodeType = new Map();
+    const titlesByCode = new Map();
+    const codes = new Set();
+    let skippedRows = 0;
+    let skippedValues = 0;
+
+    for (const row of lineRows) {
+      const effective = {
+        ...(row.raw_json || {}),
+        ...(row.edit_json || {}),
+      };
+      const hasIssue = issueLineIds.has(row.staging_line_id);
+      const code = String(effective[codeHeader] || "").trim();
+      if (!code || !/^\d{4}$/.test(code)) {
+        skippedRows += 1;
+        continue;
+      }
+      codes.add(code);
+      if (titleHeader && !titlesByCode.has(code)) {
+        const title = String(effective[titleHeader] || "").trim();
+        if (title) {
+          titlesByCode.set(code, title);
+        }
+      }
+
+      let hasAmount = false;
+      for (const header of activeCostHeaders) {
+        const rawValue = String(effective[header.name] || "").trim();
+        if (!rawValue) {
+          continue;
+        }
+        const num = parseFiNumber(rawValue);
+        if (num === null || num < 0) {
+          skippedValues += 1;
+          continue;
+        }
+        if (num === 0) {
+          continue;
+        }
+        hasAmount = true;
+        const key = header.costType;
+        const prev = totals.get(key) || 0;
+        totals.set(key, prev + num);
+        const codeKey = code;
+        totalsByCode.set(codeKey, (totalsByCode.get(codeKey) || 0) + num);
+        const lineKey = `${code}:${header.costType}`;
+        totalsByCodeType.set(lineKey, (totalsByCodeType.get(lineKey) || 0) + num);
+        if (!hasIssue) {
+          cleanTotalsByCostType.set(key, (cleanTotalsByCostType.get(key) || 0) + num);
+          cleanTotalsByCode.set(codeKey, (cleanTotalsByCode.get(codeKey) || 0) + num);
+          cleanTotalsByCodeType.set(lineKey, (cleanTotalsByCodeType.get(lineKey) || 0) + num);
+        }
+      }
+      if (!hasAmount) {
+        skippedRows += 1;
+      }
+    }
+
+    const totalsByCostType = {};
+    for (const [key, value] of cleanTotalsByCostType.entries()) {
+      totalsByCostType[key] = value;
+    }
+    const totalsByCostTypeAll = {};
+    for (const [key, value] of totals.entries()) {
+      totalsByCostTypeAll[key] = value;
+    }
+
+    const topCodes = [...cleanTotalsByCode.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([code, total]) => ({
+        code,
+        title: titlesByCode.get(code) || null,
+        total,
+      }));
+    const topLines = [...cleanTotalsByCodeType.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([key, total]) => {
+        const [code, costType] = key.split(":");
+        return {
+          code,
+          title: titlesByCode.get(code) || null,
+          cost_type: costType,
+          total,
+        };
+      });
+
+    res.json({
+      ok: true,
+      staging_batch_id: batchId,
+      line_count: lineRows.length,
+      skipped_rows: skippedRows,
+      skipped_values: skippedValues,
+      error_issues: errorCount,
+      codes_count: codes.size,
+      totals_by_cost_type: totalsByCostType,
+      totals_by_cost_type_all: totalsByCostTypeAll,
+      top_codes: topCodes,
+      top_lines: topLines,
+    });
+  } catch (err) {
     next(err);
   }
 });

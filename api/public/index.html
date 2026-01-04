@@ -457,6 +457,36 @@
             <input type="checkbox" name="saveMapping" checked />
             Tallenna mappaus tälle projektille
           </label>
+          <div class="stack">
+            <h3>Staging + puhdistus</h3>
+            <label>
+              Staging-batch ID (jatka aiempaa)
+              <input id="budget-staging-batch-id" placeholder="uuid" />
+            </label>
+            <label>
+              Pääkäyttäjä
+              <input id="budget-staging-actor" placeholder="Yritysadmin" />
+            </label>
+            <div class="job-actions">
+              <button type="button" id="budget-staging-create">Luo staging</button>
+              <button type="button" id="budget-staging-reload">Hae virheet</button>
+              <button type="button" id="budget-staging-approve">Hyväksy batch</button>
+              <button type="button" id="budget-staging-reject">Hylkää batch</button>
+              <label class="checkbox">
+                <input type="checkbox" id="budget-staging-force" />
+                Force
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="budget-staging-allow-duplicate" />
+                Salli duplikaatti
+              </label>
+              <button type="button" id="budget-staging-summary">Esikatsele siirto</button>
+              <button type="button" id="budget-staging-commit">Siirrä budjettiin</button>
+            </div>
+            <div class="hint" id="budget-staging-result"></div>
+            <div class="history" id="budget-staging-summary-result">Ei yhteenvetoa.</div>
+            <div class="history" id="budget-staging-issues">Ei staging-dataa.</div>
+          </div>
           <button type="submit">Tuo budjetti</button>
           <div class="hint" id="budget-import-result"></div>
           </form>

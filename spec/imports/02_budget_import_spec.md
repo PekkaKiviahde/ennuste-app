@@ -130,14 +130,62 @@ Virheilmoitukset:
 - ilmoita rivit, joissa code tai budjetti puuttuu
 - ilmoita rivit, joissa budjetti ei ole numero
 
+## 6. Import staging + puhdistus (tarvitaan manuaaliseen siirtoon)
+
+Tavoitearvio-data voi olla rikkinainen (NaN, negatiiviset, puuttuvat koodit).
+Jotta **yrityksen pääkäyttäjä** voi siivota datan ennen tuotantoon siirtoa,
+tarvitaan staging-kerros ennen `budget_lines`-kirjausta.
+
+### 6.1 Staging-taulut (append-only loki)
+MVP:n vaatimus: raakadata säilyy muuttumattomana ja korjaukset kirjataan lokiin.
+
+- `import_staging_batches`
+  - batch_id, project_id, source_system, file_name, signature, created_at, created_by
+- `import_staging_lines_raw`
+  - line_id, batch_id, row_no, raw_json, created_at, created_by
+- `import_staging_line_edits`
+  - edit_id, line_id, edit_json, reason, edited_at, edited_by
+- `import_staging_issues`
+  - issue_id, line_id, issue_code, issue_message, severity, created_at
+
+**Nykytila** muodostetaan yhdistamalla `raw_json` + viimeisin edit (append-only).
+
+### 6.2 Validointi
+Stagingiin saapuessa ajetaan validointi:
+- pakolliset kentat (koodi, budjetti tai kustannuslaji-eurot)
+- numeric/format (ei NaN, ei tekstia euro-kentissa)
+- budjettiarvot >= 0 (negatiiviset merkitään issueksi)
+- litterakoodi (4 numeroa) normalisoidaan; virheet listataan
+
+Validointi EI kirjoita `budget_lines`-tauluun.
+
+### 6.3 Puhdistus UI (pääkäyttäjä)
+UI tarjoaa listan issueista:
+- riveittäin korjattavat arvot (koodi, eurot, kustannuslaji)
+- toiminto: korjaa / ohita rivi / merkitse poikkeus
+- kaikki korjaukset kirjataan `import_staging_line_edits`-lokiin
+
+### 6.4 Hyvaksynta ja siirto
+Kun batch on "PUHDAS":
+- luodaan `import_batches`
+- kirjataan `budget_lines` vain hyvaksytyista riveista
+- siirron yhteenveto (montako rivia, montako ohitettu)
+
+### 6.5 Auditointi
+- kaikki staging-eventit ovat append-only
+- siirrosta kirjataan erillinen audit-merkinta
+
 ## Mita muuttui
 - Lisatty CSV-esimerkkisarakkeet ja kustannuslajimappaus MVP-tuontiin.
+- Lisatty staging + puhdistus -vaihe ennen budget_lines-siirtoa.
 
 ## Miksi
 - Esimerkkidata ohjaa MVP-importin pakolliset sarakkeet ja validoinnin.
+- Manuaalinen siirto vaatii puhdistusvaiheen ennen lopullista kirjausta.
 
 ## Miten testataan (manuaali)
 - Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.
+- Luo staging-importti, korjaa yksi rivi ja varmista, että hyvaksytty siirto kirjoittaa budget_lines.
 
 ## Mitä muuttui
 - Lisätty muutososiot dokumentin loppuun.

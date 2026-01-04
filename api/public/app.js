@@ -270,6 +270,19 @@ const budgetPreviewTable = document.getElementById("budget-preview-table");
 const budgetValidation = document.getElementById("budget-validation");
 const budgetJobs = document.getElementById("budget-import-jobs");
 const budgetFileInput = document.getElementById("budget-file");
+const budgetStagingBatchInput = document.getElementById("budget-staging-batch-id");
+const budgetStagingActorInput = document.getElementById("budget-staging-actor");
+const budgetStagingCreate = document.getElementById("budget-staging-create");
+const budgetStagingReload = document.getElementById("budget-staging-reload");
+const budgetStagingApprove = document.getElementById("budget-staging-approve");
+const budgetStagingReject = document.getElementById("budget-staging-reject");
+const budgetStagingCommit = document.getElementById("budget-staging-commit");
+const budgetStagingForce = document.getElementById("budget-staging-force");
+const budgetStagingAllowDuplicate = document.getElementById("budget-staging-allow-duplicate");
+const budgetStagingResult = document.getElementById("budget-staging-result");
+const budgetStagingSummary = document.getElementById("budget-staging-summary");
+const budgetStagingSummaryResult = document.getElementById("budget-staging-summary-result");
+const budgetStagingIssues = document.getElementById("budget-staging-issues");
 const jydaPreviewNote = document.getElementById("jyda-preview-note");
 const jydaPreviewTable = document.getElementById("jyda-preview-table");
 const jydaValidation = document.getElementById("jyda-validation");
@@ -326,6 +339,7 @@ const tabHint = document.getElementById("tab-hint");
 const quickActions = document.querySelector(".quick-actions");
 let budgetCsvData = null;
 let savedBudgetMapping = null;
+let currentBudgetStagingBatchId = null;
 let jydaCsvData = null;
 let savedJydaMapping = null;
 let jydaFileMode = "csv";
@@ -629,6 +643,143 @@ function updateValidationSummary(headers, rows) {
   }
   budgetValidation.textContent =
     warnings.length === 0 ? `Rivejä yhteensä: ${total}.` : `Rivejä: ${total}. ${warnings.join(" · ")}`;
+}
+
+function getBudgetMappingOrThrow() {
+  const mapping = {
+    litteraCode: mappingSelects.litteraCode.value,
+    litteraTitle: mappingSelects.litteraTitle.value,
+    labor: mappingSelects.labor.value,
+    material: mappingSelects.material.value,
+    subcontract: mappingSelects.subcontract.value,
+    rental: mappingSelects.rental.value,
+    other: mappingSelects.other.value,
+  };
+  if (!mapping.litteraCode) {
+    throw new Error("Litterakoodi-sarakkeen mappaus puuttuu.");
+  }
+  const costColumns = [
+    mapping.labor,
+    mapping.material,
+    mapping.subcontract,
+    mapping.rental,
+    mapping.other,
+  ].filter(Boolean);
+  if (costColumns.length === 0) {
+    throw new Error("Vähintään yksi kustannussarake pitää mapata.");
+  }
+  return mapping;
+}
+
+function buildBudgetMappedCsv(headers, rows, mapping) {
+  const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
+  const outHeaders = [
+    "Litterakoodi",
+    "Litteraselite",
+    "Työ €",
+    "Aine €",
+    "Alih €",
+    "Vmiehet €",
+    "Muu €",
+  ];
+  const outputRows = [outHeaders];
+  rows.forEach((row) => {
+    const code = (row[headerIndex[mapping.litteraCode]] || "").trim();
+    if (!code) {
+      return;
+    }
+    const title = mapping.litteraTitle ? row[headerIndex[mapping.litteraTitle]] || "" : "";
+    const labor = mapping.labor ? row[headerIndex[mapping.labor]] || "" : "0";
+    const material = mapping.material ? row[headerIndex[mapping.material]] || "" : "0";
+    const subcontract = mapping.subcontract ? row[headerIndex[mapping.subcontract]] || "" : "0";
+    const rental = mapping.rental ? row[headerIndex[mapping.rental]] || "" : "0";
+    const other = mapping.other ? row[headerIndex[mapping.other]] || "" : "0";
+    outputRows.push([code, title, labor, material, subcontract, rental, other]);
+  });
+  return outputRows.map((r) => r.map(csvEscape).join(";")).join("\n");
+}
+
+function renderBudgetStagingIssues(issues) {
+  if (!budgetStagingIssues) {
+    return;
+  }
+  budgetStagingIssues.innerHTML = "";
+  if (!issues || issues.length === 0) {
+    budgetStagingIssues.textContent = "Ei issueita.";
+    return;
+  }
+
+  const grouped = new Map();
+  issues.forEach((issue) => {
+    const lineId = issue.staging_line_id;
+    if (!grouped.has(lineId)) {
+      grouped.set(lineId, {
+        rowNo: issue.row_no,
+        raw: issue.raw_json || {},
+        issues: [],
+      });
+    }
+    grouped.get(lineId).issues.push(issue);
+  });
+
+  [...grouped.entries()].forEach(([lineId, entry]) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+
+    const title = document.createElement("strong");
+    title.textContent = `Rivi ${entry.rowNo}`;
+
+    const issueText = document.createElement("div");
+    issueText.textContent = entry.issues
+      .map((i) => `${i.issue_code}: ${i.issue_message || ""}`)
+      .join(" | ");
+
+    const rawPre = document.createElement("pre");
+    rawPre.textContent = JSON.stringify(entry.raw, null, 2);
+
+    const editLabel = document.createElement("label");
+    editLabel.textContent = "Korjaus JSON (vain muuttuvat kentät)";
+
+    const editArea = document.createElement("textarea");
+    editArea.rows = 3;
+    editArea.placeholder = "{\"Litterakoodi\":\"0100\",\"Työ €\":\"123,00\"}";
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.textContent = "Tallenna korjaus";
+    saveButton.addEventListener("click", async () => {
+      try {
+        const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+        if (!actor) {
+          throw new Error("Pääkäyttäjä puuttuu.");
+        }
+        const edit = editArea.value ? JSON.parse(editArea.value) : null;
+        if (!edit || typeof edit !== "object") {
+          throw new Error("Korjaus JSON puuttuu.");
+        }
+        await fetchJson(`/api/import-staging/lines/${lineId}/edits`, {
+          method: "POST",
+          body: JSON.stringify({
+            editedBy: actor,
+            edit,
+            reason: "UI-korjaus",
+          }),
+        });
+        editArea.value = "";
+        setHint(budgetStagingResult, `Korjaus tallennettu (rivi ${entry.rowNo}).`);
+      } catch (err) {
+        setHint(budgetStagingResult, err.message, true);
+      }
+    });
+
+    item.appendChild(title);
+    item.appendChild(issueText);
+    item.appendChild(rawPre);
+    item.appendChild(editLabel);
+    item.appendChild(editArea);
+    item.appendChild(saveButton);
+    budgetStagingIssues.appendChild(item);
+  });
 }
 
 function updateJydaValidationSummary(headers, rows) {
@@ -2325,48 +2476,8 @@ budgetImportForm.addEventListener("submit", async (e) => {
       throw new Error("CSV ei ole ladattuna esikatseluun.");
     }
     const { headers, rows } = budgetCsvData;
-    const mapping = {
-      litteraCode: mappingSelects.litteraCode.value,
-      litteraTitle: mappingSelects.litteraTitle.value,
-      labor: mappingSelects.labor.value,
-      material: mappingSelects.material.value,
-      subcontract: mappingSelects.subcontract.value,
-      rental: mappingSelects.rental.value,
-      other: mappingSelects.other.value,
-    };
-    if (!mapping.litteraCode) {
-      throw new Error("Litterakoodi-sarakkeen mappaus puuttuu.");
-    }
-    const costColumns = [mapping.labor, mapping.material, mapping.subcontract, mapping.rental, mapping.other].filter(Boolean);
-    if (costColumns.length === 0) {
-      throw new Error("Vähintään yksi kustannussarake pitää mapata.");
-    }
-
-    const headerIndex = Object.fromEntries(headers.map((h, idx) => [h, idx]));
-    const outHeaders = [
-      "Litterakoodi",
-      "Litteraselite",
-      "Työ €",
-      "Aine €",
-      "Alih €",
-      "Vmiehet €",
-      "Muu €",
-    ];
-    const outputRows = [outHeaders];
-    rows.forEach((row) => {
-      const code = (row[headerIndex[mapping.litteraCode]] || "").trim();
-      if (!code) {
-        return;
-      }
-      const title = mapping.litteraTitle ? row[headerIndex[mapping.litteraTitle]] || "" : "";
-      const labor = mapping.labor ? row[headerIndex[mapping.labor]] || "" : "0";
-      const material = mapping.material ? row[headerIndex[mapping.material]] || "" : "0";
-      const subcontract = mapping.subcontract ? row[headerIndex[mapping.subcontract]] || "" : "0";
-      const rental = mapping.rental ? row[headerIndex[mapping.rental]] || "" : "0";
-      const other = mapping.other ? row[headerIndex[mapping.other]] || "" : "0";
-      outputRows.push([code, title, labor, material, subcontract, rental, other]);
-    });
-    const csvText = outputRows.map((r) => r.map(csvEscape).join(";")).join("\n");
+    const mapping = getBudgetMappingOrThrow();
+    const csvText = buildBudgetMappedCsv(headers, rows, mapping);
     const payload = {
       projectId: form.get("projectId"),
       importedBy: form.get("importedBy"),
@@ -2423,6 +2534,206 @@ budgetImportForm.addEventListener("submit", async (e) => {
     setHint(result, err.message, true);
   }
 });
+
+async function loadBudgetStagingIssues(batchId) {
+  if (!budgetStagingIssues) {
+    return;
+  }
+  if (!batchId) {
+    budgetStagingIssues.textContent = "Anna staging-batch ID.";
+    return;
+  }
+  const data = await fetchJson(`/api/import-staging/${batchId}/issues`);
+  renderBudgetStagingIssues(data.issues || []);
+}
+
+if (budgetStagingCreate) {
+  budgetStagingCreate.addEventListener("click", async () => {
+    try {
+      const form = new FormData(budgetImportForm);
+      const file = document.getElementById("budget-file").files[0];
+      if (!file) {
+        throw new Error("Valitse CSV-tiedosto.");
+      }
+      if (!budgetCsvData) {
+        throw new Error("CSV ei ole ladattuna esikatseluun.");
+      }
+      const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+      if (!actor) {
+        throw new Error("Pääkäyttäjä puuttuu.");
+      }
+      const mapping = getBudgetMappingOrThrow();
+      const csvText = buildBudgetMappedCsv(budgetCsvData.headers, budgetCsvData.rows, mapping);
+      const importedBy = String(form.get("importedBy") || "").trim();
+      if (!importedBy) {
+        throw new Error("Tuojan nimi puuttuu.");
+      }
+      const payload = {
+        projectId: form.get("projectId"),
+        importedBy,
+        filename: file.name,
+        csvText,
+      };
+      const res = await fetchJson("/api/import-staging/budget", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      currentBudgetStagingBatchId = res.staging_batch_id;
+      if (budgetStagingBatchInput) {
+        budgetStagingBatchInput.value = res.staging_batch_id;
+      }
+      setHint(
+        budgetStagingResult,
+        `Staging luotu. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}`
+      );
+      await loadBudgetStagingIssues(res.staging_batch_id);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingReload) {
+  budgetStagingReload.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      await loadBudgetStagingIssues(batchId);
+      setHint(budgetStagingResult, `Virheet ladattu (batch=${batchId}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingApprove) {
+  budgetStagingApprove.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+      if (!batchId) {
+        throw new Error("Staging-batch ID puuttuu.");
+      }
+      if (!actor) {
+        throw new Error("Pääkäyttäjä puuttuu.");
+      }
+      const res = await fetchJson(`/api/import-staging/${batchId}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ approvedBy: actor, message: "Hyvaksytty UI:ssa" }),
+      });
+      setHint(budgetStagingResult, `Batch hyväksytty (event=${res.staging_batch_event_id}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingReject) {
+  budgetStagingReject.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+      if (!batchId) {
+        throw new Error("Staging-batch ID puuttuu.");
+      }
+      if (!actor) {
+        throw new Error("Pääkäyttäjä puuttuu.");
+      }
+      const res = await fetchJson(`/api/import-staging/${batchId}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ rejectedBy: actor, message: "Hylatty UI:ssa" }),
+      });
+      setHint(budgetStagingResult, `Batch hylätty (event=${res.staging_batch_event_id}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingCommit) {
+  budgetStagingCommit.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      const actor = budgetStagingActorInput ? budgetStagingActorInput.value.trim() : "";
+      if (!batchId) {
+        throw new Error("Staging-batch ID puuttuu.");
+      }
+      if (!actor) {
+        throw new Error("Pääkäyttäjä puuttuu.");
+      }
+      const res = await fetchJson(`/api/import-staging/${batchId}/commit`, {
+        method: "POST",
+        body: JSON.stringify({
+          committedBy: actor,
+          message: "Siirretty UI:ssa",
+          force: Boolean(budgetStagingForce?.checked),
+          allowDuplicate: Boolean(budgetStagingAllowDuplicate?.checked),
+        }),
+      });
+      setHint(
+        budgetStagingResult,
+        `Siirto valmis. import_batch_id=${res.import_batch_id} · rivit=${res.inserted_rows}`
+      );
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
+
+if (budgetStagingSummary) {
+  budgetStagingSummary.addEventListener("click", async () => {
+    try {
+      const batchId = budgetStagingBatchInput?.value.trim() || currentBudgetStagingBatchId;
+      if (!batchId) {
+        throw new Error("Staging-batch ID puuttuu.");
+      }
+      const res = await fetchJson(`/api/import-staging/${batchId}/summary`);
+      if (budgetStagingSummaryResult) {
+        const totals = res.totals_by_cost_type || {};
+        const totalsAll = res.totals_by_cost_type_all || {};
+        const lines = [
+          `Batch: ${res.staging_batch_id}`,
+          `Riveja: ${res.line_count}`,
+          `Koodit: ${res.codes_count}`,
+          `Ohitetut rivit: ${res.skipped_rows}`,
+          `Ohitetut arvot: ${res.skipped_values}`,
+          `ERROR-issuet: ${res.error_issues}`,
+          `LABOR (puhdas): ${formatAmount(totals.LABOR || 0)}`,
+          `LABOR (kaikki): ${formatAmount(totalsAll.LABOR || 0)}`,
+          `MATERIAL (puhdas): ${formatAmount(totals.MATERIAL || 0)}`,
+          `MATERIAL (kaikki): ${formatAmount(totalsAll.MATERIAL || 0)}`,
+          `SUBCONTRACT (puhdas): ${formatAmount(totals.SUBCONTRACT || 0)}`,
+          `SUBCONTRACT (kaikki): ${formatAmount(totalsAll.SUBCONTRACT || 0)}`,
+          `RENTAL (puhdas): ${formatAmount(totals.RENTAL || 0)}`,
+          `RENTAL (kaikki): ${formatAmount(totalsAll.RENTAL || 0)}`,
+          `OTHER (puhdas): ${formatAmount(totals.OTHER || 0)}`,
+          `OTHER (kaikki): ${formatAmount(totalsAll.OTHER || 0)}`,
+        ];
+        const topCodes = res.top_codes || [];
+        if (topCodes.length > 0) {
+          lines.push("", "Top 10 litterat:");
+          topCodes.forEach((row, idx) => {
+            const title = row.title ? ` — ${row.title}` : "";
+            lines.push(`${idx + 1}. ${row.code}${title}: ${formatAmount(row.total || 0)}`);
+          });
+        }
+        const topLines = res.top_lines || [];
+        if (topLines.length > 0) {
+          lines.push("", "Top 10 littera+kustannuslaji:");
+          topLines.forEach((row, idx) => {
+            const title = row.title ? ` — ${row.title}` : "";
+            lines.push(
+              `${idx + 1}. ${row.code}${title} (${row.cost_type}): ${formatAmount(row.total || 0)}`
+            );
+          });
+        }
+        budgetStagingSummaryResult.innerHTML = `<pre>${lines.join("\n")}</pre>`;
+      }
+      setHint(budgetStagingResult, `Yhteenveto ladattu (batch=${batchId}).`);
+    } catch (err) {
+      setHint(budgetStagingResult, err.message, true);
+    }
+  });
+}
 
 const jydaImportForm = document.getElementById("jyda-import-form");
 jydaImportForm.addEventListener("submit", async (e) => {
