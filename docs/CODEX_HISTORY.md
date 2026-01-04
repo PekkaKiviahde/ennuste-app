@@ -1158,3 +1158,23 @@
 - Summary: testit ajettu ja onnistui.
 - Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
 - Notes: paivitys aiemman DONE-merkinnan testitilaan.
+
+[2026-01-04] [IN_PROGRESS] [L-20260104-047] LUKITTU: Handoff NPSS/cutover verifioinnista
+- Goal: tuottaa handoff-dokumentti ja kytkea se historiaan.
+- Scope: Docs (dokumentaatio) + Tests (testit).
+- Deliverables: docs/HANDOFF_20260104.md ja paivitetty docs/CODEX_HISTORY.md.
+- Key files: docs/HANDOFF_20260104.md, docs/CODEX_HISTORY.md
+- Tests (planned): npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [DONE] [L-20260104-047] LUKITTU: Handoff NPSS/cutover verifioinnista
+- Summary: handoff lisatty; historia paivitetty.
+- Tests: npm run lint (pending); npm run typecheck (pending); npm run test (pending).
+- Notes: seuraava fokus raporttinakyma ja cutover-audit.
+
+[2026-01-04] [HANDOFF] [L-20260104-047]
+- Where we are: NPSS/cutover-verifioinnin tulokset dokumentoitu, handoff kirjoitettu.
+- What changed: lisatty docs/HANDOFF_20260104.md ja paivitetty docs/CODEX_HISTORY.md.
+- What remains: raporttinakyman selitteet ja cutover-audit paatos.
+- Next LUKITTU suggestion: LUKITTU: raporttinakyma ja selitteet NPSS/cutover-erottelulle.
+- Key files: docs/HANDOFF_20260104.md, docs/NPSS_CUTOVER_VERIFICATION_2026-01-04.md, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
