@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-050",
   "branch": "main",
-  "sha": "2c973f7",
+  "sha": "e7e0061",
   "timestamp": "2026-01-04",
-  "next_step": "Verifioi mapping-versiot UI tavoitearvio-sivulla ja paata LUKITTU #3 sulkeminen."
+  "next_step": "Sulje LUKITTU #3 (DONE + HANDOFF) tai tee lisaparannus ennen sulkemista."
 }

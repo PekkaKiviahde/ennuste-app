@@ -1302,3 +1302,9 @@
 - Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: paata LUKITTU #3 sulkeminen tai jatkotoimet
+
+[2026-01-04] [PROGRESS] [L-20260104-050] Mapping-versiot UI verifioitu
+- What I did: kayttaja vahvisti /login, /tyonohjaus, /suunnittelu, /ennuste, /loki, /raportti toimivat; mapping-versiot nakyvat tavoitearviossa.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
+- Next: paata LUKITTU #3 sulkeminen (DONE + HANDOFF)
