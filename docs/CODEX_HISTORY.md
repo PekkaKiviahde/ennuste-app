@@ -1308,3 +1308,22 @@
 - Key files: docs/CODEX_HISTORY.md
 - Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tyonohjaus -> /suunnittelu -> /ennuste -> /loki -> /raportti)
 - Next: paata LUKITTU #3 sulkeminen (DONE + HANDOFF)
+
+[2026-01-04] [DONE] [L-20260104-050] LUKITTU: Mapping-versiot UI
+- Summary: mapping-versiot lisatty tavoitearvio-sivulle; UI-kavelyt vahvistettu.
+- Tests: npm run lint (ok); npm run typecheck (ok); npm run test (ok).
+- Notes: mapping-versiot nakyvat tavoitearviossa.
+
+[2026-01-04] [HANDOFF] [L-20260104-050]
+- Where we are: mapping-versiot UI valmis; LUKITTU #3 suljettu.
+- What changed: tavoitearvio-sivulle lisatty mapping-versiot taulukko; verifiointi kirjattu.
+- What remains: mahdolliset UI-parannukset (esim. suodatus/sivutus).
+- Next LUKITTU suggestion: LUKITTU: UI-parannukset tai raportoinnin lisaselitteet.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- How to resume: npm run lint; npm run typecheck; npm run test
+
+[2026-01-04] [PROGRESS] [L-20260104-051] LUKITTU #4 aloitus
+- What I did: suljettu LUKITTU #3 DONE + HANDOFF; alustettu uusi LUKITTU #4.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: maarita LUKITTU #4 tavoite ja deliverablet
