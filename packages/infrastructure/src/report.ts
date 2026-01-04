@@ -50,7 +50,33 @@ export const reportRepository = (): ReportPort => ({
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
     const result = await tenantDb.query(
-      "SELECT bl.target_littera_id, l.code AS littera_code, l.title AS littera_title, bl.cost_type, bl.amount, bl.valid_from, bl.valid_to FROM budget_lines bl JOIN litteras l ON l.project_id = bl.project_id AND l.littera_id = bl.target_littera_id WHERE bl.project_id = $1::uuid ORDER BY l.code, bl.cost_type, bl.valid_from DESC",
+      `
+      WITH latest_batch AS (
+        SELECT import_batch_id
+        FROM import_batches
+        WHERE project_id = $1::uuid AND source_system = 'TARGET_ESTIMATE'
+        ORDER BY imported_at DESC
+        LIMIT 1
+      )
+      SELECT
+        bl.target_littera_id,
+        l.code AS littera_code,
+        l.title AS littera_title,
+        bl.cost_type,
+        bl.amount,
+        bl.valid_from,
+        bl.valid_to
+      FROM budget_lines bl
+      JOIN litteras l
+        ON l.project_id = bl.project_id
+       AND l.littera_id = bl.target_littera_id
+      WHERE bl.project_id = $1::uuid
+        AND (
+          NOT EXISTS (SELECT 1 FROM latest_batch)
+          OR bl.import_batch_id IN (SELECT import_batch_id FROM latest_batch)
+        )
+      ORDER BY l.code, bl.cost_type, bl.valid_from DESC
+      `,
       [projectId]
     );
     return result.rows;
