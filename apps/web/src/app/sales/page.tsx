@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "../../server/session";
 import { logoutAction } from "../../server/actions/auth";
+import SaasOnboardingForm from "../../ui/sales/SaasOnboardingForm";
 
 export default async function SalesPage() {
   const session = await requireSession();
   const hasSellerUi = session.permissions.includes("SELLER_UI");
+  const hasOnboarding = session.permissions.includes("SAAS_ONBOARDING_MANAGE");
   if (!hasSellerUi) {
     redirect("/ylataso");
   }
@@ -32,6 +34,14 @@ export default async function SalesPage() {
           </div>
         </div>
       </section>
+      {hasOnboarding ? (
+        <SaasOnboardingForm />
+      ) : (
+        <section className="card">
+          <h2>Onboarding</h2>
+          <div className="notice error">Ei oikeuksia onboarding-toimintoihin.</div>
+        </section>
+      )}
     </div>
   );
 }

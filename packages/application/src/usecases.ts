@@ -6,6 +6,7 @@ import type {
   ForecastPort,
   HealthPort,
   ImportStagingPort,
+  SaasPort,
   PlanningEventInput,
   PlanningPort,
   RbacPort,
@@ -22,6 +23,7 @@ export type AppServices = {
   forecast: ForecastPort;
   report: ReportPort;
   importStaging: ImportStagingPort;
+  saas: SaasPort;
   admin: AdminPort;
   workPhases: WorkPhasePort;
   audit: AuditPort;
@@ -359,6 +361,110 @@ export const exportStagingBatch = async (
     batchId: input.batchId,
     mode: input.mode
   });
+};
+
+export const createGroup = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; name: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "SAAS_ONBOARDING_MANAGE");
+  const result = await services.saas.createGroup({
+    name: input.name,
+    createdBy: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "group.create",
+    payload: { group_id: result.groupId, name: input.name }
+  });
+  return result;
+};
+
+export const createOrganizationWithInvite = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    groupId?: string | null;
+    name: string;
+    slug: string;
+    adminEmail: string;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "SAAS_ONBOARDING_MANAGE");
+  const result = await services.saas.createOrganizationWithInvite({
+    groupId: input.groupId ?? null,
+    name: input.name,
+    slug: input.slug,
+    adminEmail: input.adminEmail,
+    createdBy: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "organization.create",
+    payload: {
+      organization_id: result.organizationId,
+      tenant_id: result.tenantId,
+      demo_project_id: result.projectId,
+      admin_email: input.adminEmail
+    }
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "invite.create",
+    payload: {
+      organization_id: result.organizationId,
+      invite_id: result.inviteId
+    }
+  });
+  return result;
+};
+
+export const createOrganizationInvite = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    organizationId: string;
+    email: string;
+    roleCode?: string | null;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "SAAS_ONBOARDING_MANAGE");
+  const result = await services.saas.createOrgInvite({
+    organizationId: input.organizationId,
+    email: input.email,
+    roleCode: input.roleCode ?? null,
+    createdBy: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "invite.create",
+    payload: { organization_id: input.organizationId, invite_id: result.inviteId }
+  });
+  return result;
+};
+
+export const acceptInvite = async (
+  services: AppServices,
+  input: { token: string; pin: string; displayName?: string | null }
+) => {
+  const result = await services.saas.acceptInvite({
+    token: input.token,
+    pin: input.pin,
+    displayName: input.displayName ?? null
+  });
+  return result;
 };
 
 export const loadAdminOverview = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {

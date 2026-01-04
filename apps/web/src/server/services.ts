@@ -1,4 +1,4 @@
-import { adminRepository, auditRepository, authRepository, forecastRepository, healthRepository, importStagingRepository, planningRepository, rbacRepository, reportRepository, workPhaseRepository } from "@ennuste/infrastructure";
+import { adminRepository, auditRepository, authRepository, forecastRepository, healthRepository, importStagingRepository, planningRepository, rbacRepository, reportRepository, saasRepository, workPhaseRepository } from "@ennuste/infrastructure";
 import type { AppServices } from "@ennuste/application";
 import { assertDemoModeSafe } from "./env";
 
@@ -14,6 +14,7 @@ export const createServices = (): AppServices => ({
   forecast: forecastRepository(),
   report: reportRepository(),
   importStaging: importStagingRepository(),
+  saas: saasRepository(),
   admin: adminRepository(),
   workPhases: workPhaseRepository(),
   audit: auditRepository()

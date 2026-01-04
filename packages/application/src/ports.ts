@@ -232,6 +232,34 @@ export type AdminPort = {
   }>;
 };
 
+export type SaasPort = {
+  createGroup(input: { name: string; createdBy: string }): Promise<{ groupId: string }>;
+  createOrganizationWithInvite(input: {
+    groupId?: string | null;
+    name: string;
+    slug: string;
+    adminEmail: string;
+    createdBy: string;
+  }): Promise<{
+    organizationId: string;
+    tenantId: string;
+    projectId: string;
+    inviteId: string;
+    inviteToken: string;
+  }>;
+  createOrgInvite(input: {
+    organizationId: string;
+    email: string;
+    roleCode?: string | null;
+    createdBy: string;
+  }): Promise<{ inviteId: string; inviteToken: string }>;
+  acceptInvite(input: {
+    token: string;
+    pin: string;
+    displayName?: string | null;
+  }): Promise<{ organizationId: string; projectId: string; userId: string }>;
+};
+
 export type WorkPhasePort = {
   listWorkPhases(projectId: string, tenantId: string): Promise<Array<{
     work_phase_id: string;

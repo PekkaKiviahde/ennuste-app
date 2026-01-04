@@ -125,6 +125,14 @@ Yhtio:
 - slug (string, uniikki)
 - created_at, created_by
 
+Konserniroolit:
+- group_role_assignment_id (UUID, PK)
+- group_id (UUID, FK -> Konserni)
+- user_id (UUID, FK)
+- role_code (GROUP_ADMIN, GROUP_VIEWER)
+- granted_at, granted_by
+- revoked_at, revoked_by
+
 ## 9) Kutsulinkki (yrityksen paakayttaja)
 Kutsulinkki on append-only ja vanhenee.
 
@@ -139,7 +147,7 @@ OrgInvite:
 - created_at, created_by
 
 ## Mita muuttui
-- Lisatty konserni, yhtio ja kutsulinkki entiteetteina.
+- Lisatty konserni, yhtio, konserniroolit ja kutsulinkki entiteetteina.
 - Paivitetty entiteettiluettelo vastaamaan onboarding-virtaa.
 
 ## Miksi

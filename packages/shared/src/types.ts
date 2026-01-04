@@ -6,7 +6,9 @@ export type RoleCode =
   | "PROCUREMENT"
   | "EXEC_READONLY"
   | "ORG_ADMIN"
-  | "SELLER";
+  | "SELLER"
+  | "GROUP_ADMIN"
+  | "GROUP_VIEWER";
 
 export type PermissionCode =
   | "REPORT_READ"
@@ -19,7 +21,9 @@ export type PermissionCode =
   | "BASELINE_LOCK"
   | "MEMBERS_MANAGE"
   | "TERMINOLOGY_MANAGE"
-  | "SELLER_UI";
+  | "SELLER_UI"
+  | "SAAS_ONBOARDING_MANAGE"
+  | "GROUP_READ";
 
 export type SessionUser = {
   userId: string;

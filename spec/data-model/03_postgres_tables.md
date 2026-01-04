@@ -57,6 +57,24 @@ CREATE UNIQUE INDEX ux_org_invites_token ON org_invites (token_hash);
 CREATE INDEX ix_org_invites_org ON org_invites (organization_id, expires_at);
 ```
 
+```sql
+CREATE TABLE group_role_assignments (
+  assignment_id UUID PRIMARY KEY,
+  group_id UUID NOT NULL REFERENCES groups (group_id),
+  user_id UUID NOT NULL REFERENCES users (user_id),
+  role_code TEXT NOT NULL REFERENCES roles (role_code),
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  granted_by TEXT NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  revoked_by TEXT,
+  revoke_reason TEXT
+);
+
+CREATE UNIQUE INDEX ux_group_role_active
+  ON group_role_assignments (group_id, user_id, role_code)
+  WHERE revoked_at IS NULL;
+```
+
 ## Littera
 
 ```sql
@@ -250,6 +268,7 @@ CREATE TABLE import_batch (
 
 ## Mita muuttui
 - Lisatty konserni- ja yhtiotaulut seka kutsulinkit.
+- Lisatty konserniroolien assignoinnit.
 - Paivitetty Postgres-taulut, avaimet ja indeksit speksin entiteeteille.
 - Lisatty mapping_version ja mapping_line taulut mapping-speksin mukaisesti.
 - Liitetty ennustetapahtuma mapping_versioniin audit trailia varten.
