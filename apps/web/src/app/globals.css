@@ -146,6 +146,10 @@ textarea {
   margin: 0;
 }
 
+.project-switcher-note {
+  white-space: nowrap;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

@@ -1789,3 +1789,41 @@
 - Next LUKITTU suggestion: LUKITTU: raportti + projekti-vaihto yhdistelmatesti.
 - Key files: docs/CODEX_HISTORY.md, logo_draft_jp_v2.png
 - How to resume: testaa projektin vaihto ja raportti
+
+[2026-01-04] [SESSION_START] main f447da1
+- Active LUKITTU: L-20260104-064
+- History tail: [HANDOFF] [L-20260104-063]
+- Repo: clean, ahead 0/behind 0
+- DB status: unknown
+- Next action: testaa raportti + projekti-vaihto yhdistelma
+
+[2026-01-04] [PROGRESS] [L-20260104-064] LUKITTU aloitus
+- What I did: aloitettu raportti + projekti-vaihto yhdistelmatesti.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: vahvista yhdistelmatestin tulos ja kirjaa se
+
+[2026-01-04] [PROGRESS] [L-20260104-064] Projektivalitsin näkyviin yhdella projektilla
+- What I did: naytetaan projektivalitsin aina ja lisatty "Vain yksi projekti" -huomio.
+- Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: vahvista raportti + projekti-vaihto yhdistelmatesti
+
+[2026-01-04] [PROGRESS] [L-20260104-064] Projektivalitsin vahvistettu (yksi projekti)
+- What I did: kirjattu kayttajan vahvistus, etta projektivalitsin ja huomio näkyvät.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, valitsin + huomio)
+- Next: sulje LUKITTU #10
+
+[2026-01-04] [DONE] [L-20260104-064] LUKITTU: projektivalitsin always-on
+- Summary: projektivalitsin näytetään aina ja yhden projektin huomio näkyy.
+- Tests: UI-kavely (ok, valitsin + huomio).
+- Notes: raportti + projekti-vaihto yhdistelmatesti avoin.
+
+[2026-01-04] [HANDOFF] [L-20260104-064]
+- Where we are: LUKITTU #10 suljettu; valitsin näkyy myös yhden projektin käyttäjälle.
+- What changed: navissa projektivalitsin näkyy aina, ja "Vain yksi projekti" -huomio lisätty.
+- What remains: vahvista raportti + projekti-vaihto yhdistelmatesti.
+- Next LUKITTU suggestion: LUKITTU: raportti + projekti-vaihto yhdistelmatesti.
+- Key files: apps/web/src/app/(app)/layout.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- How to resume: tee raportti + projekti-vaihto yhdistelmatesti

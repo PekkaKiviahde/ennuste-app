@@ -26,6 +26,7 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
   const services = createServices();
   const projects = await listUserProjects(services, { username: session.username });
   const currentProject = projects.find((project) => project.projectId === session.projectId) ?? null;
+  const hasMultipleProjects = projects.length > 1;
   const contextLabel = currentProject
     ? `${currentProject.organizationName} · ${currentProject.projectName}`
     : `${session.organizationId} · ${session.projectId}`;
@@ -47,7 +48,7 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
             <Link href="/loki">Loki</Link>
           </>
         )}
-        {projects.length > 1 && (
+        {projects.length > 0 && (
           <form className="project-switcher" action={switchProjectAction}>
             <label className="label" htmlFor="projectId">Projekti</label>
             <select className="input" id="projectId" name="projectId" defaultValue={session.projectId}>
@@ -57,7 +58,10 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
                 </option>
               ))}
             </select>
-            <button className="btn btn-secondary btn-sm" type="submit">Vaihda</button>
+            <button className="btn btn-secondary btn-sm" type="submit" disabled={!hasMultipleProjects}>
+              Vaihda
+            </button>
+            {!hasMultipleProjects && <span className="muted project-switcher-note">Vain yksi projekti</span>}
           </form>
         )}
         {hasMembersManage && <Link href="/admin">Admin</Link>}
