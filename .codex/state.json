@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-053",
   "branch": "main",
-  "sha": "79c4c6c",
+  "sha": "a5b9db2",
   "timestamp": "2026-01-04",
-  "next_step": "Odota seuraavaa LUKITTU-paatosta (UI-viimeistelyt tai raportoinnin lisaselitteet)."
+  "next_step": "Verifioi tavoitearvio-taulukoiden tiivistys ja rivilaskurit UI:ssa; paata LUKITTU #6 sulkeminen."
 }

@@ -72,6 +72,9 @@ export default async function TargetEstimatePage({
         mappingFilterMatch(row.approved_by)
       )
     : mappingVersions;
+  const targetCount = filteredRows.length;
+  const mappingLineCount = filteredMappingLines.length;
+  const mappingVersionCount = filteredMappingVersions.length;
 
   return (
     <div className="grid">
@@ -97,7 +100,10 @@ export default async function TargetEstimatePage({
             Naytetaan suodatetut rivit haulla: "{query}"
           </div>
         )}
-        <table className="table">
+        <div className="status-actions">
+          <span className="badge">Riveja: {targetCount}</span>
+        </div>
+        <table className="table table-compact">
           <thead>
             <tr>
               <th>Littera</th>
@@ -134,7 +140,10 @@ export default async function TargetEstimatePage({
       <section className="card">
         <h2>Mapping</h2>
         <p>Tyolittera {"->"} tavoitearvio-littera mapping, status ja saanto.</p>
-        <table className="table">
+        <div className="status-actions">
+          <span className="badge">Riveja: {mappingLineCount}</span>
+        </div>
+        <table className="table table-compact">
           <thead>
             <tr>
               <th>Status</th>
@@ -188,7 +197,10 @@ export default async function TargetEstimatePage({
             Naytetaan mapping-versiot haulla: "{mappingQuery}"
           </div>
         )}
-        <table className="table">
+        <div className="status-actions">
+          <span className="badge">Riveja: {mappingVersionCount}</span>
+        </div>
+        <table className="table table-compact">
           <thead>
             <tr>
               <th>Status</th>

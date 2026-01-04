@@ -1389,3 +1389,9 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #6 tavoite ja deliverablet
+
+[2026-01-04] [PROGRESS] [L-20260104-053] Tavoitearvio-taulukoiden tiivistys + rivilaskurit
+- What I did: lisasin table-compact-tyylin ja rivilaskurit tavoitearvio-, mapping- ja mapping-versiot taulukoihin.
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, apps/web/src/app/globals.css, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: verifioi UI-nakyma ja paata LUKITTU #6 sulkeminen
