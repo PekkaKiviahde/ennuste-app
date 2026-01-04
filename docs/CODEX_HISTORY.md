@@ -1333,3 +1333,9 @@
 - Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
 - Tests run: ei ajettu
 - Next: verifioi suodatus UI:ssa ja paata LUKITTU #4 sulkeminen
+
+[2026-01-04] [PROGRESS] [L-20260104-051] Tavoitearvio-suodatus verifioitu
+- What I did: kayttaja vahvisti suodatus (q=1100) ja nollaus toimivat tavoitearvio-sivulla.
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: manuaali UI-kavely (https://refactored-train-x5xggp94wrxx2v7q9-3000.app.github.dev/login -> /tavoitearvio)
+- Next: paata LUKITTU #4 sulkeminen (DONE + HANDOFF)

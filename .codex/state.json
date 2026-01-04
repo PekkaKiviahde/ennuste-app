@@ -1,7 +1,7 @@
 {
   "current_lukittu_id": "L-20260104-051",
   "branch": "main",
-  "sha": "44ba6ba",
+  "sha": "e6f97ad",
   "timestamp": "2026-01-04",
-  "next_step": "Verifioi tavoitearvio-suodatus (q-parametri) ja paata LUKITTU #4 sulkeminen."
+  "next_step": "Sulje LUKITTU #4 (DONE + HANDOFF) tai tee lisaparannus ennen sulkemista."
 }
