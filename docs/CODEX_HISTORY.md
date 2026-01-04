@@ -1203,3 +1203,9 @@
 - Key files: .codex/state.json, docs/CODEX_HISTORY.md
 - Tests run: npm run db:status (ok)
 - Next: tarkista .env.example + tenant-isolation testit ja jatka LUKITTU #1 auditointia
+
+[2026-01-04] [PROGRESS] [L-20260104-048] Health ja me -auditointi tehty
+- What I did: tarkistettu /api/health ja /api/me virheilmoitukset ja suomenkielisyys; ei muutoksia.
+- Key files: apps/web/src/app/api/health/route.ts, apps/web/src/app/api/me/route.ts, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: jatka audit-loki- ja raportointireitteihin tai tee puutteiden koonti
