@@ -23,13 +23,35 @@ POST /api/forecast-events
 GET /api/report/target-summary?projectId={projectId}&targetLitteraId={litteraId}
 - Yhteenveto suunnitelma + ennustetapahtuma + kustannuslajisummat.
 
+## SaaS-myyjan onboarding (konserni/yhtio)
+
+POST /api/saas/groups
+- Body: name
+- Luo konsernin.
+
+POST /api/saas/organizations
+- Body: groupId?, name, slug, adminEmail
+- Luo yhtiön, demoprojektin ja kutsulinkin pääkäyttäjälle.
+
+POST /api/saas/organizations/{organizationId}/invites
+- Body: email, roleCode=ORG_ADMIN
+- Luo kutsulinkin yrityksen pääkäyttäjälle.
+
+POST /api/invites/accept
+- Body: token, pin, displayName?
+- Hyväksyy kutsun, luo käyttäjän ja myöntää ORG_ADMIN + demoprojektin owner.
+
 ## Mitä muuttui
-- Päivitettiin endpointit vastaamaan toteutusta (suunnitelma ja ennustetapahtuma).
+- Lisatty SaaS-myyjan onboarding-endpointit.
+- Paivitettiin endpointit vastaamaan toteutusta (suunnitelma ja ennustetapahtuma).
 
 ## Miksi
 - API-minimi tarvitaan selkeään suunnitelma -> ennustetapahtuma -virtaan.
+- Onboarding tarvitsee erillisen polun konserni/yhtio/kutsu.
 
 ## Miten testataan (manuaali)
 - Aja POST /api/planning-events ja vahvista GET /api/planning-events listassa.
 - Aja POST /api/forecast-events ja vahvista GET /api/forecast-events listassa.
 - Aja GET /api/report/target-summary ja varmista yhteenveto.
+- Aja POST /api/saas/organizations ja vahvista kutsulinkki.
+- Aja POST /api/invites/accept ja varmista ORG_ADMIN + demoprojektin owner.

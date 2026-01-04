@@ -13,6 +13,50 @@ CREATE TYPE forecast_source AS ENUM ('UI', 'IMPORT', 'MIGRATION');
 CREATE TYPE attachment_owner_type AS ENUM ('PLAN', 'FORECAST_EVENT');
 ```
 
+## Konserni ja yhtiot
+
+```sql
+CREATE TABLE groups (
+  group_id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by TEXT
+);
+
+CREATE UNIQUE INDEX ux_groups_name ON groups (name);
+```
+
+```sql
+CREATE TABLE organizations (
+  organization_id UUID PRIMARY KEY,
+  group_id UUID REFERENCES groups (group_id),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by TEXT
+);
+
+CREATE UNIQUE INDEX ux_organizations_slug ON organizations (slug);
+CREATE INDEX ix_organizations_group ON organizations (group_id);
+```
+
+```sql
+CREATE TABLE org_invites (
+  invite_id UUID PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations (organization_id),
+  email TEXT NOT NULL,
+  role_code TEXT NOT NULL DEFAULT 'ORG_ADMIN',
+  token_hash TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  accepted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by TEXT
+);
+
+CREATE UNIQUE INDEX ux_org_invites_token ON org_invites (token_hash);
+CREATE INDEX ix_org_invites_org ON org_invites (organization_id, expires_at);
+```
+
 ## Littera
 
 ```sql
@@ -205,15 +249,18 @@ CREATE TABLE import_batch (
 ```
 
 ## Mita muuttui
-- Lisatty Postgres-taulut, avaimet ja indeksit speksin entiteeteille.
+- Lisatty konserni- ja yhtiotaulut seka kutsulinkit.
+- Paivitetty Postgres-taulut, avaimet ja indeksit speksin entiteeteille.
 - Lisatty mapping_version ja mapping_line taulut mapping-speksin mukaisesti.
 - Liitetty ennustetapahtuma mapping_versioniin audit trailia varten.
-- Lisatty viite spec-migraatioihin (`spec/migrations/0001_spec_mvp_schema.sql`). 
+- Lisatty viite spec-migraatioihin (`spec/migrations/0001_spec_mvp_schema.sql`).
 
 ## Miksi
 - Toteutus tarvitsee selkean taulurungon, jota UI/API/DB voivat noudattaa.
 - Mappingin versionointi on keskeinen osa suunnittelun ja ennusteen ketjua.
+- Onboarding-virta vaatii konserni- ja kutsutaulut.
 
 ## Miten testataan (manuaali)
 - Lue taulut ja varmista, etta ne kattavat speksin entiteetit.
 - Varmista, etta kaikilla FKeilla on olemassa oleva kohde ja perusindeksit.
+- Luo konserni, yhtio ja org_invite, varmista uniikki token_hash.

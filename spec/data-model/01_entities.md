@@ -110,17 +110,46 @@ ActualCostLine (toteuma):
 - Toteuma yhdistetaan mappingin kautta tavoitearvio-litteroille.
 - Raportti aggregoi group_code 0-9.
 
+## 8) Konserni ja yhtiö
+Konserni on oma entiteetti. Yhtio kuuluu konserniin (valinnainen).
+
+Konserni:
+- group_id (UUID, PK)
+- name (string)
+- created_at, created_by
+
+Yhtio:
+- organization_id (UUID, PK)
+- group_id (UUID, FK -> Konserni)
+- name (string)
+- slug (string, uniikki)
+- created_at, created_by
+
+## 9) Kutsulinkki (yrityksen paakayttaja)
+Kutsulinkki on append-only ja vanhenee.
+
+OrgInvite:
+- invite_id (UUID, PK)
+- organization_id (UUID, FK)
+- email (string)
+- role_code (string, oletus ORG_ADMIN)
+- token_hash (string)
+- expires_at (datetime)
+- accepted_at (datetime)
+- created_at, created_by
+
 ## Mita muuttui
-- Lisatty yhtenainen entiteettiluettelo MVP-alueelle.
-- Rajattu pakolliset kentat ja roolit (tyolittera, tavoitearvio-littera, mapping).
-- Korostettu append-only loki ja suunnitelman rooli ennen ennustusta.
+- Lisatty konserni, yhtio ja kutsulinkki entiteetteina.
+- Paivitetty entiteettiluettelo vastaamaan onboarding-virtaa.
 
 ## Miksi
 - Tarvitaan selkea perusta API- ja DB-toteutukselle.
 - Suunnittelu ja ennustetapahtuma ovat erillisia liiketoimintavaiheita.
 - Raportointi vaatii mappingin ja ryhmittelyn.
+- Konsernirakenne ja kutsuvirta vaativat omat entiteetit.
 
 ## Miten testataan (manuaali)
 - Luo tavoitearvio-littera, suunnitelma ja yksi ennustetapahtuma.
 - Tee mapping kolmesta tyolitterasta yhteen tavoitearvio-litteraan ja tarkista aggregointi 0-9.
 - Lisaa liite suunnitelmaan ja varmista, etta owner_type/owner_id linkittyy oikein.
+- Luo konserni, yhtio ja kutsu, varmista viitteet ja vanheneminen.
