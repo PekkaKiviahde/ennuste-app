@@ -70,6 +70,7 @@ Hotfix‑ohjeet ovat runbookeja:
 - adr/
 - decisions/
 - compliance/
+- tools-scripts.md
 
 ---
 

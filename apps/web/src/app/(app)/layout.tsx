@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { logoutAction } from "../../server/actions/auth";
 
 export default async function AuthedLayout({ children }: { children: ReactNode }) {
-  const session = await getSessionFromCookies();
+  let session = null;
+  try {
+    session = await getSessionFromCookies();
+  } catch (error) {
+    console.warn("Session lookup failed, redirecting to login.", error);
+  }
   if (!session) {
     redirect("/login");
   }
