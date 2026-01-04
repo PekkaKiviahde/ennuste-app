@@ -1,4 +1,4 @@
-import { loadMappingLines, loadTargetEstimate } from "@ennuste/application";
+import { loadMappingLines, loadMappingVersions, loadTargetEstimate } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
@@ -15,6 +15,11 @@ export default async function TargetEstimatePage() {
     tenantId: session.tenantId,
     username: session.username
   });
+  const mappingVersions = await loadMappingVersions(services, {
+    projectId: session.projectId,
+    tenantId: session.tenantId,
+    username: session.username
+  });
 
   const formatDate = (value: unknown) => {
     if (!value) return "";
@@ -24,6 +29,15 @@ export default async function TargetEstimatePage() {
       return String(value);
     }
     return new Intl.DateTimeFormat("fi-FI", { dateStyle: "short" }).format(date);
+  };
+  const formatDateTime = (value: unknown) => {
+    if (!value) return "";
+    const date =
+      value instanceof Date ? value : typeof value === "string" ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+    return new Intl.DateTimeFormat("fi-FI", { dateStyle: "short", timeStyle: "short" }).format(date);
   };
 
   return (
@@ -99,6 +113,43 @@ export default async function TargetEstimatePage() {
         </tbody>
       </table>
     </section>
+
+      <section className="card">
+        <h2>Mapping-versiot</h2>
+        <p>Mapping-versiot, voimassaolo ja hyvaksynta.</p>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Voimassa</th>
+              <th>Peruste</th>
+              <th>Hyvaksynta</th>
+              <th>Luotu</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mappingVersions.length === 0 ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="notice">Ei mapping-versioita viela.</div>
+                </td>
+              </tr>
+            ) : (
+              mappingVersions.map((row: any) => (
+                <tr key={row.mapping_version_id}>
+                  <td>{row.status}</td>
+                  <td>
+                    {formatDate(row.valid_from)} - {row.valid_to ? formatDate(row.valid_to) : "inf"}
+                  </td>
+                  <td>{row.reason ?? "-"}</td>
+                  <td>{row.approved_by ? `${row.approved_by} ${formatDateTime(row.approved_at)}` : "-"}</td>
+                  <td>{row.created_by ?? "-"} {formatDateTime(row.created_at)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }

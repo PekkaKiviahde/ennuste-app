@@ -1296,3 +1296,9 @@
 - Key files: docs/CODEX_HISTORY.md, .codex/state.json
 - Tests run: ei ajettu
 - Next: maarita LUKITTU #3 tavoite ja deliverablet
+
+[2026-01-04] [PROGRESS] [L-20260104-050] Mapping-versiot UI lisatty
+- What I did: lisasin mapping-versioiden listauksen tavoitearvio-sivulle (status, voimassaolo, peruste, hyvaksynta, luotu).
+- Key files: apps/web/src/app/(app)/tavoitearvio/page.tsx, docs/CODEX_HISTORY.md
+- Tests run: ei ajettu
+- Next: paata LUKITTU #3 sulkeminen tai jatkotoimet
