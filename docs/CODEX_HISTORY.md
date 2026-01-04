@@ -1597,3 +1597,35 @@
 - Next LUKITTU suggestion: LUKITTU: UI-kavely + tulosten dokumentointi.
 - Key files: docs/LOGIN_FLOW_CHECKLIST.md, docs/CODEX_HISTORY.md
 - How to resume: avaa docs/LOGIN_FLOW_CHECKLIST.md ja seuraa askeleet
+
+[2026-01-04] [SESSION_START] main 267e8d9
+- Active LUKITTU: L-20260104-058
+- History tail: [HANDOFF] [L-20260104-057]
+- Repo: dirty, ahead 0/behind 0
+- DB status: unknown
+- Next action: kirjaa UI-kavelyn tulokset check-listan pohjalta
+
+[2026-01-04] [PROGRESS] [L-20260104-058] LUKITTU aloitus
+- What I did: aloitettu UI-kavelyn tulosten dokumentoinnin LUKITTU ja paivitetty tila.
+- Key files: docs/CODEX_HISTORY.md, .codex/state.json
+- Tests run: ei ajettu
+- Next: vahvista UI-kavelyn tulos ja kirjaa se dokumenttiin
+
+[2026-01-04] [PROGRESS] [L-20260104-058] UI-kavely kirjattu
+- What I did: kirjattu UI-kavelyn tulos (login + roolireititys + raportti).
+- Key files: docs/CODEX_HISTORY.md
+- Tests run: UI-kavely (ok, login + roolireititys + raportti)
+- Next: sulje LUKITTU #4
+
+[2026-01-04] [DONE] [L-20260104-058] LUKITTU: UI-kavelyn tulokset
+- Summary: UI-kavely dokumentoitu check-listan mukaisesti.
+- Tests: UI-kavely (ok, login + roolireititys + raportti).
+- Notes: ei lisamuutoksia.
+
+[2026-01-04] [HANDOFF] [L-20260104-058]
+- Where we are: LUKITTU #4 suljettu; UI-kavelyn tulokset kirjattu historiaan.
+- What changed: paivitetty docs/CODEX_HISTORY.md.
+- What remains: ei avoimia tehtavia, seuraa tarvittaessa NEXT_REDIRECTin paluuta.
+- Next LUKITTU suggestion: LUKITTU: seuraa kirjautumisen regressioita ja paivita ohjeet tarvittaessa.
+- Key files: docs/CODEX_HISTORY.md
+- How to resume: seuraa docs/LOGIN_FLOW_CHECKLIST.md ohjetta
