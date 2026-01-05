@@ -56,22 +56,3 @@ export const selectEffectivePlanningRows = <Row extends PlanningRow>(rows: Row[]
     .map((entry) => entry.row as Row);
 };
 
-export const selectEffectivePlanningRow = <Row extends PlanningRow>(rows: Row[]) => {
-  let newest: PlanningCandidate | undefined;
-  let locked: PlanningCandidate | undefined;
-
-  rows.forEach((row, index) => {
-    const candidate: PlanningCandidate = {
-      row,
-      time: toEventTime(row),
-      index
-    };
-
-    newest = pickNewest(newest, candidate);
-    if (row.status === "LOCKED") {
-      locked = pickNewest(locked, candidate);
-    }
-  });
-
-  return (locked ?? newest)?.row ?? null;
-};
