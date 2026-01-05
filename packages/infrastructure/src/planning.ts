@@ -1,5 +1,6 @@
 import type { PlanningPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
+import { selectEffectivePlanningRows } from "./planning-selection";
 
 export const planningRepository = (): PlanningPort => ({
   async createPlanningEvent(input) {
@@ -36,22 +37,11 @@ export const planningRepository = (): PlanningPort => ({
   async listPlanningCurrent(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    try {
-      const result = await tenantDb.query(
-        "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-        [projectId]
-      );
-      return result.rows;
-    } catch (error: any) {
-      if (error?.code === "42P01") {
-        const fallback = await tenantDb.query(
-          "SELECT * FROM v_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-          [projectId]
-        );
-        return fallback.rows;
-      }
-      throw error;
-    }
+    const result = await tenantDb.query(
+      "SELECT * FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC, planning_event_id DESC",
+      [projectId]
+    );
+    return selectEffectivePlanningRows(result.rows);
   },
   async getLatestPlanningStatus(projectId, tenantId, targetLitteraId) {
     const tenantDb = dbForTenant(tenantId);
