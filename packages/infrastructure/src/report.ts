@@ -1,6 +1,25 @@
 import type { ReportPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
 
+const loadPlanningCurrent = async (tenantDb: ReturnType<typeof dbForTenant>, projectId: string) => {
+  try {
+    const result = await tenantDb.query(
+      "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
+      [projectId]
+    );
+    return result.rows;
+  } catch (error: any) {
+    if (error?.code === "42P01") {
+      const fallback = await tenantDb.query(
+        "SELECT * FROM v_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
+        [projectId]
+      );
+      return fallback.rows;
+    }
+    throw error;
+  }
+};
+
 export const reportRepository = (): ReportPort => ({
   async getDashboard(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
@@ -29,22 +48,7 @@ export const reportRepository = (): ReportPort => ({
   async getPlanningReport(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    try {
-      const result = await tenantDb.query(
-        "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-        [projectId]
-      );
-      return result.rows;
-    } catch (error: any) {
-      if (error?.code === "42P01") {
-        const fallback = await tenantDb.query(
-          "SELECT * FROM v_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-          [projectId]
-        );
-        return fallback.rows;
-      }
-      throw error;
-    }
+    return loadPlanningCurrent(tenantDb, projectId);
   },
   async getTargetEstimate(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
@@ -113,16 +117,9 @@ export const reportRepository = (): ReportPort => ({
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
 
-    const planningResult = await tenantDb.query<{
-      target_littera_id: string | null;
-      status: string | null;
-      event_time: string | null;
-      created_by: string | null;
-      summary: string | null;
-    }>(
-      "SELECT target_littera_id, status, event_time, created_by, summary FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC LIMIT 1",
-      [projectId]
-    );
+    const planningRows = await loadPlanningCurrent(tenantDb, projectId);
+    const planning = planningRows[0] ?? null;
+    const isLocked = planningRows.some((row) => row?.status === "LOCKED");
 
     const forecastResult = await tenantDb.query<{
       target_littera_id: string | null;
@@ -150,7 +147,7 @@ export const reportRepository = (): ReportPort => ({
       planning,
       forecast,
       audit,
-      isLocked: planning?.status === "LOCKED"
+      isLocked
     };
   }
 });

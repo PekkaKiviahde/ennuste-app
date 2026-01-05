@@ -12,6 +12,8 @@ export type RoleCode =
 
 export type PermissionCode =
   | "REPORT_READ"
+  | "PLANNING_WRITE"
+  | "FORECAST_WRITE"
   | "WORK_PHASE_WEEKLY_UPDATE_CREATE"
   | "WORK_PHASE_WEEKLY_UPDATE_APPROVE"
   | "GHOST_ENTRY_CREATE"
