@@ -55,3 +55,4 @@ export const selectEffectivePlanningRows = <Row extends PlanningRow>(rows: Row[]
     })
     .map((entry) => entry.row as Row);
 };
+
