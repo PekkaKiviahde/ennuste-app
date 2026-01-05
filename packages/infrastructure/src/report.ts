@@ -1,23 +1,13 @@
 import type { ReportPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
+import { selectEffectivePlanningRows } from "./planning-selection";
 
 const loadPlanningCurrent = async (tenantDb: ReturnType<typeof dbForTenant>, projectId: string) => {
-  try {
-    const result = await tenantDb.query(
-      "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-      [projectId]
-    );
-    return result.rows;
-  } catch (error: any) {
-    if (error?.code === "42P01") {
-      const fallback = await tenantDb.query(
-        "SELECT * FROM v_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-        [projectId]
-      );
-      return fallback.rows;
-    }
-    throw error;
-  }
+  const result = await tenantDb.query(
+    "SELECT * FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC, planning_event_id DESC",
+    [projectId]
+  );
+  return selectEffectivePlanningRows(result.rows);
 };
 
 export const reportRepository = (): ReportPort => ({
@@ -118,9 +108,8 @@ export const reportRepository = (): ReportPort => ({
     await tenantDb.requireProject(projectId);
 
     const planningRows = await loadPlanningCurrent(tenantDb, projectId);
-    const lockedPlanning = planningRows.find((row) => row?.status === "LOCKED") ?? null;
-    const planning = lockedPlanning ?? planningRows[0] ?? null;
-    const isLocked = Boolean(lockedPlanning);
+    const planning = planningRows[0] ?? null;
+    const isLocked = planning?.status === "LOCKED";
 
     const forecastResult = await tenantDb.query<{
       target_littera_id: string | null;
