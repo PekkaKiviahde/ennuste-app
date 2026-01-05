@@ -5,6 +5,19 @@ import { query } from "./db";
 
 const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 8;
 
+const hasProjectAccess = async (projectId: string, username: string) => {
+  const allowed = await query<{ allowed: boolean }>(
+    `
+    SELECT
+      rbac_user_has_permission($1::uuid, $2::text, 'REPORT_READ')
+      OR rbac_user_has_permission($1::uuid, $2::text, 'SELLER_UI')
+      AS allowed
+    `,
+    [projectId, username]
+  );
+  return Boolean(allowed.rows[0]?.allowed);
+};
+
 const loadPermissions = async (projectId: string, username: string) => {
   const permissionsResult = await query<{ permission_code: string }>(
     "SELECT permission_code FROM v_rbac_user_project_permissions WHERE project_id = $1::uuid AND username = $2::text",
@@ -33,11 +46,8 @@ export const authRepository = (): AuthPort => ({
 
     let projectId = input.projectId ?? null;
     if (projectId) {
-      const allowed = await query<{ allowed: boolean }>(
-        "SELECT rbac_user_has_permission($1::uuid, $2::text, 'REPORT_READ') AS allowed",
-        [projectId, user.username]
-      );
-      if (!allowed.rows[0]?.allowed) {
+      const allowed = await hasProjectAccess(projectId, user.username);
+      if (!allowed) {
         throw new AuthError("Ei oikeutta projektiin");
       }
     }
@@ -97,16 +107,8 @@ export const authRepository = (): AuthPort => ({
       throw new AuthError("Kayttajaa ei loytynyt");
     }
 
-    const allowedResult = await query<{ allowed: boolean }>(
-      `
-      SELECT
-        rbac_user_has_permission($1::uuid, $2::text, 'REPORT_READ')
-        OR rbac_user_has_permission($1::uuid, $2::text, 'SELLER_UI')
-        AS allowed
-      `,
-      [input.projectId, user.username]
-    );
-    if (!allowedResult.rows[0]?.allowed) {
+    const allowed = await hasProjectAccess(input.projectId, user.username);
+    if (!allowed) {
       throw new AuthError("Ei oikeutta projektiin");
     }
 

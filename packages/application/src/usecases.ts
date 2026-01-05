@@ -75,7 +75,7 @@ export const listUserProjects = async (
 };
 
 export const createPlanningEvent = async (services: AppServices, input: PlanningEventInput) => {
-  await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "REPORT_READ");
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "PLANNING_WRITE");
   const result = await services.planning.createPlanningEvent(input);
   await services.audit.recordEvent({
     projectId: input.projectId,
@@ -93,7 +93,7 @@ export const createPlanningEvent = async (services: AppServices, input: Planning
 };
 
 export const createForecastEvent = async (services: AppServices, input: ForecastEventInput) => {
-  await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "REPORT_READ");
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.createdBy, "FORECAST_WRITE");
   const planning = await services.planning.getLatestPlanningStatus(
     input.projectId,
     input.tenantId,

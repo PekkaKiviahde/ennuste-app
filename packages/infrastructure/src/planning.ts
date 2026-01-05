@@ -36,11 +36,22 @@ export const planningRepository = (): PlanningPort => ({
   async listPlanningCurrent(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    const result = await tenantDb.query(
-      "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
-      [projectId]
-    );
-    return result.rows;
+    try {
+      const result = await tenantDb.query(
+        "SELECT * FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
+        [projectId]
+      );
+      return result.rows;
+    } catch (error: any) {
+      if (error?.code === "42P01") {
+        const fallback = await tenantDb.query(
+          "SELECT * FROM v_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC",
+          [projectId]
+        );
+        return fallback.rows;
+      }
+      throw error;
+    }
   },
   async getLatestPlanningStatus(projectId, tenantId, targetLitteraId) {
     const tenantDb = dbForTenant(tenantId);
