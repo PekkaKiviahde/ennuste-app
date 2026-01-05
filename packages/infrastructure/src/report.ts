@@ -118,8 +118,9 @@ export const reportRepository = (): ReportPort => ({
     await tenantDb.requireProject(projectId);
 
     const planningRows = await loadPlanningCurrent(tenantDb, projectId);
-    const planning = planningRows[0] ?? null;
-    const isLocked = planningRows.some((row) => row?.status === "LOCKED");
+    const lockedPlanning = planningRows.find((row) => row?.status === "LOCKED") ?? null;
+    const planning = lockedPlanning ?? planningRows[0] ?? null;
+    const isLocked = Boolean(lockedPlanning);
 
     const forecastResult = await tenantDb.query<{
       target_littera_id: string | null;
@@ -139,7 +140,6 @@ export const reportRepository = (): ReportPort => ({
       [projectId]
     );
 
-    const planning = planningResult.rows[0] ?? null;
     const forecast = forecastResult.rows[0] ?? null;
     const audit = auditResult.rows[0] ?? null;
 
