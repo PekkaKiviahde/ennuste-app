@@ -989,7 +989,7 @@ app.post("/api/assistant/chat", async (req, res, next) => {
     const systemPrompt = [
       "Olet Ennuste-sovelluksen avustaja.",
       "Vastaa lyhyesti ja selkeästi suomeksi.",
-      "Käytä termejä: työlittera, tavoitearvio-littera, mapping, ennustetapahtuma, suunnitelma.",
+      "Käytä termejä: työpakettilittera, tavoitearvio-littera, mapping, työpakettisuunnittelu, ennustetapahtuma, lukitus (baseline).",
       "Muista append-only-periaate ja että suunnitelma tehdään ennen ennustetta.",
     ].join(" ");
 

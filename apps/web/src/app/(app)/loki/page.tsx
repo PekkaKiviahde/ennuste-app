@@ -67,7 +67,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
   return (
     <div className="card">
       <h1>Loki</h1>
-      <p>Kaikki suunnitelma- ja ennustetapahtumat tallentuvat append-only lokiin.</p>
+      <p>Kaikki työpakettisuunnittelu- ja ennustetapahtumat tallentuvat append-only lokiin.</p>
       <div className="status-actions">
         <a className={`btn btn-secondary btn-sm ${type === "all" ? "active" : ""}`} href="/loki">
           Kaikki
@@ -76,7 +76,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
           className={`btn btn-secondary btn-sm ${type === "planning" ? "active" : ""}`}
           href="/loki?type=planning"
         >
-          Suunnitelma
+          Työpakettisuunnittelu
         </a>
         <a
           className={`btn btn-secondary btn-sm ${type === "forecast" ? "active" : ""}`}

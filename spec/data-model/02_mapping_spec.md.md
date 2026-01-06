@@ -1,29 +1,32 @@
-# Mapping-speksi: työlitterat → tavoitearvio-littera (MVP)
+# Mapping-speksi: tavoitearvio-litterat → työpakettilittera (MVP)
 
 Päivitetty: 2026-01-02
 
 ## 0. Miksi tämä on olemassa?
 
-Työmaalla **toteumat ja ostot kirjautuvat usein työlitteroille** (useita koodeja), mutta
-taloudellinen suunnittelu ja ennustaminen halutaan tehdä **tavoitearvio-litteralla** (yksi “paketti”).
+Työmaalla **toteumat ja ostot kirjautuvat usein työpakettilitteroille** (useita koodeja), mutta
+työpakettisuunnittelu ja ennustaminen halutaan tehdä **tavoitearvio-litteralla** (yksi “paketti”).
+Mapping yhdistää nämä siten, että tavoitearvion koodi säilyy näkyvissä, mutta se kohdistetaan työpakettilitteraan raportointia varten.
 
 Tämän speksin tavoite on määrittää:
 
-- miten usean työlitteran kulut **yhdistetään** tavoitearvio-litteralle (mapping)
+- miten usean tavoitearvio-litteran kulut **yhdistetään** työpakettilitteralle (mapping)
 - miten muutokset mappingiin tehdään **hallittuna versiona** (aikaleimattu, perusteltu)
 - miten varmistetaan **audit trail** (kaikki jää lokiin)
-- miten ennuste ja suunnitelma sidotaan mappingiin (ennuste tehdään vasta suunnitelman jälkeen)
+- miten ennuste ja työpakettisuunnittelu sidotaan mappingiin (ennuste tehdään vasta työpakettisuunnittelun jälkeen)
 
-> Tärkein periaate: **Mapping on osa taloudellista suunnittelua.**
-> Ennusteen saa tehdä vain, kun suunnitelma on tehty ja mapping on kunnossa.
+> Tärkein periaate: **Mapping on osa työpakettisuunnittelua.**
+> Ennusteen saa tehdä vain, kun työpakettisuunnittelu on tehty ja mapping on kunnossa.
 
 ---
 
 ## 1. Termit
 
-- **Työlittera**: littera, jolla työ tehdään ja jolle toteuma/ostot kirjautuvat (lähde)
+- **Työpakettilittera**: littera, jolla työ tehdään ja jolle toteuma/ostot kirjautuvat (lähde)
 - **Tavoitearvio-littera**: littera, jolla tavoite ja taloudellinen suunnittelu tehdään (kohde)
-- **Mapping**: säännöt, joilla työlitterat kohdistetaan tavoitearvio-litteralle
+- **Mapping**: säännöt, joilla tavoitearvio-litterat kohdistetaan työpakettilitteroille; alkuperäinen tavoitearvion litterakoodi säilyy näkyvissä
+- **Työpakettisuunnittelu**: tavoitearvio-litteran suunnitteluvaihe, jossa mapping ja suunnittelun status varmistetaan ennen ennustetta
+- **Lukitus (baseline)**: työpakettisuunnittelun lukittu lähtötaso, jonka jälkeen ennusteet sallitaan
 - **Mapping-versio**: joukko mapping-sääntöjä, joilla on voimassaoloaika + tekijä + perustelu
 - **Valid from / valid to**: ajallinen rajaus (mapping voi muuttua työmaan aikana)
 - **Coverage**: kuinka suuri osa toteumasta on kohdistettavissa (0–100%)
@@ -34,14 +37,14 @@ Tämän speksin tavoite on määrittää:
 ## 2. Toiminnalliset vaatimukset (MVP)
 
 ### 2.1 Mappingin perusominaisuudet
-1) Yksi työlittera voidaan kohdistaa:
-- **yhteen tavoitearvio-litteraan 100%** (FULL) **tai**
-- **useaan tavoitearvio-litteraan prosenttina** (PERCENT) *(laajennus, mutta suositellaan mukaan heti jos tarve on todellinen)*
+1) Yksi tavoitearvio-littera voidaan kohdistaa:
+- **yhteen työpakettilitteraan 100%** (FULL) **tai**
+- **useaan työpakettilitteraan prosenttina** (PERCENT) *(laajennus, mutta suositellaan mukaan heti jos tarve on todellinen)*
 
-2) Useita työlitteroita voidaan kohdistaa samaan tavoitearvio-litteraan (many-to-one).
+2) Useita tavoitearvio-litteroita voidaan kohdistaa samaan työpakettilitteraan (many-to-one).
 
 3) Mapping on **ajallinen**:
-- sama työlittera voi kohdistua eri tavoitearvio-litteraan eri ajanjaksoina
+- sama tavoitearvio-littera voi kohdistua eri työpakettilitteraan eri ajanjaksoina
 
 4) Mapping-muutokset ovat **lokiin kirjattavia tapahtumia**:
 - kuka teki
@@ -50,9 +53,9 @@ Tämän speksin tavoite on määrittää:
 - mistä → mihin
 - miltä ajalta vaikutus
 
-### 2.2 Suunnittelu ennen ennustetta
+### 2.2 Työpakettisuunnittelu ennen ennustetta
 - Järjestelmä estää ennusteen tallennuksen, jos:
-  - tavoitearvio-litteralla ei ole suunnitelmaa tilassa `READY_FOR_FORECAST` tai `LOCKED`
+  - tavoitearvio-litteralla ei ole työpakettisuunnittelua tilassa `READY_FOR_FORECAST` tai `LOCKED`
   - tai mappingin coverage ei ole hyväksyttävä (ks. 5.2)
 
 ### 2.3 Ennustetapahtuma sitoutuu mappingiin
@@ -82,7 +85,7 @@ Tämän speksin tavoite on määrittää:
 **MappingLine**
 - `mapping_line_id`
 - `mapping_version_id`
-- `work_littera_code` (string)  ← työlittera
+- `work_littera_code` (string)  ← työpakettilittera
 - `target_littera_code` (string) ← tavoitearvio-littera
 - `allocation_rule` (enum): `FULL` / `PERCENT`
 - `allocation_value` (decimal) – FULL=1.0, PERCENT=0–1
@@ -160,11 +163,11 @@ Perustelu:
 ## 6. Muutoshallinta (tavoitearvio-litteran numeron vaihtaminen)
 
 Tämä on teidän kuvaama kriittinen tarve:
-> Laskennassa tavoitearvio-littera voi olla eri kuin työn työlitterat, ja sitä pitää pystyä vaihtamaan.
+> Laskennassa tavoitearvio-littera voi olla eri kuin työn työpakettilittera, ja sitä pitää pystyä vaihtamaan.
 
 ### 6.1 Mitä “vaihto” tarkoittaa teknisesti?
 Se tarkoittaa, että mapping päivitetään niin, että:
-- sama työlittera kohdistuu **uudelle target_littera_code:lle** tietyllä voimassaoloajalla.
+- sama tavoitearvio-littera kohdistuu **uudelle work_littera_code:lle** tietyllä voimassaoloajalla.
 
 ### 6.2 Turvasäännöt vaihtoon
 Kun vaihdat target-litteraa:
@@ -189,9 +192,9 @@ Suositus käytäntö:
 
 ## 7. Esimerkit (konkreettiset)
 
-### Esimerkki 1: Usea työlittera → yksi tavoitearvio-littera (FULL)
-- Tavoitearvio-littera: **2200**
-- Työlitterat: **2201**, **2202**, **2203**
+### Esimerkki 1: Usea tavoitearvio-littera → yksi työpakettilittera (FULL)
+- Työpakettilittera: **2200**
+- Tavoitearvio-litterat: **2201**, **2202**, **2203**
 - Sääntö: FULL
 
 MappingLine:
@@ -200,19 +203,19 @@ MappingLine:
 - 2203 → 2200 (FULL 1.0)
 
 Raportointi:
-- Toteuma 2200 = toteuma(2201+2202+2203)
+- Työpakettilittera 2200 sisältää tavoitearvio-litterat 2201+2202+2203, ja alkuperäiset koodit säilyvät näkyvissä.
 
-### Esimerkki 2: Yksi työlittera jaetaan kahteen tavoitearvio-litteraan (PERCENT)
-- Työlittera: 9999
-- Targetit: 2200 (60%), 2300 (40%)
+### Esimerkki 2: Yksi tavoitearvio-littera jaetaan kahteen työpakettilitteraan (PERCENT)
+- Tavoitearvio-littera: 9999
+- Työpaketit: 2200 (60%), 2300 (40%)
 
 MappingLine:
 - 9999 → 2200 (PERCENT 0.60)
 - 9999 → 2300 (PERCENT 0.40)
 
 ### Esimerkki 3: Tavoitearvio-littera vaihtuu kesken projektin
-- 1.1–31.3: työlitterat 2201/2202 → target 2200
-- 1.4–: työlitterat 2201/2202 → target 2205
+- 1.1–31.3: target 2201/2202 → työpaketti 2200
+- 1.4–: target 2201/2202 → työpaketti 2205
 
 Ratkaisu:
 - MappingVersion A: valid_to = 2025-03-31
@@ -225,13 +228,13 @@ Audit:
 
 ## 8. Edge caset (ja mitä tehdään)
 
-1) **Unmapped toteumat** (uusi työlittera ilmestyy)
+1) **Unmapped toteumat** (uusi työpakettilittera ilmestyy)
 - Näytetään listassa “selvitettävät”
 - Ennuste voidaan estää (coverage-gate) tai vaatia poikkeusperustelu
 
 2) **PERCENT summat eivät ole 100%**
 - Estä aktivointi (ACTIVE)
-- Näytä virhe: “Työlittera 9999 jakautuu 90% – lisää puuttuva 10% tai korjaa.”
+- Näytä virhe: “Työpakettilittera 9999 jakautuu 90% – lisää puuttuva 10% tai korjaa.”
 
 3) **Päällekkäiset mapping-versiot**
 - Ei sallita kahta ACTIVE-versiota samalle päivälle
@@ -246,9 +249,9 @@ Audit:
 - jos ei löydy, käytä cost_type=null fallbackia
 - jos löytyy molemmat: cost_type täsmäävä voittaa
 
-6) **Mappingin muutos ilman suunnitelmaa**
+6) **Mappingin muutos ilman työpakettisuunnittelua**
 - Sallitaan DRAFT-muokkaus
-- Mutta ennustetta ei saa tehdä ennen kuin suunnitelma READY_FOR_FORECAST
+- Mutta ennustetta ei saa tehdä ennen kuin työpakettisuunnittelu READY_FOR_FORECAST
 
 ---
 
@@ -256,7 +259,7 @@ Audit:
 
 Mapping-toiminto on MVP-valmis kun:
 
-- [ ] käyttäjä voi määrittää työlitterat → tavoitearvio-littera (FULL)
+- [ ] käyttäjä voi määrittää tavoitearvio-litterat → työpakettilittera (FULL)
 - [ ] järjestelmä laskee target-litteran toteuman mappingin kautta
 - [ ] unmapped-rivit näkyvät ja coverage lasketaan
 - [ ] mapping on versionoitu (valid_from/to) ja audit-logi tallentuu
@@ -274,10 +277,14 @@ Nämä 3 asiaa pitää päättää toteutuksessa, mutta ei estä speksin käytt�
 3) Retroaktiivisen mapping-muutoksen hyväksyntä: tarvitaanko hyväksyjä vai riittääkö pakollinen perustelu?
 
 ## Mitä muuttui
-- Lisätty muutososiot dokumentin loppuun.
+- Täsmennetty mappingin suunta: tavoitearvio-litterat kohdistetaan työpakettilitteroille ja alkuperäinen koodi säilyy.
+- Päivitetty terminologia: työpakettilittera, työpakettisuunnittelu ja baseline-lukitus.
+- Täsmennetty, että mapping on osa työpakettisuunnittelua ennen ennustetta.
 
 ## Miksi
+- Estetään väärinymmärrys siitä, miten tavoitearvion koodi säilyy näkyvissä työpakettikohdistuksessa.
+- Termit vastaavat työpakettien suunnittelua ja ennusteen lukituslogiikkaa.
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
 
 ## Miten testataan (manuaali)
-- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Avaa dokumentti ja varmista, että mappingin suunta ja säilytettävä tavoitearvion koodi on kuvattu selkeästi.

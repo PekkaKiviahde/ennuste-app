@@ -14,6 +14,24 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - **Projekti (Project)**  
   Yksi seurattava kokonaisuus (esim. rakennushanke).
 
+- **Tavoitearvio-littera**  
+  Budjetin ja raportoinnin pääkohde, jota ennustetaan.
+
+- **Työpakettilittera**  
+  Toteuman ja ostojen kohde (työpakettitaso), joka mapataan tavoitearvio-litteraan.
+
+- **Mapping**  
+  Säännöt, joilla tavoitearvio-litterat kohdistetaan työpakettilitteroille (alkuperäinen tavoitearvion koodi säilyy näkyvissä).
+
+- **Työpakettisuunnittelu**  
+  Suunnitteluvaihe, jossa tavoitearvio-littera ja työpakettilitterat kohdistetaan (mapping) ja status asetetaan ennen ennustetta.
+
+- **Lukitus (Baseline)**  
+  Työpakettisuunnittelun lukittu lähtötaso; ennusteet sallitaan tämän tai READY_FOR_FORECAST-tilan jälkeen.
+
+- **Ennustetapahtuma**  
+  Yksi ennusteen päivitys (append-only), joka viittaa tavoitearvio-litteraan.
+
 - **Työpaketti (Work package / Work phase)**  
   Seurannan perusyksikkö. Siirtyy SETUP → TRACK baseline-lukituksella.
 
@@ -43,6 +61,14 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
   Toteumat, joita ei saada kohdistettua mihinkään työpakettiin.
 
 ---
+
+## Keskinäinen logiikka (MVP)
+
+1) **Työpakettilitterat** sisältävät toteumat.  
+2) **Mapping** kohdistaa tavoitearvio-litterat **työpakettilitteroille** (koodi säilyy).  
+3) **Työpakettisuunnittelu** tehdään tavoitearvio-litteralle ja lukitaan baselineksi.  
+4) **Ennustetapahtumat** kirjataan vasta, kun työpakettisuunnittelu on READY_FOR_FORECAST tai LOCKED.  
+5) **Raportointi** aggregoi työpakettilitterat ja ryhmittelyn (0–9), mutta näyttää myös alkuperäiset tavoitearvion koodit.
 
 ## Laskennan termit (MVP)
 
@@ -88,14 +114,17 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - `I4_RESOLVED`
 
 ## Mitä muuttui
-- Lisätty muutososiot dokumentin loppuun.
+- Päivitetty mappingin suunta: tavoitearvio-littera kohdistetaan työpakettilitteraan.
+- Päivitetty terminologia: työpakettilittera ja työpakettisuunnittelu.
+- Lisätty käsitteet ja niiden keskinäinen logiikka.
 - Päivitetty raporttipaketin formaatti PDF/CSV-linjaukseen.
 - Päivitetty päivämäärä 2026-01-02.
 
 ## Miksi
+- Tarvitaan yhteinen sanasto, joka vastaa työpakettisuunnittelua ja tavoitearvion koodin säilytystä.
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
 - Päätösloki lukitsee MVP-exportit PDF + CSV -muotoon.
 
 ## Miten testataan (manuaali)
-- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Avaa dokumentti ja varmista, että termit ja logiikka ovat selkeitä.
 - Varmista, että raporttipaketin formaatti on PDF/CSV.

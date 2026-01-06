@@ -37,9 +37,9 @@ export const createPlanningAction = async (
       createdBy: session.username
     });
 
-    return { ok: true, message: `Suunnitelma tallennettu (${result.planningEventId}).`, error: null };
+    return { ok: true, message: `Työpakettisuunnittelu tallennettu (${result.planningEventId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Suunnitelman tallennus epaonnistui.";
+    const message = error instanceof Error ? error.message : "Työpakettisuunnittelun tallennus epaonnistui.";
     return { ok: false, message: null, error: message };
   }
 };

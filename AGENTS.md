@@ -8,7 +8,7 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - kaikki ennusteet ja perustelut jäävät **append-only lokiin**
 - työnjohdon **suunnittelu** on oma vaihe ennen ennustusta
 - **tavoitearvio-littera** voidaan erottaa **työlitteroista** ja yhdistää mappingilla
-- raportointi pystyy aggregoimaan sekä työlitterat että tavoitearvio-litterat (ryhmittely 0–9)
+- raportointi pystyy aggregoimaan sekä työpakettilitterat että tavoitearvio-litterat (ryhmittely 0–9)
 
 ## Tärkeät rajoitteet
 
@@ -39,7 +39,7 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 ## Tyylisäännöt
 
 - Käytä suomea (selkeä, lyhyt, tekninen).
-- Käytä termejä: työlittera / tavoitearvio-littera / mapping / ennustetapahtuma / suunnitelma.
+- Käytä termejä: työpakettilittera / tavoitearvio-littera / mapping / työpakettisuunnittelu / ennustetapahtuma / lukitus (baseline).
 - Kun teet muutoksia, lisää aina:
   - “Mitä muuttui”
   - “Miksi”
@@ -50,7 +50,7 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - Lisää vähintään 3 skenaariota `data/samples/`:
   1) uusi tavoitearvio-littera ilman historiaa
   2) tavoitearvio-littera, jolla on 2–3 ennustetapahtumaa
-  3) mapping, jossa 3 työlitteraa yhdistyy yhteen tavoitearvio-litteraan
+  3) mapping, jossa 3 tavoitearvio-litteraa yhdistyy yhteen työpakettilitteraan (alkuperäiset koodit säilyvät)
 
 ## Codex-tehtäväpromptien mallit
 

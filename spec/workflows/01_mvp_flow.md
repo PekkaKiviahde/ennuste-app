@@ -1,15 +1,15 @@
 # MVP-tyonkulku
 
-Polku: suunnitelma -> ennustetapahtuma -> lukitus -> loki -> raportti
+Polku: työpakettisuunnittelu -> ennustetapahtuma -> lukitus (baseline) -> loki -> raportti
 
-## 1) Suunnitelma
+## 1) Työpakettisuunnittelu
 - Kayttaja avaa tavoitearvio-litteran.
 - Jarjestelma nayttaa tavoitteen (BudgetLine) ja toteuman (ActualCostLine mappingin kautta).
-- Kayttaja kirjaa suunnitelman: summary, observations, risks, decisions.
-- Suunnitelman status asetetaan READY_FOR_FORECAST.
+- Kayttaja kirjaa työpakettisuunnittelun: summary, observations, risks, decisions.
+- Työpakettisuunnittelun status asetetaan READY_FOR_FORECAST.
 
-Hyvaksymissaanto (MVP): ennustetapahtuma sallitaan vain, jos suunnitelma on READY_FOR_FORECAST tai LOCKED.
-Jarjestelma estaa ennustetapahtuman (API + UI), jos suunnitelma puuttuu tai on DRAFT.
+Hyvaksymissaanto (MVP): ennustetapahtuma sallitaan vain, jos työpakettisuunnittelu on READY_FOR_FORECAST tai LOCKED.
+Jarjestelma estaa ennustetapahtuman (API + UI), jos työpakettisuunnittelu puuttuu tai on DRAFT.
 
 ## 2) Ennustetapahtuma (append-only)
 - Kayttaja kirjaa kustannuslajikohtaiset ennusteet (EnnusteRivi).
@@ -18,7 +18,7 @@ Jarjestelma estaa ennustetapahtuman (API + UI), jos suunnitelma puuttuu tai on D
 
 Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtuma.
 
-## 3) Lukitus
+## 3) Lukitus (baseline)
 - Lukitus on oma Ennustetapahtuma, jossa is_locked = true ja lock_reason taytetaan.
 - Lukitus estaa uusien ennustetapahtumien kirjaamisen, ellei erillista vapautusta ole.
 
@@ -32,18 +32,19 @@ Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtu
 - Raportti nayttaa uusimman ennustetapahtuman per tavoitearvio-littera.
 
 ## Mita muuttui
-- Rajattu MVP-tyonkulku selkeaan ketjuun suunnitelmasta raporttiin.
+- Paivitetty terminologia työpakettisuunnitteluun ja baseline-lukitukseen.
+- Rajattu MVP-tyonkulku selkeaan ketjuun työpakettisuunnittelusta raporttiin.
 - Lukitus maaritelty omana ennustetapahtumana append-only periaatteella.
 - Raportoinnin aggregointi sidottu mappingiin ja group_code 0-9.
-- Lisatty API + UI -tasoinen esto ennustetapahtumalle ilman READY_FOR_FORECAST/LOCKED suunnitelmaa.
+- Lisatty API + UI -tasoinen esto ennustetapahtumalle ilman READY_FOR_FORECAST/LOCKED työpakettisuunnittelua.
 
 ## Miksi
-- Suunnitelman erottaminen varmistaa, etta ennustaminen on ohjattua ja perusteltua.
+- Työpakettisuunnittelun erottaminen varmistaa, etta ennustaminen on ohjattua ja perusteltua.
 - Append-only loki varmistaa audit trailin ja tapahtumahistorian.
 - Raportointi tarvitsee yksiselitteisen ketjun tiedon lahteesta tulokseen.
 
 ## Miten testataan (manuaali)
-- Luo tavoitearvio-littera, suunnitelma ja yksi ennustetapahtuma.
-- Yrita luoda ennustetapahtuma ilman suunnitelmaa ja varmista estoviesti.
+- Luo tavoitearvio-littera, työpakettisuunnittelu ja yksi ennustetapahtuma.
+- Yrita luoda ennustetapahtuma ilman työpakettisuunnittelua ja varmista estoviesti.
 - Tee lukitustapahtuma ja varmista, etta uusia ennustetapahtumia ei voi kirjata.
 - Aja raportti ja tarkista group_code 0-9 aggregointi.

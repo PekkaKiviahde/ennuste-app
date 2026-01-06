@@ -170,7 +170,7 @@ export default function ForecastForm({
           signal: controller.signal
         });
         if (!response.ok) {
-          setPlanningStatusError("Suunnitelman tila ei saatavilla.");
+          setPlanningStatusError("Työpakettisuunnittelun tila ei saatavilla.");
           setPlanningStatus(null);
           return;
         }
@@ -178,7 +178,7 @@ export default function ForecastForm({
         setPlanningStatus(payload.status?.status ?? null);
       } catch (error) {
         if (!controller.signal.aborted) {
-          setPlanningStatusError("Suunnitelman tila ei saatavilla.");
+          setPlanningStatusError("Työpakettisuunnittelun tila ei saatavilla.");
           setPlanningStatus(null);
         }
       }
@@ -197,15 +197,15 @@ export default function ForecastForm({
       return "Valitse tavoitearvio-littera.";
     }
     if (!planningStatus) {
-      return "Suunnitelma puuttuu.";
+      return "Työpakettisuunnittelu puuttuu.";
     }
     if (planningStatus === "DRAFT") {
-      return "Suunnitelma on luonnos.";
+      return "Työpakettisuunnittelu on luonnos.";
     }
     if (planningStatus === "READY_FOR_FORECAST") {
-      return "Suunnitelma on valmis ennusteeseen.";
+      return "Työpakettisuunnittelu on valmis ennusteeseen.";
     }
-    return "Suunnitelma on lukittu.";
+    return "Työpakettisuunnittelu on lukittu.";
   };
 
   return (
@@ -271,7 +271,7 @@ export default function ForecastForm({
           targetLitteraId ? (planningReady ? "success" : "error") : ""
         }`}
       >
-        <strong>Suunnitelman tila:</strong> {planningStatusLabel()}
+        <strong>Työpakettisuunnittelun tila:</strong> {planningStatusLabel()}
       </div>
       {!planningReady && targetLitteraId && (
         <div className="notice">

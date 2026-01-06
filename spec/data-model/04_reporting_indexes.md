@@ -25,7 +25,7 @@ CREATE INDEX ix_actual_project_period_cost ON actual_cost_line (project_id, peri
 CREATE INDEX ix_budget_project_target_cost ON budget_line (project_id, target_littera_id, cost_type);
 ```
 
-5) Mapping-rivi kohdistuksessa (tyolittera + cost_type)
+5) Mapping-rivi kohdistuksessa (työpakettilittera + cost_type)
 ```sql
 CREATE INDEX ix_mapping_line_work_cost ON mapping_line (work_littera_id, cost_type);
 ```
@@ -36,6 +36,7 @@ CREATE INDEX ix_mapping_line_work_cost ON mapping_line (work_littera_id, cost_ty
 - Aikavali-rajauksissa period-sarakkeen tyyppi vaikuttaa (DATE vs. kuukausi). PIDa paivamaarat yhdenmukaisina.
 
 ## Mita muuttui
+- Paivitetty terminologia: työpakettilittera.
 - Lisatty raportoinnin indeksisuositukset MVP-kyselypoluille.
 
 ## Miksi

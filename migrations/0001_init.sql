@@ -128,7 +128,7 @@ CREATE INDEX IF NOT EXISTS mapping_versions_project_status_idx
 CREATE INDEX IF NOT EXISTS mapping_versions_validrange_gist
   ON mapping_versions USING gist (project_id, valid_range);
 
--- Mapping-rivit (työlittera -> tavoitelittera)
+-- Mapping-rivit (työpakettilittera -> tavoitelittera)
 CREATE TABLE IF NOT EXISTS mapping_lines (
   mapping_line_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id uuid NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,

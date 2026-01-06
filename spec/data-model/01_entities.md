@@ -2,12 +2,12 @@
 
 ## Periaatteet
 - Kaikki ennusteet ja perustelut kirjataan append-only lokiin.
-- Suunnittelu on oma vaihe ennen ennustetapahtumaa.
-- Tyo- ja tavoitearvio-littera erotetaan mappingilla.
+- Työpakettisuunnittelu on oma vaihe ennen ennustetapahtumaa.
+- Työpakettilittera ja tavoitearvio-littera erotetaan mappingilla.
 - Raportointi aggregoi ryhmittain (group_code 0-9).
 
 ## 1) Littera
-Yksi taulu palvelee seka tyolitteraa etta tavoitearvio-litteraa. Rooli tulee mappingista ja kontekstista.
+Yksi taulu palvelee seka työpakettilitteraa etta tavoitearvio-litteraa. Rooli tulee mappingista ja kontekstista.
 
 Kentat:
 - littera_id (UUID, PK)
@@ -17,24 +17,24 @@ Kentat:
 - is_active (bool)
 - created_at, created_by
 
-## 2) Mapping (tyolittera -> tavoitearvio-littera)
+## 2) Mapping (tavoitearvio-littera -> työpakettilittera)
 Mapping on ajallinen, koska kohdistus voi muuttua.
 
 LitteraMapping:
 - mapping_id (UUID, PK)
 - project_id (UUID, FK)
-- target_littera_id (FK -> Littera) (tavoitearvio-littera)
-- work_littera_id (FK -> Littera) (tyolittera)
+- target_littera_id (FK -> Littera) (tavoitearvio-littera, alkuperäinen koodi säilyy)
+- work_littera_id (FK -> Littera) (työpakettilittera)
 - allocation_rule (enum: FULL, PERCENT, AMOUNT)
 - allocation_value (decimal)
 - valid_from (date)
 - valid_to (date, nullable)
 - created_at, created_by
 
-## 3) Suunnitelma
-Suunnitelma kirjataan ennen ennustetapahtumia ja lukitaan ennen ennustamista.
+## 3) Työpakettisuunnittelu
+Työpakettisuunnittelu kirjataan ennen ennustetapahtumia ja lukitaan ennen ennustamista (baseline).
 
-Suunnitelma:
+Työpakettisuunnittelu:
 - plan_id (UUID, PK)
 - project_id (UUID, FK)
 - target_littera_id (FK -> Littera)
@@ -72,7 +72,7 @@ EnnusteRivi (kustannuslajit):
 - memo_calculation (text)
 
 ## 5) Liitteet
-Liitteet liitetaan joko suunnitelmaan tai ennustetapahtumaan.
+Liitteet liitetaan joko työpakettisuunnitteluun tai ennustetapahtumaan.
 
 Liite:
 - attachment_id (UUID, PK)
@@ -107,7 +107,7 @@ ActualCostLine (toteuma):
 
 ## 7) Nykytila ja raportointi
 - Ennusteen nykytila muodostetaan viimeisimmasta ennustetapahtumasta per target_littera.
-- Toteuma yhdistetaan mappingin kautta tavoitearvio-litteroille.
+- Toteuma yhdistetaan mappingin kautta tavoitearvio-litteroille työpakettilitteroista.
 - Raportti aggregoi group_code 0-9.
 
 ## 8) Konserni ja yhtiö
@@ -147,17 +147,20 @@ OrgInvite:
 - created_at, created_by
 
 ## Mita muuttui
+- Tarkennettu mappingin suunta (tavoitearvio -> työpakettilittera) ja koodin säilytys.
+- Paivitetty terminologia: työpakettilittera ja työpakettisuunnittelu.
 - Lisatty konserni, yhtio, konserniroolit ja kutsulinkki entiteetteina.
 - Paivitetty entiteettiluettelo vastaamaan onboarding-virtaa.
 
 ## Miksi
 - Tarvitaan selkea perusta API- ja DB-toteutukselle.
-- Suunnittelu ja ennustetapahtuma ovat erillisia liiketoimintavaiheita.
+- Mappingin suunta estaa sekaannukset tavoitearvion alkuperaiskoodin kanssa.
+- Työpakettisuunnittelu ja ennustetapahtuma ovat erillisia liiketoimintavaiheita.
 - Raportointi vaatii mappingin ja ryhmittelyn.
 - Konsernirakenne ja kutsuvirta vaativat omat entiteetit.
 
 ## Miten testataan (manuaali)
-- Luo tavoitearvio-littera, suunnitelma ja yksi ennustetapahtuma.
-- Tee mapping kolmesta tyolitterasta yhteen tavoitearvio-litteraan ja tarkista aggregointi 0-9.
-- Lisaa liite suunnitelmaan ja varmista, etta owner_type/owner_id linkittyy oikein.
+- Luo tavoitearvio-littera, työpakettisuunnittelu ja yksi ennustetapahtuma.
+- Tee mapping kolmesta tavoitearvio-litterasta yhteen työpakettilitteraan ja tarkista aggregointi 0-9.
+- Lisaa liite työpakettisuunnitteluun ja varmista, etta owner_type/owner_id linkittyy oikein.
 - Luo konserni, yhtio ja kutsu, varmista viitteet ja vanheneminen.
