@@ -1,5 +1,5 @@
 {
-  "scenario": "mapping, jossa 3 työlitteraa yhdistyy yhteen tavoitearvio-litteraan",
+  "scenario": "mapping, jossa 3 tavoitearvio-litteraa mapataan yhden työpakettilitteran alle (alkuperäiset koodit säilyvät)",
   "target_littera": {
     "code": "1700",
     "title": "Julkisivut",
@@ -11,5 +11,5 @@
     { "code": "1730", "title": "Julkisivu maalaus" }
   ],
   "mapping_rule": "FULL",
-  "expected": "Kaikki kolme työlitteraa kohdistuvat yhteen tavoitearvio-litteraan raportoinnissa."
+  "expected": "Kaikki kolme tavoitearvio-litteraa kohdistuvat työpakettilitteraan raportoinnissa, ja alkuperäinen tavoitearvion litterakoodi säilyy näkyvissä."
 }

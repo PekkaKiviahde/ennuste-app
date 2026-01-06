@@ -71,7 +71,7 @@ Paivitys: 2026-01-01
   - 1..n planning_events, forecast_events, budget_lines, actual_cost_lines, mapping_versions
   - 1..n work_phases (ja alitaulut)
 - litteras
-  - tyolittera ja tavoitearvio-littera erotetaan mapping_lines-taululla
+  - työpakettilittera ja tavoitearvio-littera erotetaan mapping_lines-taululla
 - mapping_versions + mapping_lines
   - mapping_version 1..n mapping_lines
   - mapping_line viittaa work_littera_id -> target_littera_id
@@ -132,3 +132,12 @@ Paivitys: 2026-01-01
 - Joissain rooli- ja permission-kyselyissa ei ole explicit tenant-filteria (vaatii API-guard).
 - Useissa tauluissa actor/created_by on text -> heikko viite users-tauluun.
 - Konserniroolit ja -permissionit vaativat sovelluskerroksen enforce-polun, muuten ne eivat vaikuta.
+
+## Mitä muuttui
+- Päivitetty terminologia: työpakettilittera.
+
+## Miksi
+- Yhtenäistetään dokumentaatio työpakettisuunnittelun termistöön.
+
+## Miten testataan (manuaali)
+- Avaa dokumentti ja varmista, että termi työpakettilittera näkyy mapping-rivillä.

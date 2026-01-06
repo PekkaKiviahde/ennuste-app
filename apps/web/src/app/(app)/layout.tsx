@@ -41,7 +41,7 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
             <Link href="/ylataso">Ylataso</Link>
             <Link href="/tyonohjaus">Tyonohjaus</Link>
             <Link href="/tavoitearvio">Tavoitearvio</Link>
-            <Link href="/suunnittelu">Suunnittelu</Link>
+            <Link href="/suunnittelu">Työpakettisuunnittelu</Link>
             <Link href="/baseline">Baseline</Link>
             <Link href="/ennuste">Ennuste</Link>
             <Link href="/raportti">Raportti</Link>

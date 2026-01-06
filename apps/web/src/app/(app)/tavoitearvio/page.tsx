@@ -142,7 +142,7 @@ export default async function TargetEstimatePage({
 
       <section className="card">
         <h2>Mapping</h2>
-        <p>Tyolittera {"->"} tavoitearvio-littera mapping, status ja saanto.</p>
+        <p>Työpakettilittera {"->"} tavoitearvio-littera mapping, status ja saanto.</p>
         <div className="status-actions">
           <span className="badge">Riveja: {mappingLineCount}</span>
         </div>
@@ -150,7 +150,7 @@ export default async function TargetEstimatePage({
           <thead>
             <tr>
               <th>Status</th>
-              <th>Tyolittera</th>
+              <th>Työpakettilittera</th>
               <th>Tavoitearvio</th>
               <th>Saanto</th>
               <th>Kustannuslaji</th>

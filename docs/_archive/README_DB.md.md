@@ -7,7 +7,7 @@ Päivitetty: 2025-12-16
 Tämä paketti tekee Postgres-skeeman, joka tukee:
 
 - **append-only loki** (ennusteet ja suunnitelmat tapahtumina)
-- **mapping** työlittera → tavoitearvio-littera (versionoitu, ajallinen, audit)
+- **mapping** työpakettilittera → tavoitearvio-littera (versionoitu, ajallinen, audit)
 - **budjetti** (tavoite) ja **toteuma** (import) tauluissa
 - näkymät (views) “nykytila”-raportointiin
 
@@ -43,9 +43,11 @@ Tämä paketti tekee Postgres-skeeman, joka tukee:
 
 
 ## Mitä muuttui
+- Päivitetty terminologia: työpakettilittera.
 - Lisätty muutososiot dokumentin loppuun.
 
 ## Miksi
+- Terminologia pidetään yhtenäisenä työpakettisuunnittelun kanssa.
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
 
 ## Miten testataan (manuaali)

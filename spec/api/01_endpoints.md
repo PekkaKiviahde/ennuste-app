@@ -3,7 +3,7 @@
 ## Ydinsisältö: suunnitelma -> ennustetapahtuma
 
 GET /api/projects/{projectId}/litteras
-- Palauttaa työlittera- ja tavoitearvio-littera-listan.
+- Palauttaa työpakettilittera- ja tavoitearvio-littera-listan.
 
 GET /api/planning-events?projectId={projectId}&targetLitteraId={litteraId}
 - Palauttaa suunnitelma-tapahtumat (append-only) tavoitearvio-litteralle.
@@ -21,7 +21,7 @@ POST /api/forecast-events
 - Luonti on append-only. Ei päivityksiä.
 
 GET /api/report/target-summary?projectId={projectId}&targetLitteraId={litteraId}
-- Yhteenveto suunnitelma + ennustetapahtuma + kustannuslajisummat.
+- Yhteenveto työpakettisuunnittelu + ennustetapahtuma + kustannuslajisummat.
 
 ## SaaS-myyjan onboarding (konserni/yhtio)
 
@@ -43,10 +43,11 @@ POST /api/invites/accept
 
 ## Mitä muuttui
 - Lisatty SaaS-myyjan onboarding-endpointit.
-- Paivitettiin endpointit vastaamaan toteutusta (suunnitelma ja ennustetapahtuma).
+- Paivitettiin terminologia työpakettisuunnitteluun.
+- Paivitettiin endpointit vastaamaan toteutusta (työpakettisuunnittelu ja ennustetapahtuma).
 
 ## Miksi
-- API-minimi tarvitaan selkeään suunnitelma -> ennustetapahtuma -virtaan.
+- API-minimi tarvitaan selkeään työpakettisuunnittelu -> ennustetapahtuma -virtaan.
 - Onboarding tarvitsee erillisen polun konserni/yhtio/kutsu.
 
 ## Miten testataan (manuaali)

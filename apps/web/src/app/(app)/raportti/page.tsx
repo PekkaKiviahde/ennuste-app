@@ -87,11 +87,11 @@ export default async function ReportPage() {
         <h1>Raportti</h1>
         <p>Tyovaiheiden yhteenveto, KPI ja poikkeamat.</p>
         {!status.planning && (
-          <div className="notice error">Suunnitelma puuttuu. Ennustetapahtumia ei voi luoda.</div>
+          <div className="notice error">Työpakettisuunnittelu puuttuu. Ennustetapahtumia ei voi luoda.</div>
         )}
         <div className="status-grid">
           <div className="status-item">
-            <div className="label">Suunnitelman tila</div>
+            <div className="label">Työpakettisuunnittelun tila</div>
             <div className="value">{planningLabel}</div>
             <div className="value muted">{planningTime}</div>
           </div>

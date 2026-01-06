@@ -32,7 +32,7 @@ export default async function WorkflowPage() {
     username: session.username
   });
 
-  const planningLabel = status.planning?.status ?? "Ei suunnitelmaa";
+  const planningLabel = status.planning?.status ?? "Ei työpakettisuunnittelua";
   const planningTime = formatDateTime(status.planning?.event_time);
   const planningSummary = status.planning?.summary?.trim();
   const lockSummaryLabel = status.isLocked
@@ -54,7 +54,7 @@ export default async function WorkflowPage() {
       ? "Lukitse suunnitelma"
       : "Avaa ennuste";
   const nextStepHint = needsPlanning
-    ? "Suunnitelma vaaditaan ennen ennustetapahtumaa."
+    ? "Työpakettisuunnittelu vaaditaan ennen ennustetapahtumaa."
     : needsLock
       ? "Avaa lukitus ja tallenna."
       : "Kirjaa uusi ennustetapahtuma.";
@@ -64,7 +64,7 @@ export default async function WorkflowPage() {
     <div className="grid grid-2">
       <section className="card">
         <h1>Tyonohjaus</h1>
-        <p>Seuraa suunnittelu → ennustetapahtuma → lukitus → loki → raportti -virtaa.</p>
+        <p>Seuraa työpakettisuunnittelu → ennustetapahtuma → lukitus (baseline) → loki → raportti -virtaa.</p>
 
         <div className="status-grid">
           <div className="status-item">
@@ -75,7 +75,7 @@ export default async function WorkflowPage() {
           <div className="status-item">
             <div className="label">Ennustetapahtuma</div>
             <div className="value">{forecastTime}</div>
-            <div className="value muted">Suunnitelma: {planningLabel}</div>
+            <div className="value muted">Työpakettisuunnittelu: {planningLabel}</div>
             <div className="value muted">{status.forecast?.created_by ?? "-"}</div>
           </div>
           <div className="status-item">
@@ -101,7 +101,7 @@ export default async function WorkflowPage() {
         <h2>Polku nyt</h2>
         <p>Siirry suoraan seuraavaan vaiheeseen ja tarkista tilanne.</p>
         {needsPlanning && (
-          <div className="notice error">Suunnitelma puuttuu. Ennustetapahtuma ei ole sallittu.</div>
+          <div className="notice error">Työpakettisuunnittelu puuttuu. Ennustetapahtuma ei ole sallittu.</div>
         )}
         <div className="status-actions">
           {showLockDialog ? (
@@ -109,7 +109,7 @@ export default async function WorkflowPage() {
           ) : (
             <a className="btn btn-primary btn-sm" href={nextStepHref}>{nextStepLabel}</a>
           )}
-          <a className="btn btn-secondary btn-sm" href="/suunnittelu">Suunnittelu</a>
+          <a className="btn btn-secondary btn-sm" href="/suunnittelu">Työpakettisuunnittelu</a>
           <a className="btn btn-secondary btn-sm" href="/ennuste">Ennuste</a>
           <a className="btn btn-secondary btn-sm" href="/loki">Loki</a>
           <a className="btn btn-secondary btn-sm" href="/raportti">Raportti</a>
@@ -119,7 +119,7 @@ export default async function WorkflowPage() {
 
       <section className="card">
         <h2>Tavoitearvio ja mapping</h2>
-        <p>Seuraa tavoitearvio-litteroita ja tyolittera-mappingia.</p>
+        <p>Seuraa tavoitearvio-litteroita ja työpakettilittera-mappingia.</p>
         <div className="status-grid">
           <div className="status-item">
             <div className="label">Tavoitearvio-litterat</div>
@@ -129,7 +129,7 @@ export default async function WorkflowPage() {
           <div className="status-item">
             <div className="label">Mapping-rivit</div>
             <div className="value">{mappingLineCount}</div>
-            <div className="value muted">Tyolitterat: {mappingWorkCount}</div>
+            <div className="value muted">Työpakettilitterat: {mappingWorkCount}</div>
           </div>
           <div className="status-item">
             <div className="label">Mapping-tavoitteet</div>
