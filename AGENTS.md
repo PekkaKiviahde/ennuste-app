@@ -57,3 +57,14 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - “Luo tietomalli markdownina ja ehdota Postgres-taulut + avaimet + indeksit.”
 - “Kirjoita MVP-työnkulku: käyttäjä tekee suunnitelman, sen jälkeen ennustetapahtuman, kaikki lokiin.”
 - “Tee ADR: miksi valitsimme append-only event log -mallin eikä ‘vain viimeisin’.”
+
+## Domain context (Talo 80)
+- Talo 80 -tavoitearvion tulkinta, koodisäännöt (4-numeroiset, tekstinä), sekä yrityskohtaisten alalitteroiden käytäntö:
+  -> docs/talo80/TALO80_HANDOFF.md
+
+## Rules (must follow)
+- Littera on aina 4-numeroisena merkkijonona ("0310" ei saa muuttua "310").
+- Yrityskohtaiset alalitterat (esim. 4101/4102) roll-up koontiin määritellään ohjeen mukaan.
+- VSS valuosat/varusteet: tuotannon normalisointi voi siirtää seurannan 2500:lle, mutta lähderivit säilytetään koostumuserittelyä varten.
+
+- 
