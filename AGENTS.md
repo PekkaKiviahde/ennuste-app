@@ -32,9 +32,13 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 ## Domain context (Talo 80)
 
 ### Pakolliset lähteet (Codex: lue nämä ennen muutoksia)
-- `docs/talo80/TALO80_HANDOFF.md`
+- `docs/Talo80_handoff_v2.md`
   - keskustelun päätökset + yrityskohtaiset sovellukset (esim. 4101/4102, VSS 6700→2500 sisällytys).
-- Tavoitearvion tuonnin lähde-CSV (projektikohtainen): import luo aina projektin koodisanakirjan (`litteras`).
+
+### Sääntö
+- Jos yllä oleva tiedosto puuttuu, ÄLÄ tee oletuksia korvaavasta tiedostosta.
+  Pyydä käyttäjältä oikea polku tai lisää PR jossa polku korjataan.
+
 
 ### Talo 80 -koodisäännöt (MUST FOLLOW)
 - **Littera on aina 4-numeroisena merkkijonona** (regex `^\d{4}$`).
@@ -114,8 +118,4 @@ Lisää vähintään 4 skenaariota `data/samples/` (tai vastaavaan):
 3) VSS: mapping jossa work 2500 sisältää myös target 6700 → koostumusraportti näyttää lähteet.
 4) Mapping jossa usea target-littera yhdistyy yhteen work-litteraan (FULL/PERCENT) ilman tuplalaskentaa.
 
-## Codex-tehtäväpromptien mallit
 
-- “Lue `docs/talo80/TALO80_HANDOFF.md` ja varmista, että muutokset noudattavat sen sääntöjä.”
-- “Kirjoita migraatio/taulu/VIEW joka toteuttaa work→target mappingin ja koostumusraportin.”
-- “Tee ADR: miksi käytämme append-only event log -mallia eikä ‘vain viimeisin’.”
