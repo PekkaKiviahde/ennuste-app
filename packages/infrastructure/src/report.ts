@@ -1,6 +1,13 @@
 import type { ReportPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
+import { selectEffectivePlanningRows } from "./planning-selection";
 
+const loadPlanningCurrent = async (tenantDb: ReturnType<typeof dbForTenant>, projectId: string) => {
+  const result = await tenantDb.query(
+    "SELECT * FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC, planning_event_id DESC",
+    [projectId]
+  );
+  return selectEffectivePlanningRows(result.rows);
 };
 
 export const reportRepository = (): ReportPort => ({
@@ -100,6 +107,8 @@ export const reportRepository = (): ReportPort => ({
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
 
+    const planningRows = await loadPlanningCurrent(tenantDb, projectId);
+    const planning = planningRows[0] ?? null;
 
     const isLocked = planning?.status === "LOCKED";
 
