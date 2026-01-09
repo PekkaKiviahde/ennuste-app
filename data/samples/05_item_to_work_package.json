@@ -1,0 +1,31 @@
+{
+  "scenario": "item-rivit mäpataan tyopakettiin useasta litterasta",
+  "target_estimate_items": [
+    {
+      "littera_code": "4101",
+      "item_code": "4101001",
+      "item_desc": "Pystyelementit toimitus",
+      "total_eur": 120000
+    },
+    {
+      "littera_code": "4102",
+      "item_code": "4102003",
+      "item_desc": "Pystyelementit asennus",
+      "total_eur": 80000
+    }
+  ],
+  "mapping": {
+    "work_package": {
+      "name": "Pystyelementit",
+      "work_phase_id": "WP-001"
+    },
+    "items": [
+      { "item_code": "4101001", "work_phase_id": "WP-001" },
+      { "item_code": "4102003", "work_phase_id": "WP-001" }
+    ]
+  },
+  "expectation": {
+    "item_level_mapping": true,
+    "multi_littera_same_work_package": true
+  }
+}

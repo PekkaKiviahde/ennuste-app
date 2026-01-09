@@ -1,0 +1,20 @@
+{
+  "scenario": "tyopaketti linkitetaan hankintapakettiin 1:1",
+  "work_package": {
+    "work_phase_id": "WP-101",
+    "name": "Sahkotyot"
+  },
+  "proc_package": {
+    "proc_package_id": "PP-101",
+    "name": "Sahkourakka",
+    "default_work_package_id": "WP-101"
+  },
+  "mapping": {
+    "item_code": "4300101",
+    "work_phase_id": "WP-101",
+    "proc_package_id": "PP-101"
+  },
+  "expectation": {
+    "one_to_one": true
+  }
+}

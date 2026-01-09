@@ -1,0 +1,17 @@
+{
+  "scenario": "leading zeros: 0310 säilyy tekstina",
+  "target_estimate_items": [
+    {
+      "littera_code": "0310",
+      "item_code": "0310",
+      "item_desc": "ARK-Suunnittelu",
+      "qty": 1,
+      "unit": "era",
+      "total_eur": 6500
+    }
+  ],
+  "expectation": {
+    "littera_code_format": "^\\d{4}$",
+    "leading_zero_preserved": true
+  }
+}

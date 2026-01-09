@@ -16,6 +16,22 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     );
     return result.rows;
   },
+  async createWorkPhase(input) {
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    const result = await tenantDb.query<{ work_phase_id: string }>(
+      "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, created_by) VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6) RETURNING work_phase_id",
+      [
+        input.projectId,
+        input.name,
+        input.description ?? null,
+        input.owner ?? null,
+        input.leadLitteraId ?? null,
+        input.createdBy
+      ]
+    );
+    return { workPhaseId: result.rows[0].work_phase_id };
+  },
   async createWeeklyUpdate(input) {
     const tenantDb = dbForTenant(input.tenantId);
     await tenantDb.requireProject(input.projectId);

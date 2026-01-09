@@ -1,0 +1,27 @@
+{
+  "scenario": "raportti näyttää tyopaketin koostumuksen item-tasolla",
+  "work_package": {
+    "work_phase_id": "WP-200",
+    "name": "Valuosat"
+  },
+  "items": [
+    {
+      "littera_code": "6700",
+      "item_code": "6700005",
+      "item_desc": "Valuosa A",
+      "total_eur": 45000,
+      "work_phase_id": "WP-200"
+    },
+    {
+      "littera_code": "2500",
+      "item_code": "2500012",
+      "item_desc": "Valuosa B",
+      "total_eur": 30000,
+      "work_phase_id": "WP-200"
+    }
+  ],
+  "expectation": {
+    "composition_visible": true,
+    "no_automatic_code_mapping": true
+  }
+}

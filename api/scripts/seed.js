@@ -318,10 +318,17 @@ async function ensureExtraPermissions() {
 
 async function ensureLitteras(projectId) {
   const litteraSeed = [
+    { code: '0100', title: 'Perustukset', group_code: 0 },
+    { code: '0310', title: 'ARK-suunnittelu', group_code: 0 },
     { code: '1100', title: 'Maanrakennus', group_code: 1 },
     { code: '1200', title: 'Perustukset', group_code: 1 },
     { code: '1300', title: 'Runkotyöt', group_code: 2 },
     { code: '1400', title: 'Sisävalmistus', group_code: 3 },
+    { code: '2500', title: 'Valuosat', group_code: 2 },
+    { code: '4101', title: 'Pystyelementit toimitus', group_code: 4 },
+    { code: '4102', title: 'Pystyelementit asennus', group_code: 4 },
+    { code: '4300', title: 'Sähkötyöt', group_code: 4 },
+    { code: '6700', title: 'Valuosat (tavoitearvio)', group_code: 6 },
   ];
 
   for (const littera of litteraSeed) {
@@ -368,6 +375,11 @@ async function ensureBudgetLines(projectId, batchId, litteraIds) {
     { code: '1200', cost_type: 'SUBCONTRACT', amount: 30000 },
     { code: '1300', cost_type: 'LABOR', amount: 60000 },
     { code: '1400', cost_type: 'MATERIAL', amount: 50000 },
+    { code: '4101', cost_type: 'SUBCONTRACT', amount: 120000 },
+    { code: '4102', cost_type: 'LABOR', amount: 80000 },
+    { code: '4300', cost_type: 'SUBCONTRACT', amount: 50000 },
+    { code: '6700', cost_type: 'MATERIAL', amount: 45000 },
+    { code: '2500', cost_type: 'MATERIAL', amount: 30000 },
   ];
 
   for (const line of budgetLines) {
@@ -392,14 +404,68 @@ async function ensureBudgetItems(projectId, batchId, litteraIds) {
       row_no: 10,
       total_eur: 15000,
     },
+    {
+      litteraCode: '0310',
+      item_code: '0310',
+      item_desc: 'ARK-Suunnittelu',
+      row_no: 101,
+      qty: 1,
+      unit: 'era',
+      total_eur: 6500,
+    },
+    {
+      litteraCode: '4101',
+      item_code: '4101001',
+      item_desc: 'Pystyelementit toimitus',
+      row_no: 102,
+      qty: 1,
+      unit: 'era',
+      total_eur: 120000,
+    },
+    {
+      litteraCode: '4102',
+      item_code: '4102003',
+      item_desc: 'Pystyelementit asennus',
+      row_no: 103,
+      qty: 1,
+      unit: 'era',
+      total_eur: 80000,
+    },
+    {
+      litteraCode: '4300',
+      item_code: '4300101',
+      item_desc: 'Sähkötyöt urakka',
+      row_no: 104,
+      qty: 1,
+      unit: 'era',
+      total_eur: 50000,
+    },
+    {
+      litteraCode: '6700',
+      item_code: '6700005',
+      item_desc: 'Valuosa A',
+      row_no: 105,
+      qty: 1,
+      unit: 'era',
+      total_eur: 45000,
+    },
+    {
+      litteraCode: '2500',
+      item_code: '2500012',
+      item_desc: 'Valuosa B',
+      row_no: 106,
+      qty: 1,
+      unit: 'era',
+      total_eur: 30000,
+    },
   ];
 
   for (const item of items) {
     await pool.query(
       `INSERT INTO budget_items (
-        project_id, import_batch_id, littera_id, item_code, item_desc, row_no, total_eur, created_by
+        project_id, import_batch_id, littera_id, item_code, item_desc, row_no, qty, unit, total_eur, created_by
       )
-      SELECT $1, $2, $3, $4, $5, $6, $7, 'seed'
+      SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, 'seed'
       WHERE NOT EXISTS (
         SELECT 1 FROM budget_items WHERE project_id = $1 AND import_batch_id = $2 AND item_code = $4
       )`,
@@ -410,6 +476,8 @@ async function ensureBudgetItems(projectId, batchId, litteraIds) {
         item.item_code,
         item.item_desc,
         item.row_no,
+        item.qty ?? null,
+        item.unit ?? null,
         item.total_eur,
       ]
     );
@@ -656,6 +724,143 @@ async function ensureWorkPhases(projectId, litteraIds, targetBatchId) {
   }
 }
 
+async function ensureSampleWorkPackages(projectId, litteraIds, targetBatchId) {
+  const phases = [
+    { name: 'Pystyelementit', memberCodes: ['4101', '4102'] },
+    { name: 'Sähkötyöt', memberCodes: ['4300'] },
+    { name: 'Valuosat', memberCodes: ['6700', '2500'] },
+  ];
+  const result = {};
+  for (const phase of phases) {
+    const existing = await pool.query(
+      'SELECT work_phase_id FROM work_phases WHERE project_id = $1 AND name = $2',
+      [projectId, phase.name]
+    );
+    if (existing.rowCount > 0) {
+      result[phase.name] = existing.rows[0].work_phase_id;
+    } else {
+      const created = await pool.query(
+        `INSERT INTO work_phases (project_id, name, description, created_by)
+         VALUES ($1, $2, $3, 'seed')
+         RETURNING work_phase_id`,
+        [projectId, phase.name, `${phase.name} - seed`]
+      );
+      result[phase.name] = created.rows[0].work_phase_id;
+    }
+
+    const workPhaseId = result[phase.name];
+    const versionResult = await pool.query(
+      "SELECT work_phase_version_id FROM work_phase_versions WHERE work_phase_id = $1 AND status = 'ACTIVE'",
+      [workPhaseId]
+    );
+    let versionId;
+    if (versionResult.rowCount > 0) {
+      versionId = versionResult.rows[0].work_phase_version_id;
+    } else {
+      const createdVersion = await pool.query(
+        `INSERT INTO work_phase_versions (project_id, work_phase_id, version_no, status, notes, created_by)
+         VALUES ($1, $2, 1, 'ACTIVE', 'Seed version', 'seed')
+         RETURNING work_phase_version_id`,
+        [projectId, workPhaseId]
+      );
+      versionId = createdVersion.rows[0].work_phase_version_id;
+    }
+
+    for (const code of phase.memberCodes) {
+      await pool.query(
+        `INSERT INTO work_phase_members (project_id, work_phase_version_id, member_type, littera_id, created_by)
+         SELECT $1, $2, 'LITTERA', $3, 'seed'
+         WHERE NOT EXISTS (
+           SELECT 1 FROM work_phase_members
+           WHERE work_phase_version_id = $2 AND littera_id = $3 AND member_type = 'LITTERA'
+         )`,
+        [projectId, versionId, litteraIds[code]]
+      );
+    }
+
+    const baselineResult = await pool.query(
+      'SELECT work_phase_baseline_id FROM work_phase_baselines WHERE work_phase_id = $1',
+      [workPhaseId]
+    );
+    if (baselineResult.rowCount === 0) {
+      await pool.query(
+        'SELECT work_phase_lock_baseline_secure($1, $2, $3, $4, $5)',
+        [workPhaseId, versionId, targetBatchId, 'paavo', 'Seed baseline']
+      );
+    }
+  }
+  return result;
+}
+
+async function ensureSampleProcPackagesAndMappings(projectId, workPackages) {
+  const existingProc = await pool.query(
+    'SELECT proc_package_id, name FROM proc_packages WHERE project_id = $1',
+    [projectId]
+  );
+  let sahkoProcId = existingProc.rows.find((row) => row.name === 'Sähkourakka')?.proc_package_id;
+  if (!sahkoProcId) {
+    const created = await pool.query(
+      `INSERT INTO proc_packages (
+        project_id, name, description, default_work_package_id, created_by, updated_by
+      )
+      VALUES ($1, $2, $3, $4, 'seed', 'seed')
+      RETURNING proc_package_id`,
+      [projectId, 'Sähkourakka', 'Sähköurakka - seed', workPackages['Sähkötyöt']]
+    );
+    sahkoProcId = created.rows[0].proc_package_id;
+  }
+
+  const budgetItems = await pool.query(
+    `SELECT budget_item_id, item_code
+     FROM budget_items
+     WHERE project_id = $1
+       AND item_code = ANY($2::text[])`,
+    [projectId, ['4101001', '4102003', '4300101', '6700005', '2500012']]
+  );
+  const itemIds = budgetItems.rows.reduce((acc, row) => {
+    acc[row.item_code] = row.budget_item_id;
+    return acc;
+  }, {});
+
+  const mappings = [
+    { itemCode: '4101001', workPhaseName: 'Pystyelementit' },
+    { itemCode: '4102003', workPhaseName: 'Pystyelementit' },
+    { itemCode: '4300101', workPhaseName: 'Sähkötyöt', procPackageId: sahkoProcId },
+    { itemCode: '6700005', workPhaseName: 'Valuosat' },
+    { itemCode: '2500012', workPhaseName: 'Valuosat' },
+  ];
+
+  for (const mapping of mappings) {
+    const budgetItemId = itemIds[mapping.itemCode];
+    if (!budgetItemId) {
+      continue;
+    }
+    await pool.query(
+      `INSERT INTO target_estimate_item_mappings (
+        project_id,
+        budget_item_id,
+        work_phase_id,
+        proc_package_id,
+        created_by,
+        updated_by
+      )
+      VALUES ($1, $2, $3, $4, 'seed', 'seed')
+      ON CONFLICT (budget_item_id)
+      DO UPDATE SET
+        work_phase_id = EXCLUDED.work_phase_id,
+        proc_package_id = EXCLUDED.proc_package_id,
+        updated_at = now(),
+        updated_by = 'seed'`,
+      [
+        projectId,
+        budgetItemId,
+        workPackages[mapping.workPhaseName] ?? null,
+        mapping.procPackageId ?? null,
+      ]
+    );
+  }
+}
+
 async function ensureActuals(projectId, jydaBatchId, litteraIds) {
   const actuals = [
     { code: '1100', cost_type: 'LABOR', amount: 15000, external_ref: 'JYDA.ACTUAL_COST' },
@@ -872,6 +1077,8 @@ async function run() {
   const mappingVersionId = await ensureMapping(projectId, litteraIds);
   await ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId);
   await ensureWorkPhases(projectId, litteraIds, targetBatchId);
+  const sampleWorkPackages = await ensureSampleWorkPackages(projectId, litteraIds, targetBatchId);
+  await ensureSampleProcPackagesAndMappings(projectId, sampleWorkPackages);
   await ensureActuals(projectId, jydaBatchId, litteraIds);
   await ensureWeeklyUpdate(projectId);
   await ensureTerminology();

@@ -276,6 +276,15 @@ export type WorkPhasePort = {
     status: string | null;
     created_at: string;
   }>>;
+  createWorkPhase(input: {
+    projectId: string;
+    tenantId: string;
+    name: string;
+    description?: string | null;
+    owner?: string | null;
+    leadLitteraId?: string | null;
+    createdBy: string;
+  }): Promise<{ workPhaseId: string }>;
   createWeeklyUpdate(input: {
     projectId: string;
     tenantId: string;
@@ -323,6 +332,47 @@ export type WorkPhasePort = {
     username: string;
     comment?: string | null;
   }): Promise<{ baselineId: string }>;
+};
+
+export type TargetEstimateMappingPort = {
+  listItems(projectId: string, tenantId: string): Promise<Array<{
+    budget_item_id: string;
+    littera_code: string;
+    item_code: string;
+    item_desc: string | null;
+    qty: number | null;
+    unit: string | null;
+    total_eur: number | null;
+    is_leaf: boolean;
+    work_phase_id: string | null;
+    work_phase_name: string | null;
+    proc_package_id: string | null;
+    proc_package_name: string | null;
+  }>>;
+  listProcPackages(projectId: string, tenantId: string): Promise<Array<{
+    proc_package_id: string;
+    name: string;
+    description: string | null;
+    default_work_package_id: string | null;
+  }>>;
+  createProcPackage(input: {
+    projectId: string;
+    tenantId: string;
+    name: string;
+    description?: string | null;
+    defaultWorkPackageId?: string | null;
+    createdBy: string;
+  }): Promise<{ procPackageId: string }>;
+  upsertItemMappings(input: {
+    projectId: string;
+    tenantId: string;
+    updatedBy: string;
+    updates: Array<{
+      budgetItemId: string;
+      workPhaseId?: string | null;
+      procPackageId?: string | null;
+    }>;
+  }): Promise<{ updatedCount: number }>;
 };
 
 export type AuditPort = {
