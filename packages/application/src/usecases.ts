@@ -267,10 +267,16 @@ export const assignTargetEstimateMappings = async (
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
+  const { mappingVersionId } = await services.targetEstimateMapping.getOrCreateActiveItemMappingVersion({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    createdBy: input.username
+  });
   const result = await services.targetEstimateMapping.upsertItemMappings({
     projectId: input.projectId,
     tenantId: input.tenantId,
     updatedBy: input.username,
+    mappingVersionId,
     updates: input.updates
   });
   await services.audit.recordEvent({

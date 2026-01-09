@@ -33,9 +33,8 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
       JOIN litteras l
         ON l.project_id = bi.project_id
        AND l.littera_id = bi.littera_id
-      LEFT JOIN target_estimate_item_mappings m
-        ON m.project_id = bi.project_id
-       AND m.budget_item_id = bi.budget_item_id
+      LEFT JOIN v_current_item_mappings m
+        ON m.budget_item_id = bi.budget_item_id
       LEFT JOIN work_phases wp
         ON wp.work_phase_id = m.work_phase_id
       LEFT JOIN proc_packages pp
@@ -87,13 +86,12 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
       const existingResult = await client.query<{
         budget_item_id: string;
         work_phase_id: string | null;
+        proc_package_id: string | null;
       }>(
-        "SELECT budget_item_id, work_phase_id FROM target_estimate_item_mappings WHERE project_id = $1::uuid AND budget_item_id = ANY($2::uuid[])",
-        [input.projectId, budgetItemIds]
+        "SELECT budget_item_id, work_phase_id, proc_package_id FROM v_current_item_mappings WHERE budget_item_id = ANY($1::uuid[])",
+        [budgetItemIds]
       );
-      const existingByItem = new Map(
-        existingResult.rows.map((row) => [row.budget_item_id, row.work_phase_id])
-      );
+      const existingByItem = new Map(existingResult.rows.map((row) => [row.budget_item_id, row]));
 
       const procPackageIds = Array.from(
         new Set(
@@ -120,53 +118,92 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
       for (const update of input.updates) {
         const hasWorkPhase = hasOwn(update, "workPhaseId");
         const hasProcPackage = hasOwn(update, "procPackageId");
-        const currentWorkPhase = existingByItem.get(update.budgetItemId) ?? null;
+        const currentMapping = existingByItem.get(update.budgetItemId) ?? null;
+        const currentWorkPhase = currentMapping?.work_phase_id ?? null;
+        const currentProcPackage = currentMapping?.proc_package_id ?? null;
 
-        let applyWorkPhase = hasWorkPhase;
-        let workPhaseId = hasWorkPhase ? update.workPhaseId ?? null : null;
-        const procPackageId = hasProcPackage ? update.procPackageId ?? null : null;
+        let workPhaseId = hasWorkPhase ? update.workPhaseId ?? null : currentWorkPhase;
+        let procPackageId = hasProcPackage ? update.procPackageId ?? null : currentProcPackage;
 
         if (!hasWorkPhase && hasProcPackage && !currentWorkPhase) {
           const defaultWorkPackage = procPackageId
             ? procDefaults.get(procPackageId) ?? null
             : null;
           if (defaultWorkPackage) {
-            applyWorkPhase = true;
             workPhaseId = defaultWorkPackage;
           }
         }
 
         await client.query(
           `
-          INSERT INTO target_estimate_item_mappings (
-            project_id,
+          INSERT INTO row_mappings (
+            mapping_version_id,
             budget_item_id,
             work_phase_id,
             proc_package_id,
-            created_by,
-            updated_by
+            created_by
           )
-          VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $5)
-          ON CONFLICT (budget_item_id)
-          DO UPDATE SET
-            work_phase_id = CASE WHEN $6 THEN $3::uuid ELSE target_estimate_item_mappings.work_phase_id END,
-            proc_package_id = CASE WHEN $7 THEN $4::uuid ELSE target_estimate_item_mappings.proc_package_id END,
-            updated_at = now(),
-            updated_by = $5
+          VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5)
           `,
           [
-            input.projectId,
+            input.mappingVersionId,
             update.budgetItemId,
             workPhaseId,
             procPackageId,
-            input.updatedBy,
-            applyWorkPhase,
-            hasProcPackage
+            input.updatedBy
           ]
         );
         updatedCount += 1;
       }
       return { updatedCount };
+    });
+  },
+  async getOrCreateActiveItemMappingVersion(input) {
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    return tenantDb.transaction(async (client) => {
+      const latestBatchResult = await client.query<{ import_batch_id: string }>(
+        `SELECT import_batch_id
+         FROM import_batches
+         WHERE project_id = $1::uuid AND source_system = 'TARGET_ESTIMATE'
+         ORDER BY imported_at DESC
+         LIMIT 1`,
+        [input.projectId]
+      );
+      if (latestBatchResult.rowCount === 0) {
+        throw new Error("Tavoitearvion importtia ei löydy projektilta.");
+      }
+      const importBatchId = latestBatchResult.rows[0].import_batch_id;
+
+      const existingVersion = await client.query<{ mapping_version_id: string }>(
+        `SELECT mapping_version_id
+         FROM mapping_versions
+         WHERE project_id = $1::uuid
+           AND import_batch_id = $2::uuid
+           AND status = 'ACTIVE'
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [input.projectId, importBatchId]
+      );
+      if (existingVersion.rowCount > 0) {
+        return { mappingVersionId: existingVersion.rows[0].mapping_version_id, importBatchId };
+      }
+
+      const created = await client.query<{ mapping_version_id: string }>(
+        `INSERT INTO mapping_versions (
+          project_id,
+          import_batch_id,
+          status,
+          reason,
+          created_by,
+          activated_at,
+          valid_from
+        )
+        VALUES ($1::uuid, $2::uuid, 'ACTIVE', 'item mapping', $3, now(), current_date)
+        RETURNING mapping_version_id`,
+        [input.projectId, importBatchId, input.createdBy]
+      );
+      return { mappingVersionId: created.rows[0].mapping_version_id, importBatchId };
     });
   }
 });

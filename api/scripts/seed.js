@@ -792,7 +792,7 @@ async function ensureSampleWorkPackages(projectId, litteraIds, targetBatchId) {
   return result;
 }
 
-async function ensureSampleProcPackagesAndMappings(projectId, workPackages) {
+async function ensureSampleProcPackagesAndMappings(projectId, workPackages, targetBatchId) {
   const existingProc = await pool.query(
     'SELECT proc_package_id, name FROM proc_packages WHERE project_id = $1',
     [projectId]
@@ -830,29 +830,51 @@ async function ensureSampleProcPackagesAndMappings(projectId, workPackages) {
     { itemCode: '2500012', workPhaseName: 'Valuosat' },
   ];
 
+  const mappingVersion = await pool.query(
+    `SELECT mapping_version_id
+     FROM mapping_versions
+     WHERE project_id = $1
+       AND import_batch_id = $2
+       AND status = 'ACTIVE'
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [projectId, targetBatchId]
+  );
+  let mappingVersionId = mappingVersion.rows[0]?.mapping_version_id;
+  if (!mappingVersionId) {
+    const createdVersion = await pool.query(
+      `INSERT INTO mapping_versions (
+        project_id,
+        import_batch_id,
+        status,
+        reason,
+        created_by,
+        activated_at,
+        valid_from
+      )
+      VALUES ($1, $2, 'ACTIVE', 'seed item mapping', 'seed', now(), current_date)
+      RETURNING mapping_version_id`,
+      [projectId, targetBatchId]
+    );
+    mappingVersionId = createdVersion.rows[0].mapping_version_id;
+  }
+
   for (const mapping of mappings) {
     const budgetItemId = itemIds[mapping.itemCode];
     if (!budgetItemId) {
       continue;
     }
     await pool.query(
-      `INSERT INTO target_estimate_item_mappings (
-        project_id,
+      `INSERT INTO row_mappings (
+        mapping_version_id,
         budget_item_id,
         work_phase_id,
         proc_package_id,
-        created_by,
-        updated_by
+        created_by
       )
-      VALUES ($1, $2, $3, $4, 'seed', 'seed')
-      ON CONFLICT (budget_item_id)
-      DO UPDATE SET
-        work_phase_id = EXCLUDED.work_phase_id,
-        proc_package_id = EXCLUDED.proc_package_id,
-        updated_at = now(),
-        updated_by = 'seed'`,
+      VALUES ($1, $2, $3, $4, 'seed')`,
       [
-        projectId,
+        mappingVersionId,
         budgetItemId,
         workPackages[mapping.workPhaseName] ?? null,
         mapping.procPackageId ?? null,
@@ -1078,7 +1100,7 @@ async function run() {
   await ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId);
   await ensureWorkPhases(projectId, litteraIds, targetBatchId);
   const sampleWorkPackages = await ensureSampleWorkPackages(projectId, litteraIds, targetBatchId);
-  await ensureSampleProcPackagesAndMappings(projectId, sampleWorkPackages);
+  await ensureSampleProcPackagesAndMappings(projectId, sampleWorkPackages, targetBatchId);
   await ensureActuals(projectId, jydaBatchId, litteraIds);
   await ensureWeeklyUpdate(projectId);
   await ensureTerminology();

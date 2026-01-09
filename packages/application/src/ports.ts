@@ -367,12 +367,18 @@ export type TargetEstimateMappingPort = {
     projectId: string;
     tenantId: string;
     updatedBy: string;
+    mappingVersionId: string;
     updates: Array<{
       budgetItemId: string;
       workPhaseId?: string | null;
       procPackageId?: string | null;
     }>;
   }): Promise<{ updatedCount: number }>;
+  getOrCreateActiveItemMappingVersion(input: {
+    projectId: string;
+    tenantId: string;
+    createdBy: string;
+  }): Promise<{ mappingVersionId: string; importBatchId: string }>;
 };
 
 export type AuditPort = {
