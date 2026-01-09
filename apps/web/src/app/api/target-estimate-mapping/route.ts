@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { createWorkPhase, loadWorkPhases } from "@ennuste/application";
+import { assignTargetEstimateMappings, loadTargetEstimateMapping } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { getSessionFromRequest } from "../../../server/session";
 import { AppError } from "@ennuste/shared";
+
+const hasOwn = (obj: object, key: string) => Object.prototype.hasOwnProperty.call(obj, key);
 
 export async function GET(request: Request) {
   try {
@@ -12,13 +14,13 @@ export async function GET(request: Request) {
     }
 
     const services = createServices();
-    const rows = await loadWorkPhases(services, {
+    const result = await loadTargetEstimateMapping(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username
     });
 
-    return NextResponse.json({ rows });
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
@@ -35,23 +37,33 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const name = String(body?.name ?? "").trim();
-    if (!name) {
-      return NextResponse.json({ error: "Tyopaketin nimi puuttuu" }, { status: 400 });
+    const itemIds = Array.isArray(body?.itemIds) ? body.itemIds.map(String) : [];
+    if (itemIds.length === 0) {
+      return NextResponse.json({ error: "Paivitettavat rivit puuttuvat" }, { status: 400 });
     }
 
+    const hasWorkPhase = hasOwn(body, "workPhaseId");
+    const hasProcPackage = hasOwn(body, "procPackageId");
+
+    if (!hasWorkPhase && !hasProcPackage) {
+      return NextResponse.json({ error: "Paivitystiedot puuttuvat" }, { status: 400 });
+    }
+
+    const updates = itemIds.map((budgetItemId) => ({
+      budgetItemId,
+      ...(hasWorkPhase ? { workPhaseId: body.workPhaseId ?? null } : {}),
+      ...(hasProcPackage ? { procPackageId: body.procPackageId ?? null } : {})
+    }));
+
     const services = createServices();
-    const result = await createWorkPhase(services, {
+    const result = await assignTargetEstimateMappings(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username,
-      name,
-      description: body?.description ?? null,
-      owner: body?.owner ?? null,
-      leadLitteraId: body?.leadLitteraId ?? null
+      updates
     });
 
-    return NextResponse.json({ workPhaseId: result.workPhaseId }, { status: 201 });
+    return NextResponse.json({ updatedCount: result.updatedCount });
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

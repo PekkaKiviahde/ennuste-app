@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createWorkPhase, loadWorkPhases } from "@ennuste/application";
+import { createProcPackage, loadProcPackages } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { getSessionFromRequest } from "../../../server/session";
 import { AppError } from "@ennuste/shared";
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     }
 
     const services = createServices();
-    const rows = await loadWorkPhases(services, {
+    const rows = await loadProcPackages(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username
@@ -37,21 +37,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const name = String(body?.name ?? "").trim();
     if (!name) {
-      return NextResponse.json({ error: "Tyopaketin nimi puuttuu" }, { status: 400 });
+      return NextResponse.json({ error: "Hankintapaketin nimi puuttuu" }, { status: 400 });
     }
 
     const services = createServices();
-    const result = await createWorkPhase(services, {
+    const result = await createProcPackage(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username,
       name,
       description: body?.description ?? null,
-      owner: body?.owner ?? null,
-      leadLitteraId: body?.leadLitteraId ?? null
+      defaultWorkPackageId: body?.defaultWorkPackageId ?? null
     });
 
-    return NextResponse.json({ workPhaseId: result.workPhaseId }, { status: 201 });
+    return NextResponse.json({ procPackageId: result.procPackageId }, { status: 201 });
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

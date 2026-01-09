@@ -99,3 +99,21 @@ Lisätiedot: `docs/env-setup.md`.
 - Tämä on ainoa master‑README dokumentaatiolle
 - Uusia README‑tiedostoja ei luoda juureen
 - Kaikki uudet ohjeet menevät docs/‑hakemistoon
+- PR-kuvaukset ja testiohjeet: `docs/PR_DESCRIPTION_TAVOITEARVIO_MAPPAYS.md`
+
+---
+
+## Tavoitearvion mappays (MVP)
+
+Mita muuttui
+- Lisatty tavoitearviorivien mappausnakyma item-tasolla tyopaketteihin ja hankintapaketteihin.
+- Lisatty hankintapaketit ja item-tason mappauksen taulut seka API-tuki.
+
+Miksi
+- Tuotannon mappaus tehdään item-tasolla ennen ennustusta.
+- Hankintapakettien liittaminen tarvitaan 1:1 MVP-prosessiin.
+
+Miten testataan (manuaali)
+- Avaa `Tavoitearvion mappays` ja varmista, etta LEAF-rivit listautuvat oletuksena.
+- Valitse useita riveja ja assignaa tyopaketti sekä hankintapaketti; varmista status-sarakkeen paivitys.
+- Aseta hankintapaketti riville ilman tyopakettia ja tarkista, etta oletus-tyopaketti tayttyy jos asetettu.

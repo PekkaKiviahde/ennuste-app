@@ -11,6 +11,7 @@ import type {
   PlanningPort,
   RbacPort,
   ReportPort,
+  TargetEstimateMappingPort,
   WorkPhasePort
 } from "./ports";
 import { AppError } from "@ennuste/shared";
@@ -26,6 +27,7 @@ export type AppServices = {
   saas: SaasPort;
   admin: AdminPort;
   workPhases: WorkPhasePort;
+  targetEstimateMapping: TargetEstimateMappingPort;
   audit: AuditPort;
 };
 
@@ -176,9 +178,112 @@ export const loadMappingLines = async (services: AppServices, input: { projectId
   return services.report.getMappingLines(input.projectId, input.tenantId);
 };
 
+export const loadTargetEstimateMapping = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  const [items, workPackages, procPackages] = await Promise.all([
+    services.targetEstimateMapping.listItems(input.projectId, input.tenantId),
+    services.workPhases.listWorkPhases(input.projectId, input.tenantId),
+    services.targetEstimateMapping.listProcPackages(input.projectId, input.tenantId)
+  ]);
+  return { items, workPackages, procPackages };
+};
+
+export const loadProcPackages = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.targetEstimateMapping.listProcPackages(input.projectId, input.tenantId);
+};
+
 export const loadAuditLog = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getAuditLog(input.projectId, input.tenantId);
+};
+
+export const createWorkPhase = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; name: string; description?: string | null; owner?: string | null; leadLitteraId?: string | null }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
+  const result = await services.workPhases.createWorkPhase({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    name: input.name,
+    description: input.description ?? null,
+    owner: input.owner ?? null,
+    leadLitteraId: input.leadLitteraId ?? null,
+    createdBy: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "work_phase.create",
+    payload: {
+      workPhaseId: result.workPhaseId,
+      name: input.name
+    }
+  });
+  return result;
+};
+
+export const createProcPackage = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; name: string; description?: string | null; defaultWorkPackageId?: string | null }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
+  const result = await services.targetEstimateMapping.createProcPackage({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    name: input.name,
+    description: input.description ?? null,
+    defaultWorkPackageId: input.defaultWorkPackageId ?? null,
+    createdBy: input.username
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "proc_package.create",
+    payload: {
+      procPackageId: result.procPackageId,
+      name: input.name
+    }
+  });
+  return result;
+};
+
+export const assignTargetEstimateMappings = async (
+  services: AppServices,
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    updates: Array<{ budgetItemId: string; workPhaseId?: string | null; procPackageId?: string | null }>;
+  }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
+  const result = await services.targetEstimateMapping.upsertItemMappings({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    updatedBy: input.username,
+    updates: input.updates
+  });
+  await services.audit.recordEvent({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    actor: input.username,
+    action: "target_estimate.mapping_upsert",
+    payload: {
+      updatedCount: result.updatedCount,
+      budgetItemCount: input.updates.length
+    }
+  });
+  return result;
 };
 
 export const loadFilteredAuditLog = async (
