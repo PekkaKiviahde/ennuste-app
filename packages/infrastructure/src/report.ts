@@ -1,6 +1,20 @@
 import type { ReportPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
 
+type PlanningStatusRow = {
+  target_littera_id: string | null;
+  status: string | null;
+  event_time: string | null;
+  created_by: string | null;
+  summary: string | null;
+};
+
+const loadPlanningCurrent = async (tenantDb: ReturnType<typeof dbForTenant>, projectId: string) => {
+  const result = await tenantDb.query<PlanningStatusRow>(
+    "SELECT target_littera_id, status, event_time, created_by, summary FROM v_report_planning_current WHERE project_id = $1::uuid ORDER BY event_time DESC NULLS LAST",
+    [projectId]
+  );
+  return result.rows;
 };
 
 export const reportRepository = (): ReportPort => ({
@@ -99,9 +113,28 @@ export const reportRepository = (): ReportPort => ({
   async getWorkflowStatus(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-
-
-    const isLocked = planning?.status === "LOCKED";
+    const planningRows = await loadPlanningCurrent(tenantDb, projectId);
+    const planningTargets = planningRows.reduce<Record<string, PlanningStatusRow & { isLocked: boolean }>>(
+      (acc, row) => {
+        if (!row.target_littera_id) return acc;
+        acc[row.target_littera_id] = {
+          ...row,
+          isLocked: row.status === "LOCKED"
+        };
+        return acc;
+      },
+      {}
+    );
+    const planningCurrentRow = planningRows[0] ?? null;
+    const planning = {
+      current: planningCurrentRow
+        ? {
+            ...planningCurrentRow,
+            isLocked: planningCurrentRow.status === "LOCKED"
+          }
+        : null,
+      targets: planningTargets
+    };
 
     const forecastResult = await tenantDb.query<{
       target_littera_id: string | null;
@@ -127,8 +160,7 @@ export const reportRepository = (): ReportPort => ({
     return {
       planning,
       forecast,
-      audit,
-      isLocked
+      audit
     };
   }
 });

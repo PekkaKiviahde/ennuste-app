@@ -44,10 +44,10 @@ export default async function ReportPage() {
     }
     return formatNumber(value, 3);
   };
-  const planningLabel = status.planning?.status ?? "Ei suunnitelmaa";
-  const planningTime = formatDateTime(status.planning?.event_time);
-  const planningSummary = status.planning?.summary?.trim();
-  const lockSummaryLabel = status.isLocked
+  const planningLabel = status.planning.current?.status ?? "Ei suunnitelmaa";
+  const planningTime = formatDateTime(status.planning.current?.event_time);
+  const planningSummary = status.planning.current?.summary?.trim();
+  const lockSummaryLabel = status.planning.current?.isLocked
     ? planningSummary || "Ei lukituksen selitetta."
     : "Lukitus ei ole voimassa.";
   const summary = dashboard as
@@ -86,7 +86,7 @@ export default async function ReportPage() {
       <section className="card">
         <h1>Raportti</h1>
         <p>Tyovaiheiden yhteenveto, KPI ja poikkeamat.</p>
-        {!status.planning && (
+        {!status.planning.current && (
           <div className="notice error">Työpakettisuunnittelu puuttuu. Ennustetapahtumia ei voi luoda.</div>
         )}
         <div className="status-grid">
@@ -98,7 +98,9 @@ export default async function ReportPage() {
           <div className="status-item">
             <div className="label">Lukituksen selite</div>
             <div className="value">{lockSummaryLabel}</div>
-            <div className="value muted">{status.isLocked ? "Lukitus voimassa" : "Ei lukitusta"}</div>
+            <div className="value muted">
+              {status.planning.current?.isLocked ? "Lukitus voimassa" : "Ei lukitusta"}
+            </div>
           </div>
         </div>
       </section>

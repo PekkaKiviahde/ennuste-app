@@ -209,12 +209,26 @@ export type ImportStagingPort = {
 
 export type WorkflowStatus = {
   planning: {
-    target_littera_id: string | null;
-    status: string | null;
-    event_time: string | null;
-    created_by: string | null;
-    summary: string | null;
-  } | null;
+    current: {
+      target_littera_id: string | null;
+      status: string | null;
+      event_time: string | null;
+      created_by: string | null;
+      summary: string | null;
+      isLocked: boolean;
+    } | null;
+    targets: Record<
+      string,
+      {
+        target_littera_id: string | null;
+        status: string | null;
+        event_time: string | null;
+        created_by: string | null;
+        summary: string | null;
+        isLocked: boolean;
+      }
+    >;
+  };
   forecast: {
     target_littera_id: string | null;
     event_time: string | null;
@@ -225,7 +239,6 @@ export type WorkflowStatus = {
     actor: string | null;
     event_time: string | null;
   } | null;
-  isLocked: boolean;
 };
 
 export type AdminPort = {

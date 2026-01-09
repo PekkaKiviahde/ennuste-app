@@ -387,9 +387,10 @@ test("workflow status endpoint returns latest planning status", { skip: !databas
   const response = await workflowStatusGet(workflowRequest);
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.equal(body.status.planning?.status, "READY_FOR_FORECAST");
-  assert.equal(body.status.planning?.target_littera_id, targetLitteraId);
-  assert.equal(body.status.isLocked, false);
+  assert.equal(body.status.planning?.current?.status, "READY_FOR_FORECAST");
+  assert.equal(body.status.planning?.current?.target_littera_id, targetLitteraId);
+  assert.equal(body.status.planning?.current?.isLocked, false);
+  assert.equal(body.status.planning?.targets?.[targetLitteraId]?.isLocked, false);
   assert.ok(body.status.audit?.action);
 
   await client.end();

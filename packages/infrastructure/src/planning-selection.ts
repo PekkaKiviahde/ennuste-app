@@ -26,7 +26,7 @@ const pickNewest = (current: PlanningCandidate | undefined, candidate: PlanningC
 };
 
 export const selectEffectivePlanningRows = <Row extends PlanningRow>(rows: Row[]) => {
-  const grouped = new Map<string, { newest?: PlanningCandidate; locked?: PlanningCandidate }>();
+  const grouped = new Map<string, PlanningCandidate>();
 
   rows.forEach((row, index) => {
     const targetId = row?.target_littera_id;
@@ -38,21 +38,14 @@ export const selectEffectivePlanningRows = <Row extends PlanningRow>(rows: Row[]
       index
     };
 
-    const existing = grouped.get(targetId) ?? {};
-    existing.newest = pickNewest(existing.newest, candidate);
-    if (row.status === "LOCKED") {
-      existing.locked = pickNewest(existing.locked, candidate);
-    }
-    grouped.set(targetId, existing);
+    const existing = grouped.get(targetId);
+    grouped.set(targetId, pickNewest(existing, candidate));
   });
 
   return Array.from(grouped.values())
-    .map((entry) => entry.locked ?? entry.newest)
-    .filter((entry): entry is PlanningCandidate => Boolean(entry))
     .sort((a, b) => {
       if (a.time !== b.time) return b.time - a.time;
       return b.index - a.index;
     })
     .map((entry) => entry.row as Row);
 };
-

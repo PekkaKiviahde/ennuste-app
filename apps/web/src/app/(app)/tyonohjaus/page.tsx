@@ -13,7 +13,11 @@ const formatDateTime = (value: string | null | undefined) => {
   }).format(date);
 };
 
-export default async function WorkflowPage() {
+export default async function WorkflowPage({
+  searchParams
+}: {
+  searchParams?: { target?: string };
+}) {
   const session = await requireSession();
   const services = createServices();
   const status = await loadWorkflowStatus(services, {
@@ -31,23 +35,34 @@ export default async function WorkflowPage() {
     tenantId: session.tenantId,
     username: session.username
   });
+  const targetOptions = Array.from(
+    new Map(
+      (targetRows as any[]).map((row) => [
+        row.target_littera_id,
+        { id: row.target_littera_id as string, label: `${row.littera_code} ${row.littera_title}`.trim() }
+      ])
+    ).values()
+  );
+  const selectedTargetId =
+    searchParams?.target ?? status.planning.current?.target_littera_id ?? targetOptions[0]?.id ?? null;
+  const selectedTarget = selectedTargetId ? status.planning.targets[selectedTargetId] ?? null : null;
 
-  const planningLabel = status.planning?.status ?? "Ei työpakettisuunnittelua";
-  const planningTime = formatDateTime(status.planning?.event_time);
-  const planningSummary = status.planning?.summary?.trim();
-  const lockSummaryLabel = status.isLocked
+  const planningLabel = selectedTarget?.status ?? "Ei työpakettisuunnittelua";
+  const planningTime = formatDateTime(selectedTarget?.event_time);
+  const planningSummary = selectedTarget?.summary?.trim();
+  const lockSummaryLabel = selectedTarget?.isLocked
     ? planningSummary || "Ei lukituksen selitetta."
     : "Lukitus ei ole voimassa.";
   const forecastTime = formatDateTime(status.forecast?.event_time);
   const auditTime = formatDateTime(status.audit?.event_time);
-  const lockLabel = status.isLocked ? "Lukittu" : "Ei lukittu";
+  const lockLabel = selectedTarget?.isLocked ? "Lukittu" : "Ei lukittu";
   const targetLitteraCount = new Set(targetRows.map((row: any) => row.target_littera_id)).size;
   const mappingLineCount = mappingRows.length;
   const mappingTargetCount = new Set(mappingRows.map((row: any) => row.target_code)).size;
   const mappingWorkCount = new Set(mappingRows.map((row: any) => row.work_code)).size;
-  const needsPlanning = !status.planning;
-  const needsLock = status.planning?.status === "READY_FOR_FORECAST" && !status.isLocked;
-  const showLockDialog = needsLock && Boolean(status.planning?.target_littera_id);
+  const needsPlanning = !selectedTarget;
+  const needsLock = selectedTarget?.status === "READY_FOR_FORECAST" && !selectedTarget?.isLocked;
+  const showLockDialog = needsLock && Boolean(selectedTarget?.target_littera_id);
   const nextStepLabel = needsPlanning
     ? "Tee suunnitelma"
     : needsLock
@@ -103,9 +118,26 @@ export default async function WorkflowPage() {
         {needsPlanning && (
           <div className="notice error">Työpakettisuunnittelu puuttuu. Ennustetapahtuma ei ole sallittu.</div>
         )}
+        {targetOptions.length > 0 && (
+          <form className="status-actions" method="get">
+            <label className="label" htmlFor="target">
+              Tavoitearvio-littera
+            </label>
+            <select id="target" name="target" defaultValue={selectedTargetId ?? undefined}>
+              {targetOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-secondary btn-sm" type="submit">
+              Vaihda
+            </button>
+          </form>
+        )}
         <div className="status-actions">
           {showLockDialog ? (
-            <LockPlanningDialog targetLitteraId={status.planning?.target_littera_id ?? null} />
+            <LockPlanningDialog targetLitteraId={selectedTarget?.target_littera_id ?? null} />
           ) : (
             <a className="btn btn-primary btn-sm" href={nextStepHref}>{nextStepLabel}</a>
           )}

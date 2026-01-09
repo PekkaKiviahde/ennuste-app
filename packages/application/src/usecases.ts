@@ -102,10 +102,10 @@ export const createForecastEvent = async (services: AppServices, input: Forecast
   if (!planning) {
     throw new AppError("Suunnitelma puuttuu tavoitearvio-litteralta.", "PLANNING_MISSING", 409);
   }
-  if (planning.status !== "READY_FOR_FORECAST" && planning.status !== "LOCKED") {
+  if (planning.status !== "LOCKED") {
     throw new AppError(
-      `Suunnitelman tila on ${planning.status}. Ennustaminen vaatii tilan READY_FOR_FORECAST tai LOCKED.`,
-      "PLANNING_NOT_READY",
+      `Suunnitelman tila on ${planning.status}. Ennustaminen vaatii lukituksen (LOCKED).`,
+      "LOCK_REQUIRED",
       409
     );
   }
