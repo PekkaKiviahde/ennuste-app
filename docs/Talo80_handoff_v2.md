@@ -28,3 +28,13 @@
 
 ## Erityisen tärkeä toteutusdetalji
 - **Litterakoodi tallennetaan aina tekstinä** (ei int), jotta etunollat säilyvät.
+
+
+## VSS (6700 / 2500) — linjaus MVP:lle
+
+- MVP:ssä EI tehdä automaattista “koodimäppäystä” tyyliin 6700 → 2500.
+- Syy: tavoitearvion rakenne ja yrityskohtaiset tyylit vaihtelevat.
+- VSS-rivien kohdistus tehdään tuotannon/hankinnan toimesta MANUAALISELLA rivimäppäyksellä (item-taso):
+  - käyttäjä päättää, mitkä tavoitearviorivit kuuluvat mihinkin työpakettiin ja/tai hankintapakettiin.
+- Raportoinnissa työpaketin koostumus voi näyttää, että sama työpaketti sisältää VSS:ään liittyviä rivejä (myös 6700-lähteisiä),
+  mutta lähderivejä ei hävitetä eikä siirretä automaattisesti.
