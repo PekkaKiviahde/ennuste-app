@@ -9,7 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # ---------- CONFIG ----------
-$BudgetCsv   = "data\budget.csv"
+$BudgetCsv   = "data\samples\budget.csv"
 $JydaCsv     = "excel\Jyda-ajo Kaarnatien Kaarna.csv"
 $OccurredOn  = "2025-12-01"      # YYYY-MM-DD (kuukauden 1. päivä)
 $ImportedBy  = "Pekka"
