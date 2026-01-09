@@ -22,7 +22,7 @@ ja liitetään jokainen rivi importiin `import_batch_id`-kentällä.
 
 Excel-tiedosto: `excel/Tavoitearvio ... .xlsx/.xlsm`
 CSV-esimerkit:
-- `data/budget.csv`
+- `data/samples/budget.csv`
 - `excel/Tavoitearvio Kaarna Päivitetty 17.12.2025.csv`
 
 Koska tiedostorakenteet vaihtelevat, import-työkalu tukee:
