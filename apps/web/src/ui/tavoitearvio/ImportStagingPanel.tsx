@@ -41,10 +41,15 @@ const fetchJson = async (url: string, options: RequestInit = {}) => {
 };
 
 export default function ImportStagingPanel({ username }: { username: string }) {
+  const repoChoices = (process.env.NEXT_PUBLIC_REPO_BUDGET_CSV_WHITELIST ?? "test_budget.csv,data/samples/budget.csv")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
   const [fileName, setFileName] = useState("");
   const [csvText, setCsvText] = useState<string | null>(null);
   const [batchId, setBatchId] = useState("");
   const [actor, setActor] = useState(username);
+  const [repoPath, setRepoPath] = useState(repoChoices[0] ?? "");
   const [result, setResult] = useState("");
   const [summary, setSummary] = useState<string>("");
   const [lines, setLines] = useState<StagingLine[]>([]);
@@ -55,6 +60,8 @@ export default function ImportStagingPanel({ username }: { username: string }) {
   const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [force, setForce] = useState(false);
   const hasFile = Boolean(csvText);
+  const showRepoImport = process.env.NODE_ENV !== "production";
+  const hasRepoChoices = repoChoices.length > 0;
 
   const visibleLines = useMemo(() => lines, [lines]);
 
@@ -109,6 +116,26 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     setBatchId(res.staging_batch_id);
     setResult(
       `Staging luotu. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}${
+        res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
+      }`
+    );
+    await loadLines(res.staging_batch_id);
+  };
+
+  const createStagingFromRepo = async () => {
+    if (!actor.trim()) {
+      throw new Error("Tuojan nimi puuttuu.");
+    }
+    if (!repoPath) {
+      throw new Error("Repo-CSV polku puuttuu.");
+    }
+    const res = await fetchJson("/api/import-staging/budget/from-repo", {
+      method: "POST",
+      body: JSON.stringify({ importedBy: actor.trim(), repoPath: repoPath.trim() })
+    });
+    setBatchId(res.staging_batch_id);
+    setResult(
+      `Staging luotu repo-CSV:lla. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}${
         res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
       }`
     );
@@ -252,12 +279,39 @@ export default function ImportStagingPanel({ username }: { username: string }) {
           onChange={(event) => setBatchId(event.target.value)}
           placeholder="uuid"
         />
+
+        {showRepoImport && (
+          <>
+            <label className="label" htmlFor="staging-repo-path">Repo-CSV polku</label>
+            <select
+              id="staging-repo-path"
+              className="input"
+              value={repoPath}
+              onChange={(event) => setRepoPath(event.target.value)}
+              disabled={!hasRepoChoices}
+            >
+              {repoChoices.map((choice) => (
+                <option key={choice} value={choice}>{choice}</option>
+              ))}
+            </select>
+          </>
+        )}
       </div>
 
       <div className="status-actions">
         <button className="btn btn-primary btn-sm" type="button" disabled={!hasFile} onClick={() => createStaging().catch((err) => setResult(err.message))}>
           Luo staging
         </button>
+        {showRepoImport && (
+          <button
+            className="btn btn-secondary btn-sm"
+            type="button"
+            disabled={!hasRepoChoices}
+            onClick={() => createStagingFromRepo().catch((err) => setResult(err.message))}
+          >
+            Luo staging repo-CSV:sta
+          </button>
+        )}
         <button className="btn btn-secondary btn-sm" type="button" onClick={() => loadBatches().catch((err) => setResult(err.message))}>
           Hae batchit
         </button>
