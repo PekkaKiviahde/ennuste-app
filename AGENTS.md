@@ -7,18 +7,18 @@ Tämä tiedosto kertoo Codexille (ja ihmisille) miten tässä repossa toimitaan.
 Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - kaikki ennusteet ja perustelut jäävät **append-only lokiin**
 - työnjohdon **suunnittelu** on oma vaihe ennen ennustusta
-- **tavoitearvio-littera** voidaan erottaa **työlitteroista** ja yhdistää mappingilla
-- raportointi pystyy aggregoimaan sekä työpakettilitterat että tavoitearvio-litterat (ryhmittely 0–9)
-- Talo 80 -koodit ja yrityskohtaiset sovellukset toimivat oikein (4-numeroiset, leading zeros)
+- tavoitearvio tuodaan (laskentaosasto) → sen jälkeen alkaa tuotannon **mäppäys** (työntaloudellinen suunnittelu)
+- mäppäyksessä tavoitearvion rivit siirretään tuotannon työn alle, jossa kustannus “tehdään”
+- mäppäys tukee myös hankintoja: työpaketti voidaan liittää hankintapakettiin (urakka/sopimus)
+- raportointi pystyy aggregoimaan sekä työpaketit että tavoitearvion litterat (0–9 pääryhmät)
 
 ## Tärkeät rajoitteet
 
 - ÄLÄ poista historiaa: loki on append-only (audit trail).
 - Kaikki muutokset speksiin vaativat päivityksen myös `docs/adr/` päätöksiin (ADR).
 - Excel on lähde/proto: älä oleta, että Excelin kaavat ovat sovelluksen totuus – sovelluksen totuus on `spec/`.
-- Kun teet muutoksia budjetin tuontiin / mappingiin / raportointiin:
-  - päivitä myös asiaankuuluva runbook (esim. `RUNBOOK_BUDGET_IMPORT.md`, `RUNBOOK_WORK_PHASES_MVP.md`)
-  - lisää sample-data / smoke test.
+- ÄLÄ kovakoodaa yrityskohtaisia “koodisääntöjä” MVP:hen (esim. 6700→2500 automaattisesti).
+  MVP:ssä mäppäys on tuotannon tekemä (manuaalinen), ja järjestelmä voi vain ehdottaa.
 
 ## Repon kartta
 
@@ -29,93 +29,84 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - `tools/scripts/` – analyysi- ja validointiskriptit
 - `excel/` ja `vba/` – nykyisen työkalun lähdeaineisto
 
-## Domain context (Talo 80)
+## Ensimmäisen sprintin tuotokset (pyydettäessä tee PR)
 
-### Pakolliset lähteet (Codex: lue nämä ennen muutoksia)
-- `docs/Talo80_handoff_v2.md`
-  - keskustelun päätökset + yrityskohtaiset sovellukset (esim. 4101/4102, VSS 6700→2500 sisällytys).
-
-### Sääntö
-- Jos yllä oleva tiedosto puuttuu, ÄLÄ tee oletuksia korvaavasta tiedostosta.
-  Pyydä käyttäjältä oikea polku tai lisää PR jossa polku korjataan.
-
-
-### Talo 80 -koodisäännöt (MUST FOLLOW)
-- **Littera on aina 4-numeroisena merkkijonona** (regex `^\d{4}$`).
-  - Esim. `"0310"` ei saa muuttua `"310"`.
-- Käsittele koodit DB:ssä ja sovelluksessa **tekstinä** (ei int).
-- `group_code` (0–9) voidaan laskea ensimmäisestä numerosta, mutta älä koskaan riko koodin 4-merkkistä muotoa.
-- Älä kovakoodaa “virallista” Talo 80 -listaa sovellukseen:
-  - **projektin koodisto tulee aina tavoitearvion tuonnista** ja voi poiketa yrityskohtaisesti (esim. alalitterat).
-
-### Koonti vs alalitterat (yrityskohtainen sovellus)
-- Yrityksellä voi olla alalitteroita (esim. 4101/4102), jotka raportoidaan koontiin (4100).
-- Tämä ei aina ole “virallinen Talo 80” sellaisenaan, mutta tuotannon käytännössä tämä on sallittua.
-- Siksi:
-  - älä rakenna roll-up logiikkaa pelkällä “viimeinen numero nollaksi” -oletuksella
-  - toteuta roll-up **konfiguroitavasti** (dictionary/taulu tai sääntölista), ja dokumentoi poikkeukset `docs/talo80/TALO80_HANDOFF.md`:ään.
-
-## Tavoitearvio (TARGET_ESTIMATE) ja import
-
-- Tavoitearvion tuonti luo:
-  - `litteras` (projektin litterat + selitteet)
-  - `budget_lines` (tavoitearvion kustannuslajirivit)
-  - (jos käytössä) `budget_items` (nimiketaso / item_code-rivit)
-- Baseline-lukitus saa käyttää vain koodeja, jotka löytyvät kyseisen import-batchin budjetista.
-  - jos saat virheen “missing from TARGET_ESTIMATE”, se on odotettu: jäsenkoodi ei ole budjetissa.
-
-## Työlittera vs tavoitearvio-littera + mapping
-
-### Termit (täsmennys)
-- **target_littera** = tavoitearvion (budjetin) littera (budjettilinjat)
-- **work_littera** = toteuman / tuotannon ohjauksen littera (toteumalinjat, työpaketit/työvaiheet)
-
-### Mapping (MUST FOLLOW)
-- `mapping_versions` + `mapping_lines` on tapa yhdistää work_littera → target_littera.
-- Älä muokkaa mappingia “in place”:
-  - tee uusi mapping-versio (append-only/audit), aktivoi se.
-- Mappingin pitää mahdollistaa:
-  - 1 work_littera → usea target_littera (FULL/PERCENT)
-  - kustannuslajikohtaiset jaot (cost_type) tarvittaessa
-
-### Esimerkki: ikkunat (yrityskohtainen sovellus)
-- 4101 = ikkunatoimitus
-- 4102 = ikkuna-asennus
-- 4100 = ikkunat yhteensä (raportoinnin koonti)
-Toteutus:
-- 4101 ja 4102 ovat omia `litteras`-koodeja, jos ne tulevat tavoitearviotuonnista.
-- Raportointi saa näyttää sekä 4101/4102 että koonnin 4100 (roll-up).
-
-### Esimerkki: VSS (sisällytä 6700 → 2500 ilman tiedon häviämistä)
-Tavoitearviossa voi olla:
-- 2500 VSS-rakenteet (budjetti)
-- 6700 Väestönsuojan varusteet / valuosat (budjetti)
-Tuotannon seurannassa halutaan:
-- work_littera 2500 sisältää myös target 6700 osuuden (“mistä 2500 koostuu”)
-
-Toteutus:
-- Tee mapping-versioon rivit:
-  - work 2500 → target 2500 (FULL)
-  - work 2500 → target 6700 (FULL) tai sääntöjen mukaan
-- Raportoinnissa on oltava näkymä “koostumus”:
-  - work 2500 koostuu target 2500 + target 6700 (ja mahdolliset item_code-erittelyt säilyvät).
-- Älä “poista” target 6700:aa, äläkä hukkaa sen item-tasoa – säilytä lähde-erittely auditointiin.
+1) `spec/data-model/01_entities.md`
+   - Littera, TavoitearvioRivi (item), Työpaketti, Hankintapaketti, Mäppäys, Suunnitelma, Ennustetapahtuma, Lukitus (baseline)
+2) `spec/workflows/01_mvp_flow.md`
+   - Tavoitearvio import → tuotannon mäppäys → baseline lukitus → viikkopäivitys → raportti
+3) `docs/ARCHITECTURE.md`
+   - lyhyt arkkitehtuurikuvaus ja komponentit (API/UI/DB)
+4) `docs/adr/0001-event-sourcing.md`
+   - päätös: append-only event log (perustelut + vaihtoehdot)
 
 ## Tyylisäännöt
 
 - Käytä suomea (selkeä, lyhyt, tekninen).
-- Käytä termejä: työpakettilittera / tavoitearvio-littera / mapping / työpakettisuunnittelu / ennustetapahtuma / lukitus (baseline).
+- Käytä termejä: työpaketti / hankintapaketti / tavoitearvio / tavoitearviorivi (item) / mäppäys / työpakettisuunnittelu / ennustetapahtuma / lukitus (baseline).
 - Kun teet muutoksia, lisää aina:
   - “Mitä muuttui”
   - “Miksi”
   - “Miten testataan (manuaali)”
 
+## Domain context (Talo 80)
+
+### Kanoninen ohjedokumentti tässä repossa
+- `docs/Talo80_handoff_v2.md`
+  - Talo 80 -tulkinta + yrityskohtaiset sovellukset + käsitteet (työpaketti vs hankinta vs tavoitearvio).
+
+### Talo 80 -koodisäännöt (MUST FOLLOW)
+- Littera on aina **4-numeroisena merkkijonona** (`^\d{4}$`).
+- Älä koskaan muuta leading zeroja: “0310” ei saa muuttua “310”.
+- Projektin “todellinen koodisto” syntyy tavoitearvion tuonnissa (yrityskohtaiset alalitterat voivat esiintyä).
+- Koonti (esim. 4100) vs alalitterat (esim. 4101/4102) on käytäntö:
+  - älä tee oletusta “viimeinen numero nollaksi” ainoana sääntönä
+  - jos roll-up tarvitaan, tee se konfiguroitavasti (dictionary/taulu) ja dokumentoi.
+
+## Tavoitearvio: tuonti → tuotannon mäppäys (MVP-ydin)
+
+### 1) Laskentaosasto tuottaa tavoitearvioesityksen (esim. Estima)
+- Tämä exportataan ja importataan sovellukseen (TARGET_ESTIMATE import_batch).
+
+### 2) Tuonnin jälkeen alkaa tuotannon mäppäys (työntaloudellinen suunnittelu)
+Mäppäyksen tarkoitus:
+- siirtää tavoitearvion rivit tuotannon töiden alle (työpaketit), joissa kustannus syntyy
+- koota rivejä toimittajan ja asennusporukan/aliurakoitsijan mukaisesti (esim. “pystyelementit” yhteen)
+
+MVP:ssä mäppäys EI ole automaattinen koodisääntö.
+- Järjestelmä voi ehdottaa (hakusana, toimittaja-teksti, aiempi projekti).
+- Ihminen hyväksyy.
+
+### 3) Mäppäyksen perusyksikkö (MVP)
+- Perusyksikkö = **tavoitearviorivi** (item / tuontirivi / item-koodi), ei pelkkä 4-num littera.
+- Sama 4-num littera voi sisältää useita item-rivejä; tuotanto voi koota ne uudelleen työpaketeiksi.
+
+### 4) Mäppäyksen kohde (MVP)
+- Jokainen item-rivi mäpätään:
+  1) **työpakettiin** (work_phase / tuotannon työ)
+  2) ja työpaketti voidaan liittää **hankintapakettiin** (urakka/sopimus)
+
+Oletus MVP:ssä (KISS):
+- työpaketti ↔ hankintapaketti on 1:1 (yksi pääasiallinen sopimus per työpaketti)
+- item-tason hankintajako (1 työpaketti → usea sopimus) on myöhempi laajennus
+
+### 5) VSS-esimerkki (ei automaatio)
+- Tavoitearviossa voi olla rivejä 6700 ja 2500.
+- Tuotanto voi päättää mäpätä 6700-rivejä työpakettiin, jonka “johtotunnus” on 2500 (VSS-rakenteet),
+  jotta työpaketin koostumus näyttää mistä se muodostuu.
+- Tämä tehdään mäppäyksellä (rivitason valinta), ei kovakoodatulla säännöllä.
+
 ## Testattavuus (MVP)
 
-Lisää vähintään 4 skenaariota `data/samples/` (tai vastaavaan):
-1) Tavoitearvion tuonti, jossa on leading zeros (esim. 0310) → varmistus ettei muutu 310.
-2) Ikkunat: 4101 + 4102 → raportoinnin koonti 4100 (roll-up).
-3) VSS: mapping jossa work 2500 sisältää myös target 6700 → koostumusraportti näyttää lähteet.
-4) Mapping jossa usea target-littera yhdistyy yhteen work-litteraan (FULL/PERCENT) ilman tuplalaskentaa.
+Lisää vähintään 4 skenaariota `data/samples/`:
+1) leading zeros: 0310 säilyy tekstinä
+2) item-rivit mäpätään työpakettiin (esim. elementtirivejä useasta litterasta samaan työpakettiin)
+3) työpaketti linkitetään hankintapakettiin (1:1)
+4) raportti näyttää työpaketin “koostumuksen” item-tasolla (mistä muodostuu)
 
+## Codex-tehtäväpromptien mallit
 
+- “Lue AGENTS.md ja `docs/Talo80_handoff_v2.md`. Toteuta tuotannon mäppäys item-tasolla työpaketteihin.”
+- “Lisää hankintapaketit (urakka/sopimus) ja linkitä työpaketti yhteen hankintapakettiin (MVP).”
+- “Tee näkymä: työpaketin koostumus item-tasolla (mitä rivejä siihen on mäpätty).”
+- “Tee ADR: miksi mäppäys on manuaalinen MVP:ssä (yrityskohtaiset tavoitearviotyylit).”
