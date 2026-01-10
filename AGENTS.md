@@ -111,9 +111,10 @@ Lisää vähintään 4 skenaariota `data/samples/`:
 - “Tee näkymä: työpaketin koostumus item-tasolla (mitä rivejä siihen on mäpätty).”
 - “Tee ADR: miksi mäppäys on manuaalinen MVP:ssä (yrityskohtaiset tavoitearviotyylit).”
 
-- ## Kaaviot (tavoitearvio + mäppäys)
+## Kaaviot (tavoitearvio + mäppäys)
 - `diagrams/tavoitearvio_mappays_mindmap_3D.pptx` – mindmap + swimlane + 3D (aika/versiot) + taulut + raportointikerros
-- `schema_overview.mmd
-- `architecture.mmd
+- `diagrams/schema_overview.mmd` – skeeman yleiskuva (päivitettävä: append-only item-mäppäys)
+- `diagrams/architecture.mmd` – arkkitehtuurin yleiskuva
+
   
 
