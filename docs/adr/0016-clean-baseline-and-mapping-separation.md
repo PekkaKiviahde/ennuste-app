@@ -8,9 +8,9 @@ Kehitys on varhaisessa MVP-vaiheessa ja testidataa syntyy nopeasti. Nykyinen mig
 - Migraatiot squashataan ja tehdään uusi baseline-migraatio `0001_baseline.sql`.
 - Baseline-migraatioon ei tehdä legacy-yhteensopivuusviewejä vanhoille nimille.
 - Domain-nimistö DB:ssä yhtenäistetään: käytetään `work_packages` ja `proc_packages` (ei `work_phases`).
-- Item-mäppäys irrotetaan omiksi append-only-tauluiksi: `item_mapping_versions` ja `item_row_mappings`.
+- Item-mäppäys on omissa append-only-tauluissa: `item_mapping_versions` ja `item_row_mappings`.
 - Toteumat (ennustepäivän toteuma) tuodaan mukaan nyt ja niille tehdään oma mapping, erillään item-mäppäyksestä ja ilman mapping_versions/mapping_lines -sekoitusta.
-- Import-runko on yhteinen: `import_batches(kind=TARGET_ESTIMATE|ACTUALS)` + `import_raw_rows`.
+- Import-runko on yhteinen: `import_batches(kind=TARGET_ESTIMATE|ACTUALS)` + `import_raw_rows` (append-only).
 - Importista talletetaan myös raw-rivit virheiden jäljitystä varten.
 
 ## Consequences
