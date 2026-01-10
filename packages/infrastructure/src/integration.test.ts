@@ -250,6 +250,139 @@ test("tenant isolation blocks cross-tenant project access", { skip: !databaseUrl
   await client.end();
 });
 
+test("item mappings keep append-only rows and view shows latest", { skip: !databaseUrl }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+
+  const orgResult = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') RETURNING organization_id",
+    [`mapping-org-${suffix}`, `Mapping Org ${suffix}`]
+  );
+  const organizationId = orgResult.rows[0].organization_id;
+
+  const tenantResult = await client.query(
+    "INSERT INTO tenants (name, created_by) VALUES ($1, 'seed') RETURNING tenant_id",
+    [`Mapping Tenant ${suffix}`]
+  );
+  const tenantId = tenantResult.rows[0].tenant_id;
+
+  const projectResult = await client.query(
+    "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state) VALUES ($1, 'Test', $2::uuid, $3::uuid, 'P1_PROJECT_ACTIVE') RETURNING project_id",
+    [`Mapping Projekti ${suffix}`, organizationId, tenantId]
+  );
+  const projectId = projectResult.rows[0].project_id;
+
+  const litteraResult = await client.query(
+    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9001', 'Mapping Littera', 9) RETURNING littera_id",
+    [projectId]
+  );
+  const litteraId = litteraResult.rows[0].littera_id;
+
+  const batchResult = await client.query(
+    "INSERT INTO import_batches (project_id, source_system, imported_by) VALUES ($1::uuid, 'TARGET_ESTIMATE', 'seed') RETURNING import_batch_id",
+    [projectId]
+  );
+  const importBatchId = batchResult.rows[0].import_batch_id;
+
+  const budgetItemResult = await client.query(
+    `INSERT INTO budget_items (
+      project_id, import_batch_id, littera_id, item_code, item_desc, row_no, total_eur, created_by
+    )
+    VALUES ($1::uuid, $2::uuid, $3::uuid, '9001001', 'Test Item', 1, 1000, 'seed')
+    RETURNING budget_item_id`,
+    [projectId, importBatchId, litteraId]
+  );
+  const budgetItemId = budgetItemResult.rows[0].budget_item_id;
+
+  const workPhaseResult = await client.query(
+    "INSERT INTO work_phases (project_id, name, created_by) VALUES ($1::uuid, $2, 'seed') RETURNING work_phase_id",
+    [projectId, `Phase ${suffix}`]
+  );
+  const workPhaseId = workPhaseResult.rows[0].work_phase_id;
+
+  const procPackageResult = await client.query(
+    "INSERT INTO proc_packages (project_id, name, default_work_package_id, created_by, updated_by) VALUES ($1::uuid, $2, $3::uuid, 'seed', 'seed') RETURNING proc_package_id",
+    [projectId, `Proc ${suffix}`, workPhaseId]
+  );
+  const procPackageId = procPackageResult.rows[0].proc_package_id;
+
+  const mappingVersionResult = await client.query(
+    `INSERT INTO mapping_versions (
+      project_id,
+      valid_from,
+      status,
+      reason,
+      created_by,
+      activated_at,
+      import_batch_id,
+      mapping_kind
+    )
+    VALUES ($1::uuid, current_date, 'ACTIVE', 'test', 'seed', now(), $2::uuid, 'ITEM')
+    RETURNING mapping_version_id`,
+    [projectId, importBatchId]
+  );
+  const mappingVersionId = mappingVersionResult.rows[0].mapping_version_id;
+
+  await client.query(
+    `INSERT INTO row_mappings (
+      project_id,
+      mapping_version_id,
+      budget_item_id,
+      work_phase_id,
+      created_by,
+      created_at
+    )
+    VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'seed', now() - interval '2 minutes')`,
+    [projectId, mappingVersionId, budgetItemId, workPhaseId]
+  );
+
+  await client.query(
+    `INSERT INTO row_mappings (
+      project_id,
+      mapping_version_id,
+      budget_item_id,
+      proc_package_id,
+      created_by,
+      created_at
+    )
+    VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'seed', now())`,
+    [projectId, mappingVersionId, budgetItemId, procPackageId]
+  );
+
+  const rowCountResult = await client.query(
+    "SELECT count(*)::int AS count FROM row_mappings WHERE budget_item_id = $1::uuid",
+    [budgetItemId]
+  );
+  assert.equal(rowCountResult.rows[0].count, 2);
+
+  const currentResult = await client.query(
+    "SELECT work_phase_id, proc_package_id FROM v_current_item_mappings WHERE budget_item_id = $1::uuid",
+    [budgetItemId]
+  );
+  assert.equal(currentResult.rowCount, 1);
+  assert.equal(currentResult.rows[0].work_phase_id, null);
+  assert.equal(currentResult.rows[0].proc_package_id, procPackageId);
+
+  const forecastVersionResult = await client.query(
+    `INSERT INTO mapping_versions (
+      project_id,
+      valid_from,
+      status,
+      reason,
+      created_by,
+      mapping_kind
+    )
+    VALUES ($1::uuid, current_date, 'ACTIVE', 'forecast', 'seed', 'FORECAST')
+    RETURNING mapping_version_id`,
+    [projectId]
+  );
+  assert.ok(forecastVersionResult.rows[0].mapping_version_id);
+
+  await client.end();
+});
+
 test("login endpoint writes audit log entry", { skip: !databaseUrl || !sessionSecret }, async () => {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();

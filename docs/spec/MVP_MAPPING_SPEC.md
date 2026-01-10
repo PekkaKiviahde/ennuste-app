@@ -65,21 +65,32 @@ MVP:ssä pidetään yksinkertaisena versiona, jotta audit säilyy.
 - `id`
 - `project_id`
 - `import_batch_id`
+- `mapping_kind` (FORECAST/ITEM)
 - `status` (DRAFT/ACTIVE)
 - `created_by`
 - `created_at`
 - `activated_at` (nullable)
 
-`row_mappings`
+`row_mappings` (append-only)
 - `id`
 - `mapping_version_id`
-- `target_estimate_row_id`
-- `work_package_id` (nullable)
+- `budget_item_id`
+- `work_phase_id` (nullable)
 - `proc_package_id` (nullable)
 - `created_at`
+- `created_by`
+
+`v_current_item_mappings` (read-view)
+- palauttaa per `budget_item_id` viimeisimmän rivin
+- huomioi vain `mapping_kind = 'ITEM'` ja `status = 'ACTIVE'`
+
+**Read/Write**
+- Write: aina `INSERT` `row_mappings`-tauluun (ei upsertia)
+- Read: `v_current_item_mappings` (current state)
 
 **MVP-rajoite:**
 - 1 rivi → max 1 työpaketti + max 1 hankintapaketti (ei splittiä)
+- sama `budget_item_id` voi saada useita rivejä (audit), uusin on “current”
 - rivi voi olla:
   - vain työpaketissa
   - vain hankintapaketissa
