@@ -6,11 +6,14 @@ Kehitys on varhaisessa MVP-vaiheessa ja testidataa syntyy nopeasti. Nykyinen mig
 ## Decision
 - Sallitaan hard reset varhaisen kehitysvaiheen aikana: testidata voidaan poistaa tarvittaessa.
 - Migraatiot squashataan ja tehdään uusi baseline-migraatio `0001_baseline.sql`.
+- codex/create-new-adr-for-baseline-and-mapping-separation-dt139j
 - Baseline-migraatioon ei tehdä legacy-yhteensopivuusviewejä vanhoille nimille.
 - Domain-nimistö DB:ssä yhtenäistetään: käytetään `work_packages` ja `proc_packages` (ei `work_phases`).
 - Item-mäppäys on omissa append-only-tauluissa: `item_mapping_versions` ja `item_row_mappings`.
 - Toteumat (ennustepäivän toteuma) tuodaan mukaan nyt ja niille tehdään oma mapping, erillään item-mäppäyksestä ja ilman mapping_versions/mapping_lines -sekoitusta.
 - Import-runko on yhteinen: `import_batches(kind=TARGET_ESTIMATE|ACTUALS)` + `import_raw_rows` (append-only).
+
+main
 - Importista talletetaan myös raw-rivit virheiden jäljitystä varten.
 
 ## Consequences
@@ -29,9 +32,12 @@ Kehitys on varhaisessa MVP-vaiheessa ja testidataa syntyy nopeasti. Nykyinen mig
 ## Mitä muuttui
 - Päätettiin hard reset -mahdollisuus varhaiseen kehitysvaiheeseen.
 - Päätettiin squashata migraatiot ja luoda uusi baseline.
+- codex/create-new-adr-for-baseline-and-mapping-separation-dt139j
 - Päätettiin, ettei baselinen yhteyteen tehdä legacy-viewejä vanhoille nimille.
 - Päätettiin selkiyttää DB-nimistö ja erottaa item-mäppäys sekä toteumat omiin tauluihinsa.
 - Päätettiin yhteinen import-runko sekä importin raw-rivien talletus.
+- Päätettiin tallentaa importin raw-rivit.
+main
 
 ## Miksi
 - MVP-vaiheessa nopeus ja selkeys ovat tärkeämpiä kuin täydellinen migraatiohistoria.
