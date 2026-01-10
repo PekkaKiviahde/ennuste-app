@@ -1,19 +1,19 @@
-import type { WorkPhasePort } from "@ennuste/application";
+import type { WorkPackagePort } from "@ennuste/application";
 import { AppError } from "@ennuste/shared";
 import { dbForTenant } from "./db";
 
-export const workPhaseRepository = (): WorkPhasePort => ({
-  async listWorkPhases(projectId, tenantId) {
+export const workPackageRepository = (): WorkPackagePort => ({
+  async listWorkPackages(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
     const result = await tenantDb.query<{
-      work_phase_id: string;
+      work_package_id: string;
       code: string;
       name: string;
       status: string | null;
       created_at: string;
     }>(
-      `SELECT id AS work_phase_id, code, name, status, created_at
+      `SELECT id AS work_package_id, code, name, status, created_at
        FROM work_packages
        WHERE project_id = $1::uuid
        ORDER BY created_at DESC`,
@@ -21,13 +21,13 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     );
     return result.rows;
   },
-  async createWorkPhase(input) {
+  async createWorkPackage(input) {
     const tenantDb = dbForTenant(input.tenantId);
     await tenantDb.requireProject(input.projectId);
-    const result = await tenantDb.query<{ work_phase_id: string }>(
+    const result = await tenantDb.query<{ work_package_id: string }>(
       `INSERT INTO work_packages (project_id, code, name, responsible_user_id, status)
        VALUES ($1::uuid, $2, $3, $4::uuid, $5)
-       RETURNING id AS work_phase_id`,
+       RETURNING id AS work_package_id`,
       [
         input.projectId,
         input.code,
@@ -36,7 +36,7 @@ export const workPhaseRepository = (): WorkPhasePort => ({
         input.status ?? "ACTIVE"
       ]
     );
-    return { workPhaseId: result.rows[0].work_phase_id };
+    return { workPackageId: result.rows[0].work_package_id };
   },
   async createWeeklyUpdate() {
     throw new AppError("Viikkopaivitys ei ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);

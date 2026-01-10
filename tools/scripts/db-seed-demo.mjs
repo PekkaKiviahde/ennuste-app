@@ -1,4 +1,5 @@
 import { Client } from "pg";
+import crypto from "crypto";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -27,6 +28,165 @@ const buildUsersWithSuffix = (users, suffix) =>
   }));
 
 const costTypes = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
+
+const ensureBaselineImportBatch = async (client, projectId, kind, sourceSystem, fileName) => {
+  const fileHash = crypto
+    .createHash("sha256")
+    .update(`seed:${projectId}:${kind}:${sourceSystem}`)
+    .digest("hex");
+  const existing = await client.query(
+    "SELECT id FROM import_batches WHERE project_id = $1::uuid AND kind = $2 AND file_hash = $3 ORDER BY created_at DESC LIMIT 1",
+    [projectId, kind, fileHash]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
+  }
+  const result = await client.query(
+    "INSERT INTO import_batches (project_id, kind, source_system, file_name, file_hash, created_by) VALUES ($1::uuid, $2, $3, $4, $5, 'seed') RETURNING id",
+    [projectId, kind, sourceSystem, fileName, fileHash]
+  );
+  return result.rows[0].id;
+};
+
+const ensureBaselineWorkPackage = async (client, projectId, code, name) => {
+  const existing = await client.query(
+    "SELECT id FROM work_packages WHERE project_id = $1::uuid AND code = $2",
+    [projectId, code]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
+  }
+  const result = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status, created_at) VALUES ($1::uuid, $2, $3, 'ACTIVE', now()) RETURNING id",
+    [projectId, code, name]
+  );
+  return result.rows[0].id;
+};
+
+const ensureBaselineProcPackage = async (client, projectId, code, name, defaultWorkPackageId) => {
+  const existing = await client.query(
+    "SELECT id FROM proc_packages WHERE project_id = $1::uuid AND code = $2",
+    [projectId, code]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
+  }
+  const result = await client.query(
+    `INSERT INTO proc_packages (
+      project_id, code, name, owner_type, vendor_name, contract_ref, default_work_package_id, status
+    ) VALUES ($1::uuid, $2, $3, 'VENDOR', 'Seed-toimittaja', 'SEED-001', $4::uuid, 'ACTIVE')
+    RETURNING id`,
+    [projectId, code, name, defaultWorkPackageId]
+  );
+  return result.rows[0].id;
+};
+
+const ensureBaselineTargetEstimateItems = async (client, importBatchId) => {
+  const items = [
+    {
+      item_code: "4101001",
+      littera_code: "4101",
+      description: "Pystyelementit toimitus",
+      qty: 10,
+      unit: "kpl",
+      sum_eur: 120000,
+      breakdown: { labor_eur: 0, material_eur: 0, subcontract_eur: 120000 }
+    },
+    {
+      item_code: "4102003",
+      littera_code: "4102",
+      description: "Pystyelementit asennus",
+      qty: 5,
+      unit: "kpl",
+      sum_eur: 80000,
+      breakdown: { labor_eur: 80000 }
+    }
+  ];
+
+  for (const item of items) {
+    await client.query(
+      `INSERT INTO target_estimate_items (
+        import_batch_id,
+        item_code,
+        littera_code,
+        description,
+        qty,
+        unit,
+        sum_eur,
+        cost_breakdown_json,
+        row_type
+      )
+      SELECT $1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb, 'LEAF'
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM target_estimate_items
+        WHERE import_batch_id = $1::uuid
+          AND item_code IS NOT DISTINCT FROM $2
+          AND littera_code = $3
+      )`,
+      [
+        importBatchId,
+        item.item_code,
+        item.littera_code,
+        item.description,
+        item.qty,
+        item.unit,
+        item.sum_eur,
+        JSON.stringify(item.breakdown)
+      ]
+    );
+  }
+
+  const result = await client.query(
+    "SELECT id, item_code FROM target_estimate_items WHERE import_batch_id = $1::uuid",
+    [importBatchId]
+  );
+  return Object.fromEntries(result.rows.map((row) => [row.item_code, row.id]));
+};
+
+const ensureBaselineItemMappingVersion = async (client, projectId, importBatchId) => {
+  const existing = await client.query(
+    "SELECT id FROM item_mapping_versions WHERE project_id = $1::uuid AND import_batch_id = $2::uuid AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1",
+    [projectId, importBatchId]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
+  }
+  const result = await client.query(
+    "INSERT INTO item_mapping_versions (project_id, import_batch_id, status, created_by, activated_at) VALUES ($1::uuid, $2::uuid, 'ACTIVE', 'seed', now()) RETURNING id",
+    [projectId, importBatchId]
+  );
+  return result.rows[0].id;
+};
+
+const ensureBaselineItemRowMappings = async (client, mappingVersionId, targetEstimateItemId, workPackageId, procPackageId) => {
+  const candidates = [
+    { workPackageId, procPackageId: null },
+    { workPackageId, procPackageId }
+  ];
+  for (const candidate of candidates) {
+    await client.query(
+      `INSERT INTO item_row_mappings (
+        item_mapping_version_id,
+        target_estimate_item_id,
+        work_package_id,
+        proc_package_id,
+        created_by
+      )
+      SELECT $1::uuid, $2::uuid, $3::uuid, $4::uuid, 'seed'
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM item_row_mappings
+        WHERE item_mapping_version_id = $1::uuid
+          AND target_estimate_item_id = $2::uuid
+          AND work_package_id IS NOT DISTINCT FROM $3::uuid
+          AND proc_package_id IS NOT DISTINCT FROM $4::uuid
+          AND created_by = 'seed'
+      )`,
+      [mappingVersionId, targetEstimateItemId, candidate.workPackageId, candidate.procPackageId]
+    );
+  }
+};
 
 const kideProjects = [
   {
@@ -416,257 +576,28 @@ const seedTenant = async (client, config) => {
 };
 
 const seedDemoProjectData = async (client, projectId, label) => {
-  const litteraCodes = [
-    { code: "1100", title: "Runko", group: 1 },
-    { code: "1110", title: "Runko - valu", group: 1 },
-    { code: "1120", title: "Runko - raudoitus", group: 1 },
-    { code: "1130", title: "Runko - muotti", group: 1 },
-    { code: "2100", title: "Julkisivu", group: 2 }
-  ];
-
-  for (const lit of litteraCodes) {
-    await client.query(
-      "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, $2, $3, $4) ON CONFLICT (project_id, code) DO NOTHING",
-      [projectId, lit.code, lit.title, lit.group]
-    );
-  }
-
-  const litteraRows = await client.query(
-    "SELECT littera_id, code FROM litteras WHERE project_id = $1::uuid",
-    [projectId]
+  const targetBatchId = await ensureBaselineImportBatch(
+    client,
+    projectId,
+    "TARGET_ESTIMATE",
+    "SEED",
+    `demo-target-estimate-${label}.csv`
   );
-  const litteraByCode = Object.fromEntries(litteraRows.rows.map((row) => [row.code, row.littera_id]));
+  await ensureBaselineImportBatch(client, projectId, "ACTUALS", "JYDA", `demo-actuals-${label}.csv`);
 
-  const targetBatchExisting = await client.query(
-    "SELECT import_batch_id FROM import_batches WHERE project_id = $1::uuid AND source_system = 'TARGET_ESTIMATE' ORDER BY imported_at DESC LIMIT 1",
-    [projectId]
+  const workPackageId = await ensureBaselineWorkPackage(client, projectId, "4100", `Runko ${label.toUpperCase()}`);
+  const procPackageId = await ensureBaselineProcPackage(
+    client,
+    projectId,
+    "4100",
+    `Runko-urakka ${label.toUpperCase()}`,
+    workPackageId
   );
-  let targetBatchId = targetBatchExisting.rows[0]?.import_batch_id;
-  if (!targetBatchId) {
-    const targetBatchResult = await client.query(
-      "INSERT INTO import_batches (project_id, source_system, imported_by, notes) VALUES ($1::uuid, 'TARGET_ESTIMATE', 'seed', 'demo target estimate') RETURNING import_batch_id",
-      [projectId]
-    );
-    targetBatchId = targetBatchResult.rows[0].import_batch_id;
-  }
-
-  for (const costType of costTypes) {
-    const exists = await client.query(
-      "SELECT 1 FROM budget_lines WHERE project_id = $1::uuid AND target_littera_id = $2::uuid AND cost_type = $3::cost_type AND import_batch_id = $4::uuid",
-      [projectId, litteraByCode["1100"], costType, targetBatchId]
-    );
-    if (exists.rowCount === 0) {
-      await client.query(
-        "INSERT INTO budget_lines (project_id, target_littera_id, cost_type, amount, import_batch_id, created_by) VALUES ($1::uuid, $2::uuid, $3::cost_type, $4, $5::uuid, 'seed')",
-        [projectId, litteraByCode["1100"], costType, 10000, targetBatchId]
-      );
-    }
-  }
-
-  const budgetItemExists = await client.query(
-    "SELECT 1 FROM budget_items WHERE project_id = $1::uuid AND item_code = '56001013'",
-    [projectId]
-  );
-  if (budgetItemExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO budget_items (project_id, import_batch_id, littera_id, item_code, item_desc, row_no, total_eur, created_by) VALUES ($1::uuid, $2::uuid, $3::uuid, '56001013', 'Runko item', 1, 12000, 'seed')",
-      [projectId, targetBatchId, litteraByCode["1100"]]
-    );
-  }
-
-  const mappingExisting = await client.query(
-    "SELECT mapping_version_id, status FROM mapping_versions WHERE project_id = $1::uuid AND reason = 'demo mapping' ORDER BY created_at DESC LIMIT 1",
-    [projectId]
-  );
-  let mappingVersionId = mappingExisting.rows[0]?.mapping_version_id;
-  const mappingStatus = mappingExisting.rows[0]?.status;
-
-  const workCodes = ["1110", "1120", "1130"];
-  const insertMappingLines = async (versionId) => {
-    for (const code of workCodes) {
-      const exists = await client.query(
-        "SELECT 1 FROM mapping_lines WHERE mapping_version_id = $1::uuid AND work_littera_id = $2::uuid",
-        [versionId, litteraByCode[code]]
-      );
-      if (exists.rowCount === 0) {
-        await client.query(
-          "INSERT INTO mapping_lines (project_id, mapping_version_id, work_littera_id, target_littera_id, allocation_rule, allocation_value, created_by) VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'FULL', 1.0, 'seed')",
-          [projectId, versionId, litteraByCode[code], litteraByCode["1100"]]
-        );
-      }
-    }
-  };
-
-  if (!mappingVersionId) {
-    const mappingVersionResult = await client.query(
-      "INSERT INTO mapping_versions (project_id, valid_from, status, reason, created_by) VALUES ($1::uuid, current_date, 'DRAFT', 'demo mapping', 'seed') RETURNING mapping_version_id",
-      [projectId]
-    );
-    mappingVersionId = mappingVersionResult.rows[0].mapping_version_id;
-    await insertMappingLines(mappingVersionId);
-    await client.query(
-      "UPDATE mapping_versions SET status = 'ACTIVE', approved_by = 'seed', approved_at = now() WHERE mapping_version_id = $1::uuid",
-      [mappingVersionId]
-    );
-  } else if (mappingStatus === "DRAFT") {
-    await insertMappingLines(mappingVersionId);
-    await client.query(
-      "UPDATE mapping_versions SET status = 'ACTIVE', approved_by = 'seed', approved_at = now() WHERE mapping_version_id = $1::uuid",
-      [mappingVersionId]
-    );
-  } else {
-    const missing = [];
-    for (const code of workCodes) {
-      const exists = await client.query(
-        "SELECT 1 FROM mapping_lines WHERE mapping_version_id = $1::uuid AND work_littera_id = $2::uuid",
-        [mappingVersionId, litteraByCode[code]]
-      );
-      if (exists.rowCount === 0) {
-        missing.push(code);
-      }
-    }
-
-    if (missing.length > 0) {
-      const mappingVersionResult = await client.query(
-        "INSERT INTO mapping_versions (project_id, valid_from, status, reason, created_by) VALUES ($1::uuid, current_date, 'DRAFT', 'demo mapping', 'seed') RETURNING mapping_version_id",
-        [projectId]
-      );
-      const newVersionId = mappingVersionResult.rows[0].mapping_version_id;
-      await insertMappingLines(newVersionId);
-      await client.query(
-        "UPDATE mapping_versions SET status = 'RETIRED' WHERE mapping_version_id = $1::uuid",
-        [mappingVersionId]
-      );
-      await client.query(
-        "UPDATE mapping_versions SET status = 'ACTIVE', approved_by = 'seed', approved_at = now() WHERE mapping_version_id = $1::uuid",
-        [newVersionId]
-      );
-      mappingVersionId = newVersionId;
-    }
-  }
-
-  const jydaBatchExisting = await client.query(
-    "SELECT import_batch_id FROM import_batches WHERE project_id = $1::uuid AND source_system = 'JYDA' ORDER BY imported_at DESC LIMIT 1",
-    [projectId]
-  );
-  let jydaBatchId = jydaBatchExisting.rows[0]?.import_batch_id;
-  if (!jydaBatchId) {
-    const jydaBatchResult = await client.query(
-      "INSERT INTO import_batches (project_id, source_system, imported_by, notes) VALUES ($1::uuid, 'JYDA', 'seed', 'demo actuals') RETURNING import_batch_id",
-      [projectId]
-    );
-    jydaBatchId = jydaBatchResult.rows[0].import_batch_id;
-  }
-
-  const actualExists = await client.query(
-    "SELECT 1 FROM actual_cost_lines WHERE project_id = $1::uuid AND work_littera_id = $2::uuid AND external_ref = 'JYDA.ACTUAL_COST'",
-    [projectId, litteraByCode["1110"]]
-  );
-  if (actualExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO actual_cost_lines (project_id, work_littera_id, cost_type, amount, occurred_on, source, import_batch_id, external_ref) VALUES ($1::uuid, $2::uuid, 'LABOR', 2500, current_date, 'JYDA', $3::uuid, 'JYDA.ACTUAL_COST')",
-      [projectId, litteraByCode["1110"], jydaBatchId]
-    );
-  }
-
-  const planningExists = await client.query(
-    "SELECT 1 FROM planning_events WHERE project_id = $1::uuid AND target_littera_id = $2::uuid",
-    [projectId, litteraByCode["1100"]]
-  );
-  if (planningExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO planning_events (project_id, target_littera_id, status, summary, created_by) VALUES ($1::uuid, $2::uuid, 'READY_FOR_FORECAST', 'Demo suunnitelma', 'seed')",
-      [projectId, litteraByCode["1100"]]
-    );
-  }
-
-  const forecastExists = await client.query(
-    "SELECT 1 FROM forecast_events WHERE project_id = $1::uuid AND target_littera_id = $2::uuid",
-    [projectId, litteraByCode["1100"]]
-  );
-  if (forecastExists.rowCount === 0) {
-    const forecastEventResult = await client.query(
-      "INSERT INTO forecast_events (project_id, target_littera_id, mapping_version_id, source, comment, created_by) VALUES ($1::uuid, $2::uuid, $3::uuid, 'UI', 'Demo ennuste', 'seed') RETURNING forecast_event_id",
-      [projectId, litteraByCode["1100"], mappingVersionId]
-    );
-    const forecastEventId = forecastEventResult.rows[0].forecast_event_id;
-
-    for (const costType of costTypes) {
-      await client.query(
-        "INSERT INTO forecast_event_lines (forecast_event_id, cost_type, forecast_value, memo_general) VALUES ($1::uuid, $2::cost_type, $3, 'Demo memo')",
-        [forecastEventId, costType, 9000]
-      );
-    }
-  }
-
-  const workPhaseExisting = await client.query(
-    "SELECT work_phase_id FROM work_phases WHERE project_id = $1::uuid AND name = $2",
-    [projectId, `Runko ${label.toUpperCase()}`]
-  );
-  let workPhaseId = workPhaseExisting.rows[0]?.work_phase_id;
-  if (!workPhaseId) {
-    const workPhaseResult = await client.query(
-      "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, status, created_by) VALUES ($1::uuid, $2, $3, 'seed', $4::uuid, 'ACTIVE', 'seed') RETURNING work_phase_id",
-      [projectId, `Runko ${label.toUpperCase()}`, "Runko tyovaihe", litteraByCode["1100"]]
-    );
-    workPhaseId = workPhaseResult.rows[0].work_phase_id;
-  }
-
-  const versionExisting = await client.query(
-    "SELECT work_phase_version_id FROM work_phase_versions WHERE work_phase_id = $1::uuid AND version_no = 1",
-    [workPhaseId]
-  );
-  let workPhaseVersionId = versionExisting.rows[0]?.work_phase_version_id;
-  if (!workPhaseVersionId) {
-    const workPhaseVersionResult = await client.query(
-      "INSERT INTO work_phase_versions (project_id, work_phase_id, version_no, status, notes, created_by) VALUES ($1::uuid, $2::uuid, 1, 'ACTIVE', 'demo', 'seed') RETURNING work_phase_version_id",
-      [projectId, workPhaseId]
-    );
-    workPhaseVersionId = workPhaseVersionResult.rows[0].work_phase_version_id;
-  }
-
-  const memberExists = await client.query(
-    "SELECT 1 FROM work_phase_members WHERE work_phase_version_id = $1::uuid AND littera_id = $2::uuid",
-    [workPhaseVersionId, litteraByCode["1100"]]
-  );
-  if (memberExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO work_phase_members (project_id, work_phase_version_id, member_type, littera_id, note, created_by) VALUES ($1::uuid, $2::uuid, 'LITTERA', $3::uuid, 'demo', 'seed')",
-      [projectId, workPhaseVersionId, litteraByCode["1100"]]
-    );
-  }
-
-  const baselineExists = await client.query(
-    "SELECT 1 FROM work_phase_baselines WHERE work_phase_id = $1::uuid AND target_import_batch_id = $2::uuid",
-    [workPhaseId, targetBatchId]
-  );
-  if (baselineExists.rowCount === 0) {
-    await client.query(
-      "SELECT work_phase_lock_baseline($1::uuid, $2::uuid, $3::uuid, 'seed', 'demo baseline')",
-      [workPhaseId, workPhaseVersionId, targetBatchId]
-    );
-  }
-
-  const weeklyExists = await client.query(
-    "SELECT 1 FROM work_phase_weekly_updates WHERE work_phase_id = $1::uuid",
-    [workPhaseId]
-  );
-  if (weeklyExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO work_phase_weekly_updates (project_id, work_phase_id, week_ending, percent_complete, progress_notes, created_by) VALUES ($1::uuid, $2::uuid, current_date, 25, 'demo update', 'seed')",
-      [projectId, workPhaseId]
-    );
-  }
-
-  const ghostExists = await client.query(
-    "SELECT 1 FROM ghost_cost_entries WHERE work_phase_id = $1::uuid",
-    [workPhaseId]
-  );
-  if (ghostExists.rowCount === 0) {
-    await client.query(
-      "INSERT INTO ghost_cost_entries (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by) VALUES ($1::uuid, $2::uuid, current_date, 'LABOR', 300, 'demo ghost', 'seed')",
-      [projectId, workPhaseId]
-    );
+  const itemsByCode = await ensureBaselineTargetEstimateItems(client, targetBatchId);
+  const mappingVersionId = await ensureBaselineItemMappingVersion(client, projectId, targetBatchId);
+  const primaryItemId = itemsByCode["4101001"] ?? Object.values(itemsByCode)[0];
+  if (primaryItemId) {
+    await ensureBaselineItemRowMappings(client, mappingVersionId, primaryItemId, workPackageId, procPackageId);
   }
 };
 

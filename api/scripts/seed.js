@@ -13,6 +13,11 @@ const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://codex:codex@db:54
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 
+async function tableExists(name) {
+  const result = await pool.query('SELECT to_regclass($1) AS name', [`public.${name}`]);
+  return Boolean(result.rows[0]?.name);
+}
+
 async function ensureDefaultOrg() {
   const existing = await pool.query("SELECT organization_id FROM organizations WHERE slug = 'default'");
   if (existing.rowCount > 0) {
@@ -350,582 +355,187 @@ async function ensureLitteras(projectId) {
   }, {});
 }
 
-async function ensureImportBatch(projectId, sourceSystem) {
+async function ensureImportBatch(projectId, kind, sourceSystem, fileName) {
+  const fileHash = crypto
+    .createHash('sha256')
+    .update(`seed:${projectId}:${kind}:${sourceSystem}`)
+    .digest('hex');
   const existing = await pool.query(
-    'SELECT import_batch_id FROM import_batches WHERE project_id = $1 AND source_system = $2 ORDER BY imported_at DESC LIMIT 1',
-    [projectId, sourceSystem]
+    'SELECT id FROM import_batches WHERE project_id = $1 AND kind = $2 AND file_hash = $3 ORDER BY created_at DESC LIMIT 1',
+    [projectId, kind, fileHash]
   );
   if (existing.rowCount > 0) {
-    return existing.rows[0].import_batch_id;
+    return existing.rows[0].id;
   }
   const result = await pool.query(
-    `INSERT INTO import_batches (project_id, source_system, imported_by, notes)
-     VALUES ($1, $2, 'seed', 'Seed batch')
-     RETURNING import_batch_id`,
-    [projectId, sourceSystem]
+    `INSERT INTO import_batches (project_id, kind, source_system, file_name, file_hash, created_by)
+     VALUES ($1, $2, $3, $4, $5, 'seed')
+     RETURNING id`,
+    [projectId, kind, sourceSystem, fileName, fileHash]
   );
-  return result.rows[0].import_batch_id;
+  return result.rows[0].id;
 }
 
-async function ensureBudgetLines(projectId, batchId, litteraIds) {
-  const budgetLines = [
-    { code: '1100', cost_type: 'LABOR', amount: 120000 },
-    { code: '1100', cost_type: 'MATERIAL', amount: 45000 },
-    { code: '1200', cost_type: 'LABOR', amount: 90000 },
-    { code: '1200', cost_type: 'SUBCONTRACT', amount: 30000 },
-    { code: '1300', cost_type: 'LABOR', amount: 60000 },
-    { code: '1400', cost_type: 'MATERIAL', amount: 50000 },
-    { code: '4101', cost_type: 'SUBCONTRACT', amount: 120000 },
-    { code: '4102', cost_type: 'LABOR', amount: 80000 },
-    { code: '4300', cost_type: 'SUBCONTRACT', amount: 50000 },
-    { code: '6700', cost_type: 'MATERIAL', amount: 45000 },
-    { code: '2500', cost_type: 'MATERIAL', amount: 30000 },
-  ];
-
-  for (const line of budgetLines) {
-    await pool.query(
-      `INSERT INTO budget_lines (project_id, target_littera_id, cost_type, amount, source, import_batch_id, created_by)
-       SELECT $1, $2, $3, $4, 'IMPORT', $5, 'seed'
-       WHERE NOT EXISTS (
-         SELECT 1 FROM budget_lines
-         WHERE project_id = $1 AND target_littera_id = $2 AND cost_type = $3 AND import_batch_id = $5
-       )`,
-      [projectId, litteraIds[line.code], line.cost_type, line.amount, batchId]
-    );
+async function ensureBaselineWorkPackage(projectId, code, name) {
+  const existing = await pool.query(
+    'SELECT id FROM work_packages WHERE project_id = $1 AND code = $2',
+    [projectId, code]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
   }
+  const result = await pool.query(
+    `INSERT INTO work_packages (project_id, code, name, status, created_at)
+     VALUES ($1, $2, $3, 'ACTIVE', now())
+     RETURNING id`,
+    [projectId, code, name]
+  );
+  return result.rows[0].id;
 }
 
-async function ensureBudgetItems(projectId, batchId, litteraIds) {
+async function ensureBaselineProcPackage(projectId, code, name, defaultWorkPackageId) {
+  const existing = await pool.query(
+    'SELECT id FROM proc_packages WHERE project_id = $1 AND code = $2',
+    [projectId, code]
+  );
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
+  }
+  const result = await pool.query(
+    `INSERT INTO proc_packages (
+      project_id, code, name, owner_type, vendor_name, contract_ref, default_work_package_id, status
+    ) VALUES ($1, $2, $3, 'VENDOR', 'Seed-toimittaja', 'SEED-001', $4, 'ACTIVE')
+    RETURNING id`,
+    [projectId, code, name, defaultWorkPackageId]
+  );
+  return result.rows[0].id;
+}
+
+async function ensureTargetEstimateItems(projectId, importBatchId) {
   const items = [
     {
-      litteraCode: '1300',
-      item_code: '56001013',
-      item_desc: 'Lisätyö: teräspalkit',
-      row_no: 10,
-      total_eur: 15000,
-    },
-    {
-      litteraCode: '0310',
-      item_code: '0310',
-      item_desc: 'ARK-Suunnittelu',
-      row_no: 101,
-      qty: 1,
-      unit: 'era',
-      total_eur: 6500,
-    },
-    {
-      litteraCode: '4101',
       item_code: '4101001',
-      item_desc: 'Pystyelementit toimitus',
-      row_no: 102,
-      qty: 1,
-      unit: 'era',
-      total_eur: 120000,
+      littera_code: '4101',
+      description: 'Pystyelementit toimitus',
+      qty: 10,
+      unit: 'kpl',
+      sum_eur: 120000,
+      breakdown: { labor_eur: 0, material_eur: 0, subcontract_eur: 120000 }
     },
     {
-      litteraCode: '4102',
       item_code: '4102003',
-      item_desc: 'Pystyelementit asennus',
-      row_no: 103,
-      qty: 1,
-      unit: 'era',
-      total_eur: 80000,
+      littera_code: '4102',
+      description: 'Pystyelementit asennus',
+      qty: 5,
+      unit: 'kpl',
+      sum_eur: 80000,
+      breakdown: { labor_eur: 80000 }
     },
     {
-      litteraCode: '4300',
       item_code: '4300101',
-      item_desc: 'Sähkötyöt urakka',
-      row_no: 104,
+      littera_code: '4300',
+      description: 'Sähkötyöt',
       qty: 1,
       unit: 'era',
-      total_eur: 50000,
-    },
-    {
-      litteraCode: '6700',
-      item_code: '6700005',
-      item_desc: 'Valuosa A',
-      row_no: 105,
-      qty: 1,
-      unit: 'era',
-      total_eur: 45000,
-    },
-    {
-      litteraCode: '2500',
-      item_code: '2500012',
-      item_desc: 'Valuosa B',
-      row_no: 106,
-      qty: 1,
-      unit: 'era',
-      total_eur: 30000,
-    },
+      sum_eur: 50000,
+      breakdown: { subcontract_eur: 50000 }
+    }
   ];
 
   for (const item of items) {
     await pool.query(
-      `INSERT INTO budget_items (
-        project_id, import_batch_id, littera_id, item_code, item_desc, row_no, qty, unit, total_eur, created_by
+      `INSERT INTO target_estimate_items (
+        import_batch_id,
+        item_code,
+        littera_code,
+        description,
+        qty,
+        unit,
+        sum_eur,
+        cost_breakdown_json,
+        row_type
       )
-      SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, 'seed'
+      SELECT $1, $2, $3, $4, $5, $6, $7, $8::jsonb, 'LEAF'
       WHERE NOT EXISTS (
-        SELECT 1 FROM budget_items WHERE project_id = $1 AND import_batch_id = $2 AND item_code = $4
+        SELECT 1
+        FROM target_estimate_items
+        WHERE import_batch_id = $1
+          AND item_code IS NOT DISTINCT FROM $2
+          AND littera_code = $3
       )`,
       [
-        projectId,
-        batchId,
-        litteraIds[item.litteraCode],
+        importBatchId,
         item.item_code,
-        item.item_desc,
-        item.row_no,
-        item.qty ?? null,
-        item.unit ?? null,
-        item.total_eur,
+        item.littera_code,
+        item.description,
+        item.qty,
+        item.unit,
+        item.sum_eur,
+        JSON.stringify(item.breakdown)
       ]
     );
   }
-}
 
-async function ensureMapping(projectId, litteraIds) {
-  const existing = await pool.query(
-    `SELECT mapping_version_id FROM mapping_versions
-     WHERE project_id = $1 AND status = 'ACTIVE'
-     ORDER BY valid_from DESC LIMIT 1`,
-    [projectId]
+  const result = await pool.query(
+    `SELECT id, item_code
+     FROM target_estimate_items
+     WHERE import_batch_id = $1`,
+    [importBatchId]
   );
-  if (existing.rowCount > 0) {
-    await pool.query(
-      `UPDATE mapping_versions
-       SET status = 'RETIRED', valid_to = CURRENT_DATE, approved_at = now(), approved_by = 'seed'
-       WHERE mapping_version_id = $1`,
-      [existing.rows[0].mapping_version_id]
-    );
-  }
-  const draftResult = await pool.query(
-    `INSERT INTO mapping_versions (project_id, valid_from, status, reason, created_by)
-     VALUES ($1, CURRENT_DATE, 'DRAFT', 'Seed mapping', 'seed')
-     RETURNING mapping_version_id`,
-    [projectId]
-  );
-  const mappingVersionId = draftResult.rows[0].mapping_version_id;
-
-  const mappingLines = ['1100', '1200'];
-  for (const code of mappingLines) {
-    await pool.query(
-      `INSERT INTO mapping_lines (
-        project_id,
-        mapping_version_id,
-        work_littera_id,
-        target_littera_id,
-        allocation_rule,
-        allocation_value,
-        created_by
-      )
-      SELECT $1, $2, $3, $3, 'FULL', 1.0, 'seed'
-      WHERE NOT EXISTS (
-        SELECT 1 FROM mapping_lines
-        WHERE mapping_version_id = $2 AND work_littera_id = $3 AND cost_type IS NULL
-      )`,
-      [projectId, mappingVersionId, litteraIds[code]]
-    );
-  }
-  await pool.query(
-    `UPDATE mapping_versions
-     SET status = 'ACTIVE', approved_at = now(), approved_by = 'seed'
-     WHERE mapping_version_id = $1`,
-    [mappingVersionId]
-  );
-  return mappingVersionId;
-}
-
-async function ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId) {
-  const targetLitteraId =
-    litteraIds["1100"] || Object.values(litteraIds)[0];
-  if (!targetLitteraId) {
-    return;
-  }
-
-  const existingPlan = await pool.query(
-    `SELECT planning_event_id
-     FROM planning_events
-     WHERE project_id = $1 AND target_littera_id = $2
-     ORDER BY event_time DESC
-     LIMIT 1`,
-    [projectId, targetLitteraId]
-  );
-
-  let planningEventId = existingPlan.rows[0]?.planning_event_id;
-  if (!planningEventId) {
-    const planResult = await pool.query(
-      `INSERT INTO planning_events (
-        project_id,
-        target_littera_id,
-        created_by,
-        status,
-        summary,
-        observations,
-        risks,
-        decisions
-      )
-      VALUES ($1, $2, 'seed', 'READY_FOR_FORECAST', $3, $4, $5, $6)
-      RETURNING planning_event_id`,
-      [
-        projectId,
-        targetLitteraId,
-        "Seed-suunnitelma: peruslinja",
-        "Seed-huomiot: tarkistettu mapping",
-        "Seed-riski: toteumat voivat muuttua",
-        "Seed-paatos: jatka ennustukseen",
-      ]
-    );
-    planningEventId = planResult.rows[0].planning_event_id;
-  }
-
-  const existingForecast = await pool.query(
-    `SELECT forecast_event_id
-     FROM forecast_events
-     WHERE project_id = $1 AND target_littera_id = $2
-     ORDER BY event_time DESC
-     LIMIT 1`,
-    [projectId, targetLitteraId]
-  );
-
-  let forecastEventId = existingForecast.rows[0]?.forecast_event_id;
-  if (!forecastEventId) {
-    const forecastResult = await pool.query(
-      `INSERT INTO forecast_events (
-        project_id,
-        target_littera_id,
-        mapping_version_id,
-        created_by,
-        source,
-        comment,
-        technical_progress,
-        financial_progress
-      )
-      VALUES ($1, $2, $3, 'seed', 'UI', $4, 0.35, 0.30)
-      RETURNING forecast_event_id`,
-      [
-        projectId,
-        targetLitteraId,
-        mappingVersionId,
-        "Seed-ennuste: peruslinja",
-      ]
-    );
-    forecastEventId = forecastResult.rows[0].forecast_event_id;
-
-    const lineData = [
-      { costType: "LABOR", value: 12000, memo: "Seed: tyo" },
-      { costType: "MATERIAL", value: 8000, memo: "Seed: aine" },
-    ];
-
-    for (const line of lineData) {
-      await pool.query(
-        `INSERT INTO forecast_event_lines (
-          forecast_event_id,
-          cost_type,
-          forecast_value,
-          memo_general
-        )
-        VALUES ($1, $2, $3, $4)`,
-        [forecastEventId, line.costType, line.value, line.memo]
-      );
-    }
-  }
-
-  const attachmentTable = await pool.query(
-    "SELECT to_regclass('public.attachments') AS name"
-  );
-  if (attachmentTable.rows[0]?.name) {
-    await pool.query(
-      `INSERT INTO attachments (owner_type, owner_id, filename, storage_ref, created_by)
-       SELECT 'PLAN', $1, 'seed-plan.txt', 'seed://plan', 'seed'
-       WHERE NOT EXISTS (
-         SELECT 1 FROM attachments
-         WHERE owner_type = 'PLAN' AND owner_id = $1
-       )`,
-      [planningEventId]
-    );
-    await pool.query(
-      `INSERT INTO attachments (owner_type, owner_id, filename, storage_ref, created_by)
-       SELECT 'FORECAST_EVENT', $1, 'seed-forecast.txt', 'seed://forecast', 'seed'
-       WHERE NOT EXISTS (
-         SELECT 1 FROM attachments
-         WHERE owner_type = 'FORECAST_EVENT' AND owner_id = $1
-       )`,
-      [forecastEventId]
-    );
-  }
-}
-
-async function ensureWorkPhases(projectId, litteraIds, targetBatchId) {
-  const phases = [
-    { name: 'Maanrakennus', memberCodes: ['1100', '1200'], lockBaseline: true },
-    { name: 'Sisävalmistus', memberCodes: ['1400'], lockBaseline: false },
-  ];
-
-  for (const phase of phases) {
-    const existing = await pool.query(
-      'SELECT work_phase_id FROM work_phases WHERE project_id = $1 AND name = $2',
-      [projectId, phase.name]
-    );
-    let workPhaseId;
-    if (existing.rowCount > 0) {
-      workPhaseId = existing.rows[0].work_phase_id;
-    } else {
-      const result = await pool.query(
-        `INSERT INTO work_phases (project_id, name, description, created_by)
-         VALUES ($1, $2, $3, 'seed')
-         RETURNING work_phase_id`,
-        [projectId, phase.name, `${phase.name} - seed`]
-      );
-      workPhaseId = result.rows[0].work_phase_id;
-    }
-
-    const versionResult = await pool.query(
-      "SELECT work_phase_version_id FROM work_phase_versions WHERE work_phase_id = $1 AND status = 'ACTIVE'",
-      [workPhaseId]
-    );
-    let versionId;
-    if (versionResult.rowCount > 0) {
-      versionId = versionResult.rows[0].work_phase_version_id;
-    } else {
-      const createdVersion = await pool.query(
-        `INSERT INTO work_phase_versions (project_id, work_phase_id, version_no, status, notes, created_by)
-         VALUES ($1, $2, 1, 'ACTIVE', 'Seed version', 'seed')
-         RETURNING work_phase_version_id`,
-        [projectId, workPhaseId]
-      );
-      versionId = createdVersion.rows[0].work_phase_version_id;
-    }
-
-    for (const code of phase.memberCodes) {
-      await pool.query(
-        `INSERT INTO work_phase_members (project_id, work_phase_version_id, member_type, littera_id, created_by)
-         SELECT $1, $2, 'LITTERA', $3, 'seed'
-         WHERE NOT EXISTS (
-           SELECT 1 FROM work_phase_members
-           WHERE work_phase_version_id = $2 AND littera_id = $3 AND member_type = 'LITTERA'
-         )`,
-        [projectId, versionId, litteraIds[code]]
-      );
-    }
-
-    if (phase.lockBaseline) {
-      const baselineResult = await pool.query(
-        'SELECT work_phase_baseline_id FROM work_phase_baselines WHERE work_phase_id = $1',
-        [workPhaseId]
-      );
-      if (baselineResult.rowCount === 0) {
-        await pool.query(
-          'SELECT work_phase_lock_baseline_secure($1, $2, $3, $4, $5)',
-          [workPhaseId, versionId, targetBatchId, 'paavo', 'Seed baseline']
-        );
-      }
-    }
-  }
-}
-
-async function ensureSampleWorkPackages(projectId, litteraIds, targetBatchId) {
-  const phases = [
-    { name: 'Pystyelementit', memberCodes: ['4101', '4102'] },
-    { name: 'Sähkötyöt', memberCodes: ['4300'] },
-    { name: 'Valuosat', memberCodes: ['6700', '2500'] },
-  ];
-  const result = {};
-  for (const phase of phases) {
-    const existing = await pool.query(
-      'SELECT work_phase_id FROM work_phases WHERE project_id = $1 AND name = $2',
-      [projectId, phase.name]
-    );
-    if (existing.rowCount > 0) {
-      result[phase.name] = existing.rows[0].work_phase_id;
-    } else {
-      const created = await pool.query(
-        `INSERT INTO work_phases (project_id, name, description, created_by)
-         VALUES ($1, $2, $3, 'seed')
-         RETURNING work_phase_id`,
-        [projectId, phase.name, `${phase.name} - seed`]
-      );
-      result[phase.name] = created.rows[0].work_phase_id;
-    }
-
-    const workPhaseId = result[phase.name];
-    const versionResult = await pool.query(
-      "SELECT work_phase_version_id FROM work_phase_versions WHERE work_phase_id = $1 AND status = 'ACTIVE'",
-      [workPhaseId]
-    );
-    let versionId;
-    if (versionResult.rowCount > 0) {
-      versionId = versionResult.rows[0].work_phase_version_id;
-    } else {
-      const createdVersion = await pool.query(
-        `INSERT INTO work_phase_versions (project_id, work_phase_id, version_no, status, notes, created_by)
-         VALUES ($1, $2, 1, 'ACTIVE', 'Seed version', 'seed')
-         RETURNING work_phase_version_id`,
-        [projectId, workPhaseId]
-      );
-      versionId = createdVersion.rows[0].work_phase_version_id;
-    }
-
-    for (const code of phase.memberCodes) {
-      await pool.query(
-        `INSERT INTO work_phase_members (project_id, work_phase_version_id, member_type, littera_id, created_by)
-         SELECT $1, $2, 'LITTERA', $3, 'seed'
-         WHERE NOT EXISTS (
-           SELECT 1 FROM work_phase_members
-           WHERE work_phase_version_id = $2 AND littera_id = $3 AND member_type = 'LITTERA'
-         )`,
-        [projectId, versionId, litteraIds[code]]
-      );
-    }
-
-    const baselineResult = await pool.query(
-      'SELECT work_phase_baseline_id FROM work_phase_baselines WHERE work_phase_id = $1',
-      [workPhaseId]
-    );
-    if (baselineResult.rowCount === 0) {
-      await pool.query(
-        'SELECT work_phase_lock_baseline_secure($1, $2, $3, $4, $5)',
-        [workPhaseId, versionId, targetBatchId, 'paavo', 'Seed baseline']
-      );
-    }
-  }
-  return result;
-}
-
-async function ensureSampleProcPackagesAndMappings(projectId, workPackages, targetBatchId) {
-  const existingProc = await pool.query(
-    'SELECT proc_package_id, name FROM proc_packages WHERE project_id = $1',
-    [projectId]
-  );
-  let sahkoProcId = existingProc.rows.find((row) => row.name === 'Sähkourakka')?.proc_package_id;
-  if (!sahkoProcId) {
-    const created = await pool.query(
-      `INSERT INTO proc_packages (
-        project_id, name, description, default_work_package_id, created_by, updated_by
-      )
-      VALUES ($1, $2, $3, $4, 'seed', 'seed')
-      RETURNING proc_package_id`,
-      [projectId, 'Sähkourakka', 'Sähköurakka - seed', workPackages['Sähkötyöt']]
-    );
-    sahkoProcId = created.rows[0].proc_package_id;
-  }
-
-  const budgetItems = await pool.query(
-    `SELECT budget_item_id, item_code
-     FROM budget_items
-     WHERE project_id = $1
-       AND item_code = ANY($2::text[])`,
-    [projectId, ['4101001', '4102003', '4300101', '6700005', '2500012']]
-  );
-  const itemIds = budgetItems.rows.reduce((acc, row) => {
-    acc[row.item_code] = row.budget_item_id;
+  return result.rows.reduce((acc, row) => {
+    acc[row.item_code] = row.id;
     return acc;
   }, {});
+}
 
-  const mappings = [
-    { itemCode: '4101001', workPhaseName: 'Pystyelementit' },
-    { itemCode: '4102003', workPhaseName: 'Pystyelementit' },
-    { itemCode: '4300101', workPhaseName: 'Sähkötyöt', procPackageId: sahkoProcId },
-    { itemCode: '6700005', workPhaseName: 'Valuosat' },
-    { itemCode: '2500012', workPhaseName: 'Valuosat' },
-  ];
-
-  const mappingVersion = await pool.query(
-    `SELECT mapping_version_id
-     FROM mapping_versions
-     WHERE project_id = $1
-       AND mapping_kind = 'ITEM'
-       AND status = 'ACTIVE'
+async function ensureItemMappingVersion(projectId, importBatchId) {
+  const existing = await pool.query(
+    `SELECT id
+     FROM item_mapping_versions
+     WHERE project_id = $1 AND import_batch_id = $2 AND status = 'ACTIVE'
      ORDER BY created_at DESC
      LIMIT 1`,
-    [projectId]
+    [projectId, importBatchId]
   );
-  let mappingVersionId = mappingVersion.rows[0]?.mapping_version_id;
-  if (!mappingVersionId) {
-    const createdVersion = await pool.query(
-      `INSERT INTO mapping_versions (
-        project_id,
-        valid_from,
-        status,
-        reason,
-        created_by,
-        activated_at,
-        import_batch_id,
-        mapping_kind
-      )
-      VALUES ($1, current_date, 'ACTIVE', 'seed item mapping', 'seed', now(), $2, 'ITEM')
-      RETURNING mapping_version_id`,
-      [projectId, targetBatchId]
-    );
-    mappingVersionId = createdVersion.rows[0].mapping_version_id;
+  if (existing.rowCount > 0) {
+    return existing.rows[0].id;
   }
+  const result = await pool.query(
+    `INSERT INTO item_mapping_versions (project_id, import_batch_id, status, created_by, activated_at)
+     VALUES ($1, $2, 'ACTIVE', 'seed', now())
+     RETURNING id`,
+    [projectId, importBatchId]
+  );
+  return result.rows[0].id;
+}
 
-  for (const mapping of mappings) {
-    const budgetItemId = itemIds[mapping.itemCode];
-    if (!budgetItemId) {
-      continue;
-    }
+async function ensureItemRowMappings(mappingVersionId, targetEstimateItemId, workPackageId, procPackageId) {
+  const candidates = [
+    { workPackageId, procPackageId: null },
+    { workPackageId, procPackageId }
+  ];
+  for (const candidate of candidates) {
     await pool.query(
-      `INSERT INTO row_mappings (
-        project_id,
-        mapping_version_id,
-        budget_item_id,
-        work_phase_id,
+      `INSERT INTO item_row_mappings (
+        item_mapping_version_id,
+        target_estimate_item_id,
+        work_package_id,
         proc_package_id,
         created_by
       )
-      VALUES ($1, $2, $3, $4, $5, 'seed')`,
-      [
-        projectId,
-        mappingVersionId,
-        budgetItemId,
-        workPackages[mapping.workPhaseName] ?? null,
-        mapping.procPackageId ?? null,
-      ]
-    );
-  }
-}
-
-async function ensureActuals(projectId, jydaBatchId, litteraIds) {
-  const actuals = [
-    { code: '1100', cost_type: 'LABOR', amount: 15000, external_ref: 'JYDA.ACTUAL_COST' },
-    { code: '1400', cost_type: 'MATERIAL', amount: 5000, external_ref: 'JYDA.ACTUAL_COST' },
-  ];
-  for (const line of actuals) {
-    await pool.query(
-      `INSERT INTO actual_cost_lines (
-        project_id, work_littera_id, cost_type, amount, occurred_on, source, import_batch_id, external_ref
-      )
-      SELECT $1, $2, $3, $4, CURRENT_DATE, 'JYDA', $5, $6
+      SELECT $1, $2, $3, $4, 'seed'
       WHERE NOT EXISTS (
-        SELECT 1 FROM actual_cost_lines
-        WHERE project_id = $1 AND work_littera_id = $2 AND cost_type = $3 AND amount = $4 AND external_ref = $6
+        SELECT 1
+        FROM item_row_mappings
+        WHERE item_mapping_version_id = $1
+          AND target_estimate_item_id = $2
+          AND work_package_id IS NOT DISTINCT FROM $3
+          AND proc_package_id IS NOT DISTINCT FROM $4
+          AND created_by = 'seed'
       )`,
-      [projectId, litteraIds[line.code], line.cost_type, line.amount, jydaBatchId, line.external_ref]
+      [mappingVersionId, targetEstimateItemId, candidate.workPackageId, candidate.procPackageId]
     );
   }
-}
-
-async function ensureWeeklyUpdate(projectId) {
-  const phaseResult = await pool.query(
-    "SELECT work_phase_id FROM work_phases WHERE project_id = $1 AND name = 'Maanrakennus'",
-    [projectId]
-  );
-  if (phaseResult.rowCount === 0) {
-    return;
-  }
-  const phaseId = phaseResult.rows[0].work_phase_id;
-  await pool.query(
-    `INSERT INTO work_phase_weekly_updates (
-      project_id, work_phase_id, week_ending, percent_complete, progress_notes, risks, created_by
-    )
-    SELECT $1, $2, CURRENT_DATE, 35, 'Perustusmuotit valmiit', 'Sään vaikutus', 'anna'
-    WHERE NOT EXISTS (
-      SELECT 1 FROM work_phase_weekly_updates
-      WHERE work_phase_id = $2 AND week_ending = CURRENT_DATE
-    )`,
-    [projectId, phaseId]
-  );
 }
 
 async function ensureTerminology() {
@@ -1094,19 +704,20 @@ async function run() {
   await ensureExtraPermissions();
   await ensureRoleAssignments(projectId, userIds, orgId);
   await ensureDemoRoleAssignments(demoProjectIds, userIds);
-  const litteraIds = await ensureLitteras(projectId);
-  const targetBatchId = await ensureImportBatch(projectId, 'TARGET_ESTIMATE');
-  const jydaBatchId = await ensureImportBatch(projectId, 'JYDA');
-  await ensureBudgetLines(projectId, targetBatchId, litteraIds);
-  await ensureBudgetItems(projectId, targetBatchId, litteraIds);
-  const mappingVersionId = await ensureMapping(projectId, litteraIds);
-  await ensurePlanningAndForecast(projectId, litteraIds, mappingVersionId);
-  await ensureWorkPhases(projectId, litteraIds, targetBatchId);
-  const sampleWorkPackages = await ensureSampleWorkPackages(projectId, litteraIds, targetBatchId);
-  await ensureSampleProcPackagesAndMappings(projectId, sampleWorkPackages, targetBatchId);
-  await ensureActuals(projectId, jydaBatchId, litteraIds);
-  await ensureWeeklyUpdate(projectId);
-  await ensureTerminology();
+  const targetBatchId = await ensureImportBatch(projectId, 'TARGET_ESTIMATE', 'SEED', 'seed-target-estimate.csv');
+  await ensureImportBatch(projectId, 'ACTUALS', 'JYDA', 'seed-actuals.csv');
+
+  const workPackageId = await ensureBaselineWorkPackage(projectId, '4100', 'Pystyelementit');
+  const procPackageId = await ensureBaselineProcPackage(projectId, '4100', 'Pystyelementit-urakka', workPackageId);
+  const itemIds = await ensureTargetEstimateItems(projectId, targetBatchId);
+  const mappingVersionId = await ensureItemMappingVersion(projectId, targetBatchId);
+  const primaryItemId = itemIds['4101001'] ?? Object.values(itemIds)[0];
+  if (primaryItemId) {
+    await ensureItemRowMappings(mappingVersionId, primaryItemId, workPackageId, procPackageId);
+  }
+  if (await tableExists('v_terminology_current')) {
+    await ensureTerminology();
+  }
 
   console.log('Seed completed');
 }

@@ -171,13 +171,13 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE OR REPLACE VIEW v_current_item_mappings AS
 SELECT DISTINCT ON (irm.target_estimate_item_id)
-  irm.id,
-  irm.item_mapping_version_id,
+  imv.project_id,
+  imv.import_batch_id,
   irm.target_estimate_item_id,
   irm.work_package_id,
   irm.proc_package_id,
-  irm.created_by,
-  irm.created_at
+  irm.created_by AS mapped_by,
+  irm.created_at AS mapped_at
 FROM item_row_mappings irm
 JOIN item_mapping_versions imv ON imv.id = irm.item_mapping_version_id
 WHERE imv.status = 'ACTIVE'

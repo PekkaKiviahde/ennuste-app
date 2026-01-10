@@ -12,7 +12,7 @@ import type {
   RbacPort,
   ReportPort,
   TargetEstimateMappingPort,
-  WorkPhasePort
+  WorkPackagePort
 } from "./ports";
 import { AppError } from "@ennuste/shared";
 
@@ -26,7 +26,7 @@ export type AppServices = {
   importStaging: ImportStagingPort;
   saas: SaasPort;
   admin: AdminPort;
-  workPhases: WorkPhasePort;
+  workPackages: WorkPackagePort;
   targetEstimateMapping: TargetEstimateMappingPort;
   audit: AuditPort;
 };
@@ -132,9 +132,12 @@ export const loadDashboard = async (services: AppServices, input: { projectId: s
   return services.report.getDashboard(input.projectId, input.tenantId);
 };
 
-export const loadWorkPhaseReport = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
+export const loadWorkPackageReport = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
-  return services.report.getWorkPhaseReport(input.projectId, input.tenantId);
+  return services.report.getWorkPackageReport(input.projectId, input.tenantId);
 };
 
 export const loadForecastReport = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
@@ -185,7 +188,7 @@ export const loadTargetEstimateMapping = async (
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   const [items, workPackages, procPackages] = await Promise.all([
     services.targetEstimateMapping.listItems(input.projectId, input.tenantId),
-    services.workPhases.listWorkPhases(input.projectId, input.tenantId),
+    services.workPackages.listWorkPackages(input.projectId, input.tenantId),
     services.targetEstimateMapping.listProcPackages(input.projectId, input.tenantId)
   ]);
   return { items, workPackages, procPackages };
@@ -204,12 +207,12 @@ export const loadAuditLog = async (services: AppServices, input: { projectId: st
   return services.report.getAuditLog(input.projectId, input.tenantId);
 };
 
-export const createWorkPhase = async (
+export const createWorkPackage = async (
   services: AppServices,
   input: { projectId: string; tenantId: string; username: string; code: string; name: string; responsibleUserId?: string | null; status?: string | null }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
-  const result = await services.workPhases.createWorkPhase({
+  const result = await services.workPackages.createWorkPackage({
     projectId: input.projectId,
     tenantId: input.tenantId,
     code: input.code,
@@ -222,9 +225,9 @@ export const createWorkPhase = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.create",
+    action: "work_package.create",
     payload: {
-      workPhaseId: result.workPhaseId,
+      workPackageId: result.workPackageId,
       code: input.code,
       name: input.name
     }
@@ -282,7 +285,7 @@ export const assignTargetEstimateMappings = async (
     projectId: string;
     tenantId: string;
     username: string;
-    updates: Array<{ budgetItemId: string; workPhaseId?: string | null; procPackageId?: string | null }>;
+    updates: Array<{ targetEstimateItemId: string; workPackageId?: string | null; procPackageId?: string | null }>;
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
@@ -299,7 +302,7 @@ export const assignTargetEstimateMappings = async (
     action: "target_estimate.mapping_upsert",
     payload: {
       updatedCount: result.updatedCount,
-      budgetItemCount: input.updates.length
+      targetEstimateItemCount: input.updates.length
     }
   });
   return result;
@@ -623,9 +626,12 @@ export const loadAdminOverview = async (services: AppServices, input: { projectI
   return services.admin.getAdminOverview(input.projectId, input.tenantId);
 };
 
-export const loadWorkPhases = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
+export const loadWorkPackages = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
-  return services.workPhases.listWorkPhases(input.projectId, input.tenantId);
+  return services.workPackages.listWorkPackages(input.projectId, input.tenantId);
 };
 
 export const createWeeklyUpdate = async (
@@ -633,7 +639,7 @@ export const createWeeklyUpdate = async (
   input: {
     projectId: string;
     tenantId: string;
-    workPhaseId: string;
+    workPackageId: string;
     weekEnding: string;
     percentComplete: number;
     progressNotes?: string | null;
@@ -642,10 +648,10 @@ export const createWeeklyUpdate = async (
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "WORK_PHASE_WEEKLY_UPDATE_CREATE");
-  const result = await services.workPhases.createWeeklyUpdate({
+  const result = await services.workPackages.createWeeklyUpdate({
     projectId: input.projectId,
     tenantId: input.tenantId,
-    workPhaseId: input.workPhaseId,
+    workPackageId: input.workPackageId,
     weekEnding: input.weekEnding,
     percentComplete: input.percentComplete,
     progressNotes: input.progressNotes ?? null,
@@ -656,8 +662,8 @@ export const createWeeklyUpdate = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.weekly_update",
-    payload: { workPhaseId: input.workPhaseId, updateId: result.workPhaseWeeklyUpdateId }
+    action: "work_package.weekly_update",
+    payload: { workPackageId: input.workPackageId, updateId: result.workPackageWeeklyUpdateId }
   });
   return result;
 };
@@ -667,7 +673,7 @@ export const createGhostEntry = async (
   input: {
     projectId: string;
     tenantId: string;
-    workPhaseId: string;
+    workPackageId: string;
     weekEnding: string;
     costType: "LABOR" | "MATERIAL" | "SUBCONTRACT" | "RENTAL" | "OTHER";
     amount: number;
@@ -676,10 +682,10 @@ export const createGhostEntry = async (
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "GHOST_ENTRY_CREATE");
-  const result = await services.workPhases.createGhostEntry({
+  const result = await services.workPackages.createGhostEntry({
     projectId: input.projectId,
     tenantId: input.tenantId,
-    workPhaseId: input.workPhaseId,
+    workPackageId: input.workPackageId,
     weekEnding: input.weekEnding,
     costType: input.costType,
     amount: input.amount,
@@ -690,8 +696,8 @@ export const createGhostEntry = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.ghost_entry",
-    payload: { workPhaseId: input.workPhaseId, ghostId: result.ghostCostEntryId }
+    action: "work_package.ghost_entry",
+    payload: { workPackageId: input.workPackageId, ghostId: result.ghostCostEntryId }
   });
   return result;
 };
@@ -699,8 +705,8 @@ export const createGhostEntry = async (
 export const lockBaseline = async (
   services: AppServices,
   input: {
-    workPhaseId: string;
-    workPhaseVersionId: string;
+    workPackageId: string;
+    workPackageVersionId: string;
     targetImportBatchId: string;
     projectId: string;
     tenantId: string;
@@ -709,9 +715,9 @@ export const lockBaseline = async (
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "BASELINE_LOCK");
-  const result = await services.workPhases.lockBaseline({
-    workPhaseId: input.workPhaseId,
-    workPhaseVersionId: input.workPhaseVersionId,
+  const result = await services.workPackages.lockBaseline({
+    workPackageId: input.workPackageId,
+    workPackageVersionId: input.workPackageVersionId,
     targetImportBatchId: input.targetImportBatchId,
     tenantId: input.tenantId,
     username: input.username,
@@ -721,19 +727,19 @@ export const lockBaseline = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.baseline_lock",
-    payload: { workPhaseId: input.workPhaseId, baselineId: result.workPhaseBaselineId }
+    action: "work_package.baseline_lock",
+    payload: { workPackageId: input.workPackageId, baselineId: result.workPackageBaselineId }
   });
   return result;
 };
 
 export const proposeCorrection = async (
   services: AppServices,
-  input: { projectId: string; tenantId: string; workPhaseId: string; itemCode: string; username: string; notes?: string | null }
+  input: { projectId: string; tenantId: string; workPackageId: string; itemCode: string; username: string; notes?: string | null }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "CORRECTION_PROPOSE");
-  const result = await services.workPhases.proposeCorrection({
-    workPhaseId: input.workPhaseId,
+  const result = await services.workPackages.proposeCorrection({
+    workPackageId: input.workPackageId,
     itemCode: input.itemCode,
     tenantId: input.tenantId,
     username: input.username,
@@ -743,8 +749,8 @@ export const proposeCorrection = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.correction_proposed",
-    payload: { workPhaseId: input.workPhaseId, correctionId: result.correctionId }
+    action: "work_package.correction_proposed",
+    payload: { workPackageId: input.workPackageId, correctionId: result.correctionId }
   });
   return result;
 };
@@ -754,7 +760,7 @@ export const approveCorrectionPm = async (
   input: { projectId: string; tenantId: string; correctionId: string; username: string; comment?: string | null }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "CORRECTION_APPROVE_PM");
-  await services.workPhases.approveCorrectionPm({
+  await services.workPackages.approveCorrectionPm({
     correctionId: input.correctionId,
     tenantId: input.tenantId,
     username: input.username,
@@ -764,7 +770,7 @@ export const approveCorrectionPm = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.correction_pm_approved",
+    action: "work_package.correction_pm_approved",
     payload: { correctionId: input.correctionId }
   });
 };
@@ -774,7 +780,7 @@ export const approveCorrectionFinal = async (
   input: { projectId: string; tenantId: string; correctionId: string; username: string; comment?: string | null }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "CORRECTION_APPROVE_FINAL");
-  const result = await services.workPhases.approveCorrectionFinal({
+  const result = await services.workPackages.approveCorrectionFinal({
     correctionId: input.correctionId,
     tenantId: input.tenantId,
     username: input.username,
@@ -784,7 +790,7 @@ export const approveCorrectionFinal = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "work_phase.correction_final_approved",
+    action: "work_package.correction_final_approved",
     payload: { correctionId: input.correctionId, baselineId: result.baselineId }
   });
   return result;

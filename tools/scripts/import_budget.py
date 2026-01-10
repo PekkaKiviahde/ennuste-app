@@ -8,7 +8,7 @@ import_budget.py (CSV-only)
   decimals: ',' and thousand separator: space
 - Aggregates to Litterakoodi level and inserts into:
   - import_batches
-  - budget_lines
+  - target_estimate_items
 - No openpyxl dependency.
 
 Usage (dry-run):
@@ -312,51 +312,73 @@ def fetch_littera_id(conn: psycopg.Connection, project_id: str, code: str) -> Op
     return None
 
 
-def import_batches_has_signature(conn: psycopg.Connection, project_id: str, source_system: str, signature: str) -> bool:
+def import_batches_has_file_hash(conn: psycopg.Connection, project_id: str, kind: str, file_hash: str) -> bool:
     with conn.cursor() as cur:
         cur.execute(
             """
             SELECT 1
             FROM import_batches
             WHERE project_id = %s::uuid
-              AND source_system = %s
-              AND signature = %s
+              AND kind = %s
+              AND file_hash = %s
             LIMIT 1
             """,
-            (project_id, source_system, signature),
+            (project_id, kind, file_hash),
         )
         return cur.fetchone() is not None
 
 
-def insert_import_batch(conn: psycopg.Connection, project_id: str, source_system: str, imported_by: str, signature: str, notes: str) -> str:
+def insert_import_batch(
+    conn: psycopg.Connection,
+    project_id: str,
+    kind: str,
+    source_system: str,
+    imported_by: str,
+    file_hash: str,
+    file_name: str,
+) -> str:
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO import_batches (project_id, source_system, imported_by, signature, notes)
-            VALUES (%s::uuid, %s, %s, %s, %s)
-            RETURNING import_batch_id
+            INSERT INTO import_batches (project_id, kind, source_system, file_name, file_hash, created_by)
+            VALUES (%s::uuid, %s, %s, %s, %s, %s)
+            RETURNING id
             """,
-            (project_id, source_system, imported_by, signature, notes),
+            (project_id, kind, source_system, file_name, file_hash, imported_by),
         )
         return str(cur.fetchone()[0])
 
 
-def insert_budget_line(
+def insert_target_estimate_item(
     conn: psycopg.Connection,
-    project_id: str,
-    target_littera_id: str,
-    cost_type: str,
-    amount: Decimal,
     import_batch_id: str,
+    littera_code: str,
+    description: str | None,
+    total: Decimal,
+    breakdown: Dict[str, Decimal],
     created_by: str,
 ) -> None:
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO budget_lines (project_id, target_littera_id, cost_type, amount, source, import_batch_id, created_by)
-            VALUES (%s::uuid, %s::uuid, %s::cost_type, %s, 'IMPORT'::budget_source, %s::uuid, %s)
+            INSERT INTO target_estimate_items (
+              import_batch_id,
+              item_code,
+              littera_code,
+              description,
+              sum_eur,
+              cost_breakdown_json,
+              row_type
+            )
+            VALUES (%s::uuid, NULL, %s, %s, %s, %s::jsonb, 'LEAF')
             """,
-            (project_id, target_littera_id, cost_type, str(quantize_eur(amount)), import_batch_id, created_by),
+            (
+                import_batch_id,
+                littera_code,
+                description,
+                str(quantize_eur(total)),
+                json.dumps({key: str(quantize_eur(value)) for key, value in breakdown.items()}),
+            ),
         )
 
 
@@ -422,7 +444,7 @@ def main() -> None:
     )
     parser.add_argument("--dry-run", action="store_true", help="Read and aggregate, but do not write to DB.")
     parser.add_argument("--database-url", default=os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL), help="Postgres connection string.")
-    parser.add_argument("--allow-duplicate", action="store_true", help="Allow importing same signature again (NOT recommended).")
+    parser.add_argument("--allow-duplicate", action="store_true", help="Allow importing same file hash again (NOT recommended).")
     args = parser.parse_args()
 
     csv_path = Path(args.file)
@@ -431,8 +453,8 @@ def main() -> None:
 
     dsn = args.database_url
     print(f"DB: {redact_database_url(dsn)}")
-    signature = sha256_file(csv_path)
-    print(f"Signature (sha256): {signature}")
+    file_hash = sha256_file(csv_path)
+    print(f"File hash (sha256): {file_hash}")
 
     with psycopg.connect(dsn) as conn:
         conn.autocommit = False
@@ -471,23 +493,6 @@ def main() -> None:
                 f"negative={invalid_counts.get('negative', 0)} (set to 0)."
             )
 
-        # Validate litteras exist + map codes
-        missing: List[str] = []
-        littera_map: Dict[str, str] = {}  # code_in_file -> littera_id
-        for code in sorted(agg.keys()):
-            lid = fetch_littera_id(conn, args.project_id, code)
-            if lid is None:
-                missing.append(code)
-            else:
-                littera_map[code] = lid
-
-        if missing:
-            die(
-                "Missing litteras for these Litterakoodi values:\n"
-                + "\n".join(f"- {c}" for c in missing)
-                + "\n\nAdd them to litteras table for this project, then rerun."
-            )
-
         # Dry-run ends here (after validation)
         if args.dry_run:
             print("DRY RUN: validation ok, no data written.")
@@ -495,23 +500,28 @@ def main() -> None:
             return
 
         # Duplicate check
-        if not args.allow_duplicate and import_batches_has_signature(conn, args.project_id, args.source_system, signature):
+        if not args.allow_duplicate and import_batches_has_file_hash(conn, args.project_id, "TARGET_ESTIMATE", file_hash):
             die(
-                "This file signature has already been imported for this project/source_system.\n"
+                "This file hash has already been imported for this project/kind.\n"
                 "If you really want to import again, rerun with --allow-duplicate (NOT recommended)."
             )
 
         # Insert import batch
-        notes = f"Budget import from CSV: {csv_path.name}"
-        import_batch_id = insert_import_batch(conn, args.project_id, args.source_system, args.imported_by, signature, notes)
+        import_batch_id = insert_import_batch(
+            conn,
+            args.project_id,
+            "TARGET_ESTIMATE",
+            args.source_system,
+            args.imported_by,
+            file_hash,
+            csv_path.name,
+        )
         print(f"Created import_batch_id: {import_batch_id}")
 
-        # Insert budget lines per littera per cost_type
+        # Insert target estimate items per littera
         inserted = 0
         for code in sorted(agg.keys()):
             a = agg[code]
-            target_littera_id = littera_map[code]
-
             cost_values = {
                 "LABOR": a.labor,
                 "MATERIAL": a.material,
@@ -519,23 +529,20 @@ def main() -> None:
                 "RENTAL": a.rental,
                 "OTHER": a.other,
             }
-
-            for cost_type, amount in cost_values.items():
-                if amount <= 0:
-                    continue
-                insert_budget_line(
-                    conn,
-                    project_id=args.project_id,
-                    target_littera_id=target_littera_id,
-                    cost_type=cost_type,
-                    amount=amount,
-                    import_batch_id=import_batch_id,
-                    created_by=args.imported_by,
-                )
-                inserted += 1
+            total = a.total()
+            insert_target_estimate_item(
+                conn,
+                import_batch_id=import_batch_id,
+                littera_code=code,
+                description=titles.get(code, "") or None,
+                total=total,
+                breakdown=cost_values,
+                created_by=args.imported_by,
+            )
+            inserted += 1
 
         conn.commit()
-        print(f"OK: inserted {inserted} budget_lines rows (import_batch_id={import_batch_id}).")
+        print(f"OK: inserted {inserted} target_estimate_items rows (import_batch_id={import_batch_id}).")
 
 
 if __name__ == "__main__":

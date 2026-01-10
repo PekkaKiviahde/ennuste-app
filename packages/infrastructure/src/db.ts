@@ -26,7 +26,7 @@ export type TenantDb = {
   query: <T>(text: string, params?: unknown[]) => Promise<{ rows: T[]; rowCount: number }>;
   requireProject: (projectId: string) => Promise<void>;
   getProjectContext: (projectId: string) => Promise<{ organizationId: string }>;
-  requireWorkPhase: (workPhaseId: string) => Promise<void>;
+  requireWorkPackage: (workPackageId: string) => Promise<void>;
   requireCorrection: (correctionId: string) => Promise<void>;
   transaction: <T>(fn: (client: { query: <Q>(text: string, params?: unknown[]) => Promise<{ rows: Q[]; rowCount: number }> }) => Promise<T>) => Promise<T>;
 };
@@ -63,10 +63,10 @@ export const dbForTenant = (tenantId: string): TenantDb => {
     return { organizationId: row.organization_id };
   };
 
-  const requireWorkPhase = async (workPhaseId: string) => {
+  const requireWorkPackage = async (workPackageId: string) => {
     const result = await tenantQuery(
       "SELECT 1 FROM work_packages wp JOIN projects p ON p.project_id = wp.project_id WHERE wp.id = $1::uuid AND p.tenant_id = $2::uuid",
-      [workPhaseId, tenantId]
+      [workPackageId, tenantId]
     );
     if (result.rowCount === 0) {
       throw new ForbiddenError("Tyopaketti ei kuulu tenanttiin");
@@ -105,7 +105,7 @@ export const dbForTenant = (tenantId: string): TenantDb => {
     query: tenantQuery,
     requireProject,
     getProjectContext,
-    requireWorkPhase,
+    requireWorkPackage,
     requireCorrection,
     transaction
   };

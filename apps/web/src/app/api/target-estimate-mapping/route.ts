@@ -42,16 +42,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paivitettavat rivit puuttuvat" }, { status: 400 });
     }
 
-    const hasWorkPhase = hasOwn(body, "workPhaseId");
+    const hasWorkPackage = hasOwn(body, "workPackageId");
     const hasProcPackage = hasOwn(body, "procPackageId");
 
-    if (!hasWorkPhase && !hasProcPackage) {
+    if (!hasWorkPackage && !hasProcPackage) {
       return NextResponse.json({ error: "Paivitystiedot puuttuvat" }, { status: 400 });
     }
 
-    const updates = itemIds.map((budgetItemId) => ({
-      budgetItemId,
-      ...(hasWorkPhase ? { workPhaseId: body.workPhaseId ?? null } : {}),
+    const updates = itemIds.map((targetEstimateItemId) => ({
+      targetEstimateItemId,
+      ...(hasWorkPackage ? { workPackageId: body.workPackageId ?? null } : {}),
       ...(hasProcPackage ? { procPackageId: body.procPackageId ?? null } : {})
     }));
 
