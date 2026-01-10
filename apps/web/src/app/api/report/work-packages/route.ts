@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadWorkPhaseReport } from "@ennuste/application";
+import { loadWorkPackageReport } from "@ennuste/application";
 import { createServices } from "../../../../server/services";
 import { getSessionFromRequest } from "../../../../server/session";
 import { AppError } from "@ennuste/shared";
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     }
 
     const services = createServices();
-    const rows = await loadWorkPhaseReport(services, {
+    const rows = await loadWorkPackageReport(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username

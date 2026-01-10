@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createWorkPhase, loadWorkPhases } from "@ennuste/application";
+import { createWorkPackage, loadWorkPackages } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { getSessionFromRequest } from "../../../server/session";
 import { AppError } from "@ennuste/shared";
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     }
 
     const services = createServices();
-    const rows = await loadWorkPhases(services, {
+    const rows = await loadWorkPackages(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     const services = createServices();
-    const result = await createWorkPhase(services, {
+    const result = await createWorkPackage(services, {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username,
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       status: body?.status ?? null
     });
 
-    return NextResponse.json({ workPhaseId: result.workPhaseId }, { status: 201 });
+    return NextResponse.json({ workPackageId: result.workPackageId }, { status: 201 });
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

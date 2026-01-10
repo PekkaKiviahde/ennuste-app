@@ -116,20 +116,20 @@ async function run() {
     return back.token;
   });
 
-  const trackPhase = await runStep('Find TRACK work phase', async () => {
-    const list = await authedRequest(`/api/projects/${context.projectId}/work-phases`, switchedToken);
-    const phase = list.workPhases.find((wp) => wp.latest_baseline_id);
+  const trackPhase = await runStep('Find TRACK work package', async () => {
+    const list = await authedRequest(`/api/projects/${context.projectId}/work-packages`, switchedToken);
+    const phase = list.workPackages.find((wp) => wp.latest_baseline_id);
     if (!phase) {
-      throw new Error('No TRACK work phase found');
+      throw new Error('No TRACK work package found');
     }
     return phase;
   });
 
-  const setupPhase = await runStep('Find SETUP work phase', async () => {
-    const list = await authedRequest(`/api/projects/${context.projectId}/work-phases`, switchedToken);
-    const phase = list.workPhases.find((wp) => !wp.latest_baseline_id);
+  const setupPhase = await runStep('Find SETUP work package', async () => {
+    const list = await authedRequest(`/api/projects/${context.projectId}/work-packages`, switchedToken);
+    const phase = list.workPackages.find((wp) => !wp.latest_baseline_id);
     if (!phase) {
-      throw new Error('No SETUP work phase found');
+      throw new Error('No SETUP work package found');
     }
     return phase;
   });
@@ -141,7 +141,7 @@ async function run() {
       throw new Error('No target batch found');
     }
     const { status, data } = await authedRequestRaw(
-      `/api/work-phases/${setupPhase.work_phase_id}/lock-baseline`,
+      `/api/work-packages/${setupPhase.work_package_id}/lock-baseline`,
       switchedToken,
       {
         method: 'POST',
@@ -158,7 +158,7 @@ async function run() {
   await runStep('Negative: weekly update requires baseline', async () => {
     const today = new Date().toISOString().split('T')[0];
     const { status, data } = await authedRequestRaw(
-      `/api/work-phases/${setupPhase.work_phase_id}/weekly-update`,
+      `/api/work-packages/${setupPhase.work_package_id}/weekly-update`,
       switchedToken,
       {
         method: 'POST',
@@ -191,7 +191,7 @@ async function run() {
       throw new Error('No littera found');
     }
     const { status, data } = await authedRequestRaw(
-      `/api/work-phases/${trackPhase.work_phase_id}/members`,
+      `/api/work-packages/${trackPhase.work_package_id}/members`,
       paavoToken,
       {
         method: 'POST',
@@ -208,7 +208,7 @@ async function run() {
 
   await runStep('Post weekly update', async () => {
     const today = new Date().toISOString().split('T')[0];
-    await authedRequest(`/api/work-phases/${trackPhase.work_phase_id}/weekly-update`, switchedToken, {
+    await authedRequest(`/api/work-packages/${trackPhase.work_package_id}/weekly-update`, switchedToken, {
       method: 'POST',
       body: JSON.stringify({
         weekEnding: today,
@@ -221,7 +221,7 @@ async function run() {
 
   await runStep('Post ghost cost', async () => {
     const today = new Date().toISOString().split('T')[0];
-    await authedRequest(`/api/work-phases/${trackPhase.work_phase_id}/ghost`, switchedToken, {
+    await authedRequest(`/api/work-packages/${trackPhase.work_package_id}/ghost`, switchedToken, {
       method: 'POST',
       body: JSON.stringify({
         weekEnding: today,
@@ -233,7 +233,7 @@ async function run() {
   });
 
   const correctionId = await runStep('Propose correction', async () => {
-    const response = await authedRequest(`/api/work-phases/${trackPhase.work_phase_id}/corrections/propose`, switchedToken, {
+    const response = await authedRequest(`/api/work-packages/${trackPhase.work_package_id}/corrections/propose`, switchedToken, {
       method: 'POST',
       body: JSON.stringify({
         itemCode: '56001013',
@@ -260,7 +260,7 @@ async function run() {
   });
 
   await runStep('Verify littera member added', async () => {
-    const members = await authedRequest(`/api/work-phases/${trackPhase.work_phase_id}/members`, switchedToken);
+    const members = await authedRequest(`/api/work-packages/${trackPhase.work_package_id}/members`, switchedToken);
     const hasLittera = members.members.some((member) => member.littera_code === '1300');
     if (!hasLittera) {
       throw new Error('Expected littera 1300 not found in members after correction');

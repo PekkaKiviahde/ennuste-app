@@ -1556,7 +1556,7 @@ app.get("/api/projects/:projectId/litteras", async (req, res, next) => {
   }
 });
 
-app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
+app.get("/api/projects/:projectId/work-packages", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.params.projectId, "viewer")) {
       return;
@@ -1564,7 +1564,7 @@ app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
     const { projectId } = req.params;
     const { rows } = await query(
       `SELECT
-         wp.id AS work_phase_id,
+         wp.id AS work_package_id,
          wp.name,
          wp.status,
          wp.responsible_user_id AS owner,
@@ -1587,19 +1587,19 @@ app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
        ORDER BY wp.name`,
       [projectId]
     );
-    res.json({ workPhases: rows });
+    res.json({ workPackages: rows });
   } catch (err) {
     next(err);
   }
 });
 
-app.get("/api/work-phases/:workPhaseId", async (req, res, next) => {
+app.get("/api/work-packages/:workPackageId", async (req, res, next) => {
   try {
-    const { workPhaseId } = req.params;
+    const { workPackageId } = req.params;
     const { rows } = await query(
       `SELECT
          wp.project_id,
-         wp.id AS work_phase_id,
+         wp.id AS work_package_id,
          wp.name,
          wp.status,
          wp.responsible_user_id AS owner,
@@ -1619,30 +1619,30 @@ app.get("/api/work-phases/:workPhaseId", async (req, res, next) => {
          NULL::numeric AS cpi
        FROM work_packages wp
        WHERE wp.id=$1`,
-      [workPhaseId]
+      [workPackageId]
     );
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+      return res.status(404).json({ error: "Tyopakettia ei löytynyt." });
     }
     if (!requireProjectAccess(req, res, rows[0].project_id, "viewer")) {
       return;
     }
-    const { project_id: _projectId, ...workPhase } = rows[0];
-    res.json({ workPhase });
+    const { project_id: _projectId, ...workPackage } = rows[0];
+    res.json({ workPackage });
   } catch (err) {
     next(err);
   }
 });
 
-app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
+app.get("/api/work-packages/:workPackageId/members", async (req, res, next) => {
   try {
-    const { workPhaseId } = req.params;
+    const { workPackageId } = req.params;
     const { rows: phaseRows } = await query(
       "SELECT project_id FROM work_packages WHERE id=$1",
-      [workPhaseId]
+      [workPackageId]
     );
     if (phaseRows.length === 0) {
-      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
+      return res.status(404).json({ error: "Tyopakettia ei löytynyt." });
     }
     if (!requireProjectAccess(req, res, phaseRows[0].project_id, "viewer")) {
       return;
@@ -1653,7 +1653,7 @@ app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
   }
 });
 
-app.post("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
+app.post("/api/work-packages/:workPackageId/members", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_MEMBERS_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1661,7 +1661,7 @@ app.post("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
   }
 });
 
-app.get("/api/work-phases", async (req, res, next) => {
+app.get("/api/work-packages", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
       return;
@@ -1671,7 +1671,7 @@ app.get("/api/work-phases", async (req, res, next) => {
       return badRequest(res, "projectId puuttuu.");
     }
     const { rows } = await query(
-      `SELECT id AS work_phase_id, name, status, responsible_user_id AS owner, NULL::uuid AS lead_littera_id
+      `SELECT id AS work_package_id, name, status, responsible_user_id AS owner, NULL::uuid AS lead_littera_id
        FROM work_packages
        WHERE project_id=$1
        ORDER BY created_at DESC`,
@@ -1683,7 +1683,7 @@ app.get("/api/work-phases", async (req, res, next) => {
   }
 });
 
-app.post("/api/work-phases", async (req, res, next) => {
+app.post("/api/work-packages", async (req, res, next) => {
   try {
     if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
       return;
@@ -1707,7 +1707,7 @@ app.post("/api/work-phases", async (req, res, next) => {
     const { rows } = await query(
       `INSERT INTO work_packages (project_id, code, name, responsible_user_id, status)
        VALUES ($1,$2,$3,$4,$5)
-       RETURNING id AS work_phase_id`,
+       RETURNING id AS work_package_id`,
       [
         projectId,
         String(code).trim(),
@@ -1716,13 +1716,13 @@ app.post("/api/work-phases", async (req, res, next) => {
         "ACTIVE"
       ]
     );
-    res.status(201).json({ work_phase_id: rows[0].work_phase_id });
+    res.status(201).json({ work_package_id: rows[0].work_package_id });
   } catch (err) {
     next(err);
   }
 });
 
-app.post("/api/work-phases/:workPhaseId/version", async (req, res, next) => {
+app.post("/api/work-packages/:workPackageId/version", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_VERSIONS_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1730,7 +1730,7 @@ app.post("/api/work-phases/:workPhaseId/version", async (req, res, next) => {
   }
 });
 
-app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
+app.get("/api/work-packages/:workPackageId/weekly-updates", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_WEEKLY_UPDATES_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1738,7 +1738,7 @@ app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) =
   }
 });
 
-app.post("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
+app.post("/api/work-packages/:workPackageId/weekly-updates", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_WEEKLY_UPDATES_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1746,7 +1746,7 @@ app.post("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) 
   }
 });
 
-app.get("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
+app.get("/api/work-packages/:workPackageId/ghosts", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_GHOSTS_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1754,7 +1754,7 @@ app.get("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
   }
 });
 
-app.post("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
+app.post("/api/work-packages/:workPackageId/ghosts", async (req, res, next) => {
   try {
     return res.status(501).json({ error: "WORK_PACKAGE_GHOSTS_NOT_IMPLEMENTED" });
   } catch (err) {
@@ -1910,7 +1910,7 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
     }
 
     const safeName = filename ? String(filename).replace(/[^\w.\-]/g, "_") : "budget.csv";
-    const signature = createHash("sha256").update(String(csvText)).digest("hex");
+    const fileHash = createHash("sha256").update(String(csvText)).digest("hex");
     const { headers, rows } = parseCsvRows(String(csvText), ";");
     if (headers.length === 0) {
       return badRequest(res, "CSV-otsikkorivi puuttuu.");
@@ -1939,22 +1939,22 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
     const { rows: dupImportRows } = await query(
       `SELECT 1
        FROM import_batches
-       WHERE project_id=$1 AND source_system='TARGET_ESTIMATE' AND signature=$2
+       WHERE project_id=$1 AND kind='TARGET_ESTIMATE' AND file_hash=$2
        LIMIT 1`,
-      [projectId, signature]
+      [projectId, fileHash]
     );
     if (dupImportRows.length > 0) {
-      warnings.push("Duplikaatti: sama signature on jo importoitu.");
+      warnings.push("Duplikaatti: sama tiedosto on jo importoitu.");
     }
     const { rows: dupStagingRows } = await query(
       `SELECT 1
        FROM import_staging_batches
        WHERE project_id=$1 AND import_type='BUDGET' AND signature=$2
        LIMIT 1`,
-      [projectId, signature]
+      [projectId, fileHash]
     );
     if (dupStagingRows.length > 0) {
-      warnings.push("Duplikaatti: sama signature on jo stagingissa.");
+      warnings.push("Duplikaatti: sama tiedosto on jo stagingissa.");
     }
 
     const result = await withClient(async (client) => {
@@ -1965,7 +1965,7 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
            (project_id, import_type, source_system, file_name, signature, created_by)
            VALUES ($1, 'BUDGET', 'CSV', $2, $3, $4)
            RETURNING staging_batch_id`,
-          [projectId, safeName, signature, String(importedBy).trim()]
+          [projectId, safeName, fileHash, String(importedBy).trim()]
         );
         const batchId = batchRows[0].staging_batch_id;
 
@@ -2063,7 +2063,7 @@ app.post("/api/import-staging/budget", async (req, res, next) => {
           projectId,
           actor: String(importedBy).trim(),
           action: "import_staging.create",
-          payload: { staging_batch_id: batchId, file_name: safeName, signature },
+          payload: { staging_batch_id: batchId, file_name: safeName, file_hash: fileHash },
         });
         return { batchId, lineCount, issueCount };
       } catch (err) {
@@ -2506,12 +2506,12 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
           const { rows: dupRows } = await client.query(
             `SELECT 1
              FROM import_batches
-             WHERE project_id=$1 AND source_system='TARGET_ESTIMATE' AND signature=$2
+             WHERE project_id=$1 AND kind='TARGET_ESTIMATE' AND file_hash=$2
              LIMIT 1`,
             [batch.project_id, batch.signature]
           );
           if (dupRows.length > 0) {
-            throw new Error("Tama tiedosto on jo importattu (signature).");
+            throw new Error("Tama tiedosto on jo importattu (file_hash).");
           }
         }
 
@@ -2535,15 +2535,14 @@ app.post("/api/import-staging/:batchId/commit", async (req, res, next) => {
         );
         const litteraByCode = new Map(litteraRows.map((r) => [r.code, r.littera_id]));
 
-        const notes = `Staging commit: ${batch.file_name || "budget.csv"}`;
         const { rows: batchInsertRows } = await client.query(
           `INSERT INTO import_batches
-           (project_id, source_system, imported_by, signature, notes)
-           VALUES ($1, 'TARGET_ESTIMATE', $2, $3, $4)
-           RETURNING import_batch_id`,
-          [batch.project_id, String(committedBy).trim(), batch.signature || null, notes]
+           (project_id, kind, source_system, file_name, file_hash, created_by)
+           VALUES ($1, 'TARGET_ESTIMATE', $2, $3, $4, $5)
+           RETURNING id`,
+          [batch.project_id, "CSV", batch.file_name || "budget.csv", batch.signature || null, String(committedBy).trim()]
         );
-        const importBatchId = batchInsertRows[0].import_batch_id;
+        const importBatchId = batchInsertRows[0].id;
 
         let inserted = 0;
         for (const [key, amount] of aggregates.totalsByCodeTypeAll.entries()) {

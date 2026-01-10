@@ -9,17 +9,17 @@ import {
   createWeeklyUpdateAction,
   lockBaselineAction,
   proposeCorrectionAction,
-  type WorkPhaseFormState
-} from "../../server/actions/workPhases";
+  type WorkPackageFormState
+} from "../../server/actions/workPackages";
 
-type WorkPhaseOption = {
-  work_phase_id: string;
+type WorkPackageOption = {
+  work_package_id: string;
   name: string;
 };
 
-const initialState: WorkPhaseFormState = { ok: false, message: null, error: null };
+const initialState: WorkPackageFormState = { ok: false, message: null, error: null };
 
-export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOption[] }) {
+export default function BaselineForms({ workPackages }: { workPackages: WorkPackageOption[] }) {
   const [weeklyState, weeklyAction] = useFormState(createWeeklyUpdateAction, initialState);
   const [ghostState, ghostAction] = useFormState(createGhostEntryAction, initialState);
   const [lockState, lockAction] = useFormState(lockBaselineAction, initialState);
@@ -27,24 +27,24 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
   const [pmState, pmAction] = useFormState(approveCorrectionPmAction, initialState);
   const [finalState, finalAction] = useFormState(approveCorrectionFinalAction, initialState);
 
-  const hasWorkPhases = workPhases.length > 0;
+  const hasWorkPackages = workPackages.length > 0;
 
   return (
     <>
       <section className="card">
         <h2>Viikkopaivitys</h2>
-        {!hasWorkPhases ? <div className="notice">Ei tyovaiheita, lisaa ensin tyovaihe.</div> : null}
+        {!hasWorkPackages ? <div className="notice">Ei tyopaketteja, lisaa ensin tyopaketti.</div> : null}
         <form className="form-grid" action={weeklyAction}>
-          <label className="label" htmlFor="workPhaseId">Tyovaihe</label>
-          <select className="input" id="workPhaseId" name="workPhaseId" disabled={!hasWorkPhases}>
-            {hasWorkPhases ? (
-              workPhases.map((phase) => (
-                <option key={phase.work_phase_id} value={phase.work_phase_id}>
-                  {phase.name}
+          <label className="label" htmlFor="workPackageId">Tyopaketti</label>
+          <select className="input" id="workPackageId" name="workPackageId" disabled={!hasWorkPackages}>
+            {hasWorkPackages ? (
+              workPackages.map((workPackage) => (
+                <option key={workPackage.work_package_id} value={workPackage.work_package_id}>
+                  {workPackage.name}
                 </option>
               ))
             ) : (
-              <option>Ei tyovaiheita</option>
+              <option>Ei tyopaketteja</option>
             )}
           </select>
 
@@ -62,7 +62,7 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
 
           <FormStatus state={weeklyState} />
 
-          <button className="btn btn-primary" type="submit" disabled={!hasWorkPhases}>
+          <button className="btn btn-primary" type="submit" disabled={!hasWorkPackages}>
             Tallenna viikkopaivitys
           </button>
         </form>
@@ -70,18 +70,18 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
 
       <section className="card">
         <h2>Ghost-kulut</h2>
-        {!hasWorkPhases ? <div className="notice">Ei tyovaiheita, lisaa ensin tyovaihe.</div> : null}
+        {!hasWorkPackages ? <div className="notice">Ei tyopaketteja, lisaa ensin tyopaketti.</div> : null}
         <form className="form-grid" action={ghostAction}>
-          <label className="label" htmlFor="workPhaseIdGhost">Tyovaihe</label>
-          <select className="input" id="workPhaseIdGhost" name="workPhaseId" disabled={!hasWorkPhases}>
-            {hasWorkPhases ? (
-              workPhases.map((phase) => (
-                <option key={phase.work_phase_id} value={phase.work_phase_id}>
-                  {phase.name}
+          <label className="label" htmlFor="workPackageIdGhost">Tyopaketti</label>
+          <select className="input" id="workPackageIdGhost" name="workPackageId" disabled={!hasWorkPackages}>
+            {hasWorkPackages ? (
+              workPackages.map((workPackage) => (
+                <option key={workPackage.work_package_id} value={workPackage.work_package_id}>
+                  {workPackage.name}
                 </option>
               ))
             ) : (
-              <option>Ei tyovaiheita</option>
+              <option>Ei tyopaketteja</option>
             )}
           </select>
 
@@ -105,7 +105,7 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
 
           <FormStatus state={ghostState} />
 
-          <button className="btn btn-primary" type="submit" disabled={!hasWorkPhases}>
+          <button className="btn btn-primary" type="submit" disabled={!hasWorkPackages}>
             Kirjaa ghost
           </button>
         </form>
@@ -114,11 +114,11 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
       <section className="card">
         <h2>Baseline-lukitus</h2>
         <form className="form-grid" action={lockAction}>
-          <label className="label" htmlFor="workPhaseIdLock">Tyovaihe (UUID)</label>
-          <input className="input" id="workPhaseIdLock" name="workPhaseId" required />
+          <label className="label" htmlFor="workPackageIdLock">Tyopaketti (UUID)</label>
+          <input className="input" id="workPackageIdLock" name="workPackageId" required />
 
-          <label className="label" htmlFor="workPhaseVersionId">Version ID</label>
-          <input className="input" id="workPhaseVersionId" name="workPhaseVersionId" required />
+          <label className="label" htmlFor="workPackageVersionId">Version ID</label>
+          <input className="input" id="workPackageVersionId" name="workPackageVersionId" required />
 
           <label className="label" htmlFor="targetImportBatchId">TARGET_ESTIMATE batch ID</label>
           <input className="input" id="targetImportBatchId" name="targetImportBatchId" required />
@@ -135,8 +135,8 @@ export default function BaselineForms({ workPhases }: { workPhases: WorkPhaseOpt
       <section className="card">
         <h2>Korjausehdotus ja hyvaksynta</h2>
         <form className="form-grid" action={proposeAction}>
-          <label className="label" htmlFor="workPhaseIdCorrection">Tyovaihe (UUID)</label>
-          <input className="input" id="workPhaseIdCorrection" name="workPhaseId" required />
+          <label className="label" htmlFor="workPackageIdCorrection">Tyopaketti (UUID)</label>
+          <input className="input" id="workPackageIdCorrection" name="workPackageId" required />
 
           <label className="label" htmlFor="itemCode">Item code (budget_items)</label>
           <input className="input" id="itemCode" name="itemCode" required />

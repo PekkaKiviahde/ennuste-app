@@ -17,7 +17,7 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
         LIMIT 1
       )
       SELECT
-        tei.id AS budget_item_id,
+        tei.id AS target_estimate_item_id,
         tei.littera_code,
         tei.item_code,
         tei.description AS item_desc,
@@ -25,17 +25,15 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
         tei.unit,
         tei.sum_eur AS total_eur,
         (COALESCE(tei.sum_eur, 0) <> 0) AS is_leaf,
-        m.work_package_id AS work_phase_id,
-        wp.name AS work_phase_name,
+        m.work_package_id,
+        wp.name AS work_package_name,
         m.proc_package_id,
         pp.name AS proc_package_name
       FROM target_estimate_items tei
       LEFT JOIN v_current_item_mappings m
         ON m.target_estimate_item_id = tei.id
-      LEFT JOIN item_mapping_versions imv
-        ON imv.id = m.item_mapping_version_id
-       AND imv.project_id = $1::uuid
-       AND imv.import_batch_id = tei.import_batch_id
+       AND m.project_id = $1::uuid
+       AND m.import_batch_id = tei.import_batch_id
       LEFT JOIN work_packages wp
         ON wp.id = m.work_package_id
       LEFT JOIN proc_packages pp
@@ -98,7 +96,7 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
     if (input.updates.length === 0) {
       return { updatedCount: 0 };
     }
-    const budgetItemIds = input.updates.map((update) => update.budgetItemId);
+    const targetEstimateItemIds = input.updates.map((update) => update.targetEstimateItemId);
 
     return tenantDb.transaction(async (client) => {
       const latestBatchResult = await client.query<{ id: string }>(
@@ -130,7 +128,7 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
          WHERE imv.project_id = $1::uuid
            AND imv.import_batch_id = $2::uuid
            AND m.target_estimate_item_id = ANY($3::uuid[])`,
-        [input.projectId, latestBatchId, budgetItemIds]
+        [input.projectId, latestBatchId, targetEstimateItemIds]
       );
       const existingByItem = new Map(existingResult.rows.map((row) => [row.target_estimate_item_id, row]));
 
@@ -155,19 +153,19 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
 
       let updatedCount = 0;
       for (const update of input.updates) {
-        const hasWorkPhase = hasOwn(update, "workPhaseId");
+        const hasWorkPackage = hasOwn(update, "workPackageId");
         const hasProcPackage = hasOwn(update, "procPackageId");
-        const currentMapping = existingByItem.get(update.budgetItemId) ?? null;
-        const currentWorkPhase = currentMapping?.work_package_id ?? null;
+        const currentMapping = existingByItem.get(update.targetEstimateItemId) ?? null;
+        const currentWorkPackage = currentMapping?.work_package_id ?? null;
         const currentProcPackage = currentMapping?.proc_package_id ?? null;
 
-        let workPhaseId = hasWorkPhase ? update.workPhaseId ?? null : currentWorkPhase;
+        let workPackageId = hasWorkPackage ? update.workPackageId ?? null : currentWorkPackage;
         let procPackageId = hasProcPackage ? update.procPackageId ?? null : currentProcPackage;
 
-        if (!hasWorkPhase && hasProcPackage && !currentWorkPhase) {
+        if (!hasWorkPackage && hasProcPackage && !currentWorkPackage) {
           const defaultWorkPackage = procPackageId ? procDefaults.get(procPackageId) ?? null : null;
           if (defaultWorkPackage) {
-            workPhaseId = defaultWorkPackage;
+            workPackageId = defaultWorkPackage;
           }
         }
 
@@ -184,8 +182,8 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
           `,
           [
             mappingVersionId,
-            update.budgetItemId,
-            workPhaseId,
+            update.targetEstimateItemId,
+            workPackageId,
             procPackageId,
             input.updatedBy
           ]

@@ -2,19 +2,19 @@ import { loadAuditLog, loadFilteredAuditLog } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
-type AuditLogFilter = "all" | "planning" | "forecast" | "auth" | "work-phase";
+type AuditLogFilter = "all" | "planning" | "forecast" | "auth" | "work-package";
 
 const FILTER_ACTIONS: Record<Exclude<AuditLogFilter, "all">, string[]> = {
   planning: ["planning.create"],
   forecast: ["forecast.create"],
   auth: ["auth.login", "auth.logout", "auth.quick_login"],
-  "work-phase": [
-    "work_phase.weekly_update",
-    "work_phase.ghost_entry",
-    "work_phase.baseline_lock",
-    "work_phase.correction_proposed",
-    "work_phase.correction_pm_approved",
-    "work_phase.correction_final_approved"
+  "work-package": [
+    "work_package.weekly_update",
+    "work_package.ghost_entry",
+    "work_package.baseline_lock",
+    "work_package.correction_proposed",
+    "work_package.correction_pm_approved",
+    "work_package.correction_final_approved"
   ]
 };
 
@@ -34,7 +34,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
     rawType === "planning" ||
     rawType === "forecast" ||
     rawType === "auth" ||
-    rawType === "work-phase"
+    rawType === "work-package"
       ? rawType
       : "all";
   const actionFilter = type === "all" ? null : FILTER_ACTIONS[type];
@@ -91,10 +91,10 @@ export default async function AuditLogPage({ searchParams }: { searchParams?: { 
           Kirjautuminen
         </a>
         <a
-          className={`btn btn-secondary btn-sm ${type === "work-phase" ? "active" : ""}`}
-          href="/loki?type=work-phase"
+          className={`btn btn-secondary btn-sm ${type === "work-package" ? "active" : ""}`}
+          href="/loki?type=work-package"
         >
-          Työvaihe
+          Työpaketti
         </a>
       </div>
       <table className="table">

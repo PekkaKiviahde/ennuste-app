@@ -25,7 +25,7 @@ export const importStagingRepository = (): ImportStagingPort => ({
     await tenantDb.requireProject(input.projectId);
 
     const safeName = input.fileName ? input.fileName.replace(/[^\w.\-]/g, "_") : "budget.csv";
-    const signature = createHash("sha256").update(String(input.csvText)).digest("hex");
+    const fileHash = createHash("sha256").update(String(input.csvText)).digest("hex");
     const { headers, rows } = parseCsvRows(String(input.csvText), ";");
     if (headers.length === 0) {
       throw new AppError("CSV-otsikkorivi puuttuu.");
@@ -46,22 +46,22 @@ export const importStagingRepository = (): ImportStagingPort => ({
     const dupImport = await tenantDb.query(
       `SELECT 1
        FROM import_batches
-       WHERE project_id=$1::uuid AND source_system='TARGET_ESTIMATE' AND signature=$2
+       WHERE project_id=$1::uuid AND kind='TARGET_ESTIMATE' AND file_hash=$2
        LIMIT 1`,
-      [input.projectId, signature]
+      [input.projectId, fileHash]
     );
     if (dupImport.rowCount > 0) {
-      warnings.push("Duplikaatti: sama signature on jo importoitu.");
+      warnings.push("Duplikaatti: sama tiedosto on jo importoitu.");
     }
     const dupStaging = await tenantDb.query(
       `SELECT 1
        FROM import_staging_batches
        WHERE project_id=$1::uuid AND import_type='BUDGET' AND signature=$2
        LIMIT 1`,
-      [input.projectId, signature]
+      [input.projectId, fileHash]
     );
     if (dupStaging.rowCount > 0) {
-      warnings.push("Duplikaatti: sama signature on jo stagingissa.");
+      warnings.push("Duplikaatti: sama tiedosto on jo stagingissa.");
     }
 
     const result = await tenantDb.transaction(async (client) => {
@@ -70,7 +70,7 @@ export const importStagingRepository = (): ImportStagingPort => ({
          (project_id, import_type, source_system, file_name, signature, created_by)
          VALUES ($1, 'BUDGET', 'CSV', $2, $3, $4)
          RETURNING staging_batch_id`,
-        [input.projectId, safeName, signature, input.importedBy]
+        [input.projectId, safeName, fileHash, input.importedBy]
       );
       const batchId = batchRows.rows[0].staging_batch_id;
 
@@ -545,12 +545,12 @@ export const importStagingRepository = (): ImportStagingPort => ({
         const dupRows = await client.query(
           `SELECT 1
            FROM import_batches
-           WHERE project_id=$1::uuid AND source_system='TARGET_ESTIMATE' AND signature=$2
+           WHERE project_id=$1::uuid AND kind='TARGET_ESTIMATE' AND file_hash=$2
            LIMIT 1`,
           [input.projectId, batch.signature]
         );
         if (dupRows.rowCount > 0) {
-          throw new AppError("Tama tiedosto on jo importattu (signature).");
+          throw new AppError("Tama tiedosto on jo importattu (file_hash).");
         }
       }
 
@@ -574,15 +574,14 @@ export const importStagingRepository = (): ImportStagingPort => ({
       );
       const litteraByCode = new Map(litteraRows.rows.map((row) => [row.code, row.littera_id]));
 
-      const notes = `Staging commit: ${batch.file_name || "budget.csv"}`;
-      const batchInsertRows = await client.query<{ import_batch_id: string }>(
+      const batchInsertRows = await client.query<{ id: string }>(
         `INSERT INTO import_batches
-         (project_id, source_system, imported_by, signature, notes)
-         VALUES ($1, 'TARGET_ESTIMATE', $2, $3, $4)
-         RETURNING import_batch_id`,
-        [input.projectId, input.committedBy, batch.signature, notes]
+         (project_id, kind, source_system, file_name, file_hash, created_by)
+         VALUES ($1, 'TARGET_ESTIMATE', $2, $3, $4, $5)
+         RETURNING id`,
+        [input.projectId, "CSV", batch.file_name || "budget.csv", batch.signature, input.committedBy]
       );
-      const importBatchId = batchInsertRows.rows[0].import_batch_id;
+      const importBatchId = batchInsertRows.rows[0].id;
 
       let inserted = 0;
       for (const [key, amount] of aggregates.totalsByCodeTypeAll.entries()) {
