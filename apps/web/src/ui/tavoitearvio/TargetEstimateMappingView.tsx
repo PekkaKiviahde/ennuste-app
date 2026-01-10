@@ -19,6 +19,7 @@ type MappingItem = {
 
 type WorkPackage = {
   work_phase_id: string;
+  code?: string;
   name: string;
   status: string | null;
   created_at: string;
@@ -71,7 +72,9 @@ export default function TargetEstimateMappingView() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkWorkPhase, setBulkWorkPhase] = useState("");
   const [bulkProcPackage, setBulkProcPackage] = useState("");
+  const [newWorkPackageCode, setNewWorkPackageCode] = useState("");
   const [newWorkPackageName, setNewWorkPackageName] = useState("");
+  const [newProcPackageCode, setNewProcPackageCode] = useState("");
   const [newProcPackageName, setNewProcPackageName] = useState("");
   const [newProcDefaultWorkPackage, setNewProcDefaultWorkPackage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -174,20 +177,29 @@ export default function TargetEstimateMappingView() {
   };
 
   const createWorkPackage = async () => {
+    const code = newWorkPackageCode.trim();
     const name = newWorkPackageName.trim();
-    if (!name) return;
+    if (!code || !/^\d{4}$/.test(code)) {
+      setError("Tyopaketin koodi on pakollinen ja oltava 4 numeroa.");
+      return;
+    }
+    if (!name) {
+      setError("Tyopaketin nimi on pakollinen.");
+      return;
+    }
     try {
       setBusy(true);
       setError(null);
       const response = await fetch("/api/work-phases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ code, name })
       });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result?.error ?? "Tyopaketin luonti epaonnistui");
       }
+      setNewWorkPackageCode("");
       setNewWorkPackageName("");
       await loadData();
     } catch (err) {
@@ -198,8 +210,16 @@ export default function TargetEstimateMappingView() {
   };
 
   const createProcPackage = async () => {
+    const code = newProcPackageCode.trim();
     const name = newProcPackageName.trim();
-    if (!name) return;
+    if (!code || !/^\d{4}$/.test(code)) {
+      setError("Hankintapaketin koodi on pakollinen ja oltava 4 numeroa.");
+      return;
+    }
+    if (!name) {
+      setError("Hankintapaketin nimi on pakollinen.");
+      return;
+    }
     try {
       setBusy(true);
       setError(null);
@@ -207,6 +227,7 @@ export default function TargetEstimateMappingView() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          code,
           name,
           defaultWorkPackageId: newProcDefaultWorkPackage || null
         })
@@ -215,6 +236,7 @@ export default function TargetEstimateMappingView() {
       if (!response.ok) {
         throw new Error(result?.error ?? "Hankintapaketin luonti epaonnistui");
       }
+      setNewProcPackageCode("");
       setNewProcPackageName("");
       setNewProcDefaultWorkPackage("");
       await loadData();
@@ -338,11 +360,22 @@ export default function TargetEstimateMappingView() {
         <div className="dialog-panel">
           <input
             className="input"
+            placeholder="Tyopaketin koodi (4 numeroa)"
+            value={newWorkPackageCode}
+            onChange={(event) => setNewWorkPackageCode(event.target.value)}
+          />
+          <input
+            className="input"
             placeholder="Tyopaketin nimi"
             value={newWorkPackageName}
             onChange={(event) => setNewWorkPackageName(event.target.value)}
           />
-          <button className="btn btn-primary btn-sm" type="button" disabled={busy || !newWorkPackageName.trim()} onClick={createWorkPackage}>
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            disabled={busy || !newWorkPackageCode.trim() || !newWorkPackageName.trim()}
+            onClick={createWorkPackage}
+          >
             Luo tyopaketti
           </button>
         </div>
@@ -351,6 +384,12 @@ export default function TargetEstimateMappingView() {
       <details className="dialog">
         <summary className="label">Luo uusi hankintapaketti</summary>
         <div className="dialog-panel">
+          <input
+            className="input"
+            placeholder="Hankintapaketin koodi (4 numeroa)"
+            value={newProcPackageCode}
+            onChange={(event) => setNewProcPackageCode(event.target.value)}
+          />
           <input
             className="input"
             placeholder="Hankintapaketin nimi"
@@ -369,7 +408,12 @@ export default function TargetEstimateMappingView() {
               </option>
             ))}
           </select>
-          <button className="btn btn-primary btn-sm" type="button" disabled={busy || !newProcPackageName.trim()} onClick={createProcPackage}>
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            disabled={busy || !newProcPackageCode.trim() || !newProcPackageName.trim()}
+            onClick={createProcPackage}
+          >
             Luo hankintapaketti
           </button>
         </div>

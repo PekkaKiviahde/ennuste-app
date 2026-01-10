@@ -65,11 +65,11 @@ export const dbForTenant = (tenantId: string): TenantDb => {
 
   const requireWorkPhase = async (workPhaseId: string) => {
     const result = await tenantQuery(
-      "SELECT 1 FROM work_phases wp JOIN projects p ON p.project_id = wp.project_id WHERE wp.work_phase_id = $1::uuid AND p.tenant_id = $2::uuid",
+      "SELECT 1 FROM work_packages wp JOIN projects p ON p.project_id = wp.project_id WHERE wp.id = $1::uuid AND p.tenant_id = $2::uuid",
       [workPhaseId, tenantId]
     );
     if (result.rowCount === 0) {
-      throw new ForbiddenError("Tyovaihe ei kuulu tenanttiin");
+      throw new ForbiddenError("Tyopaketti ei kuulu tenanttiin");
     }
   };
 
