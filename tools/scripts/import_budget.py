@@ -12,10 +12,10 @@ import_budget.py (CSV-only)
 - No openpyxl dependency.
 
 Usage (dry-run):
-  python tools/scripts/import_budget.py --project-id <UUID> --file data/budget.csv --imported-by Pekka --dry-run
+  python tools/scripts/import_budget.py --project-id <UUID> --file data/samples/budget.csv --imported-by Pekka --dry-run
 
 Usage (write):
-  python tools/scripts/import_budget.py --project-id <UUID> --file data/budget.csv --imported-by Pekka
+  python tools/scripts/import_budget.py --project-id <UUID> --file data/samples/budget.csv --imported-by Pekka
 
 DB connection:
   Uses env DATABASE_URL if set, else defaults to local dev:

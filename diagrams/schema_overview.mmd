@@ -16,8 +16,16 @@ erDiagram
   FORECAST_EVENTS ||--o{ FORECAST_EVENT_LINES : has
 
   PROJECTS ||--o{ MAPPING_VERSIONS : has
-  MAPPING_VERSIONS ||--o{ MAPPING_LINES : includes
-  LITTERAS ||--o{ MAPPING_LINES : work_target
+  MAPPING_VERSIONS ||--o{ ROW_MAPPINGS : includes
+  MAPPING_VERSIONS ||--o{ V_CURRENT_ITEM_MAPPINGS : current
+  BUDGET_ITEMS ||--o{ ROW_MAPPINGS : item
+  BUDGET_ITEMS ||--o{ V_CURRENT_ITEM_MAPPINGS : item
+  WORK_PHASES ||--o{ ROW_MAPPINGS : work_package
+  WORK_PHASES ||--o{ V_CURRENT_ITEM_MAPPINGS : work_package
+  PROC_PACKAGES ||--o{ ROW_MAPPINGS : procurement
+  PROC_PACKAGES ||--o{ V_CURRENT_ITEM_MAPPINGS : procurement
+  WORK_PHASES ||--o{ PROC_PACKAGES : default_work_package
+  TARGET_ESTIMATE_ITEM_MAPPINGS ||--o{ ROW_MAPPINGS : LEGACY/DEPRECATED
 
   PROJECTS ||--o{ IMPORT_BATCHES : has
   IMPORT_BATCHES ||--o{ BUDGET_LINES : loads
@@ -79,12 +87,31 @@ erDiagram
   MAPPING_VERSIONS {
     uuid mapping_version_id PK
     uuid project_id FK
+    text mapping_kind
+    text status
+    uuid import_batch_id FK
   }
-  MAPPING_LINES {
-    uuid mapping_line_id PK
+  ROW_MAPPINGS {
+    uuid row_mapping_id PK
     uuid mapping_version_id FK
-    uuid work_littera_id FK
-    uuid target_littera_id FK
+    uuid budget_item_id FK
+    uuid work_phase_id FK
+    uuid proc_package_id FK
+    timestamptz created_at
+  }
+  V_CURRENT_ITEM_MAPPINGS {
+    uuid row_mapping_id PK
+    uuid mapping_version_id FK
+    uuid budget_item_id FK
+    uuid work_phase_id FK
+    uuid proc_package_id FK
+  }
+  TARGET_ESTIMATE_ITEM_MAPPINGS {
+    uuid target_estimate_item_mapping_id PK
+    uuid project_id FK
+    uuid budget_item_id FK
+    uuid work_phase_id FK
+    uuid proc_package_id FK
   }
   IMPORT_BATCHES {
     uuid import_batch_id PK
@@ -108,6 +135,11 @@ erDiagram
     uuid work_phase_id PK
     uuid project_id FK
   }
+  PROC_PACKAGES {
+    uuid proc_package_id PK
+    uuid project_id FK
+    uuid default_work_package_id FK
+  }
   WORK_PHASE_VERSIONS {
     uuid work_phase_version_id PK
     uuid work_phase_id FK
@@ -130,4 +162,8 @@ erDiagram
   ATTACHMENTS {
     uuid attachment_id PK
     uuid owner_id
+  }
+  NOTE_APPEND_ONLY {
+    text "Write = INSERT row_mappings (append-only)"
+    text "Read = v_current_item_mappings"
   }
