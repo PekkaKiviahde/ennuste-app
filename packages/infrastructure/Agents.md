@@ -12,6 +12,7 @@ Tämä tiedosto täydentää repo-juuren AGENTS.md:ää infrastruktuuri-kerrokse
   - varmista, ettei append-only rikoidu
   - vältä destruktiivisia migraatioita (DROP/DELETE ilman todella hyvää syytä)
 
+
 ## Testit (tälle paketille)
 - Aja: `npm --workspace packages/infrastructure run test`
 - Huom:
