@@ -113,6 +113,7 @@ Lisää vähintään 4 skenaariota `data/samples/`:
 
 - ## Kaaviot (tavoitearvio + mäppäys)
 - `diagrams/tavoitearvio_mappays_mindmap_3D.pptx` – mindmap + swimlane + 3D (aika/versiot) + taulut + raportointikerros
-- 
+- `schema_overview.mmd
+- `architecture.mmd
   
 
