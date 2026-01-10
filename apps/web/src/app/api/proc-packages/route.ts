@@ -35,7 +35,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const code = String(body?.code ?? "").trim();
     const name = String(body?.name ?? "").trim();
+    if (!code) {
+      return NextResponse.json({ error: "Hankintapaketin koodi puuttuu" }, { status: 400 });
+    }
+    if (!/^\d{4}$/.test(code)) {
+      return NextResponse.json({ error: "Hankintapaketin koodi on oltava 4 numeroa." }, { status: 400 });
+    }
     if (!name) {
       return NextResponse.json({ error: "Hankintapaketin nimi puuttuu" }, { status: 400 });
     }
@@ -45,9 +52,14 @@ export async function POST(request: Request) {
       projectId: session.projectId,
       tenantId: session.tenantId,
       username: session.username,
+      code,
       name,
       description: body?.description ?? null,
-      defaultWorkPackageId: body?.defaultWorkPackageId ?? null
+      defaultWorkPackageId: body?.defaultWorkPackageId ?? null,
+      ownerType: body?.ownerType ?? null,
+      vendorName: body?.vendorName ?? null,
+      contractRef: body?.contractRef ?? null,
+      status: body?.status ?? null
     });
 
     return NextResponse.json({ procPackageId: result.procPackageId }, { status: 201 });

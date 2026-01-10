@@ -206,16 +206,16 @@ export const loadAuditLog = async (services: AppServices, input: { projectId: st
 
 export const createWorkPhase = async (
   services: AppServices,
-  input: { projectId: string; tenantId: string; username: string; name: string; description?: string | null; owner?: string | null; leadLitteraId?: string | null }
+  input: { projectId: string; tenantId: string; username: string; code: string; name: string; responsibleUserId?: string | null; status?: string | null }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
   const result = await services.workPhases.createWorkPhase({
     projectId: input.projectId,
     tenantId: input.tenantId,
+    code: input.code,
     name: input.name,
-    description: input.description ?? null,
-    owner: input.owner ?? null,
-    leadLitteraId: input.leadLitteraId ?? null,
+    responsibleUserId: input.responsibleUserId ?? null,
+    status: input.status ?? null,
     createdBy: input.username
   });
   await services.audit.recordEvent({
@@ -225,6 +225,7 @@ export const createWorkPhase = async (
     action: "work_phase.create",
     payload: {
       workPhaseId: result.workPhaseId,
+      code: input.code,
       name: input.name
     }
   });
@@ -233,15 +234,32 @@ export const createWorkPhase = async (
 
 export const createProcPackage = async (
   services: AppServices,
-  input: { projectId: string; tenantId: string; username: string; name: string; description?: string | null; defaultWorkPackageId?: string | null }
+  input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    code: string;
+    name: string;
+    description?: string | null;
+    defaultWorkPackageId?: string | null;
+    ownerType?: string | null;
+    vendorName?: string | null;
+    contractRef?: string | null;
+    status?: string | null;
+  }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
   const result = await services.targetEstimateMapping.createProcPackage({
     projectId: input.projectId,
     tenantId: input.tenantId,
+    code: input.code,
     name: input.name,
     description: input.description ?? null,
     defaultWorkPackageId: input.defaultWorkPackageId ?? null,
+    ownerType: input.ownerType ?? null,
+    vendorName: input.vendorName ?? null,
+    contractRef: input.contractRef ?? null,
+    status: input.status ?? null,
     createdBy: input.username
   });
   await services.audit.recordEvent({
@@ -251,6 +269,7 @@ export const createProcPackage = async (
     action: "proc_package.create",
     payload: {
       procPackageId: result.procPackageId,
+      code: input.code,
       name: input.name
     }
   });

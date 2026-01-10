@@ -1,4 +1,5 @@
 import type { WorkPhasePort } from "@ennuste/application";
+import { AppError } from "@ennuste/shared";
 import { dbForTenant } from "./db";
 
 export const workPhaseRepository = (): WorkPhasePort => ({
@@ -7,11 +8,15 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     await tenantDb.requireProject(projectId);
     const result = await tenantDb.query<{
       work_phase_id: string;
+      code: string;
       name: string;
       status: string | null;
       created_at: string;
     }>(
-      "SELECT work_phase_id, name, status, created_at FROM work_phases WHERE project_id = $1::uuid ORDER BY created_at DESC",
+      `SELECT id AS work_phase_id, code, name, status, created_at
+       FROM work_packages
+       WHERE project_id = $1::uuid
+       ORDER BY created_at DESC`,
       [projectId]
     );
     return result.rows;
@@ -20,91 +25,35 @@ export const workPhaseRepository = (): WorkPhasePort => ({
     const tenantDb = dbForTenant(input.tenantId);
     await tenantDb.requireProject(input.projectId);
     const result = await tenantDb.query<{ work_phase_id: string }>(
-      "INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, created_by) VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6) RETURNING work_phase_id",
+      `INSERT INTO work_packages (project_id, code, name, responsible_user_id, status)
+       VALUES ($1::uuid, $2, $3, $4::uuid, $5)
+       RETURNING id AS work_phase_id`,
       [
         input.projectId,
+        input.code,
         input.name,
-        input.description ?? null,
-        input.owner ?? null,
-        input.leadLitteraId ?? null,
-        input.createdBy
+        input.responsibleUserId ?? null,
+        input.status ?? "ACTIVE"
       ]
     );
     return { workPhaseId: result.rows[0].work_phase_id };
   },
-  async createWeeklyUpdate(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireProject(input.projectId);
-    const result = await tenantDb.query<{ work_phase_weekly_update_id: string }>(
-      "INSERT INTO work_phase_weekly_updates (project_id, work_phase_id, week_ending, percent_complete, progress_notes, risks, created_by) VALUES ($1::uuid, $2::uuid, $3::date, $4, $5, $6, $7) RETURNING work_phase_weekly_update_id",
-      [
-        input.projectId,
-        input.workPhaseId,
-        input.weekEnding,
-        input.percentComplete,
-        input.progressNotes ?? null,
-        input.risks ?? null,
-        input.createdBy
-      ]
-    );
-    return { workPhaseWeeklyUpdateId: result.rows[0].work_phase_weekly_update_id };
+  async createWeeklyUpdate() {
+    throw new AppError("Viikkopaivitys ei ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   },
-  async createGhostEntry(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireProject(input.projectId);
-    const result = await tenantDb.query<{ ghost_cost_entry_id: string }>(
-      "INSERT INTO ghost_cost_entries (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by) VALUES ($1::uuid, $2::uuid, $3::date, $4, $5, $6, $7) RETURNING ghost_cost_entry_id",
-      [
-        input.projectId,
-        input.workPhaseId,
-        input.weekEnding,
-        input.costType,
-        input.amount,
-        input.description ?? null,
-        input.createdBy
-      ]
-    );
-    return { ghostCostEntryId: result.rows[0].ghost_cost_entry_id };
+  async createGhostEntry() {
+    throw new AppError("Ghost-kirjaukset eivat ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   },
-  async lockBaseline(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireWorkPhase(input.workPhaseId);
-    const result = await tenantDb.query<{ work_phase_lock_baseline_secure: string }>(
-      "SELECT work_phase_lock_baseline_secure($1::uuid, $2::uuid, $3::uuid, $4::text, $5::text) AS work_phase_lock_baseline_secure",
-      [
-        input.workPhaseId,
-        input.workPhaseVersionId,
-        input.targetImportBatchId,
-        input.username,
-        input.notes ?? null
-      ]
-    );
-    return { workPhaseBaselineId: result.rows[0].work_phase_lock_baseline_secure };
+  async lockBaseline() {
+    throw new AppError("Baseline-lukitus ei ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   },
-  async proposeCorrection(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireWorkPhase(input.workPhaseId);
-    const result = await tenantDb.query<{ work_phase_propose_add_littera_from_item_secure: string }>(
-      "SELECT work_phase_propose_add_littera_from_item_secure($1::uuid, $2::text, $3::text, $4::text) AS work_phase_propose_add_littera_from_item_secure",
-      [input.workPhaseId, input.itemCode, input.username, input.notes ?? null]
-    );
-    return { correctionId: result.rows[0].work_phase_propose_add_littera_from_item_secure };
+  async proposeCorrection() {
+    throw new AppError("Korjausehdotukset eivat ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   },
-  async approveCorrectionPm(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireCorrection(input.correctionId);
-    await tenantDb.query(
-      "SELECT work_phase_approve_correction_pm_secure($1::uuid, $2::text, $3::text)",
-      [input.correctionId, input.username, input.comment ?? null]
-    );
+  async approveCorrectionPm() {
+    throw new AppError("Korjausten hyväksyntä ei ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   },
-  async approveCorrectionFinal(input) {
-    const tenantDb = dbForTenant(input.tenantId);
-    await tenantDb.requireCorrection(input.correctionId);
-    const result = await tenantDb.query<{ work_phase_approve_correction_final_secure: string }>(
-      "SELECT work_phase_approve_correction_final_secure($1::uuid, $2::text, $3::text) AS work_phase_approve_correction_final_secure",
-      [input.correctionId, input.username, input.comment ?? null]
-    );
-    return { baselineId: result.rows[0].work_phase_approve_correction_final_secure };
+  async approveCorrectionFinal() {
+    throw new AppError("Korjausten hyväksyntä ei ole viela tuettu uudessa baseline-skeemassa.", "NOT_IMPLEMENTED", 501);
   }
 });

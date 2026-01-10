@@ -272,6 +272,7 @@ export type SaasPort = {
 export type WorkPhasePort = {
   listWorkPhases(projectId: string, tenantId: string): Promise<Array<{
     work_phase_id: string;
+    code: string;
     name: string;
     status: string | null;
     created_at: string;
@@ -279,10 +280,10 @@ export type WorkPhasePort = {
   createWorkPhase(input: {
     projectId: string;
     tenantId: string;
+    code: string;
     name: string;
-    description?: string | null;
-    owner?: string | null;
-    leadLitteraId?: string | null;
+    responsibleUserId?: string | null;
+    status?: string | null;
     createdBy: string;
   }): Promise<{ workPhaseId: string }>;
   createWeeklyUpdate(input: {
@@ -358,9 +359,14 @@ export type TargetEstimateMappingPort = {
   createProcPackage(input: {
     projectId: string;
     tenantId: string;
+    code: string;
     name: string;
     description?: string | null;
     defaultWorkPackageId?: string | null;
+    ownerType?: string | null;
+    vendorName?: string | null;
+    contractRef?: string | null;
+    status?: string | null;
     createdBy: string;
   }): Promise<{ procPackageId: string }>;
   upsertItemMappings(input: {

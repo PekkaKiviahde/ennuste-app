@@ -1564,28 +1564,27 @@ app.get("/api/projects/:projectId/work-phases", async (req, res, next) => {
     const { projectId } = req.params;
     const { rows } = await query(
       `SELECT
-         s.work_phase_id,
-         s.work_phase_name AS name,
-         s.work_phase_status AS status,
-         p.owner,
-         p.lead_littera_id,
-         s.lead_littera_code,
-         s.lead_littera_title,
-         s.current_version_id,
-         s.latest_baseline_id,
-         s.target_import_batch_id,
-         s.bac_total,
-         s.latest_week_ending,
-         s.percent_complete,
-         s.ev_value,
-         s.ghost_open_total,
-         s.ac_total,
-         s.ac_star_total,
-         s.cpi
-       FROM v_work_phase_summary_v16_all s
-       JOIN work_phases p ON p.work_phase_id = s.work_phase_id
-       WHERE s.project_id=$1
-       ORDER BY s.work_phase_name`,
+         wp.id AS work_phase_id,
+         wp.name,
+         wp.status,
+         wp.responsible_user_id AS owner,
+         NULL::uuid AS lead_littera_id,
+         NULL::text AS lead_littera_code,
+         NULL::text AS lead_littera_title,
+         NULL::uuid AS current_version_id,
+         NULL::uuid AS latest_baseline_id,
+         NULL::uuid AS target_import_batch_id,
+         NULL::numeric AS bac_total,
+         NULL::date AS latest_week_ending,
+         NULL::numeric AS percent_complete,
+         NULL::numeric AS ev_value,
+         NULL::numeric AS ghost_open_total,
+         NULL::numeric AS ac_total,
+         NULL::numeric AS ac_star_total,
+         NULL::numeric AS cpi
+       FROM work_packages wp
+       WHERE wp.project_id=$1
+       ORDER BY wp.name`,
       [projectId]
     );
     res.json({ workPhases: rows });
@@ -1599,28 +1598,27 @@ app.get("/api/work-phases/:workPhaseId", async (req, res, next) => {
     const { workPhaseId } = req.params;
     const { rows } = await query(
       `SELECT
-         s.project_id,
-         s.work_phase_id,
-         s.work_phase_name AS name,
-         s.work_phase_status AS status,
-         p.owner,
-         p.lead_littera_id,
-         s.lead_littera_code,
-         s.lead_littera_title,
-         s.current_version_id,
-         s.latest_baseline_id,
-         s.target_import_batch_id,
-         s.bac_total,
-         s.latest_week_ending,
-         s.percent_complete,
-         s.ev_value,
-         s.ghost_open_total,
-         s.ac_total,
-         s.ac_star_total,
-         s.cpi
-       FROM v_work_phase_summary_v16_all s
-       JOIN work_phases p ON p.work_phase_id = s.work_phase_id
-       WHERE s.work_phase_id=$1`,
+         wp.project_id,
+         wp.id AS work_phase_id,
+         wp.name,
+         wp.status,
+         wp.responsible_user_id AS owner,
+         NULL::uuid AS lead_littera_id,
+         NULL::text AS lead_littera_code,
+         NULL::text AS lead_littera_title,
+         NULL::uuid AS current_version_id,
+         NULL::uuid AS latest_baseline_id,
+         NULL::uuid AS target_import_batch_id,
+         NULL::numeric AS bac_total,
+         NULL::date AS latest_week_ending,
+         NULL::numeric AS percent_complete,
+         NULL::numeric AS ev_value,
+         NULL::numeric AS ghost_open_total,
+         NULL::numeric AS ac_total,
+         NULL::numeric AS ac_star_total,
+         NULL::numeric AS cpi
+       FROM work_packages wp
+       WHERE wp.id=$1`,
       [workPhaseId]
     );
     if (rows.length === 0) {
@@ -1640,10 +1638,7 @@ app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
   try {
     const { workPhaseId } = req.params;
     const { rows: phaseRows } = await query(
-      `SELECT p.project_id, cv.work_phase_version_id
-       FROM work_phases p
-       LEFT JOIN v_work_phase_current_version cv ON cv.work_phase_id = p.work_phase_id
-       WHERE p.work_phase_id=$1`,
+      "SELECT project_id FROM work_packages WHERE id=$1",
       [workPhaseId]
     );
     if (phaseRows.length === 0) {
@@ -1652,30 +1647,7 @@ app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
     if (!requireProjectAccess(req, res, phaseRows[0].project_id, "viewer")) {
       return;
     }
-    const versionId = phaseRows[0].work_phase_version_id;
-    if (!versionId) {
-      return res.json({ members: [] });
-    }
-    const { rows } = await query(
-      `SELECT
-         m.work_phase_member_id,
-         m.member_type,
-         m.littera_id,
-         l.code AS littera_code,
-         l.title AS littera_title,
-         m.item_code,
-         m.item_desc,
-         m.note,
-         m.created_at,
-         m.created_by
-       FROM work_phase_members m
-       LEFT JOIN litteras l
-         ON l.project_id = m.project_id AND l.littera_id = m.littera_id
-       WHERE m.work_phase_version_id=$1
-       ORDER BY m.member_type, l.code, m.item_code`,
-      [versionId]
-    );
-    res.json({ members: rows });
+    res.json({ members: [] });
   } catch (err) {
     next(err);
   }
@@ -1683,95 +1655,7 @@ app.get("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
 
 app.post("/api/work-phases/:workPhaseId/members", async (req, res, next) => {
   try {
-    const { workPhaseId } = req.params;
-    const { rows: phaseRows } = await query(
-      `SELECT p.project_id, cv.work_phase_version_id, lb.work_phase_baseline_id
-       FROM work_phases p
-       LEFT JOIN v_work_phase_current_version cv ON cv.work_phase_id = p.work_phase_id
-       LEFT JOIN v_work_phase_latest_baseline lb ON lb.work_phase_id = p.work_phase_id
-       WHERE p.work_phase_id=$1`,
-      [workPhaseId]
-    );
-    if (phaseRows.length === 0) {
-      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
-    }
-    const phaseRow = phaseRows[0];
-    if (!requireProjectAccess(req, res, phaseRow.project_id, "editor")) {
-      return;
-    }
-    if (phaseRow.work_phase_baseline_id) {
-      return res.status(409).json({ error: "BASELINE_ALREADY_LOCKED" });
-    }
-    if (!phaseRow.work_phase_version_id) {
-      return res.status(409).json({ error: "VERSION_REQUIRED" });
-    }
-
-    const { memberType, litteraId, itemCode, itemDesc, note } = req.body || {};
-    if (!memberType || !["LITTERA", "ITEM"].includes(memberType)) {
-      return badRequest(res, "memberType puuttuu tai on virheellinen.");
-    }
-    if (memberType === "LITTERA" && !litteraId) {
-      return badRequest(res, "litteraId puuttuu.");
-    }
-    if (memberType === "ITEM" && (!itemCode || String(itemCode).trim() === "")) {
-      return badRequest(res, "itemCode puuttuu.");
-    }
-
-    const { rows: userRows } = await query(
-      "SELECT username FROM users WHERE user_id=$1",
-      [req.user?.userId]
-    );
-    const createdBy = userRows[0]?.username || "user";
-
-    if (memberType === "LITTERA") {
-      const { rowCount: litteraCount } = await query(
-        "SELECT 1 FROM litteras WHERE project_id=$1 AND littera_id=$2",
-        [phaseRow.project_id, litteraId]
-      );
-      if (litteraCount === 0) {
-        return badRequest(res, "litteraId ei kuulu projektiin.");
-      }
-    }
-
-    const { rows: existingRows } = await query(
-      `SELECT 1
-       FROM work_phase_members
-       WHERE work_phase_version_id=$1
-         AND member_type=$2
-         AND (
-           ($2 = 'LITTERA' AND littera_id=$3)
-           OR ($2 = 'ITEM' AND item_code=$4)
-         )`,
-      [phaseRow.work_phase_version_id, memberType, litteraId || null, itemCode || null]
-    );
-    if (existingRows.length > 0) {
-      return res.status(409).json({ error: "ALREADY_EXISTS" });
-    }
-
-    const { rows } = await query(
-      `INSERT INTO work_phase_members (
-         project_id,
-         work_phase_version_id,
-         member_type,
-         littera_id,
-         item_code,
-         item_desc,
-         note,
-         created_by
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING work_phase_member_id`,
-      [
-        phaseRow.project_id,
-        phaseRow.work_phase_version_id,
-        memberType,
-        memberType === "LITTERA" ? litteraId : null,
-        memberType === "ITEM" ? String(itemCode).trim() : null,
-        memberType === "ITEM" && itemDesc ? String(itemDesc).trim() : null,
-        note ? String(note).trim() : null,
-        createdBy,
-      ]
-    );
-    res.status(201).json({ work_phase_member_id: rows[0].work_phase_member_id });
+    return res.status(501).json({ error: "WORK_PACKAGE_MEMBERS_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -1787,8 +1671,8 @@ app.get("/api/work-phases", async (req, res, next) => {
       return badRequest(res, "projectId puuttuu.");
     }
     const { rows } = await query(
-      `SELECT work_phase_id, name, status, owner, lead_littera_id
-       FROM work_phases
+      `SELECT id AS work_phase_id, name, status, responsible_user_id AS owner, NULL::uuid AS lead_littera_id
+       FROM work_packages
        WHERE project_id=$1
        ORDER BY created_at DESC`,
       [projectId]
@@ -1804,9 +1688,15 @@ app.post("/api/work-phases", async (req, res, next) => {
     if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
       return;
     }
-    const { projectId, name, description, owner, leadLitteraId, createdBy } = req.body;
+    const { projectId, code, name, owner, createdBy } = req.body;
     if (!projectId) {
       return badRequest(res, "projectId puuttuu.");
+    }
+    if (!code || String(code).trim() === "") {
+      return badRequest(res, "code puuttuu.");
+    }
+    if (!/^\d{4}$/.test(String(code).trim())) {
+      return badRequest(res, "code on oltava 4 numeroa.");
     }
     if (!name || String(name).trim() === "") {
       return badRequest(res, "name puuttuu.");
@@ -1815,16 +1705,15 @@ app.post("/api/work-phases", async (req, res, next) => {
       return badRequest(res, "createdBy puuttuu.");
     }
     const { rows } = await query(
-      `INSERT INTO work_phases (project_id, name, description, owner, lead_littera_id, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING work_phase_id`,
+      `INSERT INTO work_packages (project_id, code, name, responsible_user_id, status)
+       VALUES ($1,$2,$3,$4,$5)
+       RETURNING id AS work_phase_id`,
       [
         projectId,
+        String(code).trim(),
         String(name).trim(),
-        description ? String(description).trim() : null,
         owner ? String(owner).trim() : null,
-        leadLitteraId || null,
-        String(createdBy).trim(),
+        "ACTIVE"
       ]
     );
     res.status(201).json({ work_phase_id: rows[0].work_phase_id });
@@ -1835,102 +1724,7 @@ app.post("/api/work-phases", async (req, res, next) => {
 
 app.post("/api/work-phases/:workPhaseId/version", async (req, res, next) => {
   try {
-    const { workPhaseId } = req.params;
-    const { notes } = req.body || {};
-    const { rows: phaseRows } = await query(
-      "SELECT project_id FROM work_phases WHERE work_phase_id=$1",
-      [workPhaseId]
-    );
-    if (phaseRows.length === 0) {
-      return res.status(404).json({ error: "Työvaihetta ei löytynyt." });
-    }
-    const projectId = phaseRows[0].project_id;
-    if (!requireProjectAccess(req, res, projectId, "editor")) {
-      return;
-    }
-    const { rowCount: baselineCount } = await query(
-      "SELECT 1 FROM v_work_phase_latest_baseline WHERE work_phase_id=$1",
-      [workPhaseId]
-    );
-    if (baselineCount > 0) {
-      return res.status(409).json({ error: "BASELINE_ALREADY_LOCKED" });
-    }
-
-    const { rows: userRows } = await query(
-      "SELECT username FROM users WHERE user_id=$1",
-      [req.user?.userId]
-    );
-    const createdBy = userRows[0]?.username || "user";
-
-    await withClient(async (client) => {
-      await client.query("BEGIN");
-      try {
-        const { rows: maxRows } = await client.query(
-          "SELECT COALESCE(MAX(version_no), 0) AS max_version FROM work_phase_versions WHERE work_phase_id=$1",
-          [workPhaseId]
-        );
-        const nextVersionNo = Number(maxRows[0]?.max_version || 0) + 1;
-
-        const { rows: currentRows } = await client.query(
-          "SELECT work_phase_version_id FROM v_work_phase_current_version WHERE work_phase_id=$1",
-          [workPhaseId]
-        );
-        const sourceVersionId = currentRows[0]?.work_phase_version_id || null;
-
-        await client.query(
-          "UPDATE work_phase_versions SET status='RETIRED' WHERE work_phase_id=$1 AND status='ACTIVE'",
-          [workPhaseId]
-        );
-
-        const { rows: insertRows } = await client.query(
-          `INSERT INTO work_phase_versions
-             (project_id, work_phase_id, version_no, status, notes, created_by)
-           VALUES ($1,$2,$3,'ACTIVE',$4,$5)
-           RETURNING work_phase_version_id`,
-          [
-            projectId,
-            workPhaseId,
-            nextVersionNo,
-            notes ? String(notes).trim() : null,
-            createdBy,
-          ]
-        );
-        const newVersionId = insertRows[0].work_phase_version_id;
-
-        if (sourceVersionId) {
-          await client.query(
-            `INSERT INTO work_phase_members (
-               project_id,
-               work_phase_version_id,
-               member_type,
-               littera_id,
-               item_code,
-               item_desc,
-               note,
-               created_by
-             )
-             SELECT
-               project_id,
-               $1,
-               member_type,
-               littera_id,
-               item_code,
-               item_desc,
-               note,
-               $2
-             FROM work_phase_members
-             WHERE work_phase_version_id=$3`,
-            [newVersionId, createdBy, sourceVersionId]
-          );
-        }
-
-        await client.query("COMMIT");
-        res.status(201).json({ work_phase_version_id: newVersionId });
-      } catch (err) {
-        await client.query("ROLLBACK");
-        throw err;
-      }
-    });
+    return res.status(501).json({ error: "WORK_PACKAGE_VERSIONS_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -1938,22 +1732,7 @@ app.post("/api/work-phases/:workPhaseId/version", async (req, res, next) => {
 
 app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
   try {
-    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
-      return;
-    }
-    const { workPhaseId } = req.params;
-    const { projectId } = req.query;
-    if (!projectId) {
-      return badRequest(res, "projectId puuttuu.");
-    }
-    const { rows } = await query(
-      `SELECT work_phase_weekly_update_id, week_ending, percent_complete, progress_notes, risks, created_by, created_at
-       FROM work_phase_weekly_updates
-       WHERE project_id=$1 AND work_phase_id=$2
-       ORDER BY week_ending DESC, created_at DESC`,
-      [projectId, workPhaseId]
-    );
-    res.json(rows);
+    return res.status(501).json({ error: "WORK_PACKAGE_WEEKLY_UPDATES_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -1961,36 +1740,7 @@ app.get("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) =
 
 app.post("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) => {
   try {
-    if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
-      return;
-    }
-    const { workPhaseId } = req.params;
-    const { projectId, weekEnding, percentComplete, progressNotes, risks, createdBy } = req.body;
-    if (!projectId || !weekEnding) {
-      return badRequest(res, "projectId ja weekEnding puuttuu.");
-    }
-    if (percentComplete === null || percentComplete === undefined || percentComplete === "") {
-      return badRequest(res, "percentComplete puuttuu.");
-    }
-    if (!createdBy || String(createdBy).trim() === "") {
-      return badRequest(res, "createdBy puuttuu.");
-    }
-    const { rows } = await query(
-      `INSERT INTO work_phase_weekly_updates
-        (project_id, work_phase_id, week_ending, percent_complete, progress_notes, risks, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
-       RETURNING work_phase_weekly_update_id`,
-      [
-        projectId,
-        workPhaseId,
-        weekEnding,
-        toNumber(percentComplete),
-        progressNotes ? String(progressNotes).trim() : null,
-        risks ? String(risks).trim() : null,
-        String(createdBy).trim(),
-      ]
-    );
-    res.status(201).json({ work_phase_weekly_update_id: rows[0].work_phase_weekly_update_id });
+    return res.status(501).json({ error: "WORK_PACKAGE_WEEKLY_UPDATES_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -1998,22 +1748,7 @@ app.post("/api/work-phases/:workPhaseId/weekly-updates", async (req, res, next) 
 
 app.get("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
   try {
-    if (!requireProjectAccess(req, res, req.query.projectId, "viewer")) {
-      return;
-    }
-    const { projectId } = req.query;
-    const { workPhaseId } = req.params;
-    if (!projectId) {
-      return badRequest(res, "projectId puuttuu.");
-    }
-    const { rows } = await query(
-      `SELECT ghost_cost_entry_id, week_ending, cost_type, entered_amount, settled_amount, open_amount
-       FROM v_ghost_open_entries
-       WHERE project_id=$1 AND work_phase_id=$2
-       ORDER BY week_ending DESC`,
-      [projectId, workPhaseId]
-    );
-    res.json(rows);
+    return res.status(501).json({ error: "WORK_PACKAGE_GHOSTS_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -2021,39 +1756,7 @@ app.get("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
 
 app.post("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
   try {
-    if (!requireProjectAccess(req, res, req.body.projectId, "editor")) {
-      return;
-    }
-    const { workPhaseId } = req.params;
-    const { projectId, weekEnding, costType, amount, description, createdBy } = req.body;
-    if (!projectId || !weekEnding) {
-      return badRequest(res, "projectId ja weekEnding puuttuu.");
-    }
-    if (!costType) {
-      return badRequest(res, "costType puuttuu.");
-    }
-    if (amount === null || amount === undefined || amount === "") {
-      return badRequest(res, "amount puuttuu.");
-    }
-    if (!createdBy || String(createdBy).trim() === "") {
-      return badRequest(res, "createdBy puuttuu.");
-    }
-    const { rows } = await query(
-      `INSERT INTO ghost_cost_entries
-        (project_id, work_phase_id, week_ending, cost_type, amount, description, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
-       RETURNING ghost_cost_entry_id`,
-      [
-        projectId,
-        workPhaseId,
-        weekEnding,
-        String(costType).toUpperCase(),
-        toNumber(amount),
-        description ? String(description).trim() : null,
-        String(createdBy).trim(),
-      ]
-    );
-    res.status(201).json({ ghost_cost_entry_id: rows[0].ghost_cost_entry_id });
+    return res.status(501).json({ error: "WORK_PACKAGE_GHOSTS_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
@@ -2061,35 +1764,7 @@ app.post("/api/work-phases/:workPhaseId/ghosts", async (req, res, next) => {
 
 app.post("/api/ghosts/:ghostId/settlements", async (req, res, next) => {
   try {
-    if (!requireProjectAccess(req, res, req.body.projectId, "manager")) {
-      return;
-    }
-    const { ghostId } = req.params;
-    const { projectId, settledAmount, settledBy, notes } = req.body;
-    if (!projectId) {
-      return badRequest(res, "projectId puuttuu.");
-    }
-    if (settledAmount === null || settledAmount === undefined || settledAmount === "") {
-      return badRequest(res, "settledAmount puuttuu.");
-    }
-    if (!settledBy || String(settledBy).trim() === "") {
-      return badRequest(res, "settledBy puuttuu.");
-    }
-    const { rows } = await query(
-      "SELECT ghost_cost_entry_id FROM ghost_cost_entries WHERE ghost_cost_entry_id=$1 AND project_id=$2",
-      [ghostId, projectId]
-    );
-    if (rows.length === 0) {
-      return badRequest(res, "Ghost-kirjausta ei löydy.");
-    }
-    const { rows: insertRows } = await query(
-      `INSERT INTO ghost_cost_settlements
-        (ghost_cost_entry_id, settled_amount, settled_by, notes)
-       VALUES ($1,$2,$3,$4)
-       RETURNING ghost_cost_settlement_id`,
-      [ghostId, toNumber(settledAmount), String(settledBy).trim(), notes ? String(notes).trim() : null]
-    );
-    res.status(201).json({ ghost_cost_settlement_id: insertRows[0].ghost_cost_settlement_id });
+    return res.status(501).json({ error: "WORK_PACKAGE_GHOSTS_NOT_IMPLEMENTED" });
   } catch (err) {
     next(err);
   }
