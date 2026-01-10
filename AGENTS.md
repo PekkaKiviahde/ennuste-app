@@ -2,111 +2,140 @@
 
 Tämä tiedosto kertoo Codexille (ja ihmisille) miten tässä repossa toimitaan.
 
+## KÄYTTÖ (Codexille)
+
+### Työskentelytapa
+- Etene **yksi askel kerrallaan**:
+  - yksi komento TAI yksi pieni muutoskokonaisuus.
+- Älä tee laajoja muutoksia yhdellä kertaa ilman perustelua.
+- Jos muutos koskee DB:tä/migraatioita/infra-kerrosta:
+  - lisää PR-tekstiin manuaalitestausohje (komennot + mitä tarkistaa).
+
+### Git
+- Luo branch: `codex/<aihe>-YYYYMMDD`
+- Tee pienet commitit.
+- Commit-viestit: `feat: ...`, `fix: ...`, `chore: ...`
+
+---
+
 ## Missio
 
 Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
 - kaikki ennusteet ja perustelut jäävät **append-only lokiin**
 - työnjohdon **suunnittelu** on oma vaihe ennen ennustusta
 - tavoitearvio tuodaan (laskentaosasto) → sen jälkeen alkaa tuotannon **mäppäys** (työntaloudellinen suunnittelu)
-- mäppäyksessä tavoitearvion rivit siirretään tuotannon työn alle, jossa kustannus “tehdään”
-- mäppäys tukee myös hankintoja: työpaketti voidaan liittää hankintapakettiin (urakka/sopimus)
-- raportointi pystyy aggregoimaan sekä työpaketit että tavoitearvion litterat (0–9 pääryhmät)
+- mäppäyksessä tavoitearvion rivit liitetään:
+  - **työpaketteihin** (tuotannon ohjaus; toteutus työmaalla)
+  - **hankintapaketteihin** (sopimus/ostokori; omistaja toimisto tai työmaa)
+- raportointi aggregoi sekä työlitterat että tavoitearvion litterat (ryhmittely 0–9)
 
-## Tärkeät rajoitteet
+---
+
+## Tärkeät rajoitteet (invariantit)
 
 - ÄLÄ poista historiaa: loki on append-only (audit trail).
-- Kaikki muutokset speksiin vaativat päivityksen myös `docs/adr/` päätöksiin (ADR).
-- Excel on lähde/proto: älä oleta, että Excelin kaavat ovat sovelluksen totuus – sovelluksen totuus on `spec/`.
-- ÄLÄ kovakoodaa yrityskohtaisia “koodisääntöjä” MVP:hen (esim. 6700→2500 automaattisesti).
-  MVP:ssä mäppäys on tuotannon tekemä (manuaalinen), ja järjestelmä voi vain ehdottaa.
+- Suunnitelma ennen ennustetta:
+  - ennustetta ei luoda ilman suunnitelmaa oikeassa tilassa.
+- Excel on lähde/proto:
+  - älä oleta, että Excelin kaavat ovat sovelluksen totuus.
+  - sovelluksen totuus on `spec/` + toteutuksen säännöt.
+- Jos muutat speksiä:
+  - päivitä tarvittaessa myös `docs/adr/` (miksi tehtiin näin).
 
-## Repon kartta
+---
 
-- `spec/data-model/` – tietomalli ja kenttämäärittelyt
-- `spec/workflows/` – prosessikaaviot ja MVP-virrat
-- `spec/imports/` – Jyda/Excel tuonnit ja validointi
-- `docs/adr/` – päätösdokumentit (miksi tehtiin näin)
-- `tools/scripts/` – analyysi- ja validointiskriptit
-- `excel/` ja `vba/` – nykyisen työkalun lähdeaineisto
+## Repon kartta (oleelliset polut)
 
-## Ensimmäisen sprintin tuotokset (pyydettäessä tee PR)
+- `apps/web/` – Next.js UI
+- `packages/domain/` – domain-säännöt ja tyypit
+- `packages/application/` – usecaset ja sovelluslogiikan portit
+- `packages/infrastructure/` – DB/integraatiot ja repo-toteutukset
+- `migrations/` – SQL-migraatiot
+- `spec/` – speksi (dokumentoidut totuudet, ei “arvausta”)
+- `docs/` – dokumentaatio, ADR:t, runbookit
+- `tools/scripts/` – db-status, migrate, seed, testityökalut
+- `excel/` ja `vba/` – legacy-lähdeaineisto (taustaksi)
 
-1) `spec/data-model/01_entities.md`
-   - Littera, TavoitearvioRivi (item), Työpaketti, Hankintapaketti, Mäppäys, Suunnitelma, Ennustetapahtuma, Lukitus (baseline)
-2) `spec/workflows/01_mvp_flow.md`
-   - Tavoitearvio import → tuotannon mäppäys → baseline lukitus → viikkopäivitys → raportti
-3) `docs/ARCHITECTURE.md`
-   - lyhyt arkkitehtuurikuvaus ja komponentit (API/UI/DB)
-4) `docs/adr/0001-event-sourcing.md`
-   - päätös: append-only event log (perustelut + vaihtoehdot)
+---
 
-## Tyylisäännöt
+## Komennot (käytä näitä)
 
-- Käytä suomea (selkeä, lyhyt, tekninen).
-- Käytä termejä: työpaketti / hankintapaketti / tavoitearvio / tavoitearviorivi (item) / mäppäys / työpakettisuunnittelu / ennustetapahtuma / lukitus (baseline).
-- Kun teet muutoksia, lisää aina:
-  - “Mitä muuttui”
-  - “Miksi”
-  - “Miten testataan (manuaali)”
+### DB / migraatiot
+- Käynnistä DB: `npm run db:start` (tai `docker compose up -d`)
+- Migraatiotila: `npm run db:status`
+- Aja migraatiot: `npm run db:migrate`
+- Demo-seed: `npm run db:seed-demo`
 
-## Domain context (Talo 80)
+### Dev
+- UI-dev: `npm run dev`
 
-### Kanoninen ohjedokumentti tässä repossa
+### Laatu
+- Typecheck: `npm run typecheck`
+- Lint: `npm run lint` (tällä hetkellä sama kuin typecheck)
+- Testit: `npm run test`
+  - Huom: integraatiotestit vaativat `DATABASE_URL` ja `SESSION_SECRET`.
+
+### Build (web)
+- `npm --workspace apps/web run build`
+
+---
+
+## Dokumentointipolitiikka
+
+- Juureen ei tehdä uusia `README*.md`-tiedostoja.
+- Kaikki uudet ohjeet ja runbookit menevät `docs/`-hakemistoon.
+- `docs/README.md` on docs-master.
+
+---
+
+## Domain context (Talo 80 + tavoitearvio → mäppäys)
+
+### Kanoninen ohjedokumentti
 - `docs/Talo80_handoff_v2.md`
-  - Talo 80 -tulkinta + yrityskohtaiset sovellukset + käsitteet (työpaketti vs hankinta vs tavoitearvio).
 
-### Talo 80 -koodisäännöt (MUST FOLLOW)
-- Littera on aina **4-numeroisena merkkijonona** (`^\d{4}$`).
-- Älä koskaan muuta leading zeroja: “0310” ei saa muuttua “310”.
-- Projektin “todellinen koodisto” syntyy tavoitearvion tuonnissa (yrityskohtaiset alalitterat voivat esiintyä).
-- Koonti (esim. 4100) vs alalitterat (esim. 4101/4102) on käytäntö:
-  - älä tee oletusta “viimeinen numero nollaksi” ainoana sääntönä
-  - jos roll-up tarvitaan, tee se konfiguroitavasti (dictionary/taulu) ja dokumentoi.
+### Koodisäännöt
+- 4-numeroiset koodit (littera/paketit) tallennetaan merkkijonona.
+- Leading zeros ei saa kadota (esim. “0310” säilyy).
+- MVP:ssä EI tehdä automaattisia “koodisääntömuunnoksia” (esim. VSS 6700→2500).
+  Mäppäys on manuaalinen ja järjestelmä voi vain ehdottaa.
 
-## Tavoitearvio: tuonti → tuotannon mäppäys (MVP-ydin)
+### Mäppäyksen perusyksikkö
+- Mäppäyksen perusyksikkö on **tavoitearviorivi / budget_item** (item-koodi), ei pelkkä 4-num littera.
 
-### 1) Laskentaosasto tuottaa tavoitearvioesityksen (esim. Estima)
-- Tämä exportataan ja importataan sovellukseen (TARGET_ESTIMATE import_batch).
+### Hankintapaketti vs työpaketti
+- Hankintapaketti = sopimus/ostokori (OFFICE tai SITE).
+- Työpaketti = tekemisen ohjauskori (work_phase; SITE).
 
-### 2) Tuonnin jälkeen alkaa tuotannon mäppäys (työntaloudellinen suunnittelu)
-Mäppäyksen tarkoitus:
-- siirtää tavoitearvion rivit tuotannon töiden alle (työpaketit), joissa kustannus syntyy
-- koota rivejä toimittajan ja asennusporukan/aliurakoitsijan mukaisesti (esim. “pystyelementit” yhteen)
+---
 
-MVP:ssä mäppäys EI ole automaattinen koodisääntö.
-- Järjestelmä voi ehdottaa (hakusana, toimittaja-teksti, aiempi projekti).
-- Ihminen hyväksyy.
+## Append-only item-mäppäys (pakollinen)
 
-### 3) Mäppäyksen perusyksikkö (MVP)
-- Perusyksikkö = **tavoitearviorivi** (item / tuontirivi / item-koodi), ei pelkkä 4-num littera.
-- Sama 4-num littera voi sisältää useita item-rivejä; tuotanto voi koota ne uudelleen työpaketeiksi.
+### Miksi
+Historia ei saa ylikirjoittua. Älä käytä `ON CONFLICT DO UPDATE` item-mäppäyksessä.
 
-### 4) Mäppäyksen kohde (MVP)
-- Jokainen item-rivi mäpätään:
-  1) **työpakettiin** (work_phase / tuotannon työ)
-  2) ja työpaketti voidaan liittää **hankintapakettiin** (urakka/sopimus)
+### Taulut ja näkymä
+- `mapping_versions` (DRAFT/ACTIVE) + `mapping_kind` erottaa item vs littera mappingit.
+- `row_mappings` on append-only:
+  - jokainen assign = uusi rivi.
+- `v_current_item_mappings` palauttaa kullekin budget_item_id:lle viimeisimmän rivin ACTIVE item-mäppäysversiosta.
 
-Oletus MVP:ssä (KISS):
-- työpaketti ↔ hankintapaketti on 1:1 (yksi pääasiallinen sopimus per työpaketti)
-- item-tason hankintajako (1 työpaketti → usea sopimus) on myöhempi laajennus
+### Säännöt
+- Vain yksi ACTIVE per (project_id, import_batch_id, mapping_kind).
+- Read-polku käyttää `v_current_item_mappings`.
+- Write-polku tekee INSERT `row_mappings` (ei upsert).
 
-### 5) VSS-esimerkki (ei automaatio)
-- Tavoitearviossa voi olla rivejä 6700 ja 2500.
-- Tuotanto voi päättää mäpätä 6700-rivejä työpakettiin, jonka “johtotunnus” on 2500 (VSS-rakenteet),
-  jotta työpaketin koostumus näyttää mistä se muodostuu.
-- Tämä tehdään mäppäyksellä (rivitason valinta), ei kovakoodatulla säännöllä.
+### Autofill (B4)
+- Kun riville asetetaan hankintapaketti (proc_package_id) ja työpaketti puuttuu,
+  täytä work_phase_id `proc_packages.default_work_package_id`:llä jos asetettu.
+- Älä tee työpaketti→hankintapaketti automaattia MVP:ssä (vain ehdotus myöhemmin).
 
-## Testattavuus (MVP)
+---
 
-Lisää vähintään 4 skenaariota `data/samples/`:
-1) leading zeros: 0310 säilyy tekstinä
-2) item-rivit mäpätään työpakettiin (esim. elementtirivejä useasta litterasta samaan työpakettiin)
-3) työpaketti linkitetään hankintapakettiin (1:1)
-4) raportti näyttää työpaketin “koostumuksen” item-tasolla (mistä muodostuu)
+## Kun teet muutoksia (pakollinen tapa raportoida)
 
-## Codex-tehtäväpromptien mallit
+Lisää aina (PR-tekstiin tai docs/runbookiin):
+- Mitä muuttui
+- Miksi
+- Miten testataan (manuaali tai komennot)
 
-- “Lue AGENTS.md ja `docs/Talo80_handoff_v2.md`. Toteuta tuotannon mäppäys item-tasolla työpaketteihin.”
-- “Lisää hankintapaketit (urakka/sopimus) ja linkitä työpaketti yhteen hankintapakettiin (MVP).”
-- “Tee näkymä: työpaketin koostumus item-tasolla (mitä rivejä siihen on mäpätty).”
-- “Tee ADR: miksi mäppäys on manuaalinen MVP:ssä (yrityskohtaiset tavoitearviotyylit).”
+Pidä teksti lyhyenä ja suomeksi.
