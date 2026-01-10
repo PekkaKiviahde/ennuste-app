@@ -49,6 +49,10 @@ Muunna Excel-ennustetyökalun toimintalogiikka sovellukseksi siten, että:
   - “Miksi”
   - “Miten testataan (manuaali)”
 
+## Codex-käynnistys (pakollinen)
+
+- Avaa aina `docs/runbooks/CODEX_STARTUP.md` ennen kuin ajat dev-ympäristöä.
+
 ## Domain context (Talo 80)
 
 ### Kanoninen ohjedokumentti tässä repossa
@@ -117,4 +121,3 @@ Lisää vähintään 4 skenaariota `data/samples/`:
 - `diagrams/architecture.mmd` – arkkitehtuurin yleiskuva
 
   
-
