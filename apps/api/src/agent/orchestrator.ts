@@ -8,9 +8,10 @@ import { execShell } from "./tools/exec";
 import { isPathAllowed } from "./tools/paths";
 import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
 import { createOpenAIClient, callModelText } from "./openaiClient";
+import { runCleanup, runPreflight } from "./preflight";
 
 export type ChangeRequest = {
-  projectId?: string;
+  projectId: string;
   task: string;
   dryRun?: boolean;
 };
@@ -96,6 +97,38 @@ function summarizePrompt(prompt: string): { promptChars: number; promptHash: str
   return { promptChars: prompt.length, promptHash: hashValue(prompt) };
 }
 
+function tryParseJson(raw: string): any | null {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // fallthrough
+  }
+
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    const slice = raw.slice(start, end + 1);
+    try {
+      return JSON.parse(slice);
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function parseChangedFilesFromPatch(patch: string): string[] {
+  const files: string[] = [];
+  const regex = /^diff --git a\/(.+?) b\/(.+)$/gm;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(patch)) !== null) {
+    const next = match[2] === "/dev/null" ? match[1] : match[2];
+    if (next && !files.includes(next)) files.push(next);
+  }
+  return files;
+}
+
 function runGateCommands(repoRoot: string, commands: string[]): { gateOk: boolean; results: GateResult[] } {
   const results: GateResult[] = [];
   for (const cmd of commands) {
@@ -122,39 +155,31 @@ export async function runChange(req: ChangeRequest) {
   if (!databaseUrl) throw new Error("DATABASE_URL missing");
 
   const memory = new AgentMemoryRepo(databaseUrl);
-  const sessionId = await memory.createSession(req.projectId ?? null);
+  const sessionId = await memory.createSession(req.projectId);
 
   await memory.addEvent(sessionId, "SESSION_START", {
-    projectId: req.projectId ?? null,
+    projectId: req.projectId,
     dryRun: !!req.dryRun,
     ...summarizeTask(req.task),
   });
 
   const branchName = makeBranchName(config.git.branchPrefix, req.task);
-  const openai = createOpenAIClient();
+
+  let preflight = null;
+  let cleanup = null;
+  let response: any = null;
 
   let lastError: string | null = null;
   let lastChanged: string[] = [];
   let lastCommitMessage = "";
 
   try {
-    const fetchBase = execShell(`git fetch ${config.git.remote}`, { cwd: repoRoot });
-    if (!fetchBase.ok) {
-      const detail = (fetchBase.stderr || fetchBase.stdout || "unknown error").trim();
-      throw new Error(`git fetch ${config.git.remote} failed: ${detail}`);
+    preflight = await runPreflight(repoRoot, sessionId, config.git);
+    if (!preflight.ok) {
+      throw new Error(preflight.error ?? "preflight failed");
     }
 
-    const checkoutBase = execShell(`git checkout ${config.git.baseBranch}`, { cwd: repoRoot });
-    if (!checkoutBase.ok) {
-      const detail = (checkoutBase.stderr || checkoutBase.stdout || "unknown error").trim();
-      throw new Error(`git checkout ${config.git.baseBranch} failed: ${detail}`);
-    }
-
-    const resetBase = execShell(`git reset --hard ${config.git.remote}/${config.git.baseBranch}`, { cwd: repoRoot });
-    if (!resetBase.ok) {
-      const detail = (resetBase.stderr || resetBase.stdout || "unknown error").trim();
-      throw new Error(`git reset --hard ${config.git.remote}/${config.git.baseBranch} failed: ${detail}`);
-    }
+    const openai = createOpenAIClient();
 
     const checkoutBranch = execShell(`git checkout -b ${branchName}`, { cwd: repoRoot });
     if (!checkoutBranch.ok) {
@@ -176,10 +201,8 @@ export async function runChange(req: ChangeRequest) {
 
       const raw = await callModelText(openai, model, prompt);
 
-      let parsed: any = null;
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
+      const parsed = tryParseJson(raw);
+      if (!parsed) {
         lastError = "Model did not return valid JSON";
         continue;
       }
@@ -190,6 +213,30 @@ export async function runChange(req: ChangeRequest) {
       if (!patch.includes("diff --git")) {
         lastError = "Patch missing diff --git header";
         continue;
+      }
+
+      if (req.dryRun) {
+        const changed = parseChangedFilesFromPatch(patch);
+        lastChanged = changed;
+        lastCommitMessage = commitMessage;
+        await memory.addEvent(sessionId, "DONE", {
+          status: "ok",
+          branchName,
+          commitMessage,
+          changedFiles: changed,
+          dryRun: true,
+        });
+        response = {
+          status: "ok",
+          mode: "change",
+          sessionId,
+          branchName,
+          commitMessage,
+          changedFiles: changed,
+          gateCommands,
+          dryRun: true,
+        };
+        return response;
       }
 
       const patchFile = writeTempPatch(repoRoot, patch);
@@ -254,8 +301,9 @@ export async function runChange(req: ChangeRequest) {
             changedFiles: changed,
             reason: lastError,
           });
-          return {
+          response = {
             status: "failed",
+            mode: "change",
             sessionId,
             branchName,
             commitMessage,
@@ -263,6 +311,7 @@ export async function runChange(req: ChangeRequest) {
             gateCommands,
             error: lastError,
           };
+          return response;
         }
       }
 
@@ -273,14 +322,16 @@ export async function runChange(req: ChangeRequest) {
         changedFiles: changed,
       });
 
-      return {
+      response = {
         status: "ok",
+        mode: "change",
         sessionId,
         branchName,
         commitMessage,
         changedFiles: changed,
         gateCommands,
       };
+      return response;
     }
 
     await memory.addEvent(sessionId, "DONE", {
@@ -291,8 +342,9 @@ export async function runChange(req: ChangeRequest) {
       reason: lastError ?? "max iterations exceeded",
     });
 
-    return {
+    response = {
       status: "failed",
+      mode: "change",
       sessionId,
       branchName,
       commitMessage: lastCommitMessage,
@@ -300,6 +352,7 @@ export async function runChange(req: ChangeRequest) {
       gateCommands,
       error: lastError ?? "max iterations exceeded",
     };
+    return response;
   } catch (error) {
     const message = safeErrorMessage(error);
     await memory.addEvent(sessionId, "DONE", {
@@ -309,8 +362,9 @@ export async function runChange(req: ChangeRequest) {
       changedFiles: lastChanged,
       reason: message,
     });
-    return {
+    response = {
       status: "failed",
+      mode: "change",
       sessionId,
       branchName,
       commitMessage: lastCommitMessage,
@@ -318,7 +372,13 @@ export async function runChange(req: ChangeRequest) {
       gateCommands,
       error: message,
     };
+    return response;
   } finally {
+    cleanup = await runCleanup(repoRoot);
+    if (response) {
+      response.preflight = preflight;
+      response.cleanup = cleanup;
+    }
     await memory.close();
   }
 }

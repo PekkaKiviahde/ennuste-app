@@ -1,10 +1,17 @@
 import express from "express";
 import { handleProjectCoach } from "./routes/projectCoach";
 import agentRouter from "./routes/agent.routes";
+import { checkEnv } from "./config/env";
 
 const app = express();
-const port = Number(process.env.APP_PORT || process.env.PORT || 3001);
-const host = process.env.APP_HOST || "127.0.0.1";
+const required = checkEnv(["DATABASE_URL", "AGENT_INTERNAL_TOKEN"]);
+if (!required.ok) {
+  console.error(`Missing required env vars: ${required.missing.join(", ")}`);
+  process.exit(1);
+}
+
+const host = process.env.APP_HOST?.trim() || "127.0.0.1";
+const port = Number(process.env.APP_PORT || 3011);
 
 app.use(express.json());
 

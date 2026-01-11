@@ -29,6 +29,15 @@ docker compose ps
 curl -s http://localhost:${APP_PORT:-3000}/api/health
 ```
 
+5. Testaa agent /agent/run (change, dryRun):
+
+```bash
+curl -s -X POST "http://localhost:${APP_PORT:-3000}/agent/run" \
+  -H "Content-Type: application/json" \
+  -H "x-internal-token: ${AGENT_INTERNAL_TOKEN}" \
+  -d '{"mode":"change","projectId":"<project_id>","task":"Smoke run","dryRun":true}'
+```
+
 ## Jos etäympäristö (Codespaces/Container)
 
 - Avaa portti 3000 Ports-näkymästä ja käytä sieltä annettua URL:ia.
