@@ -43,7 +43,10 @@ BEGIN
   END LOOP;
 
   IF array_length(v_missing, 1) IS NOT NULL THEN
-    errors := errors || ('APPEND_ONLY: Append-only trigger puuttuu tauluista: ' || array_to_string(v_missing, ', '));
+    errors := array_append(
+      errors,
+      'APPEND_ONLY: Append-only trigger puuttuu tauluista: ' || array_to_string(v_missing, ', ')
+    );
   END IF;
 
   -- 2) Tenant-raja: projects.organization_id olemassa + NOT NULL + FK
@@ -51,14 +54,14 @@ BEGIN
     SELECT 1 FROM information_schema.tables
     WHERE table_schema = 'public' AND table_name = 'projects'
   ) THEN
-    errors := errors || 'TENANT: relation "projects" does not exist';
+    errors := array_append(errors, 'TENANT: relation "projects" does not exist');
   END IF;
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.tables
     WHERE table_schema = 'public' AND table_name = 'organizations'
   ) THEN
-    errors := errors || 'TENANT: relation "organizations" does not exist';
+    errors := array_append(errors, 'TENANT: relation "organizations" does not exist');
   END IF;
 
   IF EXISTS (
@@ -73,7 +76,7 @@ BEGIN
         AND column_name = 'organization_id'
         AND is_nullable = 'NO'
     ) THEN
-      errors := errors || 'TENANT: projects.organization_id puuttuu tai sallii NULL-arvon (tenant-raja rikki)';
+      errors := array_append(errors, 'TENANT: projects.organization_id puuttuu tai sallii NULL-arvon (tenant-raja rikki)');
     END IF;
 
     IF NOT EXISTS (
@@ -81,7 +84,7 @@ BEGIN
       FROM pg_constraint
       WHERE conname = 'projects_organization_id_fkey'
     ) THEN
-      errors := errors || 'TENANT: projects.organization_id FK puuttuu (tenant-raja rikki)';
+      errors := array_append(errors, 'TENANT: projects.organization_id FK puuttuu (tenant-raja rikki)');
     END IF;
 
     BEGIN
@@ -90,10 +93,10 @@ BEGIN
         FROM projects
         WHERE organization_id IS NULL
       ) THEN
-        errors := errors || 'TENANT: projects.organization_id sisältää NULL-arvoja (tenant-raja rikki)';
+        errors := array_append(errors, 'TENANT: projects.organization_id sisältää NULL-arvoja (tenant-raja rikki)');
       END IF;
     EXCEPTION WHEN undefined_column THEN
-      errors := errors || ('TENANT: projects.organization_id puuttuu (undefined_column): ' || SQLERRM);
+      errors := array_append(errors, 'TENANT: projects.organization_id puuttuu (undefined_column): ' || SQLERRM);
     END;
   END IF;
 
@@ -103,7 +106,7 @@ BEGIN
      NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='litteras') OR
      NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='forecast_events')
   THEN
-    errors := errors || 'PLAN_BEFORE_FORECAST: tarvittavat taulut puuttuvat (organizations/projects/litteras/forecast_events)';
+    errors := array_append(errors, 'PLAN_BEFORE_FORECAST: tarvittavat taulut puuttuvat (organizations/projects/litteras/forecast_events)');
   ELSE
     BEGIN
       INSERT INTO organizations (slug, name, created_by)
@@ -126,24 +129,26 @@ BEGIN
         INSERT INTO forecast_events (
           project_id,
           target_littera_id,
+          forecast_date,
           created_by,
           source
         ) VALUES (
           v_project_id,
           v_littera_id,
+          CURRENT_DATE,
           'verify',
           'UI'
         );
 
-        errors := errors || 'PLAN_BEFORE_FORECAST: Plan-before-forecast gate ei estänyt insertiä';
+        errors := array_append(errors, 'PLAN_BEFORE_FORECAST: Plan-before-forecast gate ei estänyt insertiä');
       EXCEPTION
         WHEN others THEN
           IF SQLERRM NOT LIKE 'Cannot create forecast:%' THEN
-            errors := errors || ('PLAN_BEFORE_FORECAST: Odotettu gate-virhe puuttui. Syy: ' || SQLERRM);
+            errors := array_append(errors, 'PLAN_BEFORE_FORECAST: Odotettu gate-virhe puuttui. Syy: ' || SQLERRM);
           END IF;
       END;
     EXCEPTION WHEN others THEN
-      errors := errors || ('PLAN_BEFORE_FORECAST: testidata epäonnistui. Syy: ' || SQLERRM);
+      errors := array_append(errors, 'PLAN_BEFORE_FORECAST: testidata epäonnistui. Syy: ' || SQLERRM);
     END;
   END IF;
 
