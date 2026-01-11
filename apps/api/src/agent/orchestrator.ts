@@ -139,13 +139,22 @@ export async function runChange(req: ChangeRequest) {
 
   try {
     const checkoutBase = execShell(`git checkout ${config.git.baseBranch}`, { cwd: repoRoot });
-    if (!checkoutBase.ok) throw new Error("git checkout base failed");
+    if (!checkoutBase.ok) {
+      const detail = (checkoutBase.stderr || checkoutBase.stdout || "unknown error").trim();
+      throw new Error(`git checkout base failed: ${detail}`);
+    }
 
     const pullBase = execShell(`git pull ${config.git.remote} ${config.git.baseBranch}`, { cwd: repoRoot });
-    if (!pullBase.ok) throw new Error("git pull base failed");
+    if (!pullBase.ok) {
+      const detail = (pullBase.stderr || pullBase.stdout || "unknown error").trim();
+      throw new Error(`git pull base failed: ${detail}`);
+    }
 
     const checkoutBranch = execShell(`git checkout -b ${branchName}`, { cwd: repoRoot });
-    if (!checkoutBranch.ok) throw new Error("git checkout -b failed");
+    if (!checkoutBranch.ok) {
+      const detail = (checkoutBranch.stderr || checkoutBranch.stdout || "unknown error").trim();
+      throw new Error(`git checkout -b failed: ${detail}`);
+    }
 
     const maxIterations = Math.max(1, config.openai.maxIterations || 1);
 
