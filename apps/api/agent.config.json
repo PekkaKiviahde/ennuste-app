@@ -1,0 +1,30 @@
+{
+  "allowedPaths": {
+    "backend": [
+      "apps/api/src",
+      "migrations"
+    ],
+    "ui": [
+      "apps/web/src"
+    ],
+    "debug": [
+      "apps",
+      "packages",
+      "migrations"
+    ]
+  },
+  "gateCommands": [
+    "npm run lint",
+    "npm run typecheck",
+    "npm test"
+  ],
+  "git": {
+    "baseBranch": "main",
+    "remote": "origin",
+    "branchPrefix": "agent/"
+  },
+  "openai": {
+    "model": "gpt-4.1-mini",
+    "maxIterations": 3
+  }
+}
