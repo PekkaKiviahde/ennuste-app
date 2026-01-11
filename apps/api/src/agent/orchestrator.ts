@@ -56,6 +56,19 @@ function hashValue(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+function safeErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  const replacements = [process.env.OPENAI_API_KEY, process.env.DATABASE_URL, process.env.AGENT_INTERNAL_TOKEN];
+  let cleaned = raw;
+  for (const value of replacements) {
+    if (value && value.length > 4) {
+      cleaned = cleaned.split(value).join("[redacted]");
+    }
+  }
+  if (cleaned.length > 2000) return cleaned.slice(0, 2000);
+  return cleaned;
+}
+
 function buildPatchPrompt(task: string, mission0: any, lastError: string | null): string {
   return [
     "Olet Backend/Debug-agentti. Tuota MUUTOSPATCH yhtena unified-diff -patchina.",
@@ -271,6 +284,24 @@ export async function runChange(req: ChangeRequest) {
       changedFiles: lastChanged,
       gateCommands,
       error: lastError ?? "max iterations exceeded",
+    };
+  } catch (error) {
+    const message = safeErrorMessage(error);
+    await memory.addEvent(sessionId, "DONE", {
+      status: "failed",
+      branchName,
+      commitMessage: lastCommitMessage,
+      changedFiles: lastChanged,
+      reason: message,
+    });
+    return {
+      status: "failed",
+      sessionId,
+      branchName,
+      commitMessage: lastCommitMessage,
+      changedFiles: lastChanged,
+      gateCommands,
+      error: message,
     };
   } finally {
     await memory.close();

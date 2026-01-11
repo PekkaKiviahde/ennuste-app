@@ -44,7 +44,8 @@ router.post("/run", requireInternalToken, async (req, res) => {
       });
       return res.json(result);
     } catch (error) {
-      return res.status(500).json({ status: "error", error: "runChange failed" });
+      const message = error instanceof Error ? error.message : "runChange failed";
+      return res.status(500).json({ status: "error", error: "runChange failed", details: message });
     }
   }
 
