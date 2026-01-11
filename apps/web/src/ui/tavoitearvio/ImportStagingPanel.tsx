@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { t } from "../i18n";
 
 type Issue = {
   issue_code: string;
@@ -250,11 +251,11 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
   return (
     <section className="card">
-      <h2>Staging-tuonti (tavoitearvio)</h2>
-      <p>CSV:ssa tulee olla Litterakoodi + kustannussarakkeet (Työ/Aine/Alih/Vmiehet/Muu tai Summa).</p>
+      <h2>{t("budgetImport.staging.title")}</h2>
+      <p>{t("budgetImport.staging.info.intro")}</p>
 
       <div className="form-grid">
-        <label className="label" htmlFor="staging-imported-by">Tuonut</label>
+        <label className="label" htmlFor="staging-imported-by">{t("budgetImport.staging.label.importedBy")}</label>
         <input
           id="staging-imported-by"
           className="input"
@@ -262,16 +263,27 @@ export default function ImportStagingPanel({ username }: { username: string }) {
           onChange={(event) => setActor(event.target.value)}
         />
 
-        <label className="label" htmlFor="staging-file">CSV-tiedosto</label>
-        <input
-          id="staging-file"
-          className="input"
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(event) => handleFileChange(event.target.files?.[0])}
-        />
+        <label className="label" htmlFor="staging-file">{t("budgetImport.staging.label.csvFile")}</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+          <input
+            id="staging-file"
+            className="input"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(event) => handleFileChange(event.target.files?.[0])}
+            style={{ position: "absolute", left: "-9999px" }}
+          />
+          <label
+            className="btn btn-secondary btn-sm"
+            htmlFor="staging-file"
+            title={t("budgetImport.staging.tooltip.chooseFile")}
+          >
+            {t("budgetImport.staging.button.chooseFile")}
+          </label>
+          {fileName ? <span className="muted">{fileName}</span> : null}
+        </div>
 
-        <label className="label" htmlFor="staging-batch-id">Staging batch ID</label>
+        <label className="label" htmlFor="staging-batch-id">{t("budgetImport.staging.label.batchId")}</label>
         <input
           id="staging-batch-id"
           className="input"
@@ -282,7 +294,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
         {showRepoImport && (
           <>
-            <label className="label" htmlFor="staging-repo-path">Repo-CSV polku</label>
+            <label className="label" htmlFor="staging-repo-path">{t("budgetImport.staging.label.repoCsvPath")}</label>
             <select
               id="staging-repo-path"
               className="input"
@@ -299,59 +311,103 @@ export default function ImportStagingPanel({ username }: { username: string }) {
       </div>
 
       <div className="status-actions">
-        <button className="btn btn-primary btn-sm" type="button" disabled={!hasFile} onClick={() => createStaging().catch((err) => setResult(err.message))}>
-          Luo staging
+        <button
+          className="btn btn-primary btn-sm"
+          type="button"
+          disabled={!hasFile}
+          title={t("budgetImport.staging.tooltip.createStaging")}
+          onClick={() => createStaging().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.createStaging")}
         </button>
         {showRepoImport && (
           <button
             className="btn btn-secondary btn-sm"
             type="button"
             disabled={!hasRepoChoices}
+            title={t("budgetImport.staging.tooltip.createStagingFromRepo")}
             onClick={() => createStagingFromRepo().catch((err) => setResult(err.message))}
           >
-            Luo staging repo-CSV:sta
+            {t("budgetImport.staging.button.createStagingFromRepo")}
           </button>
         )}
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => loadBatches().catch((err) => setResult(err.message))}>
-          Hae batchit
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.fetchBatches")}
+          onClick={() => loadBatches().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.fetchBatches")}
         </button>
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => loadLines(batchId).catch((err) => setResult(err.message))}>
-          Hae rivit
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.fetchRows")}
+          onClick={() => loadLines(batchId).catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.fetchRows")}
         </button>
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => showSummary().catch((err) => setResult(err.message))}>
-          Esikatsele siirto
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.previewTransfer")}
+          onClick={() => showSummary().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.previewTransfer")}
         </button>
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => approveBatch().catch((err) => setResult(err.message))}>
-          Hyväksy batch
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.approveBatch")}
+          onClick={() => approveBatch().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.approveBatch")}
         </button>
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => rejectBatch().catch((err) => setResult(err.message))}>
-          Hylkää batch
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.rejectBatch")}
+          onClick={() => rejectBatch().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.rejectBatch")}
         </button>
-        <button className="btn btn-secondary btn-sm" type="button" onClick={() => exportCsv().catch((err) => setResult(err.message))}>
-          Lataa CSV
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.downloadCsv")}
+          onClick={() => exportCsv().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.downloadCsv")}
         </button>
-        <button className="btn btn-primary btn-sm" type="button" onClick={() => commitBatch().catch((err) => setResult(err.message))}>
-          Siirrä budjettiin
+        <button
+          className="btn btn-primary btn-sm"
+          type="button"
+          title={t("budgetImport.staging.tooltip.transferToBudget")}
+          onClick={() => commitBatch().catch((err) => setResult(err.message))}
+        >
+          {t("budgetImport.staging.button.transferToBudget")}
         </button>
       </div>
 
       <div className="status-actions">
-        <label className="label">
-          <input type="checkbox" checked={force} onChange={(event) => setForce(event.target.checked)} /> Force siirto
+        <label className="label" title={t("budgetImport.staging.tooltipCheckbox.forceTransfer")}>
+          <input type="checkbox" checked={force} onChange={(event) => setForce(event.target.checked)} />{" "}
+          {t("budgetImport.staging.checkbox.forceTransfer")}
         </label>
-        <label className="label">
+        <label className="label" title={t("budgetImport.staging.tooltipCheckbox.allowDuplicates")}>
           <input
             type="checkbox"
             checked={allowDuplicate}
             onChange={(event) => setAllowDuplicate(event.target.checked)}
-          /> Salli duplikaatti
+          />{" "}
+          {t("budgetImport.staging.checkbox.allowDuplicates")}
         </label>
       </div>
 
       {result && <div className="notice">{result}</div>}
 
       <div className="form-grid">
-        <label className="label" htmlFor="staging-mode">Näytä rivit</label>
+        <label className="label" htmlFor="staging-mode">{t("budgetImport.staging.label.rowMode")}</label>
         <select
           id="staging-mode"
           className="input"
@@ -364,12 +420,12 @@ export default function ImportStagingPanel({ username }: { username: string }) {
             }
           }}
         >
-          <option value="issues">Issues</option>
-          <option value="clean">Clean</option>
-          <option value="all">All</option>
+          <option value="issues">{t("budgetImport.staging.option.rowMode.issues")}</option>
+          <option value="clean">{t("budgetImport.staging.option.rowMode.clean")}</option>
+          <option value="all">{t("budgetImport.staging.option.rowMode.all")}</option>
         </select>
 
-        <label className="label" htmlFor="staging-severity">Severity</label>
+        <label className="label" htmlFor="staging-severity">{t("budgetImport.staging.label.severity")}</label>
         <select
           id="staging-severity"
           className="input"
@@ -382,21 +438,21 @@ export default function ImportStagingPanel({ username }: { username: string }) {
             }
           }}
         >
-          <option value="">Kaikki</option>
-          <option value="ERROR">ERROR</option>
-          <option value="WARN">WARN</option>
-          <option value="INFO">INFO</option>
+          <option value="">{t("budgetImport.staging.option.severity.all")}</option>
+          <option value="ERROR">{t("budgetImport.staging.option.severity.error")}</option>
+          <option value="WARN">{t("budgetImport.staging.option.severity.warn")}</option>
+          <option value="INFO">{t("budgetImport.staging.option.severity.info")}</option>
         </select>
 
-        <label className="label" htmlFor="staging-export-mode">CSV moodi</label>
+        <label className="label" htmlFor="staging-export-mode">{t("budgetImport.staging.label.exportMode")}</label>
         <select
           id="staging-export-mode"
           className="input"
           value={exportMode}
           onChange={(event) => setExportMode(event.target.value as "clean" | "all")}
         >
-          <option value="clean">clean</option>
-          <option value="all">all</option>
+          <option value="clean">{t("budgetImport.staging.option.exportMode.clean")}</option>
+          <option value="all">{t("budgetImport.staging.option.exportMode.all")}</option>
         </select>
       </div>
 
@@ -410,7 +466,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
                 {batch.status || "DRAFT"} · issueita={batch.issue_count}
               </div>
               <button className="btn btn-secondary btn-sm" type="button" onClick={() => setBatchId(batch.staging_batch_id)}>
-                Valitse batch
+                {t("budgetImport.staging.button.selectBatch")}
               </button>
             </div>
           ))}

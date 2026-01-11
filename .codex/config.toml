@@ -3,7 +3,7 @@
 # =========================
 
 # Päivittäinen tekeminen (nopea ja tehokas)
-model = "gpt-5.2-mini"
+model = "gpt-5.2"
 
 sandbox = "workspace-write"
 ask_for_approval = "on-request"
@@ -42,6 +42,6 @@ ask_for_approval = "never"
 
 # 🎨 UI / UX iterointi
 [profiles.ui]
-model = "gpt-5.2-mini"
+model = "gpt-5.2"
 sandbox = "workspace-write"
 ask_for_approval = "on-request"
