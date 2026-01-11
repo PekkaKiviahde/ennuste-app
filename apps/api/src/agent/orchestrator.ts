@@ -138,16 +138,22 @@ export async function runChange(req: ChangeRequest) {
   let lastCommitMessage = "";
 
   try {
+    const fetchBase = execShell(`git fetch ${config.git.remote}`, { cwd: repoRoot });
+    if (!fetchBase.ok) {
+      const detail = (fetchBase.stderr || fetchBase.stdout || "unknown error").trim();
+      throw new Error(`git fetch ${config.git.remote} failed: ${detail}`);
+    }
+
     const checkoutBase = execShell(`git checkout ${config.git.baseBranch}`, { cwd: repoRoot });
     if (!checkoutBase.ok) {
       const detail = (checkoutBase.stderr || checkoutBase.stdout || "unknown error").trim();
-      throw new Error(`git checkout base failed: ${detail}`);
+      throw new Error(`git checkout ${config.git.baseBranch} failed: ${detail}`);
     }
 
-    const pullBase = execShell(`git pull ${config.git.remote} ${config.git.baseBranch}`, { cwd: repoRoot });
-    if (!pullBase.ok) {
-      const detail = (pullBase.stderr || pullBase.stdout || "unknown error").trim();
-      throw new Error(`git pull base failed: ${detail}`);
+    const resetBase = execShell(`git reset --hard ${config.git.remote}/${config.git.baseBranch}`, { cwd: repoRoot });
+    if (!resetBase.ok) {
+      const detail = (resetBase.stderr || resetBase.stdout || "unknown error").trim();
+      throw new Error(`git reset --hard ${config.git.remote}/${config.git.baseBranch} failed: ${detail}`);
     }
 
     const checkoutBranch = execShell(`git checkout -b ${branchName}`, { cwd: repoRoot });
