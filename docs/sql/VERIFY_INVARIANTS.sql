@@ -10,12 +10,19 @@
 
 BEGIN;
 
--- 1) Append-only triggerit olemassa keskeisissä tauluissa
+-- Report-all: kerää kaikki puutteet ja kaada kerran lopussa.
 DO $$
 DECLARE
+  errors text[] := ARRAY[]::text[];
+
   v_table text;
   v_missing text[] := ARRAY[]::text[];
+
+  v_org_id uuid;
+  v_project_id uuid;
+  v_littera_id uuid;
 BEGIN
+  -- 1) Append-only triggerit olemassa keskeisissä tauluissa
   FOREACH v_table IN ARRAY ARRAY[
     'item_row_mappings',
     'forecast_events',
@@ -36,85 +43,113 @@ BEGIN
   END LOOP;
 
   IF array_length(v_missing, 1) IS NOT NULL THEN
-    RAISE EXCEPTION 'Append-only trigger puuttuu tauluista: %', array_to_string(v_missing, ', ');
+    errors := errors || ('APPEND_ONLY: Append-only trigger puuttuu tauluista: ' || array_to_string(v_missing, ', '));
   END IF;
-END $$;
 
--- 2) Tenant-raja: projects.organization_id olemassa + NOT NULL + FK
-DO $$
-DECLARE
-  v_missing integer;
-BEGIN
-  SELECT COUNT(*) INTO v_missing
-  FROM information_schema.columns
-  WHERE table_name = 'projects'
-    AND column_name = 'organization_id'
-    AND is_nullable = 'NO';
-
-  IF v_missing = 0 THEN
-    RAISE EXCEPTION 'projects.organization_id puuttuu tai sallii NULL-arvon (tenant-raja rikki)';
+  -- 2) Tenant-raja: projects.organization_id olemassa + NOT NULL + FK
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'projects'
+  ) THEN
+    errors := errors || 'TENANT: relation "projects" does not exist';
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'projects_organization_id_fkey'
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'organizations'
   ) THEN
-    RAISE EXCEPTION 'projects.organization_id FK puuttuu (tenant-raja rikki)';
+    errors := errors || 'TENANT: relation "organizations" does not exist';
   END IF;
 
   IF EXISTS (
-    SELECT 1
-    FROM projects
-    WHERE organization_id IS NULL
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'projects'
   ) THEN
-    RAISE EXCEPTION 'projects.organization_id sisältää NULL-arvoja (tenant-raja rikki)';
-  END IF;
-END $$;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'projects'
+        AND column_name = 'organization_id'
+        AND is_nullable = 'NO'
+    ) THEN
+      errors := errors || 'TENANT: projects.organization_id puuttuu tai sallii NULL-arvon (tenant-raja rikki)';
+    END IF;
 
--- 3) Plan-before-forecast: forecast ilman suunnitelmaa pitää estyä
-DO $$
-DECLARE
-  v_org_id uuid;
-  v_project_id uuid;
-  v_littera_id uuid;
-BEGIN
-  INSERT INTO organizations (slug, name, created_by)
-  VALUES (
-    'verify-org-' || substring(gen_random_uuid()::text, 1, 8),
-    'Verify org',
-    'verify'
-  )
-  RETURNING organization_id INTO v_org_id;
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_constraint
+      WHERE conname = 'projects_organization_id_fkey'
+    ) THEN
+      errors := errors || 'TENANT: projects.organization_id FK puuttuu (tenant-raja rikki)';
+    END IF;
 
-  INSERT INTO projects (organization_id, name)
-  VALUES (v_org_id, 'Verify project')
-  RETURNING project_id INTO v_project_id;
-
-  INSERT INTO litteras (project_id, code)
-  VALUES (v_project_id, 'V1000')
-  RETURNING littera_id INTO v_littera_id;
-
-  BEGIN
-    INSERT INTO forecast_events (
-      project_id,
-      target_littera_id,
-      created_by,
-      source
-    ) VALUES (
-      v_project_id,
-      v_littera_id,
-      'verify',
-      'UI'
-    );
-
-    RAISE EXCEPTION 'Plan-before-forecast gate ei estänyt insertiä';
-  EXCEPTION
-    WHEN others THEN
-      IF SQLERRM NOT LIKE 'Cannot create forecast:%' THEN
-        RAISE EXCEPTION 'Odotettu gate-virhe puuttui. Syy: %', SQLERRM;
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM projects
+        WHERE organization_id IS NULL
+      ) THEN
+        errors := errors || 'TENANT: projects.organization_id sisältää NULL-arvoja (tenant-raja rikki)';
       END IF;
-  END;
+    EXCEPTION WHEN undefined_column THEN
+      errors := errors || ('TENANT: projects.organization_id puuttuu (undefined_column): ' || SQLERRM);
+    END;
+  END IF;
+
+  -- 3) Plan-before-forecast: forecast ilman suunnitelmaa pitää estyä
+  IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='organizations') OR
+     NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='projects') OR
+     NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='litteras') OR
+     NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='forecast_events')
+  THEN
+    errors := errors || 'PLAN_BEFORE_FORECAST: tarvittavat taulut puuttuvat (organizations/projects/litteras/forecast_events)';
+  ELSE
+    BEGIN
+      INSERT INTO organizations (slug, name, created_by)
+      VALUES (
+        'verify-org-' || substring(gen_random_uuid()::text, 1, 8),
+        'Verify org',
+        'verify'
+      )
+      RETURNING organization_id INTO v_org_id;
+
+      INSERT INTO projects (organization_id, name)
+      VALUES (v_org_id, 'Verify project')
+      RETURNING project_id INTO v_project_id;
+
+      INSERT INTO litteras (project_id, code)
+      VALUES (v_project_id, 'V1000')
+      RETURNING littera_id INTO v_littera_id;
+
+      BEGIN
+        INSERT INTO forecast_events (
+          project_id,
+          target_littera_id,
+          created_by,
+          source
+        ) VALUES (
+          v_project_id,
+          v_littera_id,
+          'verify',
+          'UI'
+        );
+
+        errors := errors || 'PLAN_BEFORE_FORECAST: Plan-before-forecast gate ei estänyt insertiä';
+      EXCEPTION
+        WHEN others THEN
+          IF SQLERRM NOT LIKE 'Cannot create forecast:%' THEN
+            errors := errors || ('PLAN_BEFORE_FORECAST: Odotettu gate-virhe puuttui. Syy: ' || SQLERRM);
+          END IF;
+      END;
+    EXCEPTION WHEN others THEN
+      errors := errors || ('PLAN_BEFORE_FORECAST: testidata epäonnistui. Syy: ' || SQLERRM);
+    END;
+  END IF;
+
+  IF array_length(errors, 1) IS NOT NULL THEN
+    RAISE EXCEPTION E'Verify invariants failed:\n- %', array_to_string(errors, E'\n- ');
+  END IF;
 END $$;
 
 ROLLBACK;
