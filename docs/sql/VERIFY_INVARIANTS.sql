@@ -2,9 +2,9 @@
 -- Tarkistukset ydininvarianteille (append-only, plan-before-forecast, tenant-raja).
 --
 -- Mitä muuttui:
--- - Lisätty invarianttien tarkistusskripti (append-only, tenant-raja, plan-before-forecast).
+-- - Append-only tarkistus rajattu baseline-tauluihin ja triggerihaun konventio täsmennetty.
 -- Miksi:
--- - Automaattinen varmistus kriittisille sääntöille CI:ssä ja manuaaliajossa.
+-- - Vältetään vanhoihin tauluihin viittaaminen ja varmistetaan baselinen mukainen audit trail.
 -- Miten testataan (manuaali):
 -- - psql -v ON_ERROR_STOP=1 -f docs/sql/VERIFY_INVARIANTS.sql
 
@@ -17,23 +17,11 @@ DECLARE
   v_missing text[] := ARRAY[]::text[];
 BEGIN
   FOREACH v_table IN ARRAY ARRAY[
-    'planning_events',
+    'item_row_mappings',
     'forecast_events',
-    'forecast_event_lines',
-    'forecast_row_memos',
-    'forecast_calc_panel_snapshots',
-    'mapping_event_log',
-    'import_batches',
-    'budget_lines',
-    'budget_items',
-    'actual_cost_lines',
-    'work_phase_baselines',
-    'work_phase_baseline_lines',
-    'work_phase_weekly_updates',
-    'ghost_cost_entries',
-    'ghost_cost_settlements',
-    'work_phase_change_events',
-    'work_phase_change_approvals'
+    'forecast_event_rows',
+    'actuals_row_overrides',
+    'import_batches'
   ] LOOP
     IF NOT EXISTS (
       SELECT 1
@@ -41,7 +29,7 @@ BEGIN
       JOIN pg_class c ON c.oid = t.tgrelid
       WHERE c.relname = v_table
         AND NOT t.tgisinternal
-        AND t.tgname ILIKE '%append_only%'
+        AND t.tgname = v_table || '_append_only'
     ) THEN
       v_missing := array_append(v_missing, v_table);
     END IF;

@@ -1,0 +1,47 @@
+# =========================
+# Codex – Global default
+# =========================
+
+# Päivittäinen tekeminen (nopea ja tehokas)
+model = "gpt-5.2"
+
+sandbox = "workspace-write"
+ask_for_approval = "on-request"
+dangerously_bypass_approvals_and_sandbox = false
+
+[shell_environment_policy]
+inherit = "all"
+
+[features]
+auto_diff = true
+auto_apply = false
+long_context = true
+search = false
+
+# =========================
+# PROFIILIT / AGENTIT
+# =========================
+
+# 🔍 Projektikoutsi – ei koske koodiin
+[profiles.project_coach]
+model = "gpt-5.2"
+sandbox = "read-only"
+ask_for_approval = "never"
+
+# 🧱 DB / migraatiot – harkittu kirjoitus
+[profiles.db]
+model = "gpt-5.2"
+sandbox = "workspace-write"
+ask_for_approval = "on-request"
+
+# 🧐 Review ennen mergeä
+[profiles.review]
+model = "gpt-5.2"
+sandbox = "read-only"
+ask_for_approval = "never"
+
+# 🎨 UI / UX iterointi
+[profiles.ui]
+model = "gpt-5.2"
+sandbox = "workspace-write"
+ask_for_approval = "on-request"
