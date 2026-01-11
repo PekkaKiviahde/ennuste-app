@@ -1,0 +1,18 @@
+{
+  "repoRoot": "AUTO_GIT",
+  "allowedPaths": {
+    "backend": ["apps/api/src", "migrations"],
+    "ui": ["apps/web/src"],
+    "debug": ["apps", "packages", "migrations"]
+  },
+  "gateCommands": ["npm run lint", "npm run typecheck", "npm test"],
+  "git": {
+    "baseBranch": "main",
+    "remote": "origin",
+    "branchPrefix": "agent/"
+  },
+  "openai": {
+    "model": "FROM_ENV_OPENAI_MODEL",
+    "maxIterations": 3
+  }
+}
