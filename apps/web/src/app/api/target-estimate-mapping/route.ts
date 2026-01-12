@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paivitystiedot puuttuvat" }, { status: 400 });
     }
 
-    const updates = itemIds.map((targetEstimateItemId) => ({
+    const updates = itemIds.map((targetEstimateItemId: string) => ({
       targetEstimateItemId,
       ...(hasWorkPackage ? { workPackageId: body.workPackageId ?? null } : {}),
       ...(hasProcPackage ? { procPackageId: body.procPackageId ?? null } : {})
