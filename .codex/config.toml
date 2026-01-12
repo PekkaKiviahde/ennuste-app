@@ -1,1 +1,18 @@
-model = "gpt-5.2-codex"
+# Codex CLI – repo-kohtaiset oletukset
+#
+# Miksi tämä tiedosto on repo:ssa?
+# - Toistettavuus: samat oletukset kaikille (myös CI/automaatio).
+# - Turvallisuus: sandbox + approval-policy ovat eksplisiittisiä.
+#
+# Mitä tämä ohjaa?
+# - Codex CLI:n oletusmalli ja sandbox/approval -asetukset tämän repoon sisällä.
+
+model = "gpt-5.2"
+sandbox = "workspace-write"
+ask_for_approval = "on-request"
+dangerously_bypass_approvals_and_sandbox = false
+
+[shell_environment_policy]
+# Agentin ajo perustuu env-muuttujiin (esim. DATABASE_URL, AGENT_INTERNAL_TOKEN),
+# joten peritään ympäristö sellaisenaan; CI asettaa tarvittavat arvot.
+inherit = "all"
