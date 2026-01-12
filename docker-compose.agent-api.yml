@@ -1,6 +1,8 @@
 services:
   agent_api:
-    image: node:20
+    build:
+      context: .
+      dockerfile: Dockerfile.agent-api
     container_name: codex_agent_api
     restart: unless-stopped
     working_dir: /app
