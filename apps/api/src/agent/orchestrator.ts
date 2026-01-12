@@ -18,6 +18,14 @@ export type ChangeRequest = {
 
 type GateResult = { cmd: string; ok: boolean; code: number | null };
 
+type DiagGateEntry = {
+  cmd: string;
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+};
+
 function shellDetail(result: { stdout: string; stderr: string }): string {
   return (result.stderr || result.stdout || "unknown error").trim() || "unknown error";
 }
@@ -143,6 +151,43 @@ function runGateCommands(repoRoot: string, commands: string[]): { gateOk: boolea
   return { gateOk: true, results };
 }
 
+function findRepoRootFromFs(startDir: string): string {
+  let dir = startDir;
+  while (true) {
+    if (fs.existsSync(path.join(dir, ".git"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  throw new Error("repo root not found (.git missing)");
+}
+
+function limitDiagLog(value: string): string {
+  const normalized = value.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  const tailLines = lines.length > 80 ? lines.slice(lines.length - 80) : lines;
+  const joined = tailLines.join("\n");
+  if (joined.length <= 8000) return joined;
+  return joined.slice(joined.length - 8000);
+}
+
+function runDiagGate(repoRoot: string, commands: string[]): { status: "ok" | "failed"; gate: DiagGateEntry[] } {
+  const gate: DiagGateEntry[] = [];
+  for (const cmd of commands) {
+    const res = execShell(cmd, { cwd: repoRoot });
+    const entry: DiagGateEntry = {
+      cmd,
+      ok: res.ok,
+      code: res.code,
+      stdout: limitDiagLog(res.stdout),
+      stderr: limitDiagLog(res.stderr),
+    };
+    gate.push(entry);
+    if (!res.ok) return { status: "failed", gate };
+  }
+  return { status: "ok", gate };
+}
+
 function clearWorkingTree(repoRoot: string): void {
   execShell("git restore --staged --worktree .", { cwd: repoRoot });
   execShell("git clean -fd", { cwd: repoRoot });
@@ -167,6 +212,23 @@ function ensureGitSafeDirectory(): void {
 export async function runChange(req: ChangeRequest) {
   if (!req.projectId?.trim()) throw new Error("projectId missing");
   if (!req.task?.trim()) throw new Error("task missing");
+
+  // Manuaalitesti:
+  // curl -sS -H "x-internal-token: dev-token" -H "content-type: application/json" \
+  //   -d '{"mode":"change","projectId":"demo","dryRun":true,"task":"DIAG: gate smoke"}' \
+  //   http://127.0.0.1:3011/agent/run
+  if (req.task.trimStart().startsWith("DIAG:")) {
+    const repoRoot = findRepoRootFromFs(process.cwd());
+    const gateCommands = ["npm run lint", "npm run typecheck", "npm test"];
+    const { status, gate } = runDiagGate(repoRoot, gateCommands);
+    return {
+      status,
+      mode: "change",
+      diag: true,
+      gate,
+      changedFiles: [],
+    };
+  }
 
   ensureGitSafeDirectory();
   const repoRoot = getRepoRootFromGit();
