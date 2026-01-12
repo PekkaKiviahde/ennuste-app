@@ -10,8 +10,6 @@ function parseQueryBool(value: unknown): boolean {
   return false;
 }
 
-
-
 const FALLBACK_MESSAGE =
   "ProjectCoach: project is running, no blockers detected.";
 

@@ -7,7 +7,7 @@ export type Mission0Report = {
   repoRoot: string;
   node: { version: string; platform: string; arch: string };
   os: { type: string; release: string };
-  tree: any; // { name, type, children? }
+  tree: any;
   packageScripts: {
     repoRoot?: Record<string, string>;
     appsApi?: Record<string, string>;
@@ -29,14 +29,12 @@ function safeReadJson(filePath: string): any | null {
 }
 
 function getRepoRoot(): string {
-  // Ensisijainen: git-root
   try {
     const out = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8" }).trim();
     if (out) return out;
   } catch {
     // fallthrough
   }
-  // fallback: oletetaan että apps/api käynnistyy apps/api -kansiosta
   return path.resolve(process.cwd(), "../..");
 }
 
@@ -114,7 +112,6 @@ function gateCandidatesFromScripts(scripts: Record<string, string> | undefined):
   if (!scripts) return [];
   const wanted = ["lint", "typecheck", "test", "build"];
   const present = wanted.filter((k) => scripts[k]);
-  // Map to npm commands
   return present.map((k) => (k === "test" ? "npm test" : `npm run ${k}`));
 }
 
@@ -129,7 +126,6 @@ export function runMission0(): Mission0Report {
 
   const gate = [
     ...gateCandidatesFromScripts(rootScripts),
-    // jos rootista ei löydy mitään, yritä apps/api:sta
     ...(gateCandidatesFromScripts(apiScripts).filter((c) => !gateCandidatesFromScripts(rootScripts).includes(c))),
   ];
 
