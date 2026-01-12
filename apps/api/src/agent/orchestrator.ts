@@ -148,10 +148,27 @@ function clearWorkingTree(repoRoot: string): void {
   execShell("git clean -fd", { cwd: repoRoot });
 }
 
+function ensureGitSafeDirectory(): void {
+  const repoPath = "/app";
+  const gitDir = path.join(repoPath, ".git");
+  if (!fs.existsSync(gitDir)) return;
+
+  const cwd = "/";
+  const list = execShell("git config --global --get-all safe.directory", { cwd });
+  const entries = (list.ok ? list.stdout : "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (entries.includes(repoPath)) return;
+  execShell(`git config --global --add safe.directory ${repoPath}`, { cwd });
+}
+
 export async function runChange(req: ChangeRequest) {
   if (!req.projectId?.trim()) throw new Error("projectId missing");
   if (!req.task?.trim()) throw new Error("task missing");
 
+  ensureGitSafeDirectory();
   const repoRoot = getRepoRootFromGit();
 
   let memory: AgentMemoryRepo | null = null;
