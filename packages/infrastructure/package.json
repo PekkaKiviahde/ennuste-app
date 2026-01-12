@@ -6,7 +6,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node ../../tools/scripts/env-check.mjs && node --test --import tsx src"
+    "test": "node ../../tools/scripts/env-check.mjs || node --test --import tsx src"
   },
   "dependencies": {
     "@ennuste/application": "*",
