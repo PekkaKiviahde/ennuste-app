@@ -1,9 +1,13 @@
-import type { ReportPort } from "@ennuste/application";
+import type { ReportPort, WorkflowStatus } from "@ennuste/application";
 import { dbForTenant } from "./db";
 import { selectEffectivePlanningRows } from "./planning-selection";
 
+type WorkflowPlanningRow = NonNullable<WorkflowStatus["planning"]> & {
+  planning_event_id?: string | null;
+};
+
 const loadPlanningCurrent = async (tenantDb: ReturnType<typeof dbForTenant>, projectId: string) => {
-  const result = await tenantDb.query(
+  const result = await tenantDb.query<WorkflowPlanningRow>(
     "SELECT * FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC, planning_event_id DESC",
     [projectId]
   );
