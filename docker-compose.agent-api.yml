@@ -10,6 +10,7 @@ services:
       APP_HOST: "0.0.0.0"
       APP_PORT: "3011"
       AGENT_INTERNAL_TOKEN: ${AGENT_INTERNAL_TOKEN:-dev-token}
+      GH_TOKEN: ${GH_TOKEN}
       DATABASE_URL: postgresql://codex:codex@db:5432/codex
     ports:
       - "3011:3011"
@@ -21,6 +22,17 @@ services:
     command: >
       sh -lc "(git config --system --get-all safe.directory | grep -qx '*' ||
       git config --system --add safe.directory '*') &&
+      (if [ -z \"$$GH_TOKEN\" ]; then
+        echo NO_GH_TOKEN;
+      else
+        git config --global --replace-all credential.helper store &&
+        home=\"$$HOME\" &&
+        [ -n \"$$home\" ] || home=/root &&
+        credfile=\"$$home/.git-credentials\" &&
+        umask 077 &&
+        printf '%s\n' \"https://x-access-token:$$GH_TOKEN@github.com\" > \"$$credfile\" &&
+        chmod 600 \"$$credfile\";
+      fi) &&
       npm ci && npm --workspace apps/api run dev"
     depends_on:
       db:
