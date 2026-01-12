@@ -274,111 +274,100 @@ test("item mappings keep append-only rows and view shows latest", { skip: !datab
   );
   const projectId = projectResult.rows[0].project_id;
 
-  const litteraResult = await client.query(
-    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9001', 'Mapping Littera', 9) RETURNING littera_id",
-    [projectId]
-  );
-  const litteraId = litteraResult.rows[0].littera_id;
-
   const batchResult = await client.query(
-    "INSERT INTO import_batches (project_id, source_system, imported_by) VALUES ($1::uuid, 'TARGET_ESTIMATE', 'seed') RETURNING import_batch_id",
-    [projectId]
-  );
-  const importBatchId = batchResult.rows[0].import_batch_id;
-
-  const budgetItemResult = await client.query(
-    `INSERT INTO budget_items (
-      project_id, import_batch_id, littera_id, item_code, item_desc, row_no, total_eur, created_by
+    `INSERT INTO import_batches (
+      project_id,
+      kind,
+      source_system,
+      file_name,
+      file_hash,
+      created_by
     )
-    VALUES ($1::uuid, $2::uuid, $3::uuid, '9001001', 'Test Item', 1, 1000, 'seed')
-    RETURNING budget_item_id`,
-    [projectId, importBatchId, litteraId]
+    VALUES ($1::uuid, 'TARGET_ESTIMATE', 'SEED', 'seed.csv', $2, 'seed')
+    RETURNING id`,
+    [projectId, crypto.createHash("sha256").update(`seed-${suffix}`).digest("hex")]
   );
-  const budgetItemId = budgetItemResult.rows[0].budget_item_id;
+  const importBatchId = batchResult.rows[0].id;
 
-  const workPhaseResult = await client.query(
-    "INSERT INTO work_phases (project_id, name, created_by) VALUES ($1::uuid, $2, 'seed') RETURNING work_phase_id",
-    [projectId, `Phase ${suffix}`]
+  const itemResult = await client.query(
+    `INSERT INTO target_estimate_items (
+      import_batch_id,
+      item_code,
+      littera_code,
+      description,
+      sum_eur,
+      row_type
+    )
+    VALUES ($1::uuid, '9001001', '9001', 'Test Item', 1000, 'LEAF')
+    RETURNING id`,
+    [importBatchId]
   );
-  const workPhaseId = workPhaseResult.rows[0].work_phase_id;
+  const targetEstimateItemId = itemResult.rows[0].id;
+
+  const workPackageResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9001', $2, 'ACTIVE') RETURNING id",
+    [projectId, `Paketti ${suffix}`]
+  );
+  const workPackageId = workPackageResult.rows[0].id;
 
   const procPackageResult = await client.query(
-    "INSERT INTO proc_packages (project_id, name, default_work_package_id, created_by, updated_by) VALUES ($1::uuid, $2, $3::uuid, 'seed', 'seed') RETURNING proc_package_id",
-    [projectId, `Proc ${suffix}`, workPhaseId]
+    "INSERT INTO proc_packages (project_id, code, name, owner_type, default_work_package_id, status) VALUES ($1::uuid, '9001', $2, 'VENDOR', $3::uuid, 'ACTIVE') RETURNING id",
+    [projectId, `Proc ${suffix}`, workPackageId]
   );
-  const procPackageId = procPackageResult.rows[0].proc_package_id;
+  const procPackageId = procPackageResult.rows[0].id;
 
   const mappingVersionResult = await client.query(
-    `INSERT INTO mapping_versions (
+    `INSERT INTO item_mapping_versions (
       project_id,
-      valid_from,
-      status,
-      reason,
-      created_by,
-      activated_at,
       import_batch_id,
-      mapping_kind
+      status,
+      created_by,
+      activated_at
     )
-    VALUES ($1::uuid, current_date, 'ACTIVE', 'test', 'seed', now(), $2::uuid, 'ITEM')
-    RETURNING mapping_version_id`,
+    VALUES ($1::uuid, $2::uuid, 'ACTIVE', 'seed', now())
+    RETURNING id`,
     [projectId, importBatchId]
   );
-  const mappingVersionId = mappingVersionResult.rows[0].mapping_version_id;
+  const mappingVersionId = mappingVersionResult.rows[0].id;
 
   await client.query(
-    `INSERT INTO row_mappings (
-      project_id,
-      mapping_version_id,
-      budget_item_id,
-      work_phase_id,
+    `INSERT INTO item_row_mappings (
+      item_mapping_version_id,
+      target_estimate_item_id,
+      work_package_id,
       created_by,
       created_at
     )
-    VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'seed', now() - interval '2 minutes')`,
-    [projectId, mappingVersionId, budgetItemId, workPhaseId]
+    VALUES ($1::uuid, $2::uuid, $3::uuid, 'seed', now() - interval '2 minutes')`,
+    [mappingVersionId, targetEstimateItemId, workPackageId]
   );
 
   await client.query(
-    `INSERT INTO row_mappings (
-      project_id,
-      mapping_version_id,
-      budget_item_id,
+    `INSERT INTO item_row_mappings (
+      item_mapping_version_id,
+      target_estimate_item_id,
+      work_package_id,
       proc_package_id,
       created_by,
       created_at
     )
     VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'seed', now())`,
-    [projectId, mappingVersionId, budgetItemId, procPackageId]
+    [mappingVersionId, targetEstimateItemId, workPackageId, procPackageId]
   );
 
   const rowCountResult = await client.query(
-    "SELECT count(*)::int AS count FROM row_mappings WHERE budget_item_id = $1::uuid",
-    [budgetItemId]
+    "SELECT count(*)::int AS count FROM item_row_mappings WHERE target_estimate_item_id = $1::uuid",
+    [targetEstimateItemId]
   );
   assert.equal(rowCountResult.rows[0].count, 2);
 
   const currentResult = await client.query(
-    "SELECT work_phase_id, proc_package_id FROM v_current_item_mappings WHERE budget_item_id = $1::uuid",
-    [budgetItemId]
+    "SELECT work_package_id, proc_package_id FROM v_current_item_mappings WHERE target_estimate_item_id = $1::uuid",
+    [targetEstimateItemId]
   );
   assert.equal(currentResult.rowCount, 1);
-  assert.equal(currentResult.rows[0].work_phase_id, null);
+  assert.equal(currentResult.rows[0].work_package_id, workPackageId);
   assert.equal(currentResult.rows[0].proc_package_id, procPackageId);
-
-  const forecastVersionResult = await client.query(
-    `INSERT INTO mapping_versions (
-      project_id,
-      valid_from,
-      status,
-      reason,
-      created_by,
-      mapping_kind
-    )
-    VALUES ($1::uuid, current_date, 'ACTIVE', 'forecast', 'seed', 'FORECAST')
-    RETURNING mapping_version_id`,
-    [projectId]
-  );
-  assert.ok(forecastVersionResult.rows[0].mapping_version_id);
 
   await client.end();
 });

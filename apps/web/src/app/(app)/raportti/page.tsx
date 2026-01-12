@@ -1,11 +1,11 @@
-import { loadDashboard, loadWorkPhaseReport, loadWorkflowStatus } from "@ennuste/application";
+import { loadDashboard, loadWorkPackageReport, loadWorkflowStatus } from "@ennuste/application";
 import { createServices } from "../../../server/services";
 import { requireSession } from "../../../server/session";
 
 export default async function ReportPage() {
   const session = await requireSession();
   const services = createServices();
-  const rows = await loadWorkPhaseReport(services, {
+  const rows = await loadWorkPackageReport(services, {
     projectId: session.projectId,
     tenantId: session.tenantId,
     username: session.username

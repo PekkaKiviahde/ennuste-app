@@ -4,9 +4,8 @@
 import_jyda.py
 
 MVP-import: Excel "Jyda-ajo" sheet -> Postgres
-- Upsert litteras (project_id, code)
-- Insert import_batches row (signature-based dedup)
-- Insert actual_cost_lines as SNAPSHOT metrics (occurred_on = import date)
+- Insert import_batches row (file_hash + project + kind -dedup)
+- Insert actuals_lines as SNAPSHOT metrics (posting_date = import date)
 
 IMPORTANT:
 Jyda-ajo is typically cumulative snapshot. Do NOT sum multiple imports.
@@ -309,53 +308,59 @@ def ensure_project_exists(cur, project_id: str) -> None:
         raise RuntimeError(f"Project not found in DB: {project_id}. Create it first in projects table.")
 
 
-def import_batch_exists(cur, project_id: str, signature: str) -> bool:
+def import_batch_exists(cur, project_id: str, file_hash: str) -> bool:
     cur.execute(
-        "SELECT 1 FROM import_batches WHERE project_id = %s AND signature = %s LIMIT 1",
-        (project_id, signature),
+        "SELECT 1 FROM import_batches WHERE project_id = %s AND kind = 'ACTUALS' AND file_hash = %s LIMIT 1",
+        (project_id, file_hash),
     )
     return cur.fetchone() is not None
 
 
-def insert_import_batch(cur, project_id: str, imported_by: str, signature: str, notes: str) -> str:
+def insert_import_batch(cur, project_id: str, imported_by: str, file_hash: str, file_name: str) -> str:
     cur.execute(
         """
-        INSERT INTO import_batches (project_id, source_system, imported_by, signature, notes)
-        VALUES (%s, %s, %s, %s, %s)
-        RETURNING import_batch_id
+        INSERT INTO import_batches (project_id, kind, source_system, file_name, file_hash, created_by)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id
         """,
-        (project_id, "JYDA", imported_by, signature, notes),
+        (project_id, "ACTUALS", "JYDA", file_name, file_hash, imported_by),
     )
     return cur.fetchone()[0]
 
 
-def upsert_littera(cur, project_id: str, code: str, title: str) -> str:
-    group_code = int(code[0]) if code and code[0].isdigit() else None
+def insert_actual_line(
+    cur,
+    import_batch_id: str,
+    littera_code: str,
+    littera_name: str,
+    amount: Decimal,
+    occurred_on: date,
+    metric: str,
+) -> None:
     cur.execute(
         """
-        INSERT INTO litteras (project_id, code, title, group_code, is_active)
-        VALUES (%s, %s, %s, %s, true)
-        ON CONFLICT (project_id, code)
-        DO UPDATE SET
-          title = EXCLUDED.title,
-          group_code = COALESCE(EXCLUDED.group_code, litteras.group_code),
-          is_active = true
-        RETURNING littera_id
-        """,
-        (project_id, code, title, group_code),
-    )
-    return cur.fetchone()[0]
-
-
-def insert_actual_line(cur, project_id: str, littera_id: str, amount: Decimal, occurred_on: date, import_batch_id: str, external_ref: str) -> None:
-    cur.execute(
-        """
-        INSERT INTO actual_cost_lines (
-          project_id, work_littera_id, cost_type, amount, occurred_on, source, import_batch_id, external_ref
+        INSERT INTO actuals_lines (
+          import_batch_id,
+          posting_date,
+          amount_eur,
+          account,
+          cost_center,
+          vendor,
+          invoice_no,
+          description,
+          dimensions_json
         )
-        VALUES (%s, %s, 'OTHER', %s, %s, 'JYDA', %s, %s)
+        VALUES (%s, %s, %s, %s, %s, NULL, NULL, %s, %s::jsonb)
         """,
-        (project_id, littera_id, amount, occurred_on, import_batch_id, external_ref),
+        (
+            import_batch_id,
+            occurred_on,
+            amount,
+            metric,
+            littera_code,
+            littera_name,
+            json.dumps({"metric": metric, "littera_code": littera_code, "littera_name": littera_name}),
+        ),
     )
 
 
@@ -426,12 +431,8 @@ def main(argv: List[str]) -> int:
         csv_code_header = mapping["csv_code_header"]
         csv_name_header = mapping["csv_name_header"]
 
-        # Compute signature: sha256(file bytes) + sheet name + metrics list + mapping fingerprint
+        # Compute file hash (sha256 of file bytes)
         file_hash = _sha256_file(file_path)
-        mapping_fingerprint = json.dumps(mapping, sort_keys=True)
-        signature = hashlib.sha256(
-            (file_hash + "|" + effective_sheet + "|" + ",".join(args.metrics) + "|" + mapping_fingerprint).encode("utf-8")
-        ).hexdigest()
 
         # Read rows
         try:
@@ -469,20 +470,18 @@ def main(argv: List[str]) -> int:
         with conn.cursor() as cur:
             ensure_project_exists(cur, args.project_id)
 
-            if import_batch_exists(cur, args.project_id, signature):
-                print("Import already done (same signature found). Aborting to avoid duplicates.")
+            if import_batch_exists(cur, args.project_id, file_hash):
+                print("Import already done (same file_hash found). Aborting to avoid duplicates.")
                 conn.rollback()
                 return 0
 
-            notes = f"JYDA snapshot import from {file_path.name} (sheet={effective_sheet}, metrics={args.metrics})"
-            import_batch_id = insert_import_batch(cur, args.project_id, args.imported_by, signature, notes)
+            import_batch_id = insert_import_batch(cur, args.project_id, args.imported_by, file_hash, file_path.name)
 
             littera_count = 0
             metric_inserts = 0
             skipped_zero = 0
 
             for row in jyda_rows:
-                littera_id = upsert_littera(cur, args.project_id, row.code, row.name)
                 littera_count += 1
 
                 for metric, amount in row.values.items():
@@ -491,7 +490,7 @@ def main(argv: List[str]) -> int:
                     if (not args.include_zeros) and amount == Decimal("0.00"):
                         skipped_zero += 1
                         continue
-                    insert_actual_line(cur, args.project_id, littera_id, amount, occurred_on, import_batch_id, metric)
+                    insert_actual_line(cur, import_batch_id, row.code, row.name, amount, occurred_on, metric)
                     metric_inserts += 1
 
             # Summary
@@ -505,7 +504,7 @@ def main(argv: List[str]) -> int:
             print(f"Inserted lines: {metric_inserts}")
             print(f"Skipped zeros:  {skipped_zero}")
             print(f"Import batch:   {import_batch_id}")
-            print(f"Signature:      {signature[:12]}...")
+            print(f"File hash:      {file_hash[:12]}...")
 
             if args.dry_run:
                 print("DRY-RUN enabled -> ROLLBACK")

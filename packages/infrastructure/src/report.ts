@@ -17,7 +17,7 @@ export const reportRepository = (): ReportPort => ({
     const result = await tenantDb.query("SELECT * FROM v_report_project_current WHERE project_id = $1::uuid", [projectId]);
     return result.rows[0] ?? null;
   },
-  async getWorkPhaseReport(projectId, tenantId) {
+  async getWorkPackageReport(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
     const result = await tenantDb.query(
@@ -46,10 +46,10 @@ export const reportRepository = (): ReportPort => ({
     const result = await tenantDb.query(
       `
       WITH latest_batch AS (
-        SELECT import_batch_id
+        SELECT id
         FROM import_batches
-        WHERE project_id = $1::uuid AND source_system = 'TARGET_ESTIMATE'
-        ORDER BY imported_at DESC
+        WHERE project_id = $1::uuid AND kind = 'TARGET_ESTIMATE'
+        ORDER BY created_at DESC
         LIMIT 1
       )
       SELECT
@@ -67,7 +67,7 @@ export const reportRepository = (): ReportPort => ({
       WHERE bl.project_id = $1::uuid
         AND (
           NOT EXISTS (SELECT 1 FROM latest_batch)
-          OR bl.import_batch_id IN (SELECT import_batch_id FROM latest_batch)
+          OR bl.import_batch_id IN (SELECT id FROM latest_batch)
         )
       ORDER BY l.code, bl.cost_type, bl.valid_from DESC
       `,

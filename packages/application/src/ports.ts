@@ -104,7 +104,7 @@ export type ForecastPort = {
 
 export type ReportPort = {
   getDashboard(projectId: string, tenantId: string): Promise<unknown>;
-  getWorkPhaseReport(projectId: string, tenantId: string): Promise<unknown[]>;
+  getWorkPackageReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getForecastReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getPlanningReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getTargetEstimate(projectId: string, tenantId: string): Promise<unknown[]>;
@@ -269,36 +269,37 @@ export type SaasPort = {
   }): Promise<{ organizationId: string; projectId: string; userId: string }>;
 };
 
-export type WorkPhasePort = {
-  listWorkPhases(projectId: string, tenantId: string): Promise<Array<{
-    work_phase_id: string;
+export type WorkPackagePort = {
+  listWorkPackages(projectId: string, tenantId: string): Promise<Array<{
+    work_package_id: string;
+    code: string;
     name: string;
     status: string | null;
     created_at: string;
   }>>;
-  createWorkPhase(input: {
+  createWorkPackage(input: {
     projectId: string;
     tenantId: string;
+    code: string;
     name: string;
-    description?: string | null;
-    owner?: string | null;
-    leadLitteraId?: string | null;
+    responsibleUserId?: string | null;
+    status?: string | null;
     createdBy: string;
-  }): Promise<{ workPhaseId: string }>;
+  }): Promise<{ workPackageId: string }>;
   createWeeklyUpdate(input: {
     projectId: string;
     tenantId: string;
-    workPhaseId: string;
+    workPackageId: string;
     weekEnding: string;
     percentComplete: number;
     progressNotes?: string | null;
     risks?: string | null;
     createdBy: string;
-  }): Promise<{ workPhaseWeeklyUpdateId: string }>;
+  }): Promise<{ workPackageWeeklyUpdateId: string }>;
   createGhostEntry(input: {
     projectId: string;
     tenantId: string;
-    workPhaseId: string;
+    workPackageId: string;
     weekEnding: string;
     costType: "LABOR" | "MATERIAL" | "SUBCONTRACT" | "RENTAL" | "OTHER";
     amount: number;
@@ -306,15 +307,15 @@ export type WorkPhasePort = {
     createdBy: string;
   }): Promise<{ ghostCostEntryId: string }>;
   lockBaseline(input: {
-    workPhaseId: string;
-    workPhaseVersionId: string;
+    workPackageId: string;
+    workPackageVersionId: string;
     targetImportBatchId: string;
     tenantId: string;
     username: string;
     notes?: string | null;
-  }): Promise<{ workPhaseBaselineId: string }>;
+  }): Promise<{ workPackageBaselineId: string }>;
   proposeCorrection(input: {
-    workPhaseId: string;
+    workPackageId: string;
     itemCode: string;
     tenantId: string;
     username: string;
@@ -336,7 +337,7 @@ export type WorkPhasePort = {
 
 export type TargetEstimateMappingPort = {
   listItems(projectId: string, tenantId: string): Promise<Array<{
-    budget_item_id: string;
+    target_estimate_item_id: string;
     littera_code: string;
     item_code: string;
     item_desc: string | null;
@@ -344,8 +345,8 @@ export type TargetEstimateMappingPort = {
     unit: string | null;
     total_eur: number | null;
     is_leaf: boolean;
-    work_phase_id: string | null;
-    work_phase_name: string | null;
+    work_package_id: string | null;
+    work_package_name: string | null;
     proc_package_id: string | null;
     proc_package_name: string | null;
   }>>;
@@ -358,9 +359,14 @@ export type TargetEstimateMappingPort = {
   createProcPackage(input: {
     projectId: string;
     tenantId: string;
+    code: string;
     name: string;
     description?: string | null;
     defaultWorkPackageId?: string | null;
+    ownerType?: string | null;
+    vendorName?: string | null;
+    contractRef?: string | null;
+    status?: string | null;
     createdBy: string;
   }): Promise<{ procPackageId: string }>;
   upsertItemMappings(input: {
@@ -368,8 +374,8 @@ export type TargetEstimateMappingPort = {
     tenantId: string;
     updatedBy: string;
     updates: Array<{
-      budgetItemId: string;
-      workPhaseId?: string | null;
+      targetEstimateItemId: string;
+      workPackageId?: string | null;
       procPackageId?: string | null;
     }>;
   }): Promise<{ updatedCount: number }>;

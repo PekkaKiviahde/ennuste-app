@@ -9,5 +9,5 @@ export * from "./importStaging";
 export * from "./saas";
 export * from "./audit";
 export * from "./admin";
-export * from "./workPhases";
+export * from "./workPackages";
 export * from "./targetEstimateMapping";

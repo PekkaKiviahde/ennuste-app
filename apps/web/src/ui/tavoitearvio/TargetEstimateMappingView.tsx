@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type MappingItem = {
-  budget_item_id: string;
+  target_estimate_item_id: string;
   littera_code: string;
   item_code: string;
   item_desc: string | null;
@@ -11,14 +11,15 @@ type MappingItem = {
   unit: string | null;
   total_eur: number | string | null;
   is_leaf: boolean;
-  work_phase_id: string | null;
-  work_phase_name: string | null;
+  work_package_id: string | null;
+  work_package_name: string | null;
   proc_package_id: string | null;
   proc_package_name: string | null;
 };
 
 type WorkPackage = {
-  work_phase_id: string;
+  work_package_id: string;
+  code?: string;
   name: string;
   status: string | null;
   created_at: string;
@@ -55,7 +56,7 @@ const formatQty = (value: number) =>
 
 const getStatusLabel = (item: MappingItem) => {
   if (!item.is_leaf) return "Otsikko";
-  if (!item.work_phase_id) return "Tyopaketti puuttuu";
+  if (!item.work_package_id) return "Tyopaketti puuttuu";
   if (!item.proc_package_id) return "Hankintapaketti puuttuu";
   return "OK";
 };
@@ -69,9 +70,11 @@ export default function TargetEstimateMappingView() {
   const [missingWork, setMissingWork] = useState(false);
   const [missingProc, setMissingProc] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkWorkPhase, setBulkWorkPhase] = useState("");
+  const [bulkWorkPackage, setBulkWorkPackage] = useState("");
   const [bulkProcPackage, setBulkProcPackage] = useState("");
+  const [newWorkPackageCode, setNewWorkPackageCode] = useState("");
   const [newWorkPackageName, setNewWorkPackageName] = useState("");
+  const [newProcPackageCode, setNewProcPackageCode] = useState("");
   const [newProcPackageName, setNewProcPackageName] = useState("");
   const [newProcDefaultWorkPackage, setNewProcDefaultWorkPackage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -101,7 +104,7 @@ export default function TargetEstimateMappingView() {
     const query = search.trim().toLowerCase();
     return data.items.filter((item) => {
       if (leafOnly && !item.is_leaf) return false;
-      if (missingWork && item.is_leaf && item.work_phase_id) return false;
+      if (missingWork && item.is_leaf && item.work_package_id) return false;
       if (missingProc && item.is_leaf && item.proc_package_id) return false;
       if (!query) return true;
       return (
@@ -117,7 +120,7 @@ export default function TargetEstimateMappingView() {
     [leafItems]
   );
   const workMappedSum = useMemo(
-    () => leafItems.filter((item) => item.work_phase_id).reduce((sum, item) => sum + toNumber(item.total_eur), 0),
+    () => leafItems.filter((item) => item.work_package_id).reduce((sum, item) => sum + toNumber(item.total_eur), 0),
     [leafItems]
   );
   const procMappedSum = useMemo(
@@ -129,7 +132,7 @@ export default function TargetEstimateMappingView() {
   const procMappedPercent = totalLeafSum > 0 ? (procMappedSum / totalLeafSum) * 100 : 0;
 
   const visibleLeafIds = useMemo(
-    () => filteredItems.filter((item) => item.is_leaf).map((item) => item.budget_item_id),
+    () => filteredItems.filter((item) => item.is_leaf).map((item) => item.target_estimate_item_id),
     [filteredItems]
   );
 
@@ -151,7 +154,7 @@ export default function TargetEstimateMappingView() {
     setSelected(next);
   };
 
-  const assignItems = async (itemIds: string[], payload: { workPhaseId?: string | null; procPackageId?: string | null }) => {
+  const assignItems = async (itemIds: string[], payload: { workPackageId?: string | null; procPackageId?: string | null }) => {
     if (itemIds.length === 0) return;
     try {
       setBusy(true);
@@ -174,20 +177,29 @@ export default function TargetEstimateMappingView() {
   };
 
   const createWorkPackage = async () => {
+    const code = newWorkPackageCode.trim();
     const name = newWorkPackageName.trim();
-    if (!name) return;
+    if (!code || !/^\d{4}$/.test(code)) {
+      setError("Tyopaketin koodi on pakollinen ja oltava 4 numeroa.");
+      return;
+    }
+    if (!name) {
+      setError("Tyopaketin nimi on pakollinen.");
+      return;
+    }
     try {
       setBusy(true);
       setError(null);
-      const response = await fetch("/api/work-phases", {
+      const response = await fetch("/api/work-packages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ code, name })
       });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result?.error ?? "Tyopaketin luonti epaonnistui");
       }
+      setNewWorkPackageCode("");
       setNewWorkPackageName("");
       await loadData();
     } catch (err) {
@@ -198,8 +210,16 @@ export default function TargetEstimateMappingView() {
   };
 
   const createProcPackage = async () => {
+    const code = newProcPackageCode.trim();
     const name = newProcPackageName.trim();
-    if (!name) return;
+    if (!code || !/^\d{4}$/.test(code)) {
+      setError("Hankintapaketin koodi on pakollinen ja oltava 4 numeroa.");
+      return;
+    }
+    if (!name) {
+      setError("Hankintapaketin nimi on pakollinen.");
+      return;
+    }
     try {
       setBusy(true);
       setError(null);
@@ -207,6 +227,7 @@ export default function TargetEstimateMappingView() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          code,
           name,
           defaultWorkPackageId: newProcDefaultWorkPackage || null
         })
@@ -215,6 +236,7 @@ export default function TargetEstimateMappingView() {
       if (!response.ok) {
         throw new Error(result?.error ?? "Hankintapaketin luonti epaonnistui");
       }
+      setNewProcPackageCode("");
       setNewProcPackageName("");
       setNewProcDefaultWorkPackage("");
       await loadData();
@@ -226,8 +248,8 @@ export default function TargetEstimateMappingView() {
   };
 
   const bulkAssignWork = async () => {
-    const workPhaseId = bulkWorkPhase || null;
-    await assignItems(Array.from(selected), { workPhaseId });
+    const workPackageId = bulkWorkPackage || null;
+    await assignItems(Array.from(selected), { workPackageId });
     setSelected(new Set());
   };
 
@@ -259,12 +281,12 @@ export default function TargetEstimateMappingView() {
               <select
                 id="bulk-work"
                 className="input"
-                value={bulkWorkPhase}
-                onChange={(event) => setBulkWorkPhase(event.target.value)}
+                value={bulkWorkPackage}
+                onChange={(event) => setBulkWorkPackage(event.target.value)}
               >
                 <option value="">Valitse tyopaketti</option>
                 {data.workPackages.map((work) => (
-                  <option key={work.work_phase_id} value={work.work_phase_id}>
+                  <option key={work.work_package_id} value={work.work_package_id}>
                     {work.name}
                   </option>
                 ))}
@@ -338,11 +360,22 @@ export default function TargetEstimateMappingView() {
         <div className="dialog-panel">
           <input
             className="input"
+            placeholder="Tyopaketin koodi (4 numeroa)"
+            value={newWorkPackageCode}
+            onChange={(event) => setNewWorkPackageCode(event.target.value)}
+          />
+          <input
+            className="input"
             placeholder="Tyopaketin nimi"
             value={newWorkPackageName}
             onChange={(event) => setNewWorkPackageName(event.target.value)}
           />
-          <button className="btn btn-primary btn-sm" type="button" disabled={busy || !newWorkPackageName.trim()} onClick={createWorkPackage}>
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            disabled={busy || !newWorkPackageCode.trim() || !newWorkPackageName.trim()}
+            onClick={createWorkPackage}
+          >
             Luo tyopaketti
           </button>
         </div>
@@ -351,6 +384,12 @@ export default function TargetEstimateMappingView() {
       <details className="dialog">
         <summary className="label">Luo uusi hankintapaketti</summary>
         <div className="dialog-panel">
+          <input
+            className="input"
+            placeholder="Hankintapaketin koodi (4 numeroa)"
+            value={newProcPackageCode}
+            onChange={(event) => setNewProcPackageCode(event.target.value)}
+          />
           <input
             className="input"
             placeholder="Hankintapaketin nimi"
@@ -364,12 +403,17 @@ export default function TargetEstimateMappingView() {
           >
             <option value="">Oletus-tyopaketti (valinnainen)</option>
             {data.workPackages.map((work) => (
-              <option key={work.work_phase_id} value={work.work_phase_id}>
+              <option key={work.work_package_id} value={work.work_package_id}>
                 {work.name}
               </option>
             ))}
           </select>
-          <button className="btn btn-primary btn-sm" type="button" disabled={busy || !newProcPackageName.trim()} onClick={createProcPackage}>
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            disabled={busy || !newProcPackageCode.trim() || !newProcPackageName.trim()}
+            onClick={createProcPackage}
+          >
             Luo hankintapaketti
           </button>
         </div>
@@ -412,13 +456,13 @@ export default function TargetEstimateMappingView() {
                 const statusLabel = getStatusLabel(item);
                 const isSelectable = item.is_leaf;
                 return (
-                  <tr key={item.budget_item_id}>
+                  <tr key={item.target_estimate_item_id}>
                     <td>
                       <input
                         type="checkbox"
                         disabled={!isSelectable}
-                        checked={selected.has(item.budget_item_id)}
-                        onChange={() => toggleSelection(item.budget_item_id)}
+                        checked={selected.has(item.target_estimate_item_id)}
+                        onChange={() => toggleSelection(item.target_estimate_item_id)}
                       />
                     </td>
                     <td>
@@ -432,16 +476,16 @@ export default function TargetEstimateMappingView() {
                       <select
                         className="input"
                         disabled={!item.is_leaf || busy}
-                        value={item.work_phase_id ?? ""}
+                        value={item.work_package_id ?? ""}
                         onChange={(event) => {
                           const value = event.target.value || null;
-                          if (value === item.work_phase_id) return;
-                          void assignItems([item.budget_item_id], { workPhaseId: value });
+                          if (value === item.work_package_id) return;
+                          void assignItems([item.target_estimate_item_id], { workPackageId: value });
                         }}
                       >
                         <option value="">Valitse</option>
                         {data.workPackages.map((work) => (
-                          <option key={work.work_phase_id} value={work.work_phase_id}>
+                          <option key={work.work_package_id} value={work.work_package_id}>
                             {work.name}
                           </option>
                         ))}
@@ -455,7 +499,7 @@ export default function TargetEstimateMappingView() {
                         onChange={(event) => {
                           const value = event.target.value || null;
                           if (value === item.proc_package_id) return;
-                          void assignItems([item.budget_item_id], { procPackageId: value });
+                          void assignItems([item.target_estimate_item_id], { procPackageId: value });
                         }}
                       >
                         <option value="">Valitse</option>
