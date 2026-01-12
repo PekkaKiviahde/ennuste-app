@@ -3,7 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 
 import { runMission0 } from "./mission0";
-import { loadAgentConfig, resolveGateCommands, resolveModel } from "./config";
+import { getRepoRootFromGit, loadAgentConfig, resolveGateCommands, resolveModel } from "./config";
 import { execShell } from "./tools/exec";
 import { isPathAllowed } from "./tools/paths";
 import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
@@ -17,6 +17,10 @@ export type ChangeRequest = {
 };
 
 type GateResult = { cmd: string; ok: boolean; code: number | null };
+
+function shellDetail(result: { stdout: string; stderr: string }): string {
+  return (result.stderr || result.stdout || "unknown error").trim() || "unknown error";
+}
 
 function slug(value: string): string {
   return value
@@ -139,31 +143,19 @@ function runGateCommands(repoRoot: string, commands: string[]): { gateOk: boolea
   return { gateOk: true, results };
 }
 
-function resetRepo(repoRoot: string): void {
-  execShell("git reset --hard", { cwd: repoRoot });
+function clearWorkingTree(repoRoot: string): void {
+  execShell("git restore --staged --worktree .", { cwd: repoRoot });
   execShell("git clean -fd", { cwd: repoRoot });
 }
 
 export async function runChange(req: ChangeRequest) {
-  const { config, repoRoot } = loadAgentConfig();
-  const mission0 = runMission0();
+  if (!req.projectId?.trim()) throw new Error("projectId missing");
+  if (!req.task?.trim()) throw new Error("task missing");
 
-  const gateCommands = resolveGateCommands(config, mission0.gateCandidates);
-  const model = resolveModel(config);
+  const repoRoot = getRepoRootFromGit();
 
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) throw new Error("DATABASE_URL missing");
-
-  const memory = new AgentMemoryRepo(databaseUrl);
-  const sessionId = await memory.createSession(req.projectId);
-
-  await memory.addEvent(sessionId, "SESSION_START", {
-    projectId: req.projectId,
-    dryRun: !!req.dryRun,
-    ...summarizeTask(req.task),
-  });
-
-  const branchName = makeBranchName(config.git.branchPrefix, req.task);
+  let memory: AgentMemoryRepo | null = null;
+  let sessionId = `change-${new Date().toISOString()}`;
 
   let preflight = null;
   let cleanup = null;
@@ -173,19 +165,55 @@ export async function runChange(req: ChangeRequest) {
   let lastChanged: string[] = [];
   let lastCommitMessage = "";
 
+  let branchName: string | null = null;
+  let gateCommands: string[] = [];
+  let model = "";
+  let mission0: any = null;
+
+  const addEvent = async (eventType: string, payload: unknown) => {
+    if (!memory) return;
+    try {
+      await memory.addEvent(sessionId, eventType, payload);
+    } catch {
+      // ignore event-store errors (response must still succeed)
+    }
+  };
+
   try {
-    preflight = await runPreflight(repoRoot, sessionId, config.git);
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) throw new Error("DATABASE_URL missing");
+
+    try {
+      memory = new AgentMemoryRepo(databaseUrl);
+      sessionId = await memory.createSession(req.projectId);
+      await addEvent("SESSION_START", {
+        projectId: req.projectId,
+        dryRun: !!req.dryRun,
+        ...summarizeTask(req.task),
+      });
+    } catch {
+      memory = null;
+    }
+
+    preflight = await runPreflight(repoRoot, sessionId);
     if (!preflight.ok) {
       throw new Error(preflight.error ?? "preflight failed");
     }
 
-    const openai = createOpenAIClient();
+    const { config } = loadAgentConfig();
+    mission0 = runMission0();
+    gateCommands = resolveGateCommands(config, mission0.gateCandidates);
+    model = resolveModel(config);
+    branchName = makeBranchName(config.git.branchPrefix, req.task);
 
-    const checkoutBranch = execShell(`git checkout -b ${branchName}`, { cwd: repoRoot });
-    if (!checkoutBranch.ok) {
-      const detail = (checkoutBranch.stderr || checkoutBranch.stdout || "unknown error").trim();
-      throw new Error(`git checkout -b failed: ${detail}`);
+    if (!req.dryRun) {
+      const checkoutBranch = execShell(`git checkout -B ${branchName}`, { cwd: repoRoot });
+      if (!checkoutBranch.ok) {
+        throw new Error(`git checkout -B ${branchName} failed: ${shellDetail(checkoutBranch)}`);
+      }
     }
+
+    const openai = createOpenAIClient();
 
     const maxIterations = Math.max(1, config.openai.maxIterations || 1);
 
@@ -193,7 +221,7 @@ export async function runChange(req: ChangeRequest) {
       const prompt = buildPatchPrompt(req.task, mission0, lastError);
       const promptSummary = summarizePrompt(prompt);
 
-      await memory.addEvent(sessionId, "MODEL_PROMPT", {
+      await addEvent("MODEL_PROMPT", {
         iteration: i + 1,
         model,
         ...promptSummary,
@@ -219,7 +247,7 @@ export async function runChange(req: ChangeRequest) {
         const changed = parseChangedFilesFromPatch(patch);
         lastChanged = changed;
         lastCommitMessage = commitMessage;
-        await memory.addEvent(sessionId, "DONE", {
+        await addEvent("DONE", {
           status: "ok",
           branchName,
           commitMessage,
@@ -248,7 +276,7 @@ export async function runChange(req: ChangeRequest) {
       }
 
       if (!apply.ok) {
-        resetRepo(repoRoot);
+        clearWorkingTree(repoRoot);
         lastError = "git apply failed";
         continue;
       }
@@ -259,19 +287,19 @@ export async function runChange(req: ChangeRequest) {
 
       const allowedCheck = enforceAllowedPaths(repoRoot, changed, config.allowedPaths.debug);
       if (!allowedCheck.ok) {
-        resetRepo(repoRoot);
+        clearWorkingTree(repoRoot);
         lastError = `Changed files outside allowed paths: ${allowedCheck.denied.join(", ")}`;
         continue;
       }
 
       const gateResult = runGateCommands(repoRoot, gateCommands);
-      await memory.addEvent(sessionId, "GATE_RESULT", {
+      await addEvent("GATE_RESULT", {
         gateOk: gateResult.gateOk,
         results: gateResult.results,
       });
 
       if (!gateResult.gateOk) {
-        resetRepo(repoRoot);
+        clearWorkingTree(repoRoot);
         lastError = "Gate commands failed";
         continue;
       }
@@ -279,14 +307,14 @@ export async function runChange(req: ChangeRequest) {
       const add = execShell("git add -A", { cwd: repoRoot });
       if (!add.ok) {
         lastError = "git add failed";
-        resetRepo(repoRoot);
+        clearWorkingTree(repoRoot);
         continue;
       }
 
       const commit = execShell(`git commit -m ${JSON.stringify(commitMessage)}`, { cwd: repoRoot });
       if (!commit.ok) {
         lastError = "git commit failed";
-        resetRepo(repoRoot);
+        clearWorkingTree(repoRoot);
         continue;
       }
 
@@ -294,7 +322,7 @@ export async function runChange(req: ChangeRequest) {
         const push = execShell(`git push -u ${config.git.remote} ${branchName}`, { cwd: repoRoot });
         if (!push.ok) {
           lastError = "git push failed";
-          await memory.addEvent(sessionId, "DONE", {
+          await addEvent("DONE", {
             status: "failed",
             branchName,
             commitMessage,
@@ -315,7 +343,7 @@ export async function runChange(req: ChangeRequest) {
         }
       }
 
-      await memory.addEvent(sessionId, "DONE", {
+      await addEvent("DONE", {
         status: "ok",
         branchName,
         commitMessage,
@@ -334,7 +362,7 @@ export async function runChange(req: ChangeRequest) {
       return response;
     }
 
-    await memory.addEvent(sessionId, "DONE", {
+    await addEvent("DONE", {
       status: "failed",
       branchName,
       commitMessage: lastCommitMessage,
@@ -355,7 +383,7 @@ export async function runChange(req: ChangeRequest) {
     return response;
   } catch (error) {
     const message = safeErrorMessage(error);
-    await memory.addEvent(sessionId, "DONE", {
+    await addEvent("DONE", {
       status: "failed",
       branchName,
       commitMessage: lastCommitMessage,
@@ -375,10 +403,25 @@ export async function runChange(req: ChangeRequest) {
     return response;
   } finally {
     cleanup = await runCleanup(repoRoot);
-    if (response) {
-      response.preflight = preflight;
-      response.cleanup = cleanup;
+    if (!response) {
+      response = {
+        status: "failed",
+        mode: "change",
+        sessionId,
+        branchName,
+        changedFiles: lastChanged,
+        gateCommands,
+        error: safeErrorMessage(lastError ?? "runChange failed"),
+      };
     }
-    await memory.close();
+    response.preflight = preflight;
+    response.cleanup = cleanup;
+    if (memory) {
+      try {
+        await memory.close();
+      } catch {
+        // ignore
+      }
+    }
   }
 }

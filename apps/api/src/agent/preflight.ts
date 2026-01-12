@@ -1,28 +1,21 @@
 import { execShell } from "./tools/exec";
 
-type GitConfig = {
-  remote: string;
-  baseBranch: string;
-};
-
 export type PreflightResult = {
   ok: boolean;
   dirty: boolean;
   autostashed: boolean;
   stashRef?: string;
   stashMessage?: string;
-  remote: string;
-  baseBranch: string;
   error?: string;
 };
 
 export type CleanupResult = {
-  policy: string;
+  policy: { enabled: boolean; prefix: string; keep: number };
   found: number;
   kept: number;
   dropped: number;
-  keptRefs: string[];
-  droppedRefs: string[];
+  keptRefs?: string[];
+  droppedRefs?: string[];
   cleanupError?: string;
 };
 
@@ -36,13 +29,11 @@ function detailFrom(result: { stdout: string; stderr: string }): string {
   return detail || "unknown error";
 }
 
-export async function runPreflight(repoRoot: string, sessionId: string, git: GitConfig): Promise<PreflightResult> {
+export async function runPreflight(repoRoot: string, sessionId: string): Promise<PreflightResult> {
   const preflight: PreflightResult = {
     ok: true,
     dirty: false,
     autostashed: false,
-    remote: git.remote,
-    baseBranch: git.baseBranch,
   };
 
   const status = execShell("git status --porcelain", { cwd: repoRoot });
@@ -53,8 +44,10 @@ export async function runPreflight(repoRoot: string, sessionId: string, git: Git
   const dirty = status.stdout.trim().length > 0;
   preflight.dirty = dirty;
 
+  const prefix = "agent-autostash";
+
   if (dirty) {
-    const message = `agent-autostash ${sessionId} ${new Date().toISOString()}`;
+    const message = `${prefix} ${sessionId} ${new Date().toISOString()}`;
     preflight.stashMessage = message;
     const stash = execShell(`git stash push -u -m ${JSON.stringify(message)}`, { cwd: repoRoot });
     if (!stash.ok) {
@@ -78,26 +71,26 @@ export async function runPreflight(repoRoot: string, sessionId: string, git: Git
     return { ...preflight, ok: false, error: `git clean -fd failed: ${detailFrom(clean)}` };
   }
 
-  const fetch = execShell(`git fetch ${git.remote}`, { cwd: repoRoot });
+  const fetch = execShell("git fetch origin", { cwd: repoRoot });
   if (!fetch.ok) {
-    return { ...preflight, ok: false, error: `git fetch ${git.remote} failed: ${detailFrom(fetch)}` };
+    return { ...preflight, ok: false, error: `git fetch origin failed: ${detailFrom(fetch)}` };
   }
 
-  const checkout = execShell(`git checkout ${git.baseBranch}`, { cwd: repoRoot });
+  const checkout = execShell("git checkout main", { cwd: repoRoot });
   if (!checkout.ok) {
     return {
       ...preflight,
       ok: false,
-      error: `git checkout ${git.baseBranch} failed: ${detailFrom(checkout)}`,
+      error: `git checkout main failed: ${detailFrom(checkout)}`,
     };
   }
 
-  const resetBase = execShell(`git reset --hard ${git.remote}/${git.baseBranch}`, { cwd: repoRoot });
+  const resetBase = execShell("git reset --hard origin/main", { cwd: repoRoot });
   if (!resetBase.ok) {
     return {
       ...preflight,
       ok: false,
-      error: `git reset --hard ${git.remote}/${git.baseBranch} failed: ${detailFrom(resetBase)}`,
+      error: `git reset --hard origin/main failed: ${detailFrom(resetBase)}`,
     };
   }
 
@@ -105,13 +98,12 @@ export async function runPreflight(repoRoot: string, sessionId: string, git: Git
 }
 
 export async function runCleanup(repoRoot: string): Promise<CleanupResult> {
+  const policy = { enabled: true, prefix: "agent-autostash", keep: 5 };
   const cleanup: CleanupResult = {
-    policy: "agent-autostash keep=5",
+    policy,
     found: 0,
     kept: 0,
     dropped: 0,
-    keptRefs: [],
-    droppedRefs: [],
   };
 
   const list = execShell("git stash list --format=\"%gd%x09%s\"", { cwd: repoRoot });
@@ -127,18 +119,21 @@ export async function runCleanup(repoRoot: string): Promise<CleanupResult> {
   const entries = lines
     .map((line) => {
       const [ref, ...rest] = line.split("\t");
-      return { ref, subject: rest.join("\t") };
+      const subject = rest.join("\t");
+      const message = subject.replace(/^(On|WIP on) [^:]+: /, "").trim();
+      return { ref, subject, message };
     })
-    .filter((entry) => entry.subject.includes("agent-autostash"));
+    .filter((entry) => entry.message.startsWith(policy.prefix));
 
   cleanup.found = entries.length;
 
-  const keep = entries.slice(0, 5);
-  const drop = entries.slice(5).sort((a, b) => stashIndex(b.ref) - stashIndex(a.ref));
+  const keep = entries.slice(0, policy.keep);
+  const drop = entries.slice(policy.keep).sort((a, b) => stashIndex(b.ref) - stashIndex(a.ref));
 
   cleanup.kept = keep.length;
   cleanup.dropped = drop.length;
   cleanup.keptRefs = keep.map((entry) => entry.ref);
+  cleanup.droppedRefs = [];
 
   for (const entry of drop) {
     const res = execShell(`git stash drop ${entry.ref}`, { cwd: repoRoot });

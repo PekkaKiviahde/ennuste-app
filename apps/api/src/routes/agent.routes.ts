@@ -4,7 +4,7 @@ import { checkEnv } from "../config/env";
 import { runMission0 } from "../agent/mission0";
 import { runChange } from "../agent/orchestrator";
 import { runCleanup, runPreflight } from "../agent/preflight";
-import { loadAgentConfig } from "../agent/config";
+import { getRepoRootFromGit } from "../agent/config";
 
 type AgentRunBody = {
   mode?: "mission0" | "change";
@@ -27,30 +27,51 @@ router.post("/run", requireInternalToken, async (req, res) => {
     const env = checkEnv(["AGENT_INTERNAL_TOKEN"]);
     if (!env.ok) return res.status(500).json({ error: "Missing env", missing: env.missing });
 
-    const { config, repoRoot } = loadAgentConfig();
-    const sessionLabel = `mission0-${new Date().toISOString()}`;
+    const repoRoot = getRepoRootFromGit();
+    const sessionId = `mission0-${new Date().toISOString()}`;
 
     let preflight = null;
     let cleanup = null;
     let response: any = null;
 
     try {
-      preflight = await runPreflight(repoRoot, sessionLabel, config.git);
+      preflight = await runPreflight(repoRoot, sessionId);
       if (!preflight.ok) {
         response = {
-          status: "error",
+          status: "failed",
           mode: "mission0",
-          error: "Preflight failed",
-          details: preflight.error ?? "preflight failed",
+          sessionId,
+          branchName: null,
+          changedFiles: [],
+          gateCommands: [],
+          error: preflight.error ?? "preflight failed",
           preflight,
         };
       } else {
         const report = runMission0();
-        response = { status: "ok", mode: "mission0", report, preflight };
+        response = {
+          status: "ok",
+          mode: "mission0",
+          sessionId,
+          branchName: null,
+          changedFiles: [],
+          gateCommands: report.gateCandidates ?? [],
+          preflight,
+          report,
+        };
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "mission0 failed";
-      response = { status: "error", mode: "mission0", error: "mission0 failed", details: message, preflight };
+      response = {
+        status: "failed",
+        mode: "mission0",
+        sessionId,
+        branchName: null,
+        changedFiles: [],
+        gateCommands: [],
+        error: message,
+        preflight,
+      };
     } finally {
       cleanup = await runCleanup(repoRoot);
       if (response) response.cleanup = cleanup;
@@ -61,9 +82,6 @@ router.post("/run", requireInternalToken, async (req, res) => {
   }
 
   if (mode === "change") {
-    const env = checkEnv(["AGENT_INTERNAL_TOKEN", "OPENAI_API_KEY", "DATABASE_URL"]);
-    if (!env.ok) return res.status(500).json({ error: "Missing env", missing: env.missing });
-
     const projectId = body.projectId?.trim();
     if (!projectId) {
       return res.status(400).json({ error: "Missing field", missing: ["projectId"] });
@@ -71,6 +89,9 @@ router.post("/run", requireInternalToken, async (req, res) => {
 
     const task = body.task?.trim();
     if (!task) return res.status(400).json({ error: "Missing task" });
+
+    const env = checkEnv(["AGENT_INTERNAL_TOKEN", "OPENAI_API_KEY", "DATABASE_URL"]);
+    if (!env.ok) return res.status(500).json({ error: "Missing env", missing: env.missing });
 
     try {
       const result = await runChange({
@@ -81,7 +102,17 @@ router.post("/run", requireInternalToken, async (req, res) => {
       return res.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : "runChange failed";
-      return res.status(500).json({ status: "error", error: "runChange failed", details: message });
+      return res.status(500).json({
+        status: "failed",
+        mode: "change",
+        sessionId: null,
+        branchName: null,
+        changedFiles: [],
+        gateCommands: [],
+        preflight: null,
+        cleanup: null,
+        error: message,
+      });
     }
   }
 

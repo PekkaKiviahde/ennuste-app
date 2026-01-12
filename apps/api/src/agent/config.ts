@@ -42,7 +42,14 @@ export function resolveGateCommands(config: AgentConfig, mission0GateCandidates:
 }
 
 export function resolveModel(config: AgentConfig): string {
-  const envModel = process.env.OPENAI_MODEL;
-  if (envModel && envModel.trim()) return envModel.trim();
-  return config.openai.model;
+  const placeholder = "FROM_ENV_OPENAI_MODEL";
+
+  const envModel = process.env.OPENAI_MODEL?.trim();
+  if (envModel && envModel !== placeholder) return envModel;
+
+  const configModel = config.openai.model?.trim();
+  if (configModel && configModel !== placeholder) return configModel;
+
+  // KISS: toimiva fallback, jos config/env on placeholder.
+  return "gpt-4.1-mini";
 }
