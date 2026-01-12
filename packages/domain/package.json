@@ -6,6 +6,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --test --import tsx src/**/*.test.ts"
+    "test": "node --test --import tsx src"
   }
 }
