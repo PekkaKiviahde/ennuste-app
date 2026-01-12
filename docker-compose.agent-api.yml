@@ -10,7 +10,7 @@ services:
       APP_HOST: "0.0.0.0"
       APP_PORT: "3011"
       AGENT_INTERNAL_TOKEN: ${AGENT_INTERNAL_TOKEN:-dev-token}
-      GH_TOKEN: ${GH_TOKEN}
+      GH_TOKEN: ${GH_TOKEN:-}
       DATABASE_URL: postgresql://codex:codex@db:5432/codex
     ports:
       - "3011:3011"
@@ -19,20 +19,22 @@ services:
       - agent_api_node_modules:/app/node_modules
     stdin_open: true
     tty: true
-    command: >
-      sh -lc "(git config --system --get-all safe.directory | grep -qx '*' ||
-      git config --system --add safe.directory '*') &&
-      (if [ -z \"$$GH_TOKEN\" ]; then
-        echo NO_GH_TOKEN;
-      else
-        git config --global --replace-all credential.helper store &&
-        home=\"$$HOME\" &&
-        [ -n \"$$home\" ] || home=/root &&
-        credfile=\"$$home/.git-credentials\" &&
-        umask 077 &&
-        printf '%s\n' \"https://x-access-token:$$GH_TOKEN@github.com\" > \"$$credfile\" &&
-        chmod 600 \"$$credfile\";
-      fi) &&
+    command: |
+      sh -lc "(git config --system --get-all safe.directory | grep -qx '*' || git config --system --add safe.directory '*') &&
+      (home=\"$$HOME\"; [ -n \"$$home\" ] || home=/root; netrc=\"$$home/.netrc\"; \
+        if [ -z \"$$GH_TOKEN\" ]; then \
+          echo NO_GH_TOKEN; \
+        else \
+          if [ -f \"$$netrc\" ] && grep -q \"^machine github\\.com$$\" \"$$netrc\" && grep -q \"^\\s*login x-access-token$$\" \"$$netrc\"; then \
+            :; \
+          else \
+            umask 077 && cat > \"$$netrc\" <<EOF
+      machine github.com
+        login x-access-token
+        password $$GH_TOKEN
+      EOF
+          fi && chmod 600 \"$$netrc\"; \
+        fi) &&
       npm ci && npm --workspace apps/api run dev"
     depends_on:
       db:
