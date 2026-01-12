@@ -2,6 +2,7 @@ import { execShell } from "./tools/exec";
 
 export type PreflightResult = {
   ok: boolean;
+  offline?: boolean;
   dirty: boolean;
   autostashed: boolean;
   stashRef?: string;
@@ -29,11 +30,17 @@ function detailFrom(result: { stdout: string; stderr: string }): string {
   return detail || "unknown error";
 }
 
-export async function runPreflight(repoRoot: string, sessionId: string): Promise<PreflightResult> {
+export async function runPreflight(
+  repoRoot: string,
+  sessionId: string,
+  opts?: { offline?: boolean },
+): Promise<PreflightResult> {
+  const offline = opts?.offline === true;
   const preflight: PreflightResult = {
     ok: true,
     dirty: false,
     autostashed: false,
+    ...(offline ? { offline: true } : {}),
   };
 
   const status = execShell("git status --porcelain", { cwd: repoRoot });
@@ -70,6 +77,8 @@ export async function runPreflight(repoRoot: string, sessionId: string): Promise
   if (!clean.ok) {
     return { ...preflight, ok: false, error: `git clean -fd failed: ${detailFrom(clean)}` };
   }
+
+  if (offline) return preflight;
 
   const fetch = execShell("git fetch origin", { cwd: repoRoot });
   if (!fetch.ok) {

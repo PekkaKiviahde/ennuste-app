@@ -195,7 +195,7 @@ export async function runChange(req: ChangeRequest) {
       memory = null;
     }
 
-    preflight = await runPreflight(repoRoot, sessionId);
+    preflight = await runPreflight(repoRoot, sessionId, req.dryRun === true ? { offline: true } : undefined);
     if (!preflight.ok) {
       throw new Error(preflight.error ?? "preflight failed");
     }
