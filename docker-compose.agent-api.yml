@@ -1,0 +1,30 @@
+services:
+  agent_api:
+    image: node:20
+    container_name: codex_agent_api
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "3011"
+      AGENT_INTERNAL_TOKEN: ${AGENT_INTERNAL_TOKEN:-dev-token}
+      DATABASE_URL: postgresql://codex:codex@db:5432/codex
+    ports:
+      - "3011:3011"
+    volumes:
+      - .:/app
+      - agent_api_node_modules:/app/node_modules
+    stdin_open: true
+    tty: true
+    command: >
+      sh -lc "(git config --system --get-all safe.directory | grep -qx '*' ||
+      git config --system --add safe.directory '*') &&
+      npm ci && npm --workspace apps/api run dev"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  agent_api_node_modules:
