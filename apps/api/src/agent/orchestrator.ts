@@ -30,6 +30,18 @@ function shellDetail(result: { stdout: string; stderr: string }): string {
   return (result.stderr || result.stdout || "unknown error").trim() || "unknown error";
 }
 
+function truncate8000(value: string): string {
+  const maxChars = 8000;
+  if (value.length <= maxChars) return value;
+  return value.slice(0, maxChars);
+}
+
+function buildPatchPreview(patch: string): string | null {
+  const lines = patch.split("\n").slice(0, 40).join("\n").trimEnd();
+  if (!lines) return null;
+  return truncate8000(lines);
+}
+
 function slug(value: string): string {
   return value
     .toLowerCase()
@@ -265,6 +277,7 @@ export async function runChange(req: ChangeRequest) {
   let lastError: string | null = null;
   let lastChanged: string[] = [];
   let lastCommitMessage = "";
+  let lastApplyDebug: { applyStdout: string; applyStderr: string; patchPreview?: string } | null = null;
 
   let branchName: string | null = null;
   let gateCommands: string[] = [];
@@ -319,6 +332,7 @@ export async function runChange(req: ChangeRequest) {
     const maxIterations = Math.max(1, config.openai.maxIterations || 1);
 
     for (let i = 0; i < maxIterations; i++) {
+      lastApplyDebug = null;
       const prompt = buildPatchPrompt(req.task, mission0, lastError);
       const promptSummary = summarizePrompt(prompt);
 
@@ -377,6 +391,12 @@ export async function runChange(req: ChangeRequest) {
       }
 
       if (!apply.ok) {
+        lastApplyDebug = {
+          applyStdout: truncate8000(apply.stdout ?? ""),
+          applyStderr: truncate8000(apply.stderr ?? ""),
+        };
+        const patchPreview = buildPatchPreview(patch);
+        if (patchPreview) lastApplyDebug.patchPreview = patchPreview;
         clearWorkingTree(repoRoot);
         lastError = "git apply failed";
         continue;
@@ -480,6 +500,7 @@ export async function runChange(req: ChangeRequest) {
       changedFiles: lastChanged,
       gateCommands,
       error: lastError ?? "max iterations exceeded",
+      ...(lastError === "git apply failed" && lastApplyDebug ? lastApplyDebug : {}),
     };
     return response;
   } catch (error) {
@@ -500,6 +521,7 @@ export async function runChange(req: ChangeRequest) {
       changedFiles: lastChanged,
       gateCommands,
       error: message,
+      ...(message === "git apply failed" && lastApplyDebug ? lastApplyDebug : {}),
     };
     return response;
   } finally {
@@ -513,6 +535,7 @@ export async function runChange(req: ChangeRequest) {
         changedFiles: lastChanged,
         gateCommands,
         error: safeErrorMessage(lastError ?? "runChange failed"),
+        ...(lastError === "git apply failed" && lastApplyDebug ? lastApplyDebug : {}),
       };
     }
     response.preflight = preflight;
