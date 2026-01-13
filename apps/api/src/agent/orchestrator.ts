@@ -42,16 +42,18 @@ function buildPatchPreview(patch: string): string {
 }
 
 function sanitizePatch(raw: string): string {
-  const normalized = raw.replace(/\r\n/g, "\n").trim();
+  const normalized = raw.replace(/\r\n/g, "\n").replace(/\u0000/g, "").trim();
   if (!normalized) return "";
 
-  if (!normalized.includes("```")) return normalized;
+  if (!normalized.includes("```")) return normalized.endsWith("\n") ? normalized : `${normalized}\n`;
 
   const lines = normalized.split("\n");
   while (lines.length > 0 && lines[0].trim().startsWith("```")) lines.shift();
   while (lines.length > 0 && lines[lines.length - 1]?.trim() === "```") lines.pop();
 
-  return lines.join("\n").trim();
+  const cleaned = lines.join("\n").trim();
+  if (!cleaned) return "";
+  return cleaned.endsWith("\n") ? cleaned : `${cleaned}\n`;
 }
 
 function safeFilenamePart(value: string): string {
