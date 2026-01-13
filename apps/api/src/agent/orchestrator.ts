@@ -36,10 +36,25 @@ function truncate8000(value: string): string {
   return value.slice(0, maxChars);
 }
 
-function buildPatchPreview(patch: string): string | null {
-  const lines = patch.split("\n").slice(0, 40).join("\n").trimEnd();
-  if (!lines) return null;
-  return truncate8000(lines);
+function buildPatchPreview(patch: string): string {
+  return truncate8000(patch.split("\n").slice(0, 60).join("\n").trimEnd());
+}
+
+function sanitizePatch(raw: string): string {
+  const normalized = raw.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return "";
+
+  if (!normalized.includes("```")) return normalized;
+
+  const lines = normalized.split("\n");
+  while (lines.length > 0 && lines[0].trim().startsWith("```")) lines.shift();
+  while (lines.length > 0 && lines[lines.length - 1]?.trim() === "```") lines.pop();
+
+  return lines.join("\n").trim();
+}
+
+function safeFilenamePart(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 80) || "unknown";
 }
 
 function slug(value: string): string {
@@ -55,10 +70,10 @@ function makeBranchName(prefix: string, task: string): string {
   return `${prefix}${ts}-${slug(task) || "change"}`;
 }
 
-function writeTempPatch(repoRoot: string, patch: string): string {
-  const dir = path.join(repoRoot, ".agent_tmp");
+function writeTempPatch(sessionId: string, patch: string): string {
+  const dir = "/tmp/agent_patches";
   fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `patch-${crypto.randomUUID()}.diff`);
+  const file = path.join(dir, `patch-${safeFilenamePart(sessionId)}-${crypto.randomUUID()}.diff`);
   fs.writeFileSync(file, patch, "utf-8");
   return file;
 }
@@ -277,7 +292,9 @@ export async function runChange(req: ChangeRequest) {
   let lastError: string | null = null;
   let lastChanged: string[] = [];
   let lastCommitMessage = "";
-  let lastApplyDebug: { applyStdout: string; applyStderr: string; patchPreview?: string } | null = null;
+  let lastApplyDebug:
+    | { applyStdout: string; applyStderr: string; patchPreview: string; applyPatchPath: string }
+    | null = null;
 
   let branchName: string | null = null;
   let gateCommands: string[] = [];
@@ -332,7 +349,6 @@ export async function runChange(req: ChangeRequest) {
     const maxIterations = Math.max(1, config.openai.maxIterations || 1);
 
     for (let i = 0; i < maxIterations; i++) {
-      lastApplyDebug = null;
       const prompt = buildPatchPrompt(req.task, mission0, lastError);
       const promptSummary = summarizePrompt(prompt);
 
@@ -350,7 +366,7 @@ export async function runChange(req: ChangeRequest) {
         continue;
       }
 
-      const patch = String(parsed.patch ?? "").trimEnd();
+      const patch = sanitizePatch(String(parsed.patch ?? ""));
       const commitMessage = String(parsed.commitMessage ?? "agent: change").trim() || "agent: change";
 
       if (patch.trim().length < 10) {
@@ -382,21 +398,16 @@ export async function runChange(req: ChangeRequest) {
         return response;
       }
 
-      const patchFile = writeTempPatch(repoRoot, patch);
+      const patchFile = writeTempPatch(sessionId, patch);
       const apply = execShell(`git apply --whitespace=nowarn ${patchFile}`, { cwd: repoRoot });
-      try {
-        fs.unlinkSync(patchFile);
-      } catch {
-        // ignore
-      }
 
       if (!apply.ok) {
         lastApplyDebug = {
           applyStdout: truncate8000(apply.stdout ?? ""),
           applyStderr: truncate8000(apply.stderr ?? ""),
+          patchPreview: buildPatchPreview(patch),
+          applyPatchPath: patchFile,
         };
-        const patchPreview = buildPatchPreview(patch);
-        if (patchPreview) lastApplyDebug.patchPreview = patchPreview;
         clearWorkingTree(repoRoot);
         lastError = "git apply failed";
         continue;
