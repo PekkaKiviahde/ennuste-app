@@ -33,6 +33,9 @@ export function createWorktree(opts: {
   execShell("git worktree prune", { cwd: opts.repoRoot });
   fs.rmSync(worktreeDir, { recursive: true, force: true });
 
+  const repoNodeModules = path.join(opts.repoRoot, "node_modules");
+  const worktreeNodeModules = path.join(worktreeDir, "node_modules");
+
   const fetch = execShell(`git fetch ${shellQuote(opts.remote)} --prune`, { cwd: opts.repoRoot });
   if (!fetch.ok) {
     return {
@@ -58,6 +61,14 @@ export function createWorktree(opts: {
     };
   }
 
+  if (fs.existsSync(repoNodeModules) && !fs.existsSync(worktreeNodeModules)) {
+    try {
+      fs.symlinkSync(repoNodeModules, worktreeNodeModules, "dir");
+    } catch {
+      // ignore; gate will surface missing deps if this fails
+    }
+  }
+
   return { ok: true, worktreeDir };
 }
 
@@ -74,4 +85,3 @@ export function removeWorktree(opts: { repoRoot: string; worktreeDir: string }):
 
   return { ok: true };
 }
-
