@@ -219,7 +219,8 @@ function runDiagGate(repoRoot: string, commands: string[]): { status: "ok" | "fa
 
 function clearWorkingTree(cwd: string): void {
   execShell("git reset --hard", { cwd });
-  execShell("git clean -fd", { cwd });
+  // Worktree-ajossa `node_modules` on symlink/peili repoRootista; ilman -e se poistuu ja gate hajoaa.
+  execShell("git clean -fd -e node_modules", { cwd });
 }
 
 function ensureGitSafeDirectory(): void {

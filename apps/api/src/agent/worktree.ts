@@ -35,6 +35,8 @@ export function createWorktree(opts: {
 
   const repoNodeModules = path.join(opts.repoRoot, "node_modules");
   const worktreeNodeModules = path.join(worktreeDir, "node_modules");
+  const repoWebNodeModules = path.join(opts.repoRoot, "apps", "web", "node_modules");
+  const worktreeWebNodeModules = path.join(worktreeDir, "apps", "web", "node_modules");
 
   const fetch = execShell(`git fetch ${shellQuote(opts.remote)} --prune`, { cwd: opts.repoRoot });
   if (!fetch.ok) {
@@ -64,6 +66,15 @@ export function createWorktree(opts: {
   if (fs.existsSync(repoNodeModules) && !fs.existsSync(worktreeNodeModules)) {
     try {
       fs.symlinkSync(repoNodeModules, worktreeNodeModules, "dir");
+    } catch {
+      // ignore; gate will surface missing deps if this fails
+    }
+  }
+
+  if (fs.existsSync(repoWebNodeModules) && !fs.existsSync(worktreeWebNodeModules)) {
+    try {
+      fs.mkdirSync(path.dirname(worktreeWebNodeModules), { recursive: true });
+      fs.symlinkSync(repoWebNodeModules, worktreeWebNodeModules, "dir");
     } catch {
       // ignore; gate will surface missing deps if this fails
     }
