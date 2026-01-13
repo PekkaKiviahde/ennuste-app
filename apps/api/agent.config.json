@@ -12,7 +12,7 @@
     "branchPrefix": "agent/"
   },
   "openai": {
-    "model": "gpt-4o-mini",
+    "model": "FROM_ENV_OPENAI_MODEL",
     "maxIterations": 3
   }
 }
