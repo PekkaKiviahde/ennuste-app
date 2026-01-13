@@ -138,6 +138,28 @@ function parseChangedFilesFromPatch(patch: string): string[] {
     const next = match[2] === "/dev/null" ? match[1] : match[2];
     if (next && !files.includes(next)) files.push(next);
   }
+  if (files.length > 0) return files;
+
+  // Fallback for unified diffs that don't include "diff --git" headers.
+  let currentOld: string | null = null;
+  for (const line of patch.split("\n")) {
+    if (line.startsWith("--- ")) {
+      const token = line.slice(4).trim().split(/\s+/)[0] ?? "";
+      if (token && token !== "/dev/null") {
+        currentOld = token.startsWith("a/") ? token.slice(2) : token;
+      } else {
+        currentOld = null;
+      }
+      continue;
+    }
+    if (line.startsWith("+++ ")) {
+      const token = line.slice(4).trim().split(/\s+/)[0] ?? "";
+      const normalized = token === "/dev/null" ? currentOld : token.startsWith("b/") ? token.slice(2) : token;
+      if (normalized && normalized !== "/dev/null" && !files.includes(normalized)) files.push(normalized);
+      currentOld = null;
+    }
+  }
+
   return files;
 }
 
@@ -314,11 +336,11 @@ export async function runChange(req: ChangeRequest) {
         continue;
       }
 
-      const patch = String(parsed.patch ?? "");
+      const patch = String(parsed.patch ?? "").trimEnd();
       const commitMessage = String(parsed.commitMessage ?? "agent: change").trim() || "agent: change";
 
-      if (!patch.includes("diff --git")) {
-        lastError = "Patch missing diff --git header";
+      if (patch.trim().length < 10) {
+        lastError = "Patch empty or too short";
         continue;
       }
 
