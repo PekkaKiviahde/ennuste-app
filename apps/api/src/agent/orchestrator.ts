@@ -8,7 +8,8 @@ import { execShell } from "./tools/exec";
 import { isPathAllowed } from "./tools/paths";
 import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
 import { createOpenAIClient, callModelText } from "./openaiClient";
-import { runCleanup, runPreflight } from "./preflight";
+import { runCleanup } from "./preflight";
+import { createWorktree, removeWorktree } from "./worktree";
 
 export type ChangeRequest = {
   projectId: string;
@@ -78,8 +79,8 @@ function writeTempPatch(sessionId: string, patch: string): string {
   return file;
 }
 
-function parseChangedFiles(repoRoot: string): string[] {
-  const res = execShell("git diff --name-only", { cwd: repoRoot });
+function parseChangedFiles(cwd: string): string[] {
+  const res = execShell("git diff --name-only", { cwd });
   if (!res.ok) return [];
   return res.stdout
     .split("\n")
@@ -113,11 +114,9 @@ function buildPatchPrompt(task: string, mission0: any, lastError: string | null)
   return [
     "Olet Backend/Debug-agentti. Tuota MUUTOSPATCH yhtena unified-diff -patchina.",
     "VAATIMUKSET:",
-    "- Palauta pelkka JSON (ei selityksia).",
+    "- Palauta vain unified diff -patch (ei JSON, ei selityksia).",
     "- Patch saa muuttaa vain pakollisia tiedostoja tehtavan toteuttamiseksi.",
-    "- Aina JSON: {commitMessage, patch, notes}.",
-    "- Aseta commitMessage lyhyeksi (max 72 merkki).",
-    "- Aseta notes lyhyeksi.",
+    "- Patch alkaa tyypillisesti rivilla: diff --git a/... b/...",
     "",
     "TEHTAVA:",
     task,
@@ -134,27 +133,6 @@ function summarizeTask(task: string): { taskChars: number; taskHash: string } {
 
 function summarizePrompt(prompt: string): { promptChars: number; promptHash: string } {
   return { promptChars: prompt.length, promptHash: hashValue(prompt) };
-}
-
-function tryParseJson(raw: string): any | null {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    // fallthrough
-  }
-
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start >= 0 && end > start) {
-    const slice = raw.slice(start, end + 1);
-    try {
-      return JSON.parse(slice);
-    } catch {
-      return null;
-    }
-  }
-
-  return null;
 }
 
 function parseChangedFilesFromPatch(patch: string): string[] {
@@ -237,9 +215,9 @@ function runDiagGate(repoRoot: string, commands: string[]): { status: "ok" | "fa
   return { status: "ok", gate };
 }
 
-function clearWorkingTree(repoRoot: string): void {
-  execShell("git restore --staged --worktree .", { cwd: repoRoot });
-  execShell("git clean -fd", { cwd: repoRoot });
+function clearWorkingTree(cwd: string): void {
+  execShell("git reset --hard", { cwd });
+  execShell("git clean -fd", { cwd });
 }
 
 function ensureGitSafeDirectory(): void {
@@ -256,6 +234,38 @@ function ensureGitSafeDirectory(): void {
 
   if (entries.includes(repoPath)) return;
   execShell(`git config --global --add safe.directory ${repoPath}`, { cwd });
+}
+
+function makeCommitMessage(task: string): string {
+  const firstLine = task
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)[0];
+
+  const base = (firstLine ?? "").replace(/[`"'\\]/g, "").trim();
+  if (!base) return "agent: change";
+  if (base.length <= 72) return base;
+  return base.slice(0, 72).trimEnd();
+}
+
+function runReadOnlyPreflight(repoRoot: string): any {
+  const status = execShell("git status --porcelain", { cwd: repoRoot });
+  if (!status.ok) {
+    return {
+      ok: false,
+      dirty: false,
+      autostashed: false,
+      error: `git status failed: ${shellDetail(status)}`,
+      policy: "worktree-readonly",
+    };
+  }
+
+  return {
+    ok: true,
+    dirty: status.stdout.trim().length > 0,
+    autostashed: false,
+    policy: "worktree-readonly",
+  };
 }
 
 export async function runChange(req: ChangeRequest) {
@@ -300,6 +310,8 @@ export async function runChange(req: ChangeRequest) {
   let gateCommands: string[] = [];
   let model = "";
   let mission0: any = null;
+  let worktreeDir = "";
+  let lastGateLog: { status: "ok" | "failed"; gate: DiagGateEntry[] } | null = null;
 
   const addEvent = async (eventType: string, payload: unknown) => {
     if (!memory) return;
@@ -326,10 +338,8 @@ export async function runChange(req: ChangeRequest) {
       memory = null;
     }
 
-    preflight = await runPreflight(repoRoot, sessionId, req.dryRun === true ? { offline: true } : undefined);
-    if (!preflight.ok) {
-      throw new Error(preflight.error ?? "preflight failed");
-    }
+    preflight = runReadOnlyPreflight(repoRoot);
+    if (!preflight.ok) throw new Error(preflight.error ?? "preflight failed");
 
     const { config } = loadAgentConfig();
     mission0 = runMission0();
@@ -337,18 +347,22 @@ export async function runChange(req: ChangeRequest) {
     model = resolveModel(config);
     branchName = makeBranchName(config.git.branchPrefix, req.task);
 
-    if (!req.dryRun) {
-      const checkoutBranch = execShell(`git checkout -B ${branchName}`, { cwd: repoRoot });
-      if (!checkoutBranch.ok) {
-        throw new Error(`git checkout -B ${branchName} failed: ${shellDetail(checkoutBranch)}`);
-      }
-    }
+    const worktree = createWorktree({
+      repoRoot,
+      sessionId,
+      branchName,
+      remote: config.git.remote,
+      baseBranch: config.git.baseBranch,
+    });
+    if (!worktree.ok) throw new Error(worktree.error);
+    worktreeDir = worktree.worktreeDir;
 
     const openai = createOpenAIClient();
 
     const maxIterations = Math.max(1, config.openai.maxIterations || 1);
 
     for (let i = 0; i < maxIterations; i++) {
+      clearWorkingTree(worktreeDir);
       const prompt = buildPatchPrompt(req.task, mission0, lastError);
       const promptSummary = summarizePrompt(prompt);
 
@@ -359,15 +373,8 @@ export async function runChange(req: ChangeRequest) {
       });
 
       const raw = await callModelText(openai, model, prompt);
-
-      const parsed = tryParseJson(raw);
-      if (!parsed) {
-        lastError = "Model did not return valid JSON";
-        continue;
-      }
-
-      const patch = sanitizePatch(String(parsed.patch ?? ""));
-      const commitMessage = String(parsed.commitMessage ?? "agent: change").trim() || "agent: change";
+      const patch = sanitizePatch(raw);
+      const commitMessage = makeCommitMessage(req.task);
 
       const patchFile = writeTempPatch(sessionId, patch);
       lastApplyDebug = {
@@ -382,10 +389,35 @@ export async function runChange(req: ChangeRequest) {
         continue;
       }
 
+      const apply = execShell(`git apply --whitespace=nowarn ${patchFile}`, { cwd: worktreeDir });
+
+      if (!apply.ok) {
+        lastApplyDebug.applyStdout = truncate8000(apply.stdout ?? "");
+        lastApplyDebug.applyStderr = truncate8000(apply.stderr ?? "");
+        lastError = "git apply failed";
+        continue;
+      }
+
+      const changed = parseChangedFiles(worktreeDir);
+      lastChanged = changed;
+      lastCommitMessage = commitMessage;
+
+      const allowedCheck = enforceAllowedPaths(worktreeDir, changed, config.allowedPaths.debug);
+      if (!allowedCheck.ok) {
+        lastError = `Changed files outside allowed paths: ${allowedCheck.denied.join(", ")}`;
+        continue;
+      }
+
+      const gateLog = runDiagGate(worktreeDir, gateCommands);
+      lastGateLog = gateLog;
+      await addEvent("GATE_RESULT", gateLog);
+
+      if (gateLog.status !== "ok") {
+        lastError = "Gate commands failed";
+        continue;
+      }
+
       if (req.dryRun) {
-        const changed = parseChangedFilesFromPatch(patch);
-        lastChanged = changed;
-        lastCommitMessage = commitMessage;
         await addEvent("DONE", {
           status: "ok",
           branchName,
@@ -406,55 +438,20 @@ export async function runChange(req: ChangeRequest) {
         return response;
       }
 
-      const apply = execShell(`git apply --whitespace=nowarn ${patchFile}`, { cwd: repoRoot });
-
-      if (!apply.ok) {
-        lastApplyDebug.applyStdout = truncate8000(apply.stdout ?? "");
-        lastApplyDebug.applyStderr = truncate8000(apply.stderr ?? "");
-        clearWorkingTree(repoRoot);
-        lastError = "git apply failed";
-        continue;
-      }
-
-      const changed = parseChangedFiles(repoRoot);
-      lastChanged = changed;
-      lastCommitMessage = commitMessage;
-
-      const allowedCheck = enforceAllowedPaths(repoRoot, changed, config.allowedPaths.debug);
-      if (!allowedCheck.ok) {
-        clearWorkingTree(repoRoot);
-        lastError = `Changed files outside allowed paths: ${allowedCheck.denied.join(", ")}`;
-        continue;
-      }
-
-      const gateResult = runGateCommands(repoRoot, gateCommands);
-      await addEvent("GATE_RESULT", {
-        gateOk: gateResult.gateOk,
-        results: gateResult.results,
-      });
-
-      if (!gateResult.gateOk) {
-        clearWorkingTree(repoRoot);
-        lastError = "Gate commands failed";
-        continue;
-      }
-
-      const add = execShell("git add -A", { cwd: repoRoot });
+      const add = execShell("git add -A", { cwd: worktreeDir });
       if (!add.ok) {
         lastError = "git add failed";
-        clearWorkingTree(repoRoot);
         continue;
       }
 
-      const commit = execShell(`git commit -m ${JSON.stringify(commitMessage)}`, { cwd: repoRoot });
+      const commit = execShell(`git commit -m ${JSON.stringify(commitMessage)}`, { cwd: worktreeDir });
       if (!commit.ok) {
         lastError = "git commit failed";
-        clearWorkingTree(repoRoot);
         continue;
       }
 
       if (!req.dryRun) {
-        const push = execShell(`git push -u ${config.git.remote} ${branchName}`, { cwd: repoRoot });
+        const push = execShell(`git push -u ${config.git.remote} ${branchName}`, { cwd: worktreeDir });
         if (!push.ok) {
           lastError = "git push failed";
           await addEvent("DONE", {
@@ -471,10 +468,10 @@ export async function runChange(req: ChangeRequest) {
             branchName,
             commitMessage,
             changedFiles: changed,
-          gateCommands,
-          error: lastError,
-          ...(lastApplyDebug ? lastApplyDebug : {}),
-        };
+            gateCommands,
+            error: lastError,
+            ...(lastApplyDebug ? lastApplyDebug : {}),
+          };
           return response;
         }
       }
@@ -516,6 +513,7 @@ export async function runChange(req: ChangeRequest) {
       gateCommands,
       error: lastError ?? "max iterations exceeded",
       ...(lastApplyDebug ? lastApplyDebug : {}),
+      ...(lastError === "Gate commands failed" && lastGateLog?.status === "failed" ? { gateLog: lastGateLog } : {}),
     };
     return response;
   } catch (error) {
@@ -537,9 +535,17 @@ export async function runChange(req: ChangeRequest) {
       gateCommands,
       error: message,
       ...(lastApplyDebug ? lastApplyDebug : {}),
+      ...(lastError === "Gate commands failed" && lastGateLog?.status === "failed" ? { gateLog: lastGateLog } : {}),
     };
     return response;
   } finally {
+    if (worktreeDir) {
+      try {
+        removeWorktree({ repoRoot, worktreeDir });
+      } catch {
+        // ignore cleanup errors
+      }
+    }
     cleanup = await runCleanup(repoRoot);
     if (!response) {
       response = {
@@ -551,6 +557,7 @@ export async function runChange(req: ChangeRequest) {
         gateCommands,
         error: safeErrorMessage(lastError ?? "runChange failed"),
         ...(lastApplyDebug ? lastApplyDebug : {}),
+        ...(lastError === "Gate commands failed" && lastGateLog?.status === "failed" ? { gateLog: lastGateLog } : {}),
       };
     }
     response.preflight = preflight;
