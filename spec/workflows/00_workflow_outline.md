@@ -42,11 +42,12 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 ## spec/workflows/01_mvp_flow.md
 - MVP-työnkulku
   - 0) Tavoitearvio import (laskenta)
-  - 1) Työpakettisuunnittelu
-  - 2) Ennustetapahtuma (append-only)
-  - 3) Lukitus (baseline)
-  - 4) Loki
-  - 5) Raportti
+  - 1) Tuotannon mäppäys (tavoitearviorivit → työpaketti + hankintapaketti)
+  - 2) Työpakettisuunnittelu
+  - 3) Ennustetapahtuma (append-only)
+  - 4) Lukitus (baseline)
+  - 5) Loki
+  - 6) Raportti
   - Mitä muuttui
   - Miksi
   - Miten testataan (manuaali)
