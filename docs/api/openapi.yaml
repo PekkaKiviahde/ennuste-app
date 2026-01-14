@@ -1,3 +1,6 @@
+# Mitä muuttui: lisättiin /saas/* provisioning-polut ja /invites/accept nykyisen kutsulinkkimallin mukaisesti; /seller/* merkitty deprecated.
+# Miksi: workflow-dokumentit ja toteutus käyttävät kutsulinkkiä (Invite) eikä erillistä stub/onboarding-linkki -mallia.
+# Miten testataan (manuaali): vertaa `docs/workflows/nappipolut.md` polut tähän; varmista että /saas/* ja /invites/accept on kuvattu ja /seller/* on deprecated.
 openapi: 3.1.0
 info:
   title: Ennustus API (MVP)
@@ -15,7 +18,7 @@ tags:
   - name: Core
     description: Ydintoiminnot (session/org/project/permissions)
   - name: Seller
-    description: Myyjän provisioning (stub + onboarding-linkki)
+    description: Myyjän asiakkuuden avaus (yhtiö + demoprojekti + ORG_ADMIN-kutsulinkki)
   - name: Admin
     description: Yritysadmin / Superadmin -hallinta
   - name: WorkPackages
@@ -64,6 +67,8 @@ paths:
       description: >
         Luo uusi yritys/tenant "stub"-tilaan provisioning-vaiheessa.
         Tenant-id ja onboarding-tila alustetaan.
+        Deprecated: käytä /saas/organizations (yhtiö + demoprojekti + kutsu).
+      deprecated: true
       requestBody:
         required: true
         content:
@@ -86,6 +91,9 @@ paths:
     post:
       tags: [Seller]
       summary: Create project (stub)
+      description: >
+        Deprecated: käytä /saas/organizations (demoprojekti luodaan automaattisesti).
+      deprecated: true
       requestBody:
         required: true
         content:
@@ -111,6 +119,8 @@ paths:
       description: >
         Luo onboarding-linkin (token) ja lähettää sen asiakkaalle.
         Linkki ohjaa yritysadminin täyttämään yritys/projektitiedot.
+        Deprecated: käytä /saas/organizations/{organizationId}/invites (Invite).
+      deprecated: true
       requestBody:
         required: true
         content:
@@ -1312,6 +1322,11 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    OrganizationId:
+      name: organizationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
 
   responses:
     Unauthorized:
@@ -1617,6 +1632,73 @@ components:
         recipient_email: { type: string, format: email }
       required: [tenant_id, recipient_email]
 
+    SaasCreateGroupRequest:
+      type: object
+      properties:
+        name: { type: string }
+      required: [name]
+
+    SaasCreateGroupResponse:
+      type: object
+      properties:
+        group_id: { type: string, format: uuid }
+      required: [group_id]
+
+    SaasCreateOrganizationRequest:
+      type: object
+      properties:
+        groupId: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        slug: { type: string }
+        adminEmail: { type: string, format: email }
+      required: [name, slug, adminEmail]
+
+    SaasCreateOrganizationResponse:
+      type: object
+      properties:
+        organization_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid, description: "Demoprojektin id" }
+        invite_id: { type: string, format: uuid }
+        invite_token: { type: string, description: "Kutsulinkin token (vain response)" }
+      required: [organization_id, tenant_id, project_id, invite_id, invite_token]
+
+    SaasCreateInviteRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        roleCode: { type: string, nullable: true, description: "Oletus ORG_ADMIN" }
+      required: [email]
+
+    SaasInviteResponse:
+      type: object
+      properties:
+        invite_id: { type: string, format: uuid }
+        invite_token: { type: string, description: "Kutsulinkin token (vain response)" }
+      required: [invite_id, invite_token]
+
+    InviteAcceptRequest:
+      type: object
+      properties:
+        token: { type: string }
+        pin: { type: string }
+        displayName: { type: string, nullable: true }
+      required: [token, pin]
+
+    InviteAcceptResponse:
+      type: object
+      properties:
+        organization_id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+      required: [organization_id, project_id, user_id]
+
+    ArchiveDemoProjectRequest:
+      type: object
+      properties:
+        demoProjectId: { type: string, format: uuid }
+      required: [demoProjectId]
+
     OnboardingLink:
       type: object
       properties:
@@ -1884,3 +1966,127 @@ components:
           required: [current_step]
         members_count: { type: integer, minimum: 0 }
       required: [wp, approvals, members_count]
+  /saas/groups:
+    post:
+      tags: [Seller]
+      summary: Create group (konserni)
+      description: >
+        Luo konsernin (Group). Valinnainen vaihe asiakkuuden avauksessa.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaasCreateGroupRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaasCreateGroupResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /saas/organizations:
+    post:
+      tags: [Seller]
+      summary: Create organization + demo project + first invite
+      description: >
+        Luo yhtiön (Organization), demoprojektin (is_demo=true) ja ensimmäisen ORG_ADMIN-kutsulinkin (Invite).
+        Prosessi on idempotentti slugilla; kutsu on email-sidottu, kertakäyttöinen ja vanheneva.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaasCreateOrganizationRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaasCreateOrganizationResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /saas/organizations/{organizationId}/invites:
+    post:
+      tags: [Seller]
+      summary: Create or resend ORG invite
+      description: >
+        Luo uusi ORG_ADMIN-kutsu tai tekee resendiä: peruu vanhan aktiivisen kutsun ja luo uuden.
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaasCreateInviteRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaasInviteResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /invites/accept:
+    post:
+      tags: [Public]
+      summary: Accept invite
+      description: >
+        ORG_ADMIN hyväksyy kutsulinkin tokenilla. Kutsulinkki on email-sidottu, kertakäyttöinen ja vanheneva.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteAcceptRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteAcceptResponse'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+  /projects/archive:
+    post:
+      tags: [Admin]
+      summary: Archive demo project
+      description: >
+        Arkistoi demoprojektin (is_demo=true). Tämä on hallinnollinen toiminto.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchiveDemoProjectRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  archived: { type: boolean }
+                required: [archived]
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'

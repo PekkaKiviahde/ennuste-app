@@ -64,7 +64,7 @@ Yhtenäistä import-mapping UX ensisijaiseen UI-polkuun ja päivitä open-questi
 
 ### 1) Onboarding + RBAC
 - Deliverable: onboarding-endpointit + RBAC-gating — riippuvuus: `migrations/0018_tenant_onboarding.sql` — hyväksymiskriteeri: kertakäyttölinkki + rooligating toimii.
-- Deliverable: demo-tenant seed + seller-stub — riippuvuus: D-034 — hyväksymiskriteeri: demo aukeaa ilman asiakasdataa.
+- Deliverable: demo-seed + myyjän asiakkuuden avaus — riippuvuus: D-034 — hyväksymiskriteeri: yhtiö+demoprojekti+kutsulinkki toimii ilman asiakasdataa.
 - Deliverable: onboarding UI — riippuvuus: API — hyväksymiskriteeri: C0→C3, P0→P2 etenee.
 
 ### 2) Importit + mapping
@@ -107,6 +107,7 @@ Vastaa: pelkkä numero.
 - Päivitettiin päivämäärä linjaan päätöslokin kanssa.
 - Täsmennetty runbook-viitteet ilman globi-muotoa.
 - Päätettiin ensisijainen UI-polku ja kirjattiin legacy-status.
+- Täsmennetty “seller-stub” terminologia: myyjän asiakkuuden avaus = yhtiö+demoprojekti+kutsulinkki.
 
 ## Miksi
 - Tarvitaan selkeä, versionoitu “missä mennään” -dokumentti.

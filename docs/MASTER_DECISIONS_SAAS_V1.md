@@ -32,7 +32,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
   **Tulkinta:** raportit eivät ylikirjoitu, lukitus ja korjaus ovat tilasiirtymiä, ja audit on todennettu.
 - **D-033 (LUKITTU)** Raportin “totuus” säilytetään snapshot-tauluissa (append-only), ja PDF/CSV generoidaan on-demand snapshotista; kaikki versiot säilytetään; generointi ja lataus vaativat RBAC + tenant-eristys + audit-eventit; smoke-testit todentavat tenant/RBAC/on-demand/audit.  
   **Tulkinta:** raporttidata ei katoa, tiedostot ovat esitysmuotoja, ja audit on kattava.
-- **D-034 (LUKITTU)** Onboarding + RBAC: projektin roolit = viewer/editor/manager/owner; järjestelmäroolit = superadmin/admin/director/seller; acting role sallitaan (owner/superadmin, TTL 7pv/30pv, audit); director on read-only; seller saa stub+onboarding-linkki, mutta myyjille on erillinen demo-tenant esitäytettynä; onboarding-linkki kertakäyttöinen (TTL 7pv); pakolliset kentät = nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu); kutsu = sähköposti + kertakäyttöinen linkki + PIN/OTP; oletusrooli viewer; audit kaikki kirjoitukset + roolimuutokset + hyväksynnät; API on gatingin totuus; tenant-eristys pakollinen; break-glass vain superadmin (audit+syy); roolit poistuvat poistossa.  
+- **D-034 (LUKITTU)** Onboarding + RBAC: projektin roolit = viewer/editor/manager/owner; järjestelmäroolit = superadmin/admin/director/seller; acting role sallitaan (owner/superadmin, TTL 7pv/30pv, audit); director on read-only; seller avaa asiakkuuden (yhtiö + demoprojekti “minimi”) ja luo ORG_ADMIN-kutsulinkin (Invite); kutsulinkki kertakäyttöinen (TTL 7pv); pakolliset kentät = nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu); kutsu = sähköposti + kertakäyttöinen linkki + PIN/OTP; oletusrooli viewer; audit kaikki kirjoitukset + roolimuutokset + hyväksynnät; API on gatingin totuus; tenant-eristys pakollinen; break-glass vain superadmin (audit+syy); roolit poistuvat poistossa.  
   **Tulkinta:** roolimalli on standardi, turvallinen ja käyttöönotto pysyy helppona.
 - **D-035 (LUKITTU)** Importit + mapping: MVP sisältää budjetti + JYDA; importien sarakemappaus on joustava per projekti (import_mappings JSONB); mapping-korjaukset versionoidaan aina (uusi mapping_version); mapping-korjaukset vain admin/manager.  
   **Tulkinta:** data pipeline on laajennettava ilman koodimuutoksia ja audit säilyy.
@@ -122,6 +122,7 @@ Tämä dokumentti on “yksi totuus” -päätösloki: tänne kirjataan vain luk
 - Lukittiin raportointi + export minimipäätökset (oikeus, arkistointi, smoke) päätökseksi D-038.
 - Päivitettiin päiväys linjaan päätöslokin kanssa.
 - Korjattiin perusteviite decision-logiin: PDF + CSV (ei Excel).
+- Täsmennettiin myyjän (Seller) provisioning-termit: “stub” = yhtiö + demoprojekti + ORG_ADMIN-kutsulinkki (Invite).
 
 ## Miksi
 - Tarvitaan yhteinen ja eksplisiittinen linjaus raporttien tallennus- ja generointimallista sekä auditista.

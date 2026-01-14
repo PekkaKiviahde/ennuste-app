@@ -25,7 +25,7 @@ Tämä dokumentti kokoaa roolit ja oikeudet “yhdelle sivulle”, jotta:
 - **Talousjohtaja**: vastaanottaa kuukausiraportit (read-only)
 
 ### Toimittajan sisäiset roolit
-- **Myyjä (Seller)**: sopimus → stub + onboarding-linkki
+- **Myyjä (Seller)**: sopimus → yhtiö + demoprojekti + ORG_ADMIN-kutsulinkki
 - **Superadmin**: näkee kaikki yritykset, tuki/override, banneri
 - **Support/On-call**: incident triage (ulkoinen tiketti)
 - **Release approver**: staging→prod go/no-go (nimetty)
@@ -64,8 +64,8 @@ Legend:
 ### 2.1 Hallinnollinen (Company/Project)
 | Toiminto | Myyjä | Superadmin | Yritysadmin | PM | TJ | Yksikön johtaja | Talousjohtaja |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Luo yritys+projekti (stub) | ✅ | ✅ | — | — | — | — | — |
-| Lähetä onboarding-linkki | ✅ | ✅ | — | — | — | — | — |
+| Luo yhtiö+demoprojekti | ✅ | ✅ | — | — | — | — | — |
+| Luo ORG_ADMIN-kutsulinkki | ✅ | ✅ | — | — | — | — | — |
 | Muokkaa yrityksen/projektin tietoja | — | ✅ | ✅ | — | — | — | — |
 | Hallitse käyttäjiä ja rooleja | — | ✅ | ✅ | — | — | — | — |
 | Aseta raporttivastaanottajat | — | ✅ | ✅ | — | — | — | — |
@@ -107,6 +107,7 @@ Legend:
 ## Mitä muuttui
 - Päivitetty päivämäärä 2026-01-02.
 - Lisatty alias-mappaus tyomaa-rooleille ja acting role -periaate.
+- Päivitetty myyjän (Seller) hallinnolliset toiminnot vastaamaan nykyistä kutsulinkkimallia (yhtiö+demoprojekti+invite).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
@@ -115,3 +116,4 @@ Legend:
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Tarkista, etta acting role antaa oikeudet ajaksi ja kirjautuu audit-logiin.
+- Tarkista, että myyjän rivit vastaavat nappipolkujen myyjä-osuutta.

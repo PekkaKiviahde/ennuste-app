@@ -83,10 +83,10 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 ## Tilatunnukset (status codes)
 
 ### Tenant onboarding
-- `C0_PROVISIONED`
-- `C1_ONBOARDING_LINK_SENT`
-- `C2_ONBOARDING_IN_PROGRESS`
-- `C3_READY`
+- `C0_PROVISIONED` – yhtiö (organization) + tenant luotu ja demoprojekti olemassa
+- `C1_ONBOARDING_LINK_SENT` – ORG_ADMIN-kutsulinkki (Invite) luotu ja toimitettu
+- `C2_ONBOARDING_IN_PROGRESS` – ORG_ADMIN täydentää asetuksia ja kutsuu käyttäjiä
+- `C3_READY` – minimiasetukset kunnossa, projekti voidaan avata tuotantoon
 
 ### Projekti
 - `P0_PROJECT_DRAFT`
@@ -118,6 +118,7 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - Päivitetty terminologia: työpakettilittera ja työpakettisuunnittelu.
 - Lisätty käsitteet ja niiden keskinäinen logiikka.
 - Päivitetty raporttipaketin formaatti PDF/CSV-linjaukseen.
+- Täsmennetty tenant-onboarding-tilojen C0–C3 selitteet kutsulinkkimalliin sopiviksi.
 - Päivitetty päivämäärä 2026-01-02.
 
 ## Miksi

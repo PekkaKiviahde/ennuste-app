@@ -10,11 +10,11 @@ Tarkoitus: tehdä UI- ja RBAC-toteutuksesta yksiselitteinen.
 
 ---
 
-## 1) Myyjä (Seller) – asiakkuus → onboarding-linkki
+## 1) Myyjä (Seller) – asiakkuus → ORG_ADMIN-kutsulinkki (Invite)
 
 1. **[Asiakkuudet] → [Uusi sopimus]**
-2. **[Luo yritys + projekti (stub)]**
-3. **[Lähetä onboarding-linkki asiakkaalle]**
+2. **[Luo yhtiö + demoprojekti]** *(idempotentti slugilla)*
+3. **[Luo ORG_ADMIN-kutsulinkki ja toimita asiakkaalle]** *(Invite: email-sidottu, kertakäyttöinen, vanheneva)*
 4. (valinn.) **[Näytä käyttöönoton tila]**: “lomake täytetty / käyttäjät kutsuttu / valmis tuotantoon”
 
 ---
@@ -133,9 +133,10 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 > Nämä ovat “hyviä oletus-endpointeja”. Nimeä lopulliset polut teidän koodityylin mukaan.
 
 #### Hallinnollinen (Company/Project)
-- `POST /api/seller/tenants` → luo tenant (stub) *(myyjä/superadmin)*
-- `POST /api/seller/projects` → luo projekti (stub)
-- `POST /api/seller/onboarding-links` → luo+lähetä onboarding-linkki
+- `POST /api/saas/groups` → luo konserni *(valinnainen; myyjä/superadmin)*
+- `POST /api/saas/organizations` → luo yhtiö + demoprojekti + ensimmäinen ORG_ADMIN-kutsu *(myyjä/superadmin)*
+- `POST /api/saas/organizations/{organizationId}/invites` → resend / uusi ORG_ADMIN-kutsu *(myyjä/superadmin)*
+- `POST /api/invites/accept` → ORG_ADMIN hyväksyy kutsun *(julkinen kutsun kautta)*
 
 - `POST /api/admin/tenants/{tenant_id}/onboarding/submit` → asiakkaan lomake “valmis”
 - `POST /api/admin/tenants/{tenant_id}/users:invite` → kutsu käyttäjät (automaatiolla)
@@ -144,6 +145,7 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - `PUT  /api/admin/projects/{project_id}/approval-settings` → hyväksyntäketjut
 - `GET  /api/admin/projects/{project_id}/mappings` → näytä mäppäykset
 - `PATCH /api/admin/projects/{project_id}/mappings/{mapping_id}` → korjaa mäppäys *(limited edit)*
+- `POST /api/projects/archive` → arkistoi demoprojekti *(ORG_ADMIN, jos käytössä)*
 
 #### Työpaketti (Work package) – SETUP/TRACK
 - `POST /api/projects/{project_id}/work-packages` → uusi työpaketti
@@ -222,6 +224,7 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - Lisätty muutososiot dokumentin loppuun.
 - Päivitetty raporttipaketin lataus PDF/CSV-linjaukseen.
 - Päivitetty päivämäärä 2026-01-02.
+- Päivitetty myyjän (Seller) polku ja hallinnolliset API-ehdotukset nykyiseen kutsulinkkimalliin (/api/saas/* + /api/invites/accept).
 
 ## Miksi
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
@@ -230,3 +233,4 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 ## Miten testataan (manuaali)
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
 - Varmista, että report package -lataus mainitaan PDF/CSV-muodossa.
+- Varmista, että myyjän polku ei viittaa /api/seller/* stub-endpointeihin.

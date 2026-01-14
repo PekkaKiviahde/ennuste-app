@@ -28,7 +28,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 ## 2025-12-30 – Hallinnollinen polku ja roolit
 - Superadmin näkee kaikki yritykset.
 - Yritysadmin näkee oman yrityksen ja hallitsee asetukset.
-- Myyjällä on omat näkymät: sopimus → stub → onboarding-linkki.
+- Myyjällä on omat näkymät: sopimus → yhtiö + demoprojekti → ORG_ADMIN-kutsulinkki.
 - Integraatiot/mäppäykset ovat pääosin kiinteät, mutta admin voi tarkistaa/korjata.
 
 ---
@@ -81,8 +81,8 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Projektin roolit: viewer/editor/manager/owner.
 - Järjestelmäroolit: superadmin/admin/director/seller; director on read-only.
 - Acting role sallittu (owner/superadmin, TTL 7pv/30pv, audit).
-- Seller saa stub + onboarding-linkin; demo-tenant erillinen ja esitäytetty.
-- Onboarding-linkki kertakäyttöinen (TTL 7pv).
+- Seller avaa asiakkuuden (yhtiö + demoprojekti) ja luo ORG_ADMIN-kutsulinkin (Invite).
+- Kutsulinkki on kertakäyttöinen ja vanheneva (TTL 7pv).
 - Pakolliset kentät: nimi + y-tunnus + projekti + aikajakso + valuutta (laaja kenttälista sallittu).
 - Kutsu: sähköposti + kertakäyttöinen linkki + PIN/OTP.
 - Oletusrooli viewer.
@@ -206,6 +206,7 @@ Tarkoitus: että “miksi ja mitä päätettiin” ei jää vain chat-historiaan
 - Lisätty UI/API-viitteiden tarkistus koontiin.
 - Lisätty API-dokkien base-path/placeholder-yhdenmukaistus koontiin.
 - Lisätty päätösloki vs UI/API -tarkistus koontiin.
+- Täsmennetty myyjän (Seller) “stub” -termi vastaamaan nykyistä kutsulinkkimallia (yhtiö+demoprojekti+invite).
 
 ## Miksi
 - Tarvitaan yhteinen totuus raportoinnin ja exportin toteutusmallista ja testivaatimuksista.

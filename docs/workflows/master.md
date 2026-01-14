@@ -15,12 +15,12 @@ flowchart LR
 
 subgraph SALES["Myyjä (Seller)"]
   S0["S0: Sopimus tehty"]
-  S1["Action: Luo tenant + projekti (stub)"]
-  S2["Action: Lähetä onboarding-linkki asiakkaalle"]
+  S1["Action: Luo yhtiö + demoprojekti (minimi)"]
+  S2["Action: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
 end
 
 subgraph SA["Superadmin"]
-  A0["C0: PROVISIONED (tenant created)"]
+  A0["C0: PROVISIONED (yhtiö + tenant + demoprojekti luotu)"]
   A1["Action: Aseta yritysadmin"]
   A2["Action: Override / tuki (tarvittaessa)"]
   A3["Action: Häiriöbanneri ON/OFF (Incident link)"]
@@ -181,6 +181,7 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 ## Mitä muuttui
 - Päivitetty päivämäärä 2026-01-02.
 - Lisätty muutososiot dokumentin loppuun.
+- Myyjän (Seller) provisioning päivitetty nykyiseen kutsulinkkimalliin: yhtiö + demoprojekti + ORG_ADMIN-invite.
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.

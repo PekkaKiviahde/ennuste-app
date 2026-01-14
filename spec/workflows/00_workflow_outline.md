@@ -2,6 +2,19 @@
 
 Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 
+# spec/workflows/00_sales_phase.md
+- Vaihe −1: Myynti ja asiakkuuden avaus (SaaS‑myyjä)
+  - Tavoite
+  - Termit
+  - Päätökset (yhteenveto)
+  - Myynti → asiakkuuden avaus (vaiheittain)
+  - Kutsulinkin säännöt (turva + idempotenssi)
+  - Audit‑tapahtumat (append‑only)
+  - Rajapinnat (nykyinen kutsulinkkimalli)
+  - Mitä muuttui
+  - Miksi
+  - Miten testataan (manuaali)
+
 ## spec/workflows/02_org_hierarchy_onboarding.md
 - Konserni, yhtiö ja projekti – hierarkia ja onboarding
   - Tavoite
