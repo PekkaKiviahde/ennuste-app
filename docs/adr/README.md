@@ -20,6 +20,7 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0015: Append-only item-mäppäys (tavoitearviorivi → työpaketti)
 - ADR-0016: Clean baseline ja mäppäyksen erottelu
 - ADR-0017: Speksin taulunimet (monikko) + NFR-baseline
+- ADR-0018: Ehdotuskerros importin jälkeen (ei kovakoodattua mäppäysautomaatiota)
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.

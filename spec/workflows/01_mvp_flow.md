@@ -6,6 +6,9 @@ Polku: tavoitearvio import (laskenta) -> tuotannon suunnittelu -> ennustetapahtu
 - Laskentaosasto tuottaa tavoitearvioesityksen (Excel/CSV export).
 - Tavoitearvio importataan projektille (TARGET_ESTIMATE import_batch).
 - Importin yhteydessa tehdään **esimäppäys**: jokaiselle 4-num litterakoodille luodaan/vahvistetaan vastinpari `litteras`-masterdatassa (koodi säilyy merkkijonona; leading zerot säilyvät).
+- Importti voi tuottaa **ehdotuksia** (oppiva/yrityskohtainen), mutta ne ovat aina “suggestion only”:
+  - ei automaattista koodimuunnosta (ei “kovakoodattuja sääntöjä” kuten 6700→2500)
+  - ei automaattista mäppäystä työpaketteihin/työvaiheisiin ilman ihmisen hyväksyntää
 - Importin jälkeen järjestelmä voi näyttää “selvitettävät” (virheelliset tai puutteelliset rivit) ennen kuin tuotanto aloittaa suunnittelun.
 
 Huom:
@@ -42,6 +45,7 @@ Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtu
 
 ## Mita muuttui
 - Lisatty alkuun tavoitearvion import (laskenta) ja esimäppäys (koodi -> litteras) ennen tuotannon suunnittelua.
+- Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
 - Paivitetty terminologia työpakettisuunnitteluun ja baseline-lukitukseen.
 - Rajattu MVP-tyonkulku selkeaan ketjuun työpakettisuunnittelusta raporttiin.
 - Lukitus maaritelty omana ennustetapahtumana append-only periaatteella.
@@ -50,6 +54,7 @@ Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtu
 
 ## Miksi
 - Tavoitearvio (laskennan data) on ennustamisen ja baselinen pohja, joten sen pitää olla olemassa ennen tuotannon suunnittelua.
+- Tavoitearviotyylit ja yrityskohtaiset käytännöt vaihtelevat, joten MVP:ssä järjestelmä voi vain ehdottaa ja ihminen hyväksyy (audit trail säilyy).
 - Työpakettisuunnittelun erottaminen varmistaa, etta ennustaminen on ohjattua ja perusteltua.
 - Append-only loki varmistaa audit trailin ja tapahtumahistorian.
 - Raportointi tarvitsee yksiselitteisen ketjun tiedon lahteesta tulokseen.

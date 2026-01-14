@@ -98,7 +98,7 @@ C) Esimäppäys (koodi → vastinpari `litteras`)
 - Koodi on aina merkkijono `^\d{4}$` ja leading zerot säilyvät (esim. "0310" ei saa muuttua "310").
 - Jos koodi on virheellinen tai puuttuu, rivi jää stagingiin issueksi eikä siirry `budget_lines`-tauluun.
 
-C) “Oliko tavoitearviossa” -todennus (tulevaa baseline-logiikkaa varten)
+D) “Oliko tavoitearviossa” -todennus (tulevaa baseline-logiikkaa varten)
 - kun työvaiheeseen lisätään rivi retroaktiivisesti, järjestelmä tarkistaa että (koodi, import_batch_id) löytyy `budget_lines`-taulusta.
 
 ---
@@ -180,15 +180,30 @@ Kun batch on "PUHDAS":
 - kaikki staging-eventit ovat append-only
 - siirrosta kirjataan erillinen audit-merkinta
 
+### 6.6 Ehdotukset (oppiva/yrityskohtainen, ei pakottava)
+Importin jälkeen järjestelmä voi tuottaa **ehdotuksia**, mutta ne eivät ole automaatiota.
+
+Periaate (MVP):
+- järjestelmä saa ehdottaa
+- ihminen hyväksyy (ja tarvittaessa kirjaa perustelun)
+- ei automaattisia koodimuunnoksia tai “kovakoodattuja sääntöjä” (esim. 6700→2500)
+
+Tyypillisiä ehdotuksia:
+- `litteras.title` import-selite-kentästä tai aiemmista projekteista
+- koonti/roll-up ehdotus konfiguroitavalla taululla (ei oleteta “viimeinen numero nollaksi”)
+- myöhemmässä vaiheessa: item-tason mäppäysehdotus työpakettiin/hankintapakettiin historiadatan perusteella (mutta hyväksyntä vaaditaan)
+
 ## Mita muuttui
 - Lisatty CSV-esimerkkisarakkeet ja kustannuslajimappaus MVP-tuontiin.
 - Lisatty staging + puhdistus -vaihe ennen budget_lines-siirtoa.
 - Lisatty esimäppäys (koodi → litteras) osaksi importin jälkitarkistuksia ja selkeytetty leading zero -sääntö validoinnissa.
+- Lisatty “ehdotukset” erotettuna automaatiosta: järjestelmä voi ehdottaa, mutta ei pakota yrityskohtaista koodisääntöä.
 
 ## Miksi
 - Esimerkkidata ohjaa MVP-importin pakolliset sarakkeet ja validoinnin.
 - Manuaalinen siirto vaatii puhdistusvaiheen ennen lopullista kirjausta.
 - Järjestelmän on tunnistettava kaikki tavoitearvion koodit master-dataksi, jotta tuotanto voi aloittaa mäppäyksen ja raportointi toimii.
+- Yrityskohtainen “kovakoodaus” rikkoo helposti prosessia ja audit trailia: MVP:ssä vain ehdotetaan ja ihminen hyväksyy.
 
 ## Miten testataan (manuaali)
 - Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.
