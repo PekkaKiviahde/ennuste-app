@@ -12,9 +12,14 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-005: Projektin SaaS-tyypilliset metatiedot
 - ADR-0006: Yhtenäinen kirjautumis- ja uloskirjautumisvirta
 - ADR-0007: Kaikki merkittävät päätökset kirjataan ADR:iin
+- ADR-0008: Postgres-taulurakenne speksin pohjalta
+- ADR-0009: Raportoinnin indeksisuositukset
 - ADR-0010: Ensisijainen UI-polku
 - ADR-0013: Next-UI ainoa käyttöliittymä
 - ADR-0014: Konserni/yhtiö/projekti-hierarkia ja onboarding
+- ADR-0015: Append-only item-mäppäys (tavoitearviorivi → työpaketti)
+- ADR-0016: Clean baseline ja mäppäyksen erottelu
+- ADR-0017: Speksin taulunimet (monikko) + NFR-baseline
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.

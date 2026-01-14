@@ -2,6 +2,8 @@
 
 Päivitetty: 2026-01-02
 
+Nimikäytäntö: fyysiset taulut ovat monikkomuotoisia (`mapping_versions`, `mapping_lines`) ja tenant-eristys tehdään `tenant_id`:llä (katso `docs/adr/ADR-002-tenant-id-everywhere.md`).
+
 ## 0. Miksi tämä on olemassa?
 
 Työmaalla **toteumat ja ostot kirjautuvat usein työpakettilitteroille** (useita koodeja), mutta

@@ -31,6 +31,7 @@ keycloak_repo_docs_bundle.zip
 Promts/
 tools/arch-audit.mjs
 .next/
+tmp/
 
 # TypeScript
 *.tsbuildinfo
