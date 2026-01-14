@@ -1,5 +1,6 @@
 import type { AdminPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
+import { AppError } from "@ennuste/shared";
 
 export const adminRepository = (): AdminPort => ({
   async getAdminOverview(projectId, tenantId) {
@@ -52,5 +53,52 @@ export const adminRepository = (): AdminPort => ({
       roles: rolesResult.rows,
       assignments: assignmentsResult.rows
     };
+  },
+
+  async archiveDemoProject(input) {
+    const tenantDb = dbForTenant(input.tenantId);
+    await tenantDb.requireProject(input.projectId);
+    const { organizationId } = await tenantDb.getProjectContext(input.projectId);
+
+    return tenantDb.transaction(async (client) => {
+      const target = await client.query<{
+        project_id: string;
+        organization_id: string;
+        is_demo: boolean;
+        archived_at: string | null;
+      }>(
+        "SELECT project_id, organization_id, is_demo, archived_at FROM projects WHERE project_id = $1::uuid AND tenant_id = $2::uuid",
+        [input.demoProjectId, input.tenantId]
+      );
+
+      const row = target.rows[0];
+      if (!row) {
+        throw new AppError("Projektia ei loydy.", "PROJECT_NOT_FOUND", 404);
+      }
+      if (row.organization_id !== organizationId) {
+        throw new AppError("Ei oikeutta projektiin.", "FORBIDDEN", 403);
+      }
+      if (!row.is_demo) {
+        throw new AppError("Vain demoprojekti voidaan arkistoida tassa virrassa.", "NOT_DEMO_PROJECT", 409);
+      }
+      if (row.archived_at) {
+        return { archived: false };
+      }
+
+      const updated = await client.query(
+        "UPDATE projects SET archived_at = now() WHERE project_id = $1::uuid AND tenant_id = $2::uuid AND archived_at IS NULL",
+        [input.demoProjectId, input.tenantId]
+      );
+
+      if (updated.rowCount > 0) {
+        await client.query(
+          "INSERT INTO app_audit_log (project_id, actor, action, payload) VALUES ($1::uuid, $2::text, $3::text, $4::jsonb)",
+          [input.demoProjectId, input.username, "project.archived", { project_id: input.demoProjectId, is_demo: true }]
+        );
+        return { archived: true };
+      }
+
+      return { archived: false };
+    });
   }
 });

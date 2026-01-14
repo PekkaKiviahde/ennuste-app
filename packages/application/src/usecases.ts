@@ -530,7 +530,7 @@ export const createGroup = async (
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "group.create",
+    action: "group.created",
     payload: { group_id: result.groupId, name: input.name }
   });
   return result;
@@ -556,26 +556,74 @@ export const createOrganizationWithInvite = async (
     adminEmail: input.adminEmail,
     createdBy: input.username
   });
+
+  if (result.created.groupCreated) {
+    await services.audit.recordEvent({
+      projectId: input.projectId,
+      tenantId: input.tenantId,
+      actor: input.username,
+      action: "group.created",
+      payload: {
+        group_id: result.groupId,
+        is_implicit: true,
+        organization_slug: input.slug
+      }
+    });
+  }
+
+  if (result.created.organizationCreated) {
+    await services.audit.recordEvent({
+      projectId: input.projectId,
+      tenantId: input.tenantId,
+      actor: input.username,
+      action: "org.created",
+      payload: {
+        organization_id: result.organizationId,
+        tenant_id: result.tenantId,
+        group_id: result.groupId,
+        slug: input.slug,
+        name: input.name
+      }
+    });
+  }
+
+  if (result.created.demoProjectCreated) {
+    await services.audit.recordEvent({
+      projectId: input.projectId,
+      tenantId: input.tenantId,
+      actor: input.username,
+      action: "project.created",
+      payload: {
+        project_id: result.projectId,
+        organization_id: result.organizationId,
+        tenant_id: result.tenantId,
+        is_demo: true
+      }
+    });
+  }
+
+  for (const revokedInviteId of result.revokedInviteIds) {
+    await services.audit.recordEvent({
+      projectId: input.projectId,
+      tenantId: input.tenantId,
+      actor: input.username,
+      action: "invite.revoked",
+      payload: {
+        organization_id: result.organizationId,
+        invite_id: revokedInviteId,
+        reason: "resend"
+      }
+    });
+  }
   await services.audit.recordEvent({
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "organization.create",
+    action: "invite.created",
     payload: {
       organization_id: result.organizationId,
-      tenant_id: result.tenantId,
-      demo_project_id: result.projectId,
+      invite_id: result.inviteId,
       admin_email: input.adminEmail
-    }
-  });
-  await services.audit.recordEvent({
-    projectId: input.projectId,
-    tenantId: input.tenantId,
-    actor: input.username,
-    action: "invite.create",
-    payload: {
-      organization_id: result.organizationId,
-      invite_id: result.inviteId
     }
   });
   return result;
@@ -599,11 +647,21 @@ export const createOrganizationInvite = async (
     roleCode: input.roleCode ?? null,
     createdBy: input.username
   });
+
+  for (const revokedInviteId of result.revokedInviteIds) {
+    await services.audit.recordEvent({
+      projectId: input.projectId,
+      tenantId: input.tenantId,
+      actor: input.username,
+      action: "invite.revoked",
+      payload: { organization_id: input.organizationId, invite_id: revokedInviteId, reason: "resend" }
+    });
+  }
   await services.audit.recordEvent({
     projectId: input.projectId,
     tenantId: input.tenantId,
     actor: input.username,
-    action: "invite.create",
+    action: "invite.created",
     payload: { organization_id: input.organizationId, invite_id: result.inviteId }
   });
   return result;
@@ -624,6 +682,19 @@ export const acceptInvite = async (
 export const loadAdminOverview = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "MEMBERS_MANAGE");
   return services.admin.getAdminOverview(input.projectId, input.tenantId);
+};
+
+export const archiveDemoProject = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string; demoProjectId: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "MEMBERS_MANAGE");
+  return services.admin.archiveDemoProject({
+    projectId: input.projectId,
+    tenantId: input.tenantId,
+    username: input.username,
+    demoProjectId: input.demoProjectId
+  });
 };
 
 export const loadWorkPackages = async (
