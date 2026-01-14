@@ -12,6 +12,10 @@ Tarkoitus: tehdä UI- ja RBAC-toteutuksesta yksiselitteinen.
 
 ## 1) Myyjä (Seller) – asiakkuus → ORG_ADMIN-kutsulinkki (Invite)
 
+Huom:
+- Pre-sales (esittely, demo, hinnoittelu, tarjous) tapahtuu pääosin järjestelmän ulkopuolella.
+- Suositus: demo toimitetaan demo-ympäristössä (ei asiakasdataa), ja asiakkuuden avaus tehdään vasta sopimuksen jälkeen.
+
 1. **[Asiakkuudet] → [Uusi sopimus]**
 2. **[Luo yhtiö + demoprojekti]** *(idempotentti slugilla)*
 3. **[Luo ORG_ADMIN-kutsulinkki ja toimita asiakkaalle]** *(Invite: email-sidottu, kertakäyttöinen, vanheneva)*
@@ -225,6 +229,7 @@ Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + mi
 - Päivitetty raporttipaketin lataus PDF/CSV-linjaukseen.
 - Päivitetty päivämäärä 2026-01-02.
 - Päivitetty myyjän (Seller) polku ja hallinnolliset API-ehdotukset nykyiseen kutsulinkkimalliin (/api/saas/* + /api/invites/accept).
+- Lisätty huomio pre-sales demosta (demo erillään asiakasprovisionoinnista).
 
 ## Miksi
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.

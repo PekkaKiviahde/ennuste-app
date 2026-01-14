@@ -14,6 +14,7 @@ flowchart LR
 %% =========================
 
 subgraph SALES["Myyjä (Seller)"]
+  S_1["S-1: Pre-sales demo toimitettu"]
   S0["S0: Sopimus tehty"]
   S1["Action: Luo yhtiö + demoprojekti (minimi)"]
   S2["Action: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
@@ -100,7 +101,7 @@ end
 %% =========================
 %% Flow: Sales → Provisioning → Onboarding
 %% =========================
-S0 --> S1 --> A0
+S_1 --> S0 --> S1 --> A0
 A0 --> S2 --> C1
 A0 --> A1 --> C1
 
@@ -182,6 +183,7 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Päivitetty päivämäärä 2026-01-02.
 - Lisätty muutososiot dokumentin loppuun.
 - Myyjän (Seller) provisioning päivitetty nykyiseen kutsulinkkimalliin: yhtiö + demoprojekti + ORG_ADMIN-invite.
+- Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.

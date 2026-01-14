@@ -1,20 +1,22 @@
 # Vaihe −1: Myynti ja asiakkuuden avaus (SaaS‑myyjä)
 
 ## Tavoite
-Kuvata myyntivaiheen jälkeen tehtävä “asiakkuuden avaus” siten, että:
+Kuvata myynti + “asiakkuuden avaus” siten, että:
 - järjestelmässä on yhtiö (Organization) ja demoprojekti (Project, `is_demo=true`)
 - yrityksen pääkäyttäjälle (ORG_ADMIN) voidaan lähettää kutsulinkki
 - prosessi on idempotentti ja turvallinen (retry ei luo tuplia)
 - kaikki oleelliset tapahtumat näkyvät audit-lokissa (append-only)
 
 ## Termit
+- Liidi: myynnin alku (järjestelmän ulkopuolinen)
 - Sopimus: myyntisopimus asiakkaan kanssa (järjestelmän ulkopuolinen todiste)
+- Demo: tuotteen esittely/tutustuminen (suositus: erillinen demo-ympäristö/tenant)
 - Asiakkuuden avaus: tekninen provisioning sovellukseen (yhtiö + demoprojekti + kutsu)
 - Kutsulinkki (Invite): sähköpostiin sidottu, kertakäyttöinen ja vanheneva token
 - Demoprojekti: onboardingia varten luotu projekti (`is_demo=true`)
 
 ## Päätökset (yhteenveto)
-- Asiakkuuden avaus tapahtuu vasta, kun myyntisopimus on tehty.
+- Asiakkuuden avaus (järjestelmään) tapahtuu vasta, kun myyntisopimus on tehty.
 - Konserni‑taso on olemassa, mutta valinnainen käyttää.
 - Jos konsernia ei anneta, järjestelmä voi luoda yhtiölle “oma konserni” ‑Groupin (suositus: vältä NULL‑konsernia).
 - Yhtiön luonnissa luodaan demoprojekti automaattisesti.
@@ -22,14 +24,24 @@ Kuvata myyntivaiheen jälkeen tehtävä “asiakkuuden avaus” siten, että:
 - Roolit ovat scopekohtaisia:
   - ORG_ADMIN (org‑scope)
   - PROJECT_OWNER (project‑scope demoprojektissa onboardingissa)
+- Suositus: pre-sales demo ei luo asiakasyhtiötä/asiakasprojektia, vaan käyttää erillistä demo-ympäristöä (ei asiakasdataa).
 
 ## Myynti → asiakkuuden avaus (vaiheittain)
 
-### 1) Myynti (järjestelmän ulkopuolella)
+### 1) Myynti (pre-sales, järjestelmän ulkopuolella)
 Pre:
-- sopimus on hyväksytty (SaaS‑myyjä)
+- liidi on tunnistettu ja myyjä hoitaa kvalifioinnin
 Post:
-- myyjällä on asiakkaan perustiedot: yhtiön nimi, y‑tunnus (jos käytössä), ORG_ADMINin sähköposti
+- tuote on esitelty ja asiakkaalla on demokokemus (tutustuminen)
+- hinnoittelu ja tarjous on tehty
+- sopimus on allekirjoitettu
+- myyjällä on provisioning-minimitiedot: yhtiön nimi, slug, (valinn.) konsernitieto, ORG_ADMINin sähköposti
+
+Myyntivaiheen minimi (checklist):
+- Esittely: arvolupaus ja rajaus (MVP)
+- Demo: ohjataan demo-ympäristöön (ei asiakasdataa)
+- Tarjous: hinnoittelu ja ehdot
+- Sopimus: allekirjoitus + aloituspäivä
 
 ### 2) Asiakkuuden avaus (järjestelmässä)
 Toimija: SaaS‑myyjä (sisäinen)
@@ -85,12 +97,15 @@ Toimija: SaaS‑myyjä (sisäinen)
 ---
 
 ## Mitä muuttui
-- Lisättiin vaihe −1: myynti ja asiakkuuden avaus ennen tuotannon prosesseja.
+- Lisättiin myyntivaiheen (pre-sales) checklist vaiheeseen −1.
+- Täsmennettiin demokäytännön suositus: demo erillään asiakasprovisionoinnista.
 
 ## Miksi
-- Myynti ja tekninen provisioning pitää erottaa, jotta onboarding on idempotentti ja auditoitava.
+- Myynti, demo ja provisioning ovat eri riskiprofiileja (asiakasdata, oikeudet, audit).
+- Selkeä raja vähentää “vahingossa luotu asiakas” -tilanteita ja pitää kutsulinkkimallin yksiselitteisenä.
 
 ## Miten testataan (manuaali)
+- Myynti: toimita demolinkki demo-ympäristöön (ei asiakasyhtiötä) ja varmista, että demo ei luo mitään asiakasdataan.
 - Luo yhtiö myyjänä ilman konsernia → yhtiö + demoprojekti syntyy ja kutsu luodaan.
 - Aja sama luonti uudelleen samalla slugilla → ei synny toista yhtiötä eikä toista demoprojektia.
 - Tee resend samalle emailille → vanha kutsu perutaan ja uusi toimii.
