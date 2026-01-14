@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { setDefaultOpenAIClient } from "@openai/agents";
+import { setDefaultOpenAIKey } from "@openai/agents";
 import { assertAllowedOpenAIModel, type AllowedOpenAIModel } from "./models";
 import { logOpenAIUsage } from "./logging";
 
@@ -49,9 +49,8 @@ export function getOpenAIClient(): OpenAI {
 }
 
 export function initOpenAI(): void {
-  const openai = getOpenAIClient();
   if (!agentsConfigured) {
-    setDefaultOpenAIClient(openai);
+    setDefaultOpenAIKey(getOpenAIKey());
     agentsConfigured = true;
   }
 }
