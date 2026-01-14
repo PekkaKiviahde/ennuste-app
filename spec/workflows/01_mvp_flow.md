@@ -1,6 +1,6 @@
 # MVP-tyonkulku
 
-Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työvaiheiden taloudellinen suunnittelu -> ennustetapahtuma -> lukitus (baseline) -> loki -> raportti
+Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työvaiheiden taloudellinen suunnittelu (TP+HP) -> baseline-lukitus -> seuranta/ennuste -> loki -> raportti
 
 ## 0) Tavoitearvioesityksen import (lähtötieto laskentaosastolta)
 - Laskentaosasto tuottaa tavoitearvioesityksen (Excel/CSV export).
@@ -16,7 +16,8 @@ Huom:
 
 ## 1) Tuotannon työvaiheiden taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
 - Tuotanto ja hankinta määrittävät “missä kustannus tehdään” liittämällä tavoitearviorivit työpaketteihin ja/tai hankintapaketteihin.
-- Mäppäys on append-only ja versioidaan (uusi versio = uusi tapahtuma), ja ennustaminen edellyttää että **aktiivinen mäppäysversio** on olemassa.
+- Perusyksikkö on tavoitearviorivi (item), ei pelkkä 4-num littera.
+- Suunnittelu on append-only ja versioidaan (uusi versio = uusi tapahtuma).
 - Järjestelmä voi ehdottaa (hakusana, toimittajateksti, aiemmat projektit), mutta ihminen hyväksyy.
 
 ### 1.1 Hankintapaketin luonti
@@ -26,6 +27,13 @@ Huom:
   - poistaa “väärin laskettuja” rivejä suunnittelusta (append-only: riviä ei poisteta historiasta, vaan se merkitään ohitetuksi/poissuljetuksi kyseisessä versiossa perustelulla)
   - lisätä rivejä (append-only lisärivi/korjausrivi perustelulla)
 
+#### A) Hankintapaketti: maksuerät (milestones)
+- Hankintapaketti (HP) mallinnetaan maksuerälistana (2–10+ erää).
+- Kentät per maksuerä:
+  - `due_week` (ISO-viikko, esim. `2026-W03`)
+  - `amount_eur` tai `amount_pct` (jompikumpi, ei molempia)
+  - `label` (selite)
+
 ### 1.2 Työpakettisuunnittelu
 - Mestari vahvistaa hankintapaketin jälkeen jäljelle jääneet/ehdotetut rivit lopullisiksi työpaketeiksi.
 - Mestari kirjaa työpakettisuunnittelun: summary, observations, risks, decisions ja asettaa statuksen READY_FOR_FORECAST.
@@ -33,21 +41,41 @@ Huom:
   - poistaa “väärin laskettuja” rivejä suunnittelusta (append-only: riviä ei poisteta historiasta, vaan se merkitään ohitetuksi/poissuljetuksi kyseisessä versiossa perustelulla)
   - lisätä rivejä (append-only lisärivi/korjausrivi perustelulla)
 
-Hyvaksymissaanto (MVP): ennustetapahtuma sallitaan vain, jos:
-- työpakettisuunnittelun status on READY_FOR_FORECAST tai LOCKED, ja
-- projektille on olemassa aktiivinen mäppäysversio.
-Jarjestelma estaa ennustetapahtuman (API + UI), jos työpakettisuunnittelu puuttuu tai on DRAFT.
+#### B) Työpaketti: 2 aikajanaa
+- Työpaketti (TP) mallinnetaan kahdella aikajanalla (ISO-viikot):
+  - `work_start_week`, `work_end_week` (työjakso)
+  - `cost_start_week`, `cost_end_week` (kustannusjakso)
 
-## 3) Ennustetapahtuma (append-only)
-- Kayttaja kirjaa kustannuslajikohtaiset ennusteet (EnnusteRivi).
-- Kayttaja kirjaa perustelut memo-kenttiin.
-- Tallenna -> syntyy uusi Ennustetapahtuma ja siihen liittyvat EnnusteRivit.
+#### B.1 Kustannusjakson painotus (yksi per TP)
+- `cost_bias_pct` (0–100)
+  - `0` = painotus alkuun
+  - `50` = tasainen
+  - `100` = painotus loppuun
+- MVP: syöttö on liukuri 0–100 + järjestelmän preview-jakauma (ei kustannuslajeittain).
 
-Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtuma.
+#### C) UI-periaate (MVP)
+- Zoomattava projektiaikajana (ISO-viikot).
+- “Venyvä viiva” työjaksolle ja kustannusjaksolle (drag start/end).
+- Liukuri + preview-jakauma kustannusjaksolle (`cost_start_week..cost_end_week`) käyttäen `cost_bias_pct`.
 
-## 4) Lukitus (baseline)
-- Lukitus on oma Ennustetapahtuma, jossa is_locked = true ja lock_reason taytetaan.
-- Lukitus estaa uusien ennustetapahtumien kirjaamisen, ellei erillista vapautusta ole.
+## 3) Baseline-lukitus (hyväksyntä)
+#### D) Baseline-lukitus
+- Baseline syntyy hyväksynnässä ja lukitsee erät/jaksot/painotuksen (HP maksuerät + TP työ- ja kustannusjaksot + `cost_bias_pct`).
+- Baseline-lukitus myös lukitsee sen, mitkä tavoitearviorivit kuuluvat mihinkin työpakettiin/hankintapakettiin kyseisessä baseline-versiossa.
+
+Validointi baseline-lukituksessa:
+- Hankintapaketti: maksuerien summa on joko
+  - `100%` (jos käytössä `amount_pct`) tai
+  - sama kuin baseline € (jos käytössä `amount_eur`)
+- Viikot: start <= end sekä työjaksolle että kustannusjaksolle, ja viikot ovat ISO-viikkoja.
+
+## 4) Seuranta/ennuste (ennustetapahtumat, append-only)
+- Seuranta on viikkotasolla (ISO-viikot).
+- Ennuste kirjataan ennustetapahtumina (append-only): korjaus on aina uusi tapahtuma.
+- Ennuste voidaan kirjata vain, jos baseline on lukittu.
+- Raportointi vertaa toteumaa ja ennustetta baselineen:
+  - HP maksuerät antavat “maksu-/laskutuspolun” viikoille
+  - TP kustannusjakso + `cost_bias_pct` antaa baseline-jakauman viikoille (UI:n preview-jakauma)
 
 ## 5) Loki
 - Kaikki ennustetapahtumat ja perustelut jaavat append-only lokiin.
@@ -62,25 +90,23 @@ Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtu
 - Nimetty aloitusvaihe tavoitearvioesityksen importiksi (lähtötieto laskentaosastolta).
 - Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
 - Muutettu tuotannon vaihe “työvaiheiden taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
-- Paivitetty terminologia työpakettisuunnitteluun ja baseline-lukitukseen.
-- Rajattu MVP-tyonkulku selkeaan ketjuun työpakettisuunnittelusta raporttiin.
-- Lukitus maaritelty omana ennustetapahtumana append-only periaatteella.
-- Raportoinnin aggregointi sidottu mappingiin ja group_code 0-9.
-- Lisatty API + UI -tasoinen esto ennustetapahtumalle ilman READY_FOR_FORECAST/LOCKED työpakettisuunnittelua.
+- Lisätty hankintapaketin maksuerät (milestones) sekä työpaketin 2 aikajanaa (työjakso + kustannusjakso) ja kustannusjakson painotus (`cost_bias_pct`) viikkotasolla.
+- Lisätty UI-periaate: zoomattava aikajana, “venyvä viiva” jaksoille ja liukuri + preview-jakauma.
+- Lisätty baseline-lukitus omaksi vaiheeksi ennen seurantaa/ennustetta ja tarkennettu baseline-validoinnit.
+- Täsmennetty, että ennustetapahtuma vaatii lukitun baselinen (baseline on “hyväksytty suunnitelma”).
 
 ## Miksi
 - Tavoitearvio (laskennan data) on ennustamisen ja baselinen pohja, joten sen pitää olla olemassa ennen tuotannon suunnittelua.
 - Tavoitearviotyylit ja yrityskohtaiset käytännöt vaihtelevat, joten MVP:ssä järjestelmä voi vain ehdottaa ja ihminen hyväksyy (audit trail säilyy).
 - Mäppäys on tuotannon suunnitteluvaihe, joka määrittää “missä kustannus tehdään” ja mahdollistaa hankintojen linkityksen.
+- Maksuerät ja aikajanat tekevät baselinesta aikasidonnaisen, jolloin seuranta/ennuste voidaan tehdä viikkotasolla.
 - Työpakettisuunnittelun erottaminen varmistaa, etta ennustaminen on ohjattua ja perusteltua.
 - Append-only loki varmistaa audit trailin ja tapahtumahistorian.
 - Raportointi tarvitsee yksiselitteisen ketjun tiedon lahteesta tulokseen.
 
 ## Miten testataan (manuaali)
 - Importoi tavoitearvio projektille ja varmista, että 4-num koodit näkyvät `litteras`-listassa ja budjetti näkyy työpakettisuunnittelussa.
-- Tee tuotannon mäppäys: liitä vähintään yksi tavoitearviorivi työpakettiin ja (halutessa) hankintapakettiin, ja aktivoi mäppäysversio.
-- Luo tavoitearvio-littera, työpakettisuunnittelu ja yksi ennustetapahtuma.
-- Yrita luoda ennustetapahtuma ilman työpakettisuunnittelua ja varmista estoviesti.
-- Yrita luoda ennustetapahtuma ilman aktiivista mäppäystä ja varmista estoviesti.
-- Tee lukitustapahtuma ja varmista, etta uusia ennustetapahtumia ei voi kirjata.
+- Tee tuotannon suunnittelu: liitä rivejä työpakettiin ja hankintapakettiin; lisää HP:lle 2+ maksuerää (viikot + %/€) ja aseta TP:lle työ- ja kustannusjaksot sekä `cost_bias_pct`.
+- Yritä baseline-lukitusta, kun maksuerien summa ei täsmää (odota validointivirhe).
+- Lukitse baseline ja varmista, että ennustetapahtuma estyy ilman lukittua baselinea ja sallitaan vasta lukituksen jälkeen.
 - Aja raportti ja tarkista group_code 0-9 aggregointi.

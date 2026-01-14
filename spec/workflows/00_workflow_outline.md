@@ -58,8 +58,8 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
   - 1) Tuotannon työvaiheiden taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
     - 1.1 Hankintapaketin luonti
     - 1.2 Työpakettisuunnittelu
-  - 3) Ennustetapahtuma (append-only)
-  - 4) Lukitus (baseline)
+  - 3) Baseline-lukitus (hyväksyntä)
+  - 4) Seuranta/ennuste (ennustetapahtumat, append-only)
   - 5) Loki
   - 6) Raportti
   - Mitä muuttui

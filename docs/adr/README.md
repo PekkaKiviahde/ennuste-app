@@ -22,6 +22,7 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0017: Speksin taulunimet (monikko) + NFR-baseline
 - ADR-0018: Ehdotuskerros importin jälkeen (ei kovakoodattua mäppäysautomaatiota)
 - ADR-0019: Tuotannon taloudellisen suunnittelun jako (hankintapaketti → työpaketti) ja append-only “poisto/lisäys”
+- ADR-0020: Hankintapaketin maksuerät + työpaketin 2 aikajanaa + painotus (ISO-viikot)
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
