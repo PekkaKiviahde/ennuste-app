@@ -515,9 +515,18 @@ export async function runChange(req: ChangeRequest) {
     const repoRoot = findRepoRootFromFs(process.cwd());
     const gateLog = runDiagGate(repoRoot, REQUIRED_GATE_COMMANDS);
     if (gateLog.status === "ok") {
-      return { status: "ok", branchName: null, changedFiles: [] };
+      return { status: "ok", branchName: null, changedFiles: [], baseSha: null };
     }
-    return { status: "failed", branchName: null, changedFiles: [], applyStdout: "", applyStderr: "", patchPreview: "", gateLog };
+    return {
+      status: "failed",
+      branchName: null,
+      changedFiles: [],
+      baseSha: null,
+      applyStdout: "",
+      applyStderr: "",
+      patchPreview: "",
+      gateLog,
+    };
   }
 
   ensureGitSafeDirectory();
@@ -539,6 +548,7 @@ export async function runChange(req: ChangeRequest) {
   let model = "";
   let mission0: any = null;
   let worktreeDir = "";
+  let baseSha: string | null = null;
 
   const addEvent = async (eventType: string, payload: unknown) => {
     if (!memory) return;
@@ -596,6 +606,7 @@ export async function runChange(req: ChangeRequest) {
     });
     if (!worktree.ok) throw new Error(worktree.error);
     worktreeDir = worktree.worktreeDir;
+    baseSha = worktree.baseSha;
 
     const openai = createOpenAIClient();
 
@@ -892,6 +903,10 @@ export async function runChange(req: ChangeRequest) {
       } catch {
         // ignore
       }
+    }
+
+    if (response && typeof response === "object" && !("baseSha" in response)) {
+      response.baseSha = baseSha;
     }
   }
 }

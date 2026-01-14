@@ -16,7 +16,7 @@ export function getWorktreeDir(sessionId: string): string {
 }
 
 export type WorktreeCreateResult =
-  | { ok: true; worktreeDir: string }
+  | { ok: true; worktreeDir: string; baseSha: string }
   | { ok: false; worktreeDir: string; error: string };
 
 export function createWorktree(opts: {
@@ -38,16 +38,39 @@ export function createWorktree(opts: {
   const repoWebNodeModules = path.join(opts.repoRoot, "apps", "web", "node_modules");
   const worktreeWebNodeModules = path.join(worktreeDir, "apps", "web", "node_modules");
 
-  const fetch = execShell(`git fetch ${shellQuote(opts.remote)} --prune`, { cwd: opts.repoRoot });
+  // NOTE(first delivery lock): always base worktree on origin/main (ignore config/baseBranch for now).
+  const baseRef = "origin/main";
+
+  const fetch = execShell("git fetch origin --prune", { cwd: opts.repoRoot });
   if (!fetch.ok) {
     return {
       ok: false,
       worktreeDir,
-      error: `git fetch ${opts.remote} --prune failed: ${(fetch.stderr || fetch.stdout || "unknown error").trim()}`,
+      error: `git fetch origin --prune failed: ${(fetch.stderr || fetch.stdout || "unknown error").trim()}`,
     };
   }
 
-  const baseRef = `${opts.remote}/${opts.baseBranch}`;
+  const verifyBase = execShell(`git rev-parse --verify ${shellQuote(`${baseRef}^{commit}`)}`, { cwd: opts.repoRoot });
+  if (!verifyBase.ok) {
+    const fetchMain = execShell("git fetch origin main", { cwd: opts.repoRoot });
+    if (!fetchMain.ok) {
+      return {
+        ok: false,
+        worktreeDir,
+        error: `git fetch origin main failed: ${(fetchMain.stderr || fetchMain.stdout || "unknown error").trim()}`,
+      };
+    }
+
+    const verifyAfter = execShell(`git rev-parse --verify ${shellQuote(`${baseRef}^{commit}`)}`, { cwd: opts.repoRoot });
+    if (!verifyAfter.ok) {
+      return {
+        ok: false,
+        worktreeDir,
+        error: `baseRef missing after fetch: ${(verifyAfter.stderr || verifyAfter.stdout || "unknown error").trim()}`,
+      };
+    }
+  }
+
   const add = execShell(
     `git worktree add -B ${shellQuote(opts.branchName)} ${shellQuote(worktreeDir)} ${shellQuote(baseRef)}`,
     { cwd: opts.repoRoot },
@@ -60,6 +83,18 @@ export function createWorktree(opts: {
       ok: false,
       worktreeDir,
       error: `git worktree add failed: ${(add.stderr || add.stdout || "unknown error").trim()}`,
+    };
+  }
+
+  const baseSha = execShell("git rev-parse HEAD", { cwd: worktreeDir });
+  if (!baseSha.ok) {
+    execShell(`git worktree remove --force ${shellQuote(worktreeDir)}`, { cwd: opts.repoRoot });
+    execShell("git worktree prune", { cwd: opts.repoRoot });
+    fs.rmSync(worktreeDir, { recursive: true, force: true });
+    return {
+      ok: false,
+      worktreeDir,
+      error: `git rev-parse HEAD failed: ${(baseSha.stderr || baseSha.stdout || "unknown error").trim()}`,
     };
   }
 
@@ -80,7 +115,7 @@ export function createWorktree(opts: {
     }
   }
 
-  return { ok: true, worktreeDir };
+  return { ok: true, worktreeDir, baseSha: baseSha.stdout.trim() };
 }
 
 export function removeWorktree(opts: { repoRoot: string; worktreeDir: string }): { ok: boolean; error?: string } {
