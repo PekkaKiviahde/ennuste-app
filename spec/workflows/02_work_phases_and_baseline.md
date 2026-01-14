@@ -1,5 +1,10 @@
 # Työvaihepaketti ja baseline (MVP-prosessi)
 
+## 0. Esivaatimukset
+- Projekti on olemassa.
+- Laskennan tavoitearvio on importattu projektille (TARGET_ESTIMATE / `import_batch`).
+- Importin esimäppäys on onnistunut: jokaiselle 4-num litterakoodille löytyy vastinpari `litteras`-masterdatassa (koodi säilyy merkkijonona; leading zerot säilyvät).
+
 ## 1. Tavoite
 Tässä määritellään prosessi, jolla:
 - muodostetaan työvaihe (looginen paketti) tuotannon + hankinnan toimesta
@@ -108,3 +113,13 @@ MVP on “prosessi kunnossa”, kun:
 - viikkopäivitys voi kirjata valmiusasteen ja ghostit
 - raportti näyttää EV, AC, ghost-open, CPI
 - korjauspolku erottaa “oli tavoitearviossa” vs “ei ollut”
+
+## Mitä muuttui
+- Lisätty esivaatimukseksi tavoitearvion import + esimäppäys (koodi → litteras) ennen työvaiheiden ja baselinen muodostamista.
+
+## Miksi
+- Työvaiheen budjetti, johtolittera-ehdotus ja baseline-linkitys nojaavat tavoitearvion import-batchiin, joten importin pitää olla ensin tehty ja koodit tunnistettu master-dataksi.
+
+## Miten testataan (manuaali)
+- Luo projekti, importoi tavoitearvio ja varmista että 4-num koodit löytyvät `litteras`-listasta (sis. leading zeros).
+- Luo työvaihe DRAFTina ja varmista, että johtolittera-ehdotus voidaan tehdä tavoitearvion euroista.

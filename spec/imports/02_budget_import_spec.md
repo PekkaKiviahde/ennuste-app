@@ -93,6 +93,11 @@ A) Rivimäärä
 B) Satunnaistarkistus
 - valitse 3 koodia Excelistä ja tarkista että sama summa löytyy budget_linesistä.
 
+C) Esimäppäys (koodi → vastinpari `litteras`)
+- Varmista, että jokaiselle importoidulle 4-num litterakoodille löytyy `litteras`-rivi (project_id, code).
+- Koodi on aina merkkijono `^\d{4}$` ja leading zerot säilyvät (esim. "0310" ei saa muuttua "310").
+- Jos koodi on virheellinen tai puuttuu, rivi jää stagingiin issueksi eikä siirry `budget_lines`-tauluun.
+
 C) “Oliko tavoitearviossa” -todennus (tulevaa baseline-logiikkaa varten)
 - kun työvaiheeseen lisätään rivi retroaktiivisesti, järjestelmä tarkistaa että (koodi, import_batch_id) löytyy `budget_lines`-taulusta.
 
@@ -155,7 +160,7 @@ Stagingiin saapuessa ajetaan validointi:
 - pakolliset kentat (koodi, budjetti tai kustannuslaji-eurot)
 - numeric/format (ei NaN, ei tekstia euro-kentissa)
 - budjettiarvot >= 0 (negatiiviset merkitään issueksi)
-- litterakoodi (4 numeroa) normalisoidaan; virheet listataan
+- litterakoodi validoidaan (4 numeroa merkkijonona); virheet listataan (leading zeroja ei muuteta)
 
 Validointi EI kirjoita `budget_lines`-tauluun.
 
@@ -178,20 +183,14 @@ Kun batch on "PUHDAS":
 ## Mita muuttui
 - Lisatty CSV-esimerkkisarakkeet ja kustannuslajimappaus MVP-tuontiin.
 - Lisatty staging + puhdistus -vaihe ennen budget_lines-siirtoa.
+- Lisatty esimäppäys (koodi → litteras) osaksi importin jälkitarkistuksia ja selkeytetty leading zero -sääntö validoinnissa.
 
 ## Miksi
 - Esimerkkidata ohjaa MVP-importin pakolliset sarakkeet ja validoinnin.
 - Manuaalinen siirto vaatii puhdistusvaiheen ennen lopullista kirjausta.
+- Järjestelmän on tunnistettava kaikki tavoitearvion koodit master-dataksi, jotta tuotanto voi aloittaa mäppäyksen ja raportointi toimii.
 
 ## Miten testataan (manuaali)
 - Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.
 - Luo staging-importti, korjaa yksi rivi ja varmista, että hyvaksytty siirto kirjoittaa budget_lines.
-
-## Mitä muuttui
-- Lisätty muutososiot dokumentin loppuun.
-
-## Miksi
-- Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
-
-## Miten testataan (manuaali)
-- Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Testaa leading zero: tuo koodi "0310" ja varmista, että se säilyy `litteras.code`-kentässä muodossa "0310".

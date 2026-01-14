@@ -21,6 +21,7 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 
 ## spec/workflows/02_work_phases_and_baseline.md
 - Työvaihepaketti ja baseline (MVP-prosessi)
+  - 0. Esivaatimukset
   - 1. Tavoite
   - 2. Käsitteet (lyhyesti)
   - 3. Roolit (MVP)
@@ -34,9 +35,13 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
   - 9. EV ja KPI/CPI (raportointiperiaate)
   - 10. “Oli tavoitearviossa” -sääntö baselineen
   - 11. MVP-valmis määritelmä
+  - Mitä muuttui
+  - Miksi
+  - Miten testataan (manuaali)
 
 ## spec/workflows/01_mvp_flow.md
 - MVP-työnkulku
+  - 0) Tavoitearvio import (laskenta)
   - 1) Työpakettisuunnittelu
   - 2) Ennustetapahtuma (append-only)
   - 3) Lukitus (baseline)
