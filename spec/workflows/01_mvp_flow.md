@@ -1,8 +1,8 @@
 # MVP-tyonkulku
 
-Polku: tavoitearvio import (laskenta) -> tuotannon mäppäys -> työpakettisuunnittelu -> ennustetapahtuma -> lukitus (baseline) -> loki -> raportti
+Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työvaiheiden taloudellinen suunnittelu -> ennustetapahtuma -> lukitus (baseline) -> loki -> raportti
 
-## 0) Tavoitearvio import (laskenta)
+## 0) Tavoitearvioesityksen import (lähtötieto laskentaosastolta)
 - Laskentaosasto tuottaa tavoitearvioesityksen (Excel/CSV export).
 - Tavoitearvio importataan projektille (TARGET_ESTIMATE import_batch).
 - Importin yhteydessa tehdään **esimäppäys**: jokaiselle 4-num litterakoodille luodaan/vahvistetaan vastinpari `litteras`-masterdatassa (koodi säilyy merkkijonona; leading zerot säilyvät).
@@ -14,26 +14,28 @@ Polku: tavoitearvio import (laskenta) -> tuotannon mäppäys -> työpakettisuunn
 Huom:
 - Importti EI tee tuotannon mäppäystä työpaketteihin/työvaiheisiin (se on tuotannon manuaalinen vaihe importin jälkeen).
 
-## 1) Tuotannon mäppäys (tavoitearviorivit → työpaketti + hankintapaketti)
-- Tuotanto (ja tarvittaessa hankinta) muodostaa työpaketit ja hankintapaketit.
-- Jokainen tavoitearviorivi (item) liitetään:
-  - työpakettiin, jossa kustannus “tehdään”
-  - ja haluttaessa hankintapakettiin (urakka/sopimus)
+## 1) Tuotannon työvaiheiden taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
+- Tuotanto ja hankinta määrittävät “missä kustannus tehdään” liittämällä tavoitearviorivit työpaketteihin ja/tai hankintapaketteihin.
 - Mäppäys on append-only ja versioidaan (uusi versio = uusi tapahtuma), ja ennustaminen edellyttää että **aktiivinen mäppäysversio** on olemassa.
-- Järjestelmä voi ehdottaa mäppäystä (hakusana, toimittajateksti, aiemmat projektit), mutta ihminen hyväksyy.
+- Järjestelmä voi ehdottaa (hakusana, toimittajateksti, aiemmat projektit), mutta ihminen hyväksyy.
 
-MVP-oletus:
-- työpaketti ↔ hankintapaketti on 1:1 “pääsopimus” -tasolla (item-tason splitti myöhemmin).
+### 1.1 Hankintapaketin luonti
+- Hankintapaketin luonti ja rivien liittäminen sopimuksille/urakoille (hankinta).
+- Oletus (automaattinen esitäyttö / suggestion): kun hankintapaketti luodaan tietylle 4-num litterakoodille, järjestelmä ehdottaa “loput saman litterakoodin riveistä” saman koodin alle työpaketiksi, jotta mikään ei jää ilman kotia.
+- Hankintapäälliköllä on oikeus:
+  - poistaa “väärin laskettuja” rivejä suunnittelusta (append-only: riviä ei poisteta historiasta, vaan se merkitään ohitetuksi/poissuljetuksi kyseisessä versiossa perustelulla)
+  - lisätä rivejä (append-only lisärivi/korjausrivi perustelulla)
 
-## 2) Työpakettisuunnittelu
-- Kayttaja avaa tavoitearvio-litteran.
-- Jarjestelma nayttaa tavoitteen (BudgetLine) ja toteuman (ActualCostLine mappingin kautta).
-- Kayttaja kirjaa työpakettisuunnittelun: summary, observations, risks, decisions.
-- Työpakettisuunnittelun status asetetaan READY_FOR_FORECAST.
+### 1.2 Työpakettisuunnittelu
+- Mestari vahvistaa hankintapaketin jälkeen jäljelle jääneet/ehdotetut rivit lopullisiksi työpaketeiksi.
+- Mestari kirjaa työpakettisuunnittelun: summary, observations, risks, decisions ja asettaa statuksen READY_FOR_FORECAST.
+- Mestarilla on oikeus:
+  - poistaa “väärin laskettuja” rivejä suunnittelusta (append-only: riviä ei poisteta historiasta, vaan se merkitään ohitetuksi/poissuljetuksi kyseisessä versiossa perustelulla)
+  - lisätä rivejä (append-only lisärivi/korjausrivi perustelulla)
 
 Hyvaksymissaanto (MVP): ennustetapahtuma sallitaan vain, jos:
-- työpakettisuunnittelu on READY_FOR_FORECAST tai LOCKED, ja
-- projektille on olemassa aktiivinen mäppäysversio (tuotannon mäppäys on tehty).
+- työpakettisuunnittelun status on READY_FOR_FORECAST tai LOCKED, ja
+- projektille on olemassa aktiivinen mäppäysversio.
 Jarjestelma estaa ennustetapahtuman (API + UI), jos työpakettisuunnittelu puuttuu tai on DRAFT.
 
 ## 3) Ennustetapahtuma (append-only)
@@ -57,9 +59,9 @@ Hyvaksymissaanto (MVP): tapahtumaa ei muokata, vaan korjaus on aina uusi tapahtu
 - Raportti nayttaa uusimman ennustetapahtuman per tavoitearvio-littera.
 
 ## Mita muuttui
-- Lisatty alkuun tavoitearvion import (laskenta) ja esimäppäys (koodi -> litteras) ennen tuotannon suunnittelua.
+- Nimetty aloitusvaihe tavoitearvioesityksen importiksi (lähtötieto laskentaosastolta).
 - Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
-- Lisatty tuotannon mäppäysvaihe (tavoitearviorivi → työpaketti + hankintapaketti) ennen työpakettisuunnittelua ja ennustetta.
+- Muutettu tuotannon vaihe “työvaiheiden taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
 - Paivitetty terminologia työpakettisuunnitteluun ja baseline-lukitukseen.
 - Rajattu MVP-tyonkulku selkeaan ketjuun työpakettisuunnittelusta raporttiin.
 - Lukitus maaritelty omana ennustetapahtumana append-only periaatteella.
