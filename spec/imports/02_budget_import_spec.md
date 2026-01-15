@@ -126,7 +126,9 @@ Suositeltu mappauskonfiguraatio:
   - cost_type (optional)
 
 Validointi:
-- code normalisoidaan 4 numeroon
+- code normalisoidaan merkkijonona muotoon `^\\d{4}$`:
+  - leading zeroja ei koskaan poisteta (esim. "0310" säilyy "0310")
+  - jos lähde antaa numeron (esim. 310), se täydennetään vasemmalta nollilla ("0310")
 - budjettiarvot >= 0
 - jos cost_type puuttuu, kayta OTHER
 - jos kustannuslajisarakkeet puuttuvat, total_eur pakollinen
@@ -197,6 +199,7 @@ Tyypillisiä ehdotuksia:
 - Lisatty CSV-esimerkkisarakkeet ja kustannuslajimappaus MVP-tuontiin.
 - Lisatty staging + puhdistus -vaihe ennen budget_lines-siirtoa.
 - Lisatty esimäppäys (koodi → litteras) osaksi importin jälkitarkistuksia ja selkeytetty leading zero -sääntö validoinnissa.
+- Täsmennetty sarakemappauksen validointi: koodi normalisoidaan merkkijonona `^\\d{4}$` ilman leading zerojen pudottamista.
 - Lisatty “ehdotukset” erotettuna automaatiosta: järjestelmä voi ehdottaa, mutta ei pakota yrityskohtaista koodisääntöä.
 
 ## Miksi
@@ -209,3 +212,4 @@ Tyypillisiä ehdotuksia:
 - Importoi kaksi eri layoutia sarakemappauksella ja varmista rivien laskenta.
 - Luo staging-importti, korjaa yksi rivi ja varmista, että hyvaksytty siirto kirjoittaa budget_lines.
 - Testaa leading zero: tuo koodi "0310" ja varmista, että se säilyy `litteras.code`-kentässä muodossa "0310".
+- Testaa numeerinen koodi: tuo koodi 310 ja varmista, että se normalisoituu muotoon "0310" (ei "310").
