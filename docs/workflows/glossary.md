@@ -85,7 +85,7 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 ## Vaihe- ja tilakoodit (pikaopas)
 
 ### Vaihekoodit (S ja E)
-- `S-1`, `S0` = SaaS-vaiheet (org-taso): myynti/provisiointi → onboarding.
+- `S-1`, `S0`, `S1` = SaaS-vaiheet (org-taso): myynti/provisiointi → onboarding → trial/entitlement (PLG).
 - `E0..E5` = ennustusprosessin vaiheet (projektitaso): import → suunnittelu → baseline → seuranta → loki → raportti.
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
 - Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
@@ -100,6 +100,11 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - `W0..W3` = työpaketti (setup → track)
 - `M0..M4` = kuukausi (month close)
 - `I0..I4` = incident-banner (in-app)
+
+### PLG entitlement (S1)
+- `subscription_status` = `trialing | active | past_due | read_only | canceled`
+- `project_status` = `ACTIVE | STANDBY | ARCHIVED`
+- Huom: `project_status` (PLG gate) ei ole sama asia kuin `P0..P2` (projektin “hallinnollinen” status). Tarkka määrittely: `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`.
 
 ### Tenant onboarding
 - `C0_PROVISIONED` – yhtiö (organization) + tenant luotu ja demoprojekti olemassa
@@ -140,6 +145,7 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - Täsmennetty tenant-onboarding-tilojen C0–C3 selitteet kutsulinkkimalliin sopiviksi.
 - Lisätty pikaopas vaihe- ja tilakoodien nimeämiseen (S/E sekä C/P/W/M/I).
 - Lisätty kaaviosääntö: vaihekoodeja ei käytetä mermaid-node-id:nä.
+- Lisätty PLG-entitlementin (S1) sanastorivit: subscription_status ja project_status.
 - Päivitetty päivämäärä 2026-01-15.
 
 ## Miksi

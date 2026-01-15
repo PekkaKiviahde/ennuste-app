@@ -1,4 +1,4 @@
-# Työpuu: SaaS (S-1, S0) ja ennustus (E0, E1)
+# Työpuu: SaaS (S-1, S0, S1) ja ennustus (E0, E1)
 
 Tämä tiedosto on “työpuu-näkymä” eri vaiheista.
 Päivitämme tähän myöhemmin myös muita workflow-vaiheita ja tarkennuksia.
@@ -7,14 +7,15 @@ Päivitämme tähän myöhemmin myös muita workflow-vaiheita ja tarkennuksia.
 - Kanoninen prosessispeksi:
   - `spec/workflows/00_sales_phase.md` (S-1: myynti + provisiointi)
   - `spec/workflows/02_org_hierarchy_onboarding.md` (S0: onboarding)
+  - `spec/workflows/01_plg_entitlement_and_project_lifecycle.md` (S1: trial + entitlement + projektin elinkaari)
   - `spec/workflows/01_mvp_flow.md` (E0–E5: ennustusprosessin vaiheet)
 - Tämä tiedosto on tiivis puu, ei toteutusspeksi. Jos ristiriita, `spec/` voittaa.
 
 ## Nimeäminen (ettei “0” mene sekaisin)
-- SaaS-vaiheet (org-taso): `S-1`, `S0` (myynti/provisiointi → onboarding).
+- SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
 - Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
 - Tässä tiedostossa:
-  - `S-1` ja `S0` ovat SaaS-vaiheita
+  - `S-1`, `S0` ja `S1` ovat SaaS-vaiheita
   - `E0` ja `E1` ovat ennustusprosessin vaiheita
 
 ## S-1 — SaaS-myynti + provisiointi (SaaS-myyjä)
@@ -48,6 +49,23 @@ S0 — Organisaation onboarding (ORG_ADMIN)
    ├─ Luo varsinaiset projektit
    ├─ Roolita henkilöt projekteihin
    └─ Hallitse demoprojekti: arkistoi tai (myöhemmin) muunna oikeaksi
+```
+
+## S1 — PLG: Trial + entitlement + projektin elinkaari (SMB/PLG)
+```text
+S1 — PLG: Trial + entitlement + projektin elinkaari (SMB/PLG)
+├─ Org entitlement (subscription_status)
+│  ├─ trialing → active → past_due → read_only / canceled
+│  ├─ past_due: grace_until (7–14 pv) → grace expired → read_only
+│  └─ Gate: read_only/canceled → domain-write estyy (ENTITLEMENT_READ_ONLY)
+├─ Poikkeus: commerce-endpointit
+│  └─ checkout/portaali-session luonti sallittu myös read_only-tilassa
+├─ Projektin tila (project_status)
+│  ├─ ACTIVE | STANDBY | ARCHIVED
+│  └─ Gate: != ACTIVE → projektin domain-write estyy (PROJECT_NOT_ACTIVE)
+└─ Reaktivointi (STANDBY → ACTIVE)
+   ├─ Käyttäjä pyytää checkoutin (idempotentti)
+   └─ Webhook paid → projekti ACTIVE (idempotentti + audit)
 ```
 
 ## E0 — Tavoitearvioesityksen import (projekti)
@@ -89,15 +107,17 @@ E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 ```
 
 ## Mitä muuttui
-- Lisätty uusi workflow-työpuu tiedostona SaaS-vaiheille (S-1/S0) ja ennustusvaiheille (E0/E1).
+- Lisätty uusi workflow-työpuu tiedostona SaaS-vaiheille (S-1/S0/S1) ja ennustusvaiheille (E0/E1).
 - Lisätty rajaus: kanoninen speksi on `spec/workflows/*`.
-- Tarkennettu nimeäminen: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..`.
+- Tarkennettu nimeäminen: SaaS-vaiheet `S-1/S0/S1` ja ennustusprosessin vaiheet `E0..`.
 - Lisätty E0-puu (tavoitearvio import) eksplisiittisesti, ei vain esivaatimusviittauksena.
+- Lisätty S1-puu (PLG trial/entitlement + projektin ACTIVE/STANDBY/ARCHIVED).
 
 ## Miksi
 - Tarvitaan yhteinen, nopeasti silmäiltävä “vaihepuu”, joka erottaa myynnin/provisionoinnin, onboardingin ja tuotannon suunnittelun.
 
 ## Miten testataan (manuaali)
-- Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että `S-1`, `S0` ja `E1` ovat omissa osioissaan.
+- Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että `S-1`, `S0`, `S1`, `E0` ja `E1` ovat omissa osioissaan.
 - Varmista, että `E0`-osio sisältää importin ja leading zero -säännön.
 - Varmista, että E1:n esivaatimuksessa viitataan `E0`-importtiin (ei “vaihe 0”).
+- Varmista, että `S1`-osio sisältää read-only-gaten, commerce-poikkeuksen ja STANDBY-reaktivoinnin.

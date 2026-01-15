@@ -9,11 +9,12 @@ Tämä on “kokonaiskuva” (master): **Sales/Admin/Production/DevOps** + linki
 ## Rajaus: missä on “totuus”
 - Toteutuskelpoinen prosessi, päätökset ja validoinnit: `spec/workflows/*`.
 - Tämä dokumentti on navigaatio ja kokonaiskuva (ei toteutusspeksi). Jos ristiriita, `spec/` voittaa.
-- S-1/S0/E0/E1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
+- S-1/S0/S1/E0/E1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
 - Tilojen tarkemmat määritelmät: `docs/workflows/state-machines.md`.
+- PLG trial/entitlement + projektin STANDBY: `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`.
 
 ## Nimeäminen (ettei “0” mene sekaisin)
-- SaaS-vaiheet (org-taso): `S-1`, `S0` (myynti/provisiointi → onboarding).
+- SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
 - Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
 - Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
@@ -197,7 +198,8 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Myyjän (Seller) provisioning päivitetty nykyiseen kutsulinkkimalliin: yhtiö + demoprojekti + ORG_ADMIN-invite.
 - Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
 - Lisätty rajaus: `spec/workflows/*` on kanoninen toteutusspeksi, `docs/workflows/*` on navigaatio.
-- Lisätty nimeämissääntö: SaaS-vaiheet (`S-1/S0`) vs ennustusprosessin vaiheet (`E0..E5`).
+- Lisätty nimeämissääntö: SaaS-vaiheet (`S-1/S0/S1`) vs ennustusprosessin vaiheet (`E0..E5`).
+- Lisätty viite PLG-entitlementiin (S1): `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`.
 - Täsmennetty myyjän mermaid-labelit käyttämään `S-1`-prefiksiä ja nimetty node-id:t prefiksillä (`SAAS_*`), jotta id:t eivät näytä vaihekoodeilta.
 
 ## Miksi

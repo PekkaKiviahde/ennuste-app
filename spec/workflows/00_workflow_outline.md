@@ -3,7 +3,7 @@
 Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 
 ## Nimeäminen (S/E)
-- SaaS-vaiheet (org-taso): `S-1`, `S0` (myynti/provisiointi → onboarding).
+- SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
 - Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
 
@@ -16,6 +16,21 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
   - Kutsulinkin säännöt (turva + idempotenssi)
   - Audit‑tapahtumat (append‑only)
   - Rajapinnat (nykyinen kutsulinkkimalli)
+  - Mitä muuttui
+  - Miksi
+  - Miten testataan (manuaali)
+
+## spec/workflows/01_plg_entitlement_and_project_lifecycle.md
+- PLG: Trial + entitlement + projektin elinkaari
+  - Tavoite
+  - Lukitut päätökset (ÄLÄ MUUTA)
+  - Termit
+  - A) Org entitlement -tilat ja gate
+  - B) Projektin tila ja gate
+  - C) “Aktiivisten projektien” laskentasääntö
+  - D) Reaktivointi kynnysrahalla (workflow)
+  - E) past_due grace -workflow
+  - F) Audit-eventit (append-only) + manuaalitestit
   - Mitä muuttui
   - Miksi
   - Miten testataan (manuaali)
@@ -96,6 +111,7 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 - Kirjattu workflow-dokumenttien otsikko- ja alaotsikkorakenne yhteen paikkaan.
 - Päivitetty `spec/workflows/01_mvp_flow.md`-osion otsikot vastaamaan nykyistä vaiheistusta (baseline = 2, seuranta/ennuste = 3).
 - Lisätty nimeämiskappale: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..E5`.
+- Lisätty PLG-entitlement + projektin elinkaari -workflow (S1).
 
 ## Miksi
 - Helpottaa navigointia ja keskustelua “mikä vaihe/osa” ilman, että pitää avata useita tiedostoja.
