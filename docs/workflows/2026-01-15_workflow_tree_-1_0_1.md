@@ -1,18 +1,25 @@
-# Työpuu: vaihe −1, 0 ja 1
+# Työpuu: SaaS (S-1, S0) ja ennustus (E0, E1)
 
 Tämä tiedosto on “työpuu-näkymä” eri vaiheista.
 Päivitämme tähän myöhemmin myös muita workflow-vaiheita ja tarkennuksia.
 
 ## Rajaus: missä on “totuus”
 - Kanoninen prosessispeksi:
-  - `spec/workflows/00_sales_phase.md` (vaihe −1)
-  - `spec/workflows/02_org_hierarchy_onboarding.md` (vaihe 0)
-  - `spec/workflows/01_mvp_flow.md` (vaihe 1 →)
+  - `spec/workflows/00_sales_phase.md` (S-1: myynti + provisiointi)
+  - `spec/workflows/02_org_hierarchy_onboarding.md` (S0: onboarding)
+  - `spec/workflows/01_mvp_flow.md` (E0–E5: ennustusprosessin vaiheet)
 - Tämä tiedosto on tiivis puu, ei toteutusspeksi. Jos ristiriita, `spec/` voittaa.
 
-## Vaihe −1 — SaaS-myynti + provisiointi (SaaS-myyjä)
+## Nimeäminen (ettei “0” mene sekaisin)
+- SaaS-vaiheet (org-taso): `S-1`, `S0` (myynti/provisiointi → onboarding).
+- Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
+- Tässä tiedostossa:
+  - `S-1` ja `S0` ovat SaaS-vaiheita
+  - `E0` ja `E1` ovat ennustusprosessin vaiheita
+
+## S-1 — SaaS-myynti + provisiointi (SaaS-myyjä)
 ```text
-Vaihe −1 — SaaS-myynti + provisiointi (SaaS-myyjä)
+S-1 — SaaS-myynti + provisiointi (SaaS-myyjä)
 ├─ Myynti (ihmisprosessi)
 │  ├─ Tuote-esittely + tarvekartoitus
 │  ├─ Demo tutustuttavaksi
@@ -26,9 +33,9 @@ Vaihe −1 — SaaS-myynti + provisiointi (SaaS-myyjä)
       └─ Kutsulinkki: email-sidottu + kertakäyttöinen + vanheneva
 ```
 
-## Vaihe 0 — Organisaation onboarding (ORG_ADMIN)
+## S0 — Organisaation onboarding (ORG_ADMIN)
 ```text
-Vaihe 0 — Organisaation onboarding (ORG_ADMIN)
+S0 — Organisaation onboarding (ORG_ADMIN)
 ├─ Avaa kutsulinkki
 │  ├─ Validoi: ei käytetty, ei peruttu, ei vanhentunut, email täsmää
 │  └─ Käyttäjä:
@@ -43,12 +50,12 @@ Vaihe 0 — Organisaation onboarding (ORG_ADMIN)
    └─ Hallitse demoprojekti: arkistoi tai (myöhemmin) muunna oikeaksi
 ```
 
-## Vaihe 1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
+## E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 ```text
-Vaihe 1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
+E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 ├─ Precondition
 │  ├─ Projekti on olemassa ja tiimi roolitettu
-│  └─ Tavoitearvio on importattu projektille (operatiivinen vaihe 0)
+│  └─ Tavoitearvio on importattu projektille (E0: tavoitearvion import)
 ├─ Suunnittelun periaate
 │  ├─ Perusyksikkö = tavoitearviorivi (item)
 │  └─ Append-only, versioitu suunnitelma
@@ -67,15 +74,17 @@ Vaihe 1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 │  └─ Linkitä TP hankintapakettiin (MVP-oletus 1:1)
 └─ Postcondition
    ├─ Suunnitelma READY_FOR_FORECAST (tai DRAFT)
-   └─ Seuraava: baseline-lukitus (vaihe 2)
+   └─ Seuraava: E2 baseline-lukitus
 ```
 
 ## Mitä muuttui
-- Lisätty uusi workflow-työpuu tiedostona vaiheille −1, 0 ja 1.
+- Lisätty uusi workflow-työpuu tiedostona SaaS-vaiheille (S-1/S0) ja ennustusvaiheelle (E1).
 - Lisätty rajaus: kanoninen speksi on `spec/workflows/*`.
+- Tarkennettu nimeäminen: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..`.
 
 ## Miksi
 - Tarvitaan yhteinen, nopeasti silmäiltävä “vaihepuu”, joka erottaa myynnin/provisionoinnin, onboardingin ja tuotannon suunnittelun.
 
 ## Miten testataan (manuaali)
-- Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että vaiheet −1, 0 ja 1 näkyvät omissa osioissaan ja sisältävät myyjän osuuden.
+- Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että `S-1`, `S0` ja `E1` ovat omissa osioissaan.
+- Varmista, että E1:n esivaatimuksessa viitataan `E0`-importtiin (ei “vaihe 0”).

@@ -2,6 +2,10 @@
 
 Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työpakettien taloudellinen suunnittelu (TP+HP) -> baseline-lukitus -> seuranta/ennuste -> loki -> raportti
 
+## Nimeäminen (ettei “0” mene sekaisin)
+- Tämän dokumentin numerointi `0)–5)` on ennustusprosessin sisäinen vaiheistus (= `E0..E5`).
+- Tämä `0)` ei liity SaaS-onboardingin `S0`-vaiheeseen.
+
 ## 0) Tavoitearvioesityksen import (lähtötieto laskentaosastolta)
 - Laskentaosasto tuottaa tavoitearvioesityksen (Excel/CSV export).
 - Tavoitearvio importataan projektille (TARGET_ESTIMATE import_batch).
@@ -103,6 +107,7 @@ Validointi baseline-lukituksessa:
 
 ## Mita muuttui
 - Nimetty aloitusvaihe tavoitearvioesityksen importiksi (lähtötieto laskentaosastolta).
+- Lisätty nimeämissääntö: tämän dokumentin `0)–5)` = `E0..E5` (ei sama kuin SaaS-onboarding `S0`).
 - Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
 - Muutettu tuotannon vaihe “työpakettien taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
 - Lisätty hankintapaketin maksuerät (milestones) sekä työpaketin 2 aikajanaa (työjakso + kustannusjakso) ja kustannusjakson painotus (`cost_bias_pct`) viikkotasolla.
