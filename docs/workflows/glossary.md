@@ -1,6 +1,6 @@
 # Sanasto (Glossary) – Ennustus (MVP)
 
-Päivitetty: 2026-01-02
+Päivitetty: 2026-01-15
 
 Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsitteet).
 
@@ -82,6 +82,21 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 
 ## Tilatunnukset (status codes)
 
+## Vaihe- ja tilakoodit (pikaopas)
+
+### Vaihekoodit (S ja E)
+- `S-1`, `S0` = SaaS-vaiheet (org-taso): myynti/provisiointi → onboarding.
+- `E0..E5` = ennustusprosessin vaiheet (projektitaso): import → suunnittelu → baseline → seuranta → loki → raportti.
+- `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
+- Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
+
+### Tilakoodit (C/P/W/M/I)
+- `C0..C3` = tenant-onboarding (yritystaso)
+- `P0..P2` = projekti (elin­kaari)
+- `W0..W3` = työpaketti (setup → track)
+- `M0..M4` = kuukausi (month close)
+- `I0..I4` = incident-banner (in-app)
+
 ### Tenant onboarding
 - `C0_PROVISIONED` – yhtiö (organization) + tenant luotu ja demoprojekti olemassa
 - `C1_ONBOARDING_LINK_SENT` – ORG_ADMIN-kutsulinkki (Invite) luotu ja toimitettu
@@ -119,7 +134,8 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - Lisätty käsitteet ja niiden keskinäinen logiikka.
 - Päivitetty raporttipaketin formaatti PDF/CSV-linjaukseen.
 - Täsmennetty tenant-onboarding-tilojen C0–C3 selitteet kutsulinkkimalliin sopiviksi.
-- Päivitetty päivämäärä 2026-01-02.
+- Lisätty pikaopas vaihe- ja tilakoodien nimeämiseen (S/E sekä C/P/W/M/I).
+- Päivitetty päivämäärä 2026-01-15.
 
 ## Miksi
 - Tarvitaan yhteinen sanasto, joka vastaa työpakettisuunnittelua ja tavoitearvion koodin säilytystä.

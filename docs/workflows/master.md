@@ -27,9 +27,9 @@ flowchart LR
 
 subgraph SALES["Myyjä (Seller)"]
   S_1["S-1: Pre-sales demo toimitettu"]
-  S0["S0: Sopimus tehty"]
-  S1["Action: Luo yhtiö + demoprojekti (minimi)"]
-  S2["Action: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
+  S0["S-1: Sopimus tehty"]
+  S1["S-1: Luo yhtiö + demoprojekti (minimi)"]
+  S2["S-1: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
 end
 
 subgraph SA["Superadmin"]
@@ -198,6 +198,7 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
 - Lisätty rajaus: `spec/workflows/*` on kanoninen toteutusspeksi, `docs/workflows/*` on navigaatio.
 - Lisätty nimeämissääntö: SaaS-vaiheet (`S-1/S0`) vs ennustusprosessin vaiheet (`E0..E5`).
+- Täsmennetty myyjän mermaid-otsikot käyttämään `S-1`-prefiksiä (ei `S0/S1/S2`).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
