@@ -1,5 +1,7 @@
 # Konserni, yhtiö ja projekti – hierarkia ja onboarding
 
+Alias: S0
+
 ## Tavoite
 Mallintaa konserni/yhtiö/projekti‑hierarkia ja SaaS‑myyjän onboarding‑virta siten,
 että roolit ja workflow‑vastuut ovat selkeät ja auditoitavat.
@@ -231,6 +233,7 @@ Pääkäyttäjä:
 - Määriteltiin kutsulinkin tietomalli, säännöt ja turvallisuus (email‑sidonta, kertakäyttö, vanheneminen, resend).
 - Määriteltiin demoprojektin hallinta (is_demo, nimeäminen, arkistointi, MVP‑suositus muunnosta).
 - Listattiin audit‑eventit tilamuutoksille.
+- Lisättiin alias vaiheelle: `S0`.
 
 ## Miksi
 - Tarvitaan toteutuskelpoinen, idempotentti ja auditoitava onboarding‑prosessi ilman “hiljaisia” periytymissääntöjä.

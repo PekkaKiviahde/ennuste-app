@@ -50,6 +50,17 @@ S0 — Organisaation onboarding (ORG_ADMIN)
    └─ Hallitse demoprojekti: arkistoi tai (myöhemmin) muunna oikeaksi
 ```
 
+## E0 — Tavoitearvioesityksen import (projekti)
+```text
+E0 — Tavoitearvioesityksen import (projekti)
+├─ Importoi tavoitearvio projektille (TARGET_ESTIMATE import_batch)
+├─ Esimäppäys: jokaiselle 4-num koodille vastinpari `litteras`-masterdatassa
+│  ├─ koodi käsitellään merkkijonona `^\\d{4}$`
+│  └─ leading zerot säilyvät (esim. "0310" ei muutu "310")
+├─ (Valinn.) Ehdotukset (suggestion only, ei automaatiota)
+└─ Näytä “selvitettävät” ennen suunnittelua (virheelliset/puutteelliset rivit)
+```
+
 ## E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 ```text
 E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
@@ -78,13 +89,15 @@ E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 ```
 
 ## Mitä muuttui
-- Lisätty uusi workflow-työpuu tiedostona SaaS-vaiheille (S-1/S0) ja ennustusvaiheelle (E1).
+- Lisätty uusi workflow-työpuu tiedostona SaaS-vaiheille (S-1/S0) ja ennustusvaiheille (E0/E1).
 - Lisätty rajaus: kanoninen speksi on `spec/workflows/*`.
 - Tarkennettu nimeäminen: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..`.
+- Lisätty E0-puu (tavoitearvio import) eksplisiittisesti, ei vain esivaatimusviittauksena.
 
 ## Miksi
 - Tarvitaan yhteinen, nopeasti silmäiltävä “vaihepuu”, joka erottaa myynnin/provisionoinnin, onboardingin ja tuotannon suunnittelun.
 
 ## Miten testataan (manuaali)
 - Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että `S-1`, `S0` ja `E1` ovat omissa osioissaan.
+- Varmista, että `E0`-osio sisältää importin ja leading zero -säännön.
 - Varmista, että E1:n esivaatimuksessa viitataan `E0`-importtiin (ei “vaihe 0”).

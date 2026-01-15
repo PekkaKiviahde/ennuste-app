@@ -90,6 +90,10 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
 - Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
 
+### Nimeämissääntö kaavioille (Mermaid)
+- Vaihekoodeja (`S-1/S0/E0..`) ei käytetä mermaid-node-id:nä missään kontekstissa.
+- Käytä node-id:ssä prefiksiä, joka kertoo kontekstin: esim. `SAAS_*`, `ONB_*`, `WP_*`, `MONTH_*`, `INC_*`.
+
 ### Tilakoodit (C/P/W/M/I)
 - `C0..C3` = tenant-onboarding (yritystaso)
 - `P0..P2` = projekti (elin­kaari)
@@ -135,6 +139,7 @@ Tavoite: yhtenäistää puhe ja koodi (UI-termit, tilatunnukset, laskennan käsi
 - Päivitetty raporttipaketin formaatti PDF/CSV-linjaukseen.
 - Täsmennetty tenant-onboarding-tilojen C0–C3 selitteet kutsulinkkimalliin sopiviksi.
 - Lisätty pikaopas vaihe- ja tilakoodien nimeämiseen (S/E sekä C/P/W/M/I).
+- Lisätty kaaviosääntö: vaihekoodeja ei käytetä mermaid-node-id:nä.
 - Päivitetty päivämäärä 2026-01-15.
 
 ## Miksi

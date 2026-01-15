@@ -1,5 +1,7 @@
 # Vaihe −1: Myynti ja asiakkuuden avaus (SaaS‑myyjä)
 
+Alias: S-1
+
 ## Tavoite
 Kuvata myynti + “asiakkuuden avaus” siten, että:
 - järjestelmässä on yhtiö (Organization) ja demoprojekti (Project, `is_demo=true`)
@@ -99,6 +101,7 @@ Toimija: SaaS‑myyjä (sisäinen)
 ## Mitä muuttui
 - Lisättiin myyntivaiheen (pre-sales) checklist vaiheeseen −1.
 - Täsmennettiin demokäytännön suositus: demo erillään asiakasprovisionoinnista.
+- Lisättiin alias vaiheelle: `S-1`.
 
 ## Miksi
 - Myynti, demo ja provisioning ovat eri riskiprofiileja (asiakasdata, oikeudet, audit).

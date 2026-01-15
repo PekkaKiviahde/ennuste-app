@@ -9,7 +9,7 @@ Tämä on “kokonaiskuva” (master): **Sales/Admin/Production/DevOps** + linki
 ## Rajaus: missä on “totuus”
 - Toteutuskelpoinen prosessi, päätökset ja validoinnit: `spec/workflows/*`.
 - Tämä dokumentti on navigaatio ja kokonaiskuva (ei toteutusspeksi). Jos ristiriita, `spec/` voittaa.
-- S-1/S0/E1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
+- S-1/S0/E0/E1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
 - Tilojen tarkemmat määritelmät: `docs/workflows/state-machines.md`.
 
 ## Nimeäminen (ettei “0” mene sekaisin)
@@ -26,10 +26,10 @@ flowchart LR
 %% =========================
 
 subgraph SALES["Myyjä (Seller)"]
-  S_1["S-1: Pre-sales demo toimitettu"]
-  S0["S-1: Sopimus tehty"]
-  S1["S-1: Luo yhtiö + demoprojekti (minimi)"]
-  S2["S-1: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
+  SAAS_PRE_DEMO["S-1: Pre-sales demo toimitettu"]
+  SAAS_CONTRACT["S-1: Sopimus tehty"]
+  SAAS_PROVISION["S-1: Luo yhtiö + demoprojekti (minimi)"]
+  SAAS_INVITE["S-1: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
 end
 
 subgraph SA["Superadmin"]
@@ -113,8 +113,8 @@ end
 %% =========================
 %% Flow: Sales → Provisioning → Onboarding
 %% =========================
-S_1 --> S0 --> S1 --> A0
-A0 --> S2 --> C1
+SAAS_PRE_DEMO --> SAAS_CONTRACT --> SAAS_PROVISION --> A0
+A0 --> SAAS_INVITE --> C1
 A0 --> A1 --> C1
 
 C1 --> C2
@@ -198,7 +198,7 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
 - Lisätty rajaus: `spec/workflows/*` on kanoninen toteutusspeksi, `docs/workflows/*` on navigaatio.
 - Lisätty nimeämissääntö: SaaS-vaiheet (`S-1/S0`) vs ennustusprosessin vaiheet (`E0..E5`).
-- Täsmennetty myyjän mermaid-otsikot käyttämään `S-1`-prefiksiä (ei `S0/S1/S2`).
+- Täsmennetty myyjän mermaid-labelit käyttämään `S-1`-prefiksiä ja nimetty node-id:t prefiksillä (`SAAS_*`), jotta id:t eivät näytä vaihekoodeilta.
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.

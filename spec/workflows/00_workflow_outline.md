@@ -2,6 +2,11 @@
 
 Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 
+## Nimeäminen (S/E)
+- SaaS-vaiheet (org-taso): `S-1`, `S0` (myynti/provisiointi → onboarding).
+- Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
+- `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
+
 # spec/workflows/00_sales_phase.md
 - Vaihe −1: Myynti ja asiakkuuden avaus (SaaS‑myyjä)
   - Tavoite
@@ -90,6 +95,7 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 ## Mitä muuttui
 - Kirjattu workflow-dokumenttien otsikko- ja alaotsikkorakenne yhteen paikkaan.
 - Päivitetty `spec/workflows/01_mvp_flow.md`-osion otsikot vastaamaan nykyistä vaiheistusta (baseline = 2, seuranta/ennuste = 3).
+- Lisätty nimeämiskappale: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..E5`.
 
 ## Miksi
 - Helpottaa navigointia ja keskustelua “mikä vaihe/osa” ilman, että pitää avata useita tiedostoja.
