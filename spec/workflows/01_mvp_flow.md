@@ -1,6 +1,6 @@
 # MVP-tyonkulku
 
-Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työvaiheiden taloudellinen suunnittelu (TP+HP) -> baseline-lukitus -> seuranta/ennuste -> loki -> raportti
+Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työpakettien taloudellinen suunnittelu (TP+HP) -> baseline-lukitus -> seuranta/ennuste -> loki -> raportti
 
 ## 0) Tavoitearvioesityksen import (lähtötieto laskentaosastolta)
 - Laskentaosasto tuottaa tavoitearvioesityksen (Excel/CSV export).
@@ -14,11 +14,19 @@ Polku: tavoitearvioesityksen import (laskenta) -> tuotannon työvaiheiden taloud
 Huom:
 - Importti EI tee tuotannon mäppäystä työpaketteihin/työvaiheisiin (se on tuotannon manuaalinen vaihe importin jälkeen).
 
-## 1) Tuotannon työvaiheiden taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
+## 1) Tuotannon työpakettien taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
 - Tuotanto ja hankinta määrittävät “missä kustannus tehdään” liittämällä tavoitearviorivit työpaketteihin ja/tai hankintapaketteihin.
 - Perusyksikkö on tavoitearviorivi (item), ei pelkkä 4-num littera.
 - Suunnittelu on append-only ja versioidaan (uusi versio = uusi tapahtuma).
 - Järjestelmä voi ehdottaa (hakusana, toimittajateksti, aiemmat projektit), mutta ihminen hyväksyy.
+
+#### Lukitut päätökset (TP+HP, MVP)
+- Hankintapaketti (HP) mallinnetaan maksuerälistana (2–10+ erää).
+- Työpaketti (TP) mallinnetaan kahdella aikajanalla: työjakso ja kustannusjakso.
+- Aikajana on viikkotasolla (ISO-viikot).
+- TP-kustannusjakson sisällä käytetään painotusta:
+  - yksi painotus per työpaketti (ei kustannuslajeittain)
+  - syöttö MVP:ssä on liukuri 0–100 + järjestelmän preview-jakauma
 
 ### 1.1 Hankintapaketin luonti
 - Hankintapaketin luonti ja rivien liittäminen sopimuksille/urakoille (hankinta).
@@ -33,6 +41,7 @@ Huom:
   - `due_week` (ISO-viikko, esim. `2026-W03`)
   - `amount_eur` tai `amount_pct` (jompikumpi, ei molempia)
   - `label` (selite)
+- Suositus: yhden hankintapaketin maksuerät ovat samassa muodossa (joko kaikki `%` tai kaikki `€`), jotta baseline-validointi on yksiselitteinen.
 
 ### 1.2 Työpakettisuunnittelu
 - Mestari vahvistaa hankintapaketin jälkeen jäljelle jääneet/ehdotetut rivit lopullisiksi työpaketeiksi.
@@ -45,6 +54,7 @@ Huom:
 - Työpaketti (TP) mallinnetaan kahdella aikajanalla (ISO-viikot):
   - `work_start_week`, `work_end_week` (työjakso)
   - `cost_start_week`, `cost_end_week` (kustannusjakso)
+- Viikkotaso: kaikki viikot ovat ISO-viikkoja (`YYYY-Www`), ja UI käyttää samoja arvoja.
 
 #### B.1 Kustannusjakson painotus (yksi per TP)
 - `cost_bias_pct` (0–100)
@@ -58,18 +68,23 @@ Huom:
 - “Venyvä viiva” työjaksolle ja kustannusjaksolle (drag start/end).
 - Liukuri + preview-jakauma kustannusjaksolle (`cost_start_week..cost_end_week`) käyttäen `cost_bias_pct`.
 
-## 3) Baseline-lukitus (hyväksyntä)
-#### D) Baseline-lukitus
-- Baseline syntyy hyväksynnässä ja lukitsee erät/jaksot/painotuksen (HP maksuerät + TP työ- ja kustannusjaksot + `cost_bias_pct`).
-- Baseline-lukitus myös lukitsee sen, mitkä tavoitearviorivit kuuluvat mihinkin työpakettiin/hankintapakettiin kyseisessä baseline-versiossa.
+## 2) Baseline-lukitus (hyväksyntä)
+#### D) Baseline-lukitus (mitä lukitaan)
+- Baseline syntyy hyväksynnässä.
+- Baseline lukitsee:
+  - HP maksuerät (milestones)
+  - TP työjakson ja kustannusjakson (ISO-viikot)
+  - TP `cost_bias_pct`-painotuksen (yksi per TP)
+  - sen, mitkä tavoitearviorivit kuuluvat mihinkin työpakettiin/hankintapakettiin kyseisessä baseline-versiossa
+- Baseline on seurannan/ennusteen lähtötaso: ennustetapahtuma sallitaan vasta lukituksen jälkeen.
 
 Validointi baseline-lukituksessa:
 - Hankintapaketti: maksuerien summa on joko
   - `100%` (jos käytössä `amount_pct`) tai
-  - sama kuin baseline € (jos käytössä `amount_eur`)
+  - sama kuin baseline € (jos käytössä `amount_eur`, huom. pyöristys)
 - Viikot: start <= end sekä työjaksolle että kustannusjaksolle, ja viikot ovat ISO-viikkoja.
 
-## 4) Seuranta/ennuste (ennustetapahtumat, append-only)
+## 3) Seuranta/ennuste (ennustetapahtumat, append-only)
 - Seuranta on viikkotasolla (ISO-viikot).
 - Ennuste kirjataan ennustetapahtumina (append-only): korjaus on aina uusi tapahtuma.
 - Ennuste voidaan kirjata vain, jos baseline on lukittu.
@@ -77,11 +92,11 @@ Validointi baseline-lukituksessa:
   - HP maksuerät antavat “maksu-/laskutuspolun” viikoille
   - TP kustannusjakso + `cost_bias_pct` antaa baseline-jakauman viikoille (UI:n preview-jakauma)
 
-## 5) Loki
+## 4) Loki
 - Kaikki ennustetapahtumat ja perustelut jaavat append-only lokiin.
 - Loki mahdollistaa "miksi muuttui" -raportoinnin.
 
-## 6) Raportti
+## 5) Raportti
 - Raportti aggregoi tavoite, toteuma ja ennuste.
 - Ryhmittely tukee 0-9 group_code -tasoa.
 - Raportti nayttaa uusimman ennustetapahtuman per tavoitearvio-littera.
@@ -89,10 +104,10 @@ Validointi baseline-lukituksessa:
 ## Mita muuttui
 - Nimetty aloitusvaihe tavoitearvioesityksen importiksi (lähtötieto laskentaosastolta).
 - Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
-- Muutettu tuotannon vaihe “työvaiheiden taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
+- Muutettu tuotannon vaihe “työpakettien taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
 - Lisätty hankintapaketin maksuerät (milestones) sekä työpaketin 2 aikajanaa (työjakso + kustannusjakso) ja kustannusjakson painotus (`cost_bias_pct`) viikkotasolla.
 - Lisätty UI-periaate: zoomattava aikajana, “venyvä viiva” jaksoille ja liukuri + preview-jakauma.
-- Lisätty baseline-lukitus omaksi vaiheeksi ennen seurantaa/ennustetta ja tarkennettu baseline-validoinnit.
+- Lisätty baseline-lukitus omaksi vaiheeksi ennen seurantaa/ennustetta ja tarkennettu baseline-validoinnit (HP maksuerät, TP jaksot ja `cost_bias_pct`).
 - Täsmennetty, että ennustetapahtuma vaatii lukitun baselinen (baseline on “hyväksytty suunnitelma”).
 
 ## Miksi
