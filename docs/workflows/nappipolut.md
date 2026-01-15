@@ -135,7 +135,7 @@ Huom:
 - Lisätty muutososiot dokumentin loppuun.
 - Päivitetty raporttipaketin lataus PDF/CSV-linjaukseen.
 - Päivitetty päivämäärä 2026-01-15.
-- Päivitetty myyjän (Seller) polku ja hallinnolliset API-ehdotukset nykyiseen kutsulinkkimalliin (/api/saas/* + /api/invites/accept).
+- Päivitetty myyjän (Seller) polku nykyiseen kutsulinkkimalliin (/api/saas/* + /api/invites/accept).
 - Lisätty huomio pre-sales demosta (demo erillään asiakasprovisionoinnista).
 - Poistettu päällekkäinen API/DB-toteutusosio ja korvattu linkeillä kanonisiin dokumentteihin.
 
