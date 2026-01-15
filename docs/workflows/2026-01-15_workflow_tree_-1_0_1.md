@@ -3,6 +3,13 @@
 Tämä tiedosto on “työpuu-näkymä” eri vaiheista.
 Päivitämme tähän myöhemmin myös muita workflow-vaiheita ja tarkennuksia.
 
+## Rajaus: missä on “totuus”
+- Kanoninen prosessispeksi:
+  - `spec/workflows/00_sales_phase.md` (vaihe −1)
+  - `spec/workflows/02_org_hierarchy_onboarding.md` (vaihe 0)
+  - `spec/workflows/01_mvp_flow.md` (vaihe 1 →)
+- Tämä tiedosto on tiivis puu, ei toteutusspeksi. Jos ristiriita, `spec/` voittaa.
+
 ## Vaihe −1 — SaaS-myynti + provisiointi (SaaS-myyjä)
 ```text
 Vaihe −1 — SaaS-myynti + provisiointi (SaaS-myyjä)
@@ -65,6 +72,7 @@ Vaihe 1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 
 ## Mitä muuttui
 - Lisätty uusi workflow-työpuu tiedostona vaiheille −1, 0 ja 1.
+- Lisätty rajaus: kanoninen speksi on `spec/workflows/*`.
 
 ## Miksi
 - Tarvitaan yhteinen, nopeasti silmäiltävä “vaihepuu”, joka erottaa myynnin/provisionoinnin, onboardingin ja tuotannon suunnittelun.

@@ -1,9 +1,14 @@
 # Nappipolut – Ennustus (MVP)
 
-Päivitetty: 2026-01-02
+Päivitetty: 2026-01-15
 
 Tässä dokumentissa on “nappipolut” eli **mitä käyttäjä painaa, missä järjestyksessä**.
 Tarkoitus: tehdä UI- ja RBAC-toteutuksesta yksiselitteinen.
+
+## Rajaus: missä on “totuus”
+- Liiketoimintalogiikka, päätökset ja validoinnit: `spec/workflows/*`.
+- Tämä dokumentti kuvaa UI-polut (”nappipolut”), ei kanonista prosessispeksiä.
+- Jos ristiriita, `spec/` voittaa.
 
 > Termit: *Yritys* = tenant, *projekti* = project, *työpaketti* = work package / work phase.  
 > *Month close* = kuukausi menee lukkoon, kun raportit on lähetetty.
@@ -121,115 +126,18 @@ Huom:
 - Release-runbook: `docs/runbooks/release.md`
 ---
 
-## Implementation notes (API + DB-enforcement)
-
-Tämä osio kertoo **miten nappipolut kannattaa toteuttaa** (API-rajapinnat + missä lukitukset pakotetaan).
-
-### Periaate: UI ei saa olla ainoa “lukko”
-- UI voi piilottaa nappeja roolin/tilan mukaan, mutta **backend/DB on lopullinen totuus**.
-- Jokaisella “kirjoittavalla” endpointilla pitää olla:
-  1) **RBAC-tarkistus** (kuka saa)
-  2) **State-tarkistus** (missä tilassa saa)
-  3) **Audit** (kuka teki, milloin, mitä muuttui)
-
-### Suositeltu API-pinta (MVP, esimerkkipolut)
-
-> Nämä ovat “hyviä oletus-endpointeja”. Nimeä lopulliset polut teidän koodityylin mukaan.
-
-#### Hallinnollinen (Company/Project)
-- `POST /api/saas/groups` → luo konserni *(valinnainen; myyjä/superadmin)*
-- `POST /api/saas/organizations` → luo yhtiö + demoprojekti + ensimmäinen ORG_ADMIN-kutsu *(myyjä/superadmin)*
-- `POST /api/saas/organizations/{organizationId}/invites` → resend / uusi ORG_ADMIN-kutsu *(myyjä/superadmin)*
-- `POST /api/invites/accept` → ORG_ADMIN hyväksyy kutsun *(julkinen kutsun kautta)*
-
-- `POST /api/admin/tenants/{tenant_id}/onboarding/submit` → asiakkaan lomake “valmis”
-- `POST /api/admin/tenants/{tenant_id}/users:invite` → kutsu käyttäjät (automaatiolla)
-- `PUT  /api/admin/tenants/{tenant_id}/rbac` → roolit (automaattinen + muok.)
-- `PUT  /api/admin/projects/{project_id}/reporting-settings` → vastaanottajat + lähetysasetukset
-- `PUT  /api/admin/projects/{project_id}/approval-settings` → hyväksyntäketjut
-- `GET  /api/admin/projects/{project_id}/mappings` → näytä mäppäykset
-- `PATCH /api/admin/projects/{project_id}/mappings/{mapping_id}` → korjaa mäppäys *(limited edit)*
-- `POST /api/projects/archive` → arkistoi demoprojekti *(ORG_ADMIN, jos käytössä)*
-
-#### Työpaketti (Work package) – SETUP/TRACK
-- `POST /api/projects/{project_id}/work-packages` → uusi työpaketti
-- `PUT  /api/work-packages/{wp_id}` → muokkaa perustietoja *(vain SETUP)*
-- `POST /api/work-packages/{wp_id}/members` → lisää littera/item (append)
-- `DELETE /api/work-packages/{wp_id}/members/{member_id}` → poista (vain SETUP; toteutus voi olla “soft delete” append-only-mallissa)
-
-**Baseline-lukitus:**
-- `POST /api/work-packages/{wp_id}/baseline-lock:request` → pyyntö (W0→W1)
-- `POST /api/work-packages/{wp_id}/baseline-lock:approve?step=1` → PM 1/2
-- `POST /api/work-packages/{wp_id}/baseline-lock:approve?step=2` → TJ 2/2 (W1→W2)
-
-#### Viikkopäivitys (TRACK)
-- `POST /api/work-packages/{wp_id}/weekly-updates` → % + memo
-- `POST /api/work-packages/{wp_id}/ghosts` → ghost-rivi (€)
-
-**Selvitettävät (unmapped actuals):**
-- `GET  /api/projects/{project_id}/unmapped-actuals` → listaa
-- `POST /api/projects/{project_id}/unmapped-actuals/{id}:assign` → liitä työpakettiin
-
-#### Kuukausi (Month close)
-- `PUT  /api/projects/{project_id}/months/{YYYY-MM}/forecast` → kuukausiennuste (M0)
-- `PUT  /api/projects/{project_id}/months/{YYYY-MM}/lock-candidates` → (valinn.) READY_TO_SEND (M1)
-
-**Lähetä raportit (= Month close):**
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/send-reports`  
-  Tekee atomisesti:
-  1) generate raportit
-  2) lähettää emailit
-  3) luo report package -arkiston
-  4) asettaa tilan M2_SENT_LOCKED
-
-**Korjaus lukon jälkeen:**
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/request` *(TJ)* → M3
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}/approve` *(yksikön johtaja)* → M4
-- `POST /api/projects/{project_id}/months/{YYYY-MM}/corrections/{corr_id}/reject` → takaisin M2
-
-**Report package (arkisto):**
-- `GET  /api/projects/{project_id}/months/{YYYY-MM}/report-packages` → listaa arkistot
-- `GET  /api/report-packages/{package_id}/download` → lataa PDF/CSV (tai signed URL)
-
-#### Incident banner (toimittaja)
-- `GET /api/incident-banner` → kaikki käyttäjät (read-only)
-- `PUT /api/superadmin/incident-banner` → superadmin asettaa ON/OFF + status (I1–I4)
-
-### DB-enforcement (suositus)
-
-#### Tenant-eristys
-- Kaikki business-taulut sisältävät `tenant_id`.
-- Backend pakottaa `tenant_id` sessionista (ei lueta clientiltä).
-- (Jos käytätte RLS:ää Postgresissa) `tenant_id = current_setting('app.tenant_id')`.
-
-#### Lukitukset
-- `months`-taulussa `month_state` (M0–M4).
-- Kirjoittavat operaatiot (forecast/weekly/ghost) tarkistavat:
-  - `month_state IN (M0_OPEN_DRAFT, M1_READY_TO_SEND)`  
-  - `month_state IN (M2..)` → blokkaa, ellei kyse ole “correction workflow” -kirjoituksesta.
-
-#### Append-only / audit
-- Käytä “insert only” -tauluja (esim. `*_events`, `*_versions`).
-- Älä tallenna nimiä/emailia event-riveille; vain `actor_user_id`.
-- Tallenna aina `created_at`, `created_by`, `reason` (korjauksissa).
-
-#### Report package immutability
-- `report_packages` sisältää:
-  - `package_id`, `project_id`, `month`, `created_at`, `sent_to[]`, `sent_by_user_id`
-  - `artifact_uri` (object storage) + `checksum`
-- Päivitykset estetään (no UPDATE/DELETE) → vain uusi paketti uutta lähetystä/korjausta varten.
-
-### Testit (minimi)
-- Unit: state transitions + “allowed fields” (korjaus)
-- Integration: DB gate (lukitukset, immutability), näkymät compile
-- E2E: 1) send-reports locks month 2) correction after lock requires approvals
+## Rajapinnat ja toteutus (linkit)
+- Kanoninen API-kuvaus: `docs/api/openapi.yaml`.
+- Kanoninen prosessi (päätökset + validoinnit): `spec/workflows/*`.
+- Tilat ja siirtymät: `docs/workflows/state-machines.md`.
 
 ## Mitä muuttui
 - Lisätty muutososiot dokumentin loppuun.
 - Päivitetty raporttipaketin lataus PDF/CSV-linjaukseen.
-- Päivitetty päivämäärä 2026-01-02.
+- Päivitetty päivämäärä 2026-01-15.
 - Päivitetty myyjän (Seller) polku ja hallinnolliset API-ehdotukset nykyiseen kutsulinkkimalliin (/api/saas/* + /api/invites/accept).
 - Lisätty huomio pre-sales demosta (demo erillään asiakasprovisionoinnista).
+- Poistettu päällekkäinen API/DB-toteutusosio ja korvattu linkeillä kanonisiin dokumentteihin.
 
 ## Miksi
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.

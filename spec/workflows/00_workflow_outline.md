@@ -55,13 +55,13 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 ## spec/workflows/01_mvp_flow.md
 - MVP-työnkulku
   - 0) Tavoitearvioesityksen import (lähtötieto laskentaosastolta)
-  - 1) Tuotannon työvaiheiden taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
+  - 1) Tuotannon työpakettien taloudellinen suunnittelu (tavoitearviorivit → työpaketti + hankintapaketti)
     - 1.1 Hankintapaketin luonti
     - 1.2 Työpakettisuunnittelu
-  - 3) Baseline-lukitus (hyväksyntä)
-  - 4) Seuranta/ennuste (ennustetapahtumat, append-only)
-  - 5) Loki
-  - 6) Raportti
+  - 2) Baseline-lukitus (hyväksyntä)
+  - 3) Seuranta/ennuste (ennustetapahtumat, append-only)
+  - 4) Loki
+  - 5) Raportti
   - Mitä muuttui
   - Miksi
   - Miten testataan (manuaali)
@@ -89,6 +89,7 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 
 ## Mitä muuttui
 - Kirjattu workflow-dokumenttien otsikko- ja alaotsikkorakenne yhteen paikkaan.
+- Päivitetty `spec/workflows/01_mvp_flow.md`-osion otsikot vastaamaan nykyistä vaiheistusta (baseline = 2, seuranta/ennuste = 3).
 
 ## Miksi
 - Helpottaa navigointia ja keskustelua “mikä vaihe/osa” ilman, että pitää avata useita tiedostoja.

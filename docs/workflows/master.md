@@ -1,10 +1,16 @@
 # Master workflow – Ennustus (MVP)
 
-Päivitetty: 2026-01-02
+Päivitetty: 2026-01-15
 
 Tämä on “kokonaiskuva” (master): **Sales/Admin/Production/DevOps** + linkit Incident- ja Data-fix -runbookeihin.
 
 > Huom: Incident ja Data-fix ovat tässä masterissa **linkkeinä**. Detaljit löydät runbookeista.
+
+## Rajaus: missä on “totuus”
+- Toteutuskelpoinen prosessi, päätökset ja validoinnit: `spec/workflows/*`.
+- Tämä dokumentti on navigaatio ja kokonaiskuva (ei toteutusspeksi). Jos ristiriita, `spec/` voittaa.
+- Vaiheiden −1..1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
+- Tilojen tarkemmat määritelmät: `docs/workflows/state-machines.md`.
 
 ```mermaid
 flowchart LR
@@ -180,10 +186,11 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Traceability: `docs/traceability.md`
 
 ## Mitä muuttui
-- Päivitetty päivämäärä 2026-01-02.
+- Päivitetty päivämäärä 2026-01-15.
 - Lisätty muutososiot dokumentin loppuun.
 - Myyjän (Seller) provisioning päivitetty nykyiseen kutsulinkkimalliin: yhtiö + demoprojekti + ORG_ADMIN-invite.
 - Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
+- Lisätty rajaus: `spec/workflows/*` on kanoninen toteutusspeksi, `docs/workflows/*` on navigaatio.
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
@@ -192,3 +199,4 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että “Rajaus: missä on totuus” -osio linkittää `spec/workflows/*` ja `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
