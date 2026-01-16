@@ -403,3 +403,17 @@ export type AuditPort = {
     payload: Record<string, unknown>;
   }): Promise<void>;
 };
+
+export type BillingWebhookConsumeResult = {
+  outcome: "PROCESSED" | "DUPLICATE" | "REJECTED";
+  httpStatus: number;
+  message?: string;
+};
+
+export type BillingWebhookPort = {
+  consumeWebhook(input: {
+    provider: string;
+    rawBody: Uint8Array;
+    headers: Record<string, string>;
+  }): Promise<BillingWebhookConsumeResult>;
+};

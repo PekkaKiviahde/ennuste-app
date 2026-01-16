@@ -6,7 +6,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node ../../tools/scripts/env-check.mjs || node --test --import tsx src"
+    "test": "node --test --import tsx src/billingWebhookVerify.test.ts && (node ../../tools/scripts/env-check.mjs || node --test --import tsx src/integration.test.ts src/billingWebhook.test.ts)"
   },
   "dependencies": {
     "@ennuste/application": "*",

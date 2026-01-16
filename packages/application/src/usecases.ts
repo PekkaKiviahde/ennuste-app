@@ -2,6 +2,7 @@ import type {
   AdminPort,
   AuditPort,
   AuthPort,
+  BillingWebhookPort,
   ForecastEventInput,
   ForecastPort,
   HealthPort,
@@ -29,6 +30,7 @@ export type AppServices = {
   workPackages: WorkPackagePort;
   targetEstimateMapping: TargetEstimateMappingPort;
   audit: AuditPort;
+  billingWebhook: BillingWebhookPort;
 };
 
 export const checkHealth = async (services: AppServices) => {
@@ -74,6 +76,13 @@ export const listUserProjects = async (
   input: { username: string }
 ) => {
   return services.auth.listUserProjects(input.username);
+};
+
+export const consumeBillingWebhook = async (
+  services: AppServices,
+  input: { provider: string; rawBody: Uint8Array; headers: Record<string, string> }
+) => {
+  return services.billingWebhook.consumeWebhook(input);
 };
 
 export const createPlanningEvent = async (services: AppServices, input: PlanningEventInput) => {
