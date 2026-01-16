@@ -1,51 +1,58 @@
 -- SMOKE_E2E_CORE.sql
 -- End-to-end DB-smoke (ydinsäännöt), ajetaan transaktion sisällä ja rollbackataan.
 --
--- Mitä muuttui:
--- - Lisätty E2E-smoke, joka luo minimidatan ja validoi ydinsäännöt (policy A, plan-before-forecast, korjauspolku).
+-- Tämän smoketestin "totuus" = `migrations/*.sql`.
+-- Tavoite: mahdollisimman pieni mutta validi testi, joka ajaa läpi CI:ssä.
+--
+-- Mitä muuttui (tarkoituksella yksinkertaistettu):
+-- - Poistettu vanha domain-smoke, joka viittasi poistettuihin tauluihin/sarakkeisiin:
+--   - projects.customer, users/roles/project_role_assignments, work_phases/*, planning_events,
+--     mapping_versions/mapping_lines, jne.
+-- - Korvattu vanha mapping-rakenne nykyisellä:
+--   - mapping_versions/mapping_lines -> item_mapping_versions/item_row_mappings (+ v_current_item_mappings)
+-- - Korvattu "work phase" -polut nykyisillä työpaketeilla:
+--   - work_phases -> work_packages (+ proc_packages)
+--
 -- Miksi:
--- - Varmistetaan, että keskeiset invarianssit pysyvät kunnossa muutosten jälkeen.
--- Miten testataan (manuaali):
--- - psql -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_E2E_CORE.sql
+-- - CI DB smoke kaatui skeemamismatchiin; smoke on testi, joten vanha domain-logiikka poistetaan.
+--
+-- Miten testataan (manuaali / CI-pariteetti):
+-- - Aja migraatiot + verify + smoke:
+--   for f in $(ls migrations/*.sql | sort); do psql -v ON_ERROR_STOP=1 -f "$f"; done
+--   psql -v ON_ERROR_STOP=1 -f docs/sql/VERIFY_INVARIANTS.sql
+--   psql -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_E2E_CORE.sql
 
 BEGIN;
 
 CREATE TEMP TABLE smoke_ids (
   organization_id uuid,
   project_id uuid,
-  work_phase_id uuid,
-  baseline_id uuid,
-  correction_id uuid,
-  correction_baseline_id uuid
+  import_batch_id uuid,
+  littera_id uuid,
+  target_estimate_item_id uuid,
+  work_package_id uuid,
+  proc_package_id uuid,
+  item_mapping_version_id uuid,
+  item_row_mapping_id uuid,
+  forecast_event_id uuid
 ) ON COMMIT DROP;
 
 DO $$
 DECLARE
   v_org_id uuid;
   v_project_id uuid;
-  v_target_littera_id uuid;
-  v_work_littera_id uuid;
-  v_correction_littera_id uuid;
-  v_nobaseline_littera_id uuid;
-  v_mapping_version_id uuid;
-  v_target_batch_id uuid;
-  v_jyda_batch_id uuid;
-  v_work_phase_id uuid;
-  v_work_phase_version_id uuid;
-  v_work_phase_nobase_id uuid;
-  v_work_phase_nobase_version_id uuid;
-  v_baseline_id uuid;
-  v_correction_id uuid;
-  v_correction_baseline_id uuid;
+  v_import_batch_id uuid;
+  v_littera_id uuid;
+  v_target_estimate_item_id uuid;
+  v_work_package_id uuid;
+  v_proc_package_id uuid;
+  v_item_mapping_version_id uuid;
+  v_item_row_mapping_id uuid;
   v_forecast_event_id uuid;
-  v_ev numeric;
-  v_ac_star numeric;
-  v_cpi numeric;
-  v_no_baseline_ac_star numeric;
-  v_no_baseline_cpi numeric;
-  v_baseline_count integer;
+  v_current_mapping_count integer;
+  v_stored_littera_code text;
 BEGIN
-  -- Organisaatio + projekti (tenant-raja)
+  -- Tenant-raja: org + project
   INSERT INTO organizations (slug, name, created_by)
   VALUES (
     'smoke-org-' || substring(gen_random_uuid()::text, 1, 8),
@@ -54,394 +61,171 @@ BEGIN
   )
   RETURNING organization_id INTO v_org_id;
 
-  INSERT INTO projects (organization_id, name, customer)
-  VALUES (v_org_id, 'Smoke project', 'Smoke')
+  INSERT INTO projects (organization_id, name)
+  VALUES (v_org_id, 'Smoke project')
   RETURNING project_id INTO v_project_id;
 
-  -- Litterat (tavoite + työ + korjaus + ilman baselinea)
-  INSERT INTO litteras (project_id, code, title, group_code)
-  VALUES (v_project_id, 'T1000', 'Smoke tavoite 1000', 1)
-  RETURNING littera_id INTO v_target_littera_id;
+  -- Littera (Talo 80): 4-num merkkijono + leading zeros säilyy.
+  INSERT INTO litteras (project_id, code, title, created_by)
+  VALUES (v_project_id, '0310', 'Smoke littera 0310', 'smoke')
+  RETURNING littera_id INTO v_littera_id;
 
-  INSERT INTO litteras (project_id, code, title, group_code)
-  VALUES (v_project_id, 'W1000', 'Smoke työ 1000', 1)
-  RETURNING littera_id INTO v_work_littera_id;
+  -- Tavoitearvio (import_batch + item-rivi)
+  INSERT INTO import_batches (project_id, kind, source_system, file_name, file_hash, created_by)
+  VALUES (v_project_id, 'TARGET_ESTIMATE', 'smoke', 'smoke.csv', 'smoke', 'smoke')
+  RETURNING id INTO v_import_batch_id;
 
-  INSERT INTO litteras (project_id, code, title, group_code)
-  VALUES (v_project_id, 'T2000', 'Smoke tavoite 2000', 2)
-  RETURNING littera_id INTO v_correction_littera_id;
+  INSERT INTO target_estimate_items (
+    import_batch_id,
+    item_code,
+    littera_code,
+    description,
+    qty,
+    unit,
+    sum_eur,
+    row_type,
+    cost_breakdown_json
+  ) VALUES (
+    v_import_batch_id,
+    'SMOKE-ITEM-1',
+    '0310',
+    'Smoke item 0310',
+    1,
+    'kpl',
+    100,
+    'ITEM',
+    '{}'::jsonb
+  )
+  RETURNING id INTO v_target_estimate_item_id;
 
-  INSERT INTO litteras (project_id, code, title, group_code)
-  VALUES (v_project_id, 'T3000', 'Smoke tavoite 3000', 3)
-  RETURNING littera_id INTO v_nobaseline_littera_id;
+  SELECT littera_code
+  INTO v_stored_littera_code
+  FROM target_estimate_items
+  WHERE id = v_target_estimate_item_id;
 
-  -- Mapping-versio (DRAFT -> ACTIVE) + mapping-rivi (FULL)
-  INSERT INTO mapping_versions (
-    project_id,
-    valid_from,
-    valid_to,
-    status,
-    reason,
+  IF v_stored_littera_code IS DISTINCT FROM '0310' THEN
+    RAISE EXCEPTION 'Leading zeros rikkoutuivat: odotettu 0310, saatiin %', COALESCE(v_stored_littera_code, '(null)');
+  END IF;
+
+  -- Työpaketti + hankintapaketti (MVP: 1:1 oletus)
+  INSERT INTO work_packages (project_id, code, name, status)
+  VALUES (v_project_id, '2500', 'Smoke työpaketti 2500', 'ACTIVE')
+  RETURNING id INTO v_work_package_id;
+
+  INSERT INTO proc_packages (project_id, code, name, owner_type, vendor_name, contract_ref, default_work_package_id, status)
+  VALUES (v_project_id, '9000', 'Smoke hankintapaketti 9000', 'CONTRACT', 'Smoke vendor', 'SMOKE-001', v_work_package_id, 'ACTIVE')
+  RETURNING id INTO v_proc_package_id;
+
+  -- Mäppäys: ACTIVE item_mapping_versions on "suunnittelu tehty" (plan-before-forecast gate käyttää tätä).
+  INSERT INTO item_mapping_versions (project_id, import_batch_id, status, created_by, activated_at)
+  VALUES (v_project_id, v_import_batch_id, 'ACTIVE', 'smoke', now())
+  RETURNING id INTO v_item_mapping_version_id;
+
+  INSERT INTO item_row_mappings (
+    item_mapping_version_id,
+    target_estimate_item_id,
+    work_package_id,
+    proc_package_id,
     created_by
   ) VALUES (
-    v_project_id,
-    current_date - 30,
-    NULL,
-    'DRAFT',
-    'smoke',
+    v_item_mapping_version_id,
+    v_target_estimate_item_id,
+    v_work_package_id,
+    v_proc_package_id,
     'smoke'
   )
-  RETURNING mapping_version_id INTO v_mapping_version_id;
+  RETURNING id INTO v_item_row_mapping_id;
 
-  INSERT INTO mapping_lines (
-    project_id,
-    mapping_version_id,
-    work_littera_id,
-    target_littera_id,
-    allocation_rule,
-    allocation_value,
-    cost_type,
-    note,
-    created_by
-  ) VALUES (
-    v_project_id,
-    v_mapping_version_id,
-    v_work_littera_id,
-    v_target_littera_id,
-    'FULL',
-    1.0,
-    'LABOR',
-    'smoke',
-    'smoke'
-  );
+  -- v_current_item_mappings näyttää ACTIVE-version viimeisimmän mappingin per item
+  SELECT count(*) INTO v_current_mapping_count
+  FROM v_current_item_mappings
+  WHERE target_estimate_item_id = v_target_estimate_item_id
+    AND work_package_id = v_work_package_id;
 
-  UPDATE mapping_versions
-  SET status = 'ACTIVE', approved_at = now(), approved_by = 'smoke'
-  WHERE mapping_version_id = v_mapping_version_id;
+  IF v_current_mapping_count <> 1 THEN
+    RAISE EXCEPTION 'Odotettiin 1 current-mäppäys-riviä, saatiin %', v_current_mapping_count;
+  END IF;
 
-  -- Suunnittelutapahtuma (READY_FOR_FORECAST)
-  INSERT INTO planning_events (
-    project_id,
-    target_littera_id,
-    created_by,
-    status,
-    summary
-  ) VALUES (
-    v_project_id,
-    v_target_littera_id,
-    'smoke',
-    'READY_FOR_FORECAST',
-    'Smoke suunnitelma'
-  );
+  -- Append-only: UPDATE/DELETE pitää estyä item_row_mappings-taulussa
+  BEGIN
+    UPDATE item_row_mappings
+    SET work_package_id = v_work_package_id
+    WHERE id = v_item_row_mapping_id;
+    RAISE EXCEPTION 'Append-only rikkoutui: UPDATE item_row_mappings onnistui';
+  EXCEPTION
+    WHEN others THEN
+      IF SQLERRM NOT ILIKE '%append-only%' THEN
+        RAISE EXCEPTION 'Append-only: odotettu virhe, saatiin: %', SQLERRM;
+      END IF;
+  END;
 
-  -- Import batchit (TARGET_ESTIMATE + JYDA)
-  INSERT INTO import_batches (project_id, source_system, imported_by, notes)
-  VALUES (v_project_id, 'TARGET_ESTIMATE', 'smoke', 'smoke target')
-  RETURNING import_batch_id INTO v_target_batch_id;
+  BEGIN
+    DELETE FROM item_row_mappings WHERE id = v_item_row_mapping_id;
+    RAISE EXCEPTION 'Append-only rikkoutui: DELETE item_row_mappings onnistui';
+  EXCEPTION
+    WHEN others THEN
+      IF SQLERRM NOT ILIKE '%append-only%' THEN
+        RAISE EXCEPTION 'Append-only: odotettu virhe, saatiin: %', SQLERRM;
+      END IF;
+  END;
 
-  INSERT INTO import_batches (project_id, source_system, imported_by, notes)
-  VALUES (v_project_id, 'JYDA', 'smoke', 'smoke jyda')
-  RETURNING import_batch_id INTO v_jyda_batch_id;
-
-  -- Budget lines (tavoite + korjauslittera)
-  INSERT INTO budget_lines (
-    project_id,
-    target_littera_id,
-    cost_type,
-    amount,
-    source,
-    import_batch_id,
-    created_by
-  ) VALUES
-    (v_project_id, v_target_littera_id, 'LABOR', 1000, 'IMPORT', v_target_batch_id, 'smoke'),
-    (v_project_id, v_correction_littera_id, 'LABOR', 200, 'IMPORT', v_target_batch_id, 'smoke');
-
-  -- Budget items (korjauspolku tarvitsee item_code -> littera)
-  INSERT INTO budget_items (
-    project_id,
-    import_batch_id,
-    littera_id,
-    item_code,
-    item_desc,
-    row_no,
-    total_eur,
-    created_by
-  ) VALUES (
-    v_project_id,
-    v_target_batch_id,
-    v_correction_littera_id,
-    'ITEM-2000',
-    'Smoke item 2000',
-    1,
-    200,
-    'smoke'
-  );
-
-  -- Actual cost (JYDA snapshot)
-  INSERT INTO actual_cost_lines (
-    project_id,
-    work_littera_id,
-    cost_type,
-    amount,
-    occurred_on,
-    source,
-    import_batch_id,
-    external_ref
-  ) VALUES (
-    v_project_id,
-    v_work_littera_id,
-    'LABOR',
-    400,
-    current_date - 7,
-    'JYDA',
-    v_jyda_batch_id,
-    'JYDA.ACTUAL_COST'
-  );
-
-  -- Forecast event + line (onnistuu koska plan on READY_FOR_FORECAST)
+  -- Ennuste (onnistuu vain jos ACTIVE item_mapping_versions löytyy projektille)
   INSERT INTO forecast_events (
     project_id,
     target_littera_id,
-    mapping_version_id,
+    forecast_date,
     created_by,
-    source,
-    comment
-  ) VALUES (
-    v_project_id,
-    v_target_littera_id,
-    v_mapping_version_id,
-    'smoke',
-    'UI',
-    'Smoke ennuste'
-  )
-  RETURNING forecast_event_id INTO v_forecast_event_id;
-
-  INSERT INTO forecast_event_lines (forecast_event_id, cost_type, forecast_value)
-  VALUES (v_forecast_event_id, 'LABOR', 1200);
-
-  -- Work phases (baseline + ilman baselinea)
-  INSERT INTO work_phases (
-    project_id,
-    name,
-    description,
-    owner,
-    lead_littera_id,
-    status,
-    created_by
-  ) VALUES (
-    v_project_id,
-    'Smoke vaihe A',
-    'Baseline vaihe',
-    'smoke',
-    v_target_littera_id,
-    'ACTIVE',
-    'smoke'
-  )
-  RETURNING work_phase_id INTO v_work_phase_id;
-
-  INSERT INTO work_phases (
-    project_id,
-    name,
-    description,
-    owner,
-    lead_littera_id,
-    status,
-    created_by
-  ) VALUES (
-    v_project_id,
-    'Smoke vaihe B',
-    'Ei baselinea',
-    'smoke',
-    v_nobaseline_littera_id,
-    'ACTIVE',
-    'smoke'
-  )
-  RETURNING work_phase_id INTO v_work_phase_nobase_id;
-
-  INSERT INTO work_phase_versions (
-    project_id,
-    work_phase_id,
-    version_no,
-    status,
-    notes,
-    created_by
-  ) VALUES (
-    v_project_id,
-    v_work_phase_id,
-    1,
-    'ACTIVE',
-    'smoke',
-    'smoke'
-  )
-  RETURNING work_phase_version_id INTO v_work_phase_version_id;
-
-  INSERT INTO work_phase_versions (
-    project_id,
-    work_phase_id,
-    version_no,
-    status,
-    notes,
-    created_by
-  ) VALUES (
-    v_project_id,
-    v_work_phase_nobase_id,
-    1,
-    'ACTIVE',
-    'smoke',
-    'smoke'
-  )
-  RETURNING work_phase_version_id INTO v_work_phase_nobase_version_id;
-
-  INSERT INTO work_phase_members (
-    project_id,
-    work_phase_version_id,
-    member_type,
-    littera_id,
     note,
-    created_by
-  ) VALUES
-    (v_project_id, v_work_phase_version_id, 'LITTERA', v_target_littera_id, 'smoke', 'smoke'),
-    (v_project_id, v_work_phase_nobase_version_id, 'LITTERA', v_nobaseline_littera_id, 'smoke', 'smoke');
-
-  -- RBAC: käyttäjä + roolit (secure wrapperit)
-  INSERT INTO users (username, display_name, email, created_by)
-  VALUES ('smoke_user', 'Smoke user', NULL, 'smoke')
-  ON CONFLICT (username) DO NOTHING;
-
-  INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by)
-  SELECT v_project_id, u.user_id, r.role_code, 'smoke'
-  FROM users u
-  JOIN roles r ON r.role_code IN ('SITE_FOREMAN', 'PROJECT_MANAGER', 'PRODUCTION_MANAGER')
-  WHERE u.username = 'smoke_user'
-    AND NOT EXISTS (
-      SELECT 1
-      FROM project_role_assignments pra
-      WHERE pra.project_id = v_project_id
-        AND pra.user_id = u.user_id
-        AND pra.role_code = r.role_code
-        AND pra.revoked_at IS NULL
-    );
-
-  -- Lukitse baseline secure-wrapperilla
-  SELECT work_phase_lock_baseline_secure(
-    v_work_phase_id,
-    v_work_phase_version_id,
-    v_target_batch_id,
-    'smoke_user',
-    'smoke baseline'
-  ) INTO v_baseline_id;
-
-  -- Viikkopäivitys + ghost
-  INSERT INTO work_phase_weekly_updates (
-    project_id,
-    work_phase_id,
-    week_ending,
-    percent_complete,
-    progress_notes,
-    created_by
-  ) VALUES
-    (v_project_id, v_work_phase_id, current_date - 7, 50, 'smoke', 'smoke'),
-    (v_project_id, v_work_phase_nobase_id, current_date - 7, 20, 'smoke', 'smoke');
-
-  INSERT INTO ghost_cost_entries (
-    project_id,
-    work_phase_id,
-    week_ending,
-    cost_type,
-    amount,
-    description,
-    created_by
+    source
   ) VALUES (
     v_project_id,
-    v_work_phase_id,
-    current_date - 7,
-    'LABOR',
-    50,
-    'smoke ghost',
+    v_littera_id,
+    CURRENT_DATE,
+    'smoke',
+    'smoke forecast',
+    'SMOKE'
+  )
+  RETURNING id INTO v_forecast_event_id;
+
+  INSERT INTO forecast_event_rows (
+    forecast_event_id,
+    work_package_id,
+    proc_package_id,
+    forecast_eur,
+    explanation
+  ) VALUES (
+    v_forecast_event_id,
+    v_work_package_id,
+    v_proc_package_id,
+    100,
     'smoke'
   );
-
-  -- Korjauspolku: propose -> PM -> FINAL (secure)
-  SELECT work_phase_propose_add_littera_from_item_secure(
-    v_work_phase_id,
-    'ITEM-2000',
-    'smoke_user',
-    'smoke correction'
-  ) INTO v_correction_id;
-
-  PERFORM work_phase_approve_correction_pm_secure(v_correction_id, 'smoke_user', 'ok');
-
-  SELECT work_phase_approve_correction_final_secure(
-    v_correction_id,
-    'smoke_user',
-    'ok'
-  ) INTO v_correction_baseline_id;
-
-  -- Assert: uusi baseline luotu korjauksessa
-  SELECT COUNT(*) INTO v_baseline_count
-  FROM work_phase_baselines
-  WHERE work_phase_id = v_work_phase_id;
-
-  IF v_baseline_count < 2 THEN
-    RAISE EXCEPTION 'Korjaus ei luonut uutta baselinea (count=%)', v_baseline_count;
-  END IF;
-
-  IF v_correction_baseline_id IS NULL OR v_correction_baseline_id = v_baseline_id THEN
-    RAISE EXCEPTION 'Korjaus-baseline puuttuu tai on sama kuin alkuperäinen';
-  END IF;
-
-  -- Policy A: KPI näkyy vain baselinella
-  SELECT ev_value, ac_star_total, cpi
-  INTO v_ev, v_ac_star, v_cpi
-  FROM v_work_phase_summary_v16_all
-  WHERE work_phase_id = v_work_phase_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Baseline work phase row missing from v_work_phase_summary_v16_all';
-  END IF;
-
-  IF v_ev IS NULL OR v_ac_star IS NULL OR v_cpi IS NULL THEN
-    RAISE EXCEPTION 'Policy A rikottu: EV/AC*/CPI puuttuu lukitulta baselinelta';
-  END IF;
-
-  SELECT ac_star_total, cpi
-  INTO v_no_baseline_ac_star, v_no_baseline_cpi
-  FROM v_work_phase_summary_v16_all
-  WHERE work_phase_id = v_work_phase_nobase_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'No-baseline work phase row missing from v_work_phase_summary_v16_all';
-  END IF;
-
-  IF v_no_baseline_ac_star IS NOT NULL OR v_no_baseline_cpi IS NOT NULL THEN
-    RAISE EXCEPTION 'Policy A rikottu: KPI-kentät eivät saa täyttyä ilman baselinea';
-  END IF;
 
   INSERT INTO smoke_ids (
     organization_id,
     project_id,
-    work_phase_id,
-    baseline_id,
-    correction_id,
-    correction_baseline_id
+    import_batch_id,
+    littera_id,
+    target_estimate_item_id,
+    work_package_id,
+    proc_package_id,
+    item_mapping_version_id,
+    item_row_mapping_id,
+    forecast_event_id
   ) VALUES (
     v_org_id,
     v_project_id,
-    v_work_phase_id,
-    v_baseline_id,
-    v_correction_id,
-    v_correction_baseline_id
+    v_import_batch_id,
+    v_littera_id,
+    v_target_estimate_item_id,
+    v_work_package_id,
+    v_proc_package_id,
+    v_item_mapping_version_id,
+    v_item_row_mapping_id,
+    v_forecast_event_id
   );
 END $$;
 
--- Näkyvyys: tulosta avain-ID:t
-SELECT
-  organization_id,
-  project_id,
-  work_phase_id,
-  baseline_id,
-  correction_id,
-  correction_baseline_id
-FROM smoke_ids;
+SELECT * FROM smoke_ids;
 
 ROLLBACK;
