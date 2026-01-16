@@ -1,7 +1,7 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { execShell } from "./tools/exec";
 
 export type Mission0Report = {
   repoRoot: string;
@@ -30,7 +30,8 @@ function safeReadJson(filePath: string): any | null {
 
 function getRepoRoot(): string {
   try {
-    const out = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8" }).trim();
+    const res = execShell("git rev-parse --show-toplevel", { cwd: process.cwd() });
+    const out = res.ok ? res.stdout.trim() : "";
     if (out) return out;
   } catch {
     // fallthrough

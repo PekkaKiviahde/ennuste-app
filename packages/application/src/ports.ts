@@ -239,6 +239,12 @@ export type AdminPort = {
       granted_at: string;
     }>;
   }>;
+  archiveDemoProject(input: {
+    projectId: string;
+    tenantId: string;
+    username: string;
+    demoProjectId: string;
+  }): Promise<{ archived: boolean }>;
 };
 
 export type SaasPort = {
@@ -255,13 +261,20 @@ export type SaasPort = {
     projectId: string;
     inviteId: string;
     inviteToken: string;
+    groupId: string | null;
+    created: {
+      groupCreated: boolean;
+      organizationCreated: boolean;
+      demoProjectCreated: boolean;
+    };
+    revokedInviteIds: string[];
   }>;
   createOrgInvite(input: {
     organizationId: string;
     email: string;
     roleCode?: string | null;
     createdBy: string;
-  }): Promise<{ inviteId: string; inviteToken: string }>;
+  }): Promise<{ inviteId: string; inviteToken: string; revokedInviteIds: string[] }>;
   acceptInvite(input: {
     token: string;
     pin: string;
@@ -389,4 +402,18 @@ export type AuditPort = {
     action: string;
     payload: Record<string, unknown>;
   }): Promise<void>;
+};
+
+export type BillingWebhookConsumeResult = {
+  outcome: "PROCESSED" | "DUPLICATE" | "REJECTED";
+  httpStatus: number;
+  message?: string;
+};
+
+export type BillingWebhookPort = {
+  consumeWebhook(input: {
+    provider: string;
+    rawBody: Uint8Array;
+    headers: Record<string, string>;
+  }): Promise<BillingWebhookConsumeResult>;
 };

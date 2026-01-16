@@ -80,9 +80,10 @@ Katso myös:
 - `GET /incident-banner`
 
 ### Seller / Admin
-- `POST /seller/tenants`
-- `POST /seller/projects`
-- `POST /seller/onboarding-links`
+- `POST /saas/groups` *(valinnainen konserni)*
+- `POST /saas/organizations` *(yhtiö + demoprojekti + ensimmäinen ORG_ADMIN-kutsu)*
+- `POST /saas/organizations/{organizationId}/invites` *(resend / uusi ORG_ADMIN-kutsu)*
+- `POST /invites/accept` *(julkinen kutsulinkin hyväksyntä)*
 - `POST /admin/tenants/{tenant_id}/onboarding/submit`
 - `POST /admin/tenants/{tenant_id}/users:invite`
 - `PUT /admin/tenants/{tenant_id}/rbac`
@@ -136,6 +137,7 @@ Katso myös:
 - Lisättiin base-path -selite ja vaihdettiin polkulistaukset OpenAPI-muotoon (ilman `/api`-prefiksiä).
 - Lisättiin puuttuvat endpointit (unmapped-actuals, work-package context, seller/admin/superadmin).
 - Yhdenmukaistettiin placeholderit `{project_id}`, `{month}`, `{correction_id}` ja `{mapping_id}`.
+- Päivitettiin myyjän provisioning-polut vastaamaan nykyistä kutsulinkkimallia (`/saas/*` + `/invites/accept`).
 
 ### Miksi
 - UI tarvitsee raporttinäkymät (pääryhmät, viikko- ja kuukausitason seuranta sekä poikkeamat) suoraan DB-näkymistä.
@@ -147,6 +149,7 @@ Katso myös:
 - `curl http://localhost:3000/api/projects/<project_id>/reports/weekly-ev`
 - Avaa UI → valitse “Projekti”-tabi ja varmista taulukoiden data.
 - Avaa `docs/api/examples.md` ja varmista, että polut vastaavat tätä listaa.
+- Varmista, että `docs/workflows/nappipolut.md` myyjäpolku käyttää samoja `/saas/*` polkuja.
 
 
 ## Security

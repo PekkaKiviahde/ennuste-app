@@ -1,0 +1,97 @@
+services:
+  agent_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent-api
+    container_name: codex_agent_api
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "3011"
+      AGENT_INTERNAL_TOKEN: ${AGENT_INTERNAL_TOKEN:-dev-token}
+      GH_TOKEN: ${GH_TOKEN:-}
+      DATABASE_URL: postgresql://codex:codex@db:5432/codex
+    ports:
+      - "3011:3011"
+    volumes:
+      - .:/app
+      - agent_api_node_modules:/app/node_modules
+    stdin_open: true
+    tty: true
+    command:
+      - sh
+      - -lc
+      - |
+          (git config --system --get-all safe.directory | grep -qx '*' || git config --system --add safe.directory '*') &&
+          home="$$HOME" && [ -n "$$home" ] || home=/root
+          netrc="$$home/.netrc"
+
+          if [ -z "$$GH_TOKEN" ]; then
+            echo NO_GH_TOKEN
+          else
+            if [ -f "$$netrc" ] && grep -q '^machine github\.com$' "$$netrc" && grep -q '^[[:space:]]*login x-access-token$' "$$netrc"; then
+              :
+            else
+              umask 077
+              cat > "$$netrc" <<-EOF
+          	machine github.com
+          	  login x-access-token
+          	  password $$GH_TOKEN
+          EOF
+            fi
+            chmod 600 "$$netrc"
+
+            helper="$$home/.git-credential-github-netrc"
+            if [ ! -f "$$helper" ]; then
+              umask 077
+              cat > "$$helper" <<-'EOF'
+          	#!/bin/sh
+          	op="$${1:-}"
+          	case "$$op" in
+          	  get) ;;
+          	  *) exit 0 ;;
+          	esac
+          
+          	protocol=""
+          	host=""
+          	while IFS= read -r line; do
+          	  [ -z "$$line" ] && break
+          	  case "$$line" in
+          	    protocol=*) protocol="$${line#protocol=}" ;;
+          	    host=*) host="$${line#host=}" ;;
+          	  esac
+          	done
+          
+          	[ "$$protocol" = "https" ] || exit 0
+          	[ "$$host" = "github.com" ] || exit 0
+          
+          	home="$${HOME:-/root}"
+          	netrc="$$home/.netrc"
+          	[ -f "$$netrc" ] || exit 0
+          
+          	password="$$(awk '
+          	  $1=="machine" && $2=="github.com" { inhost=1; next }
+          	  inhost && $1=="password" { sub(/^password[ \t]+/, "", $0); print $0; exit }
+          	' "$$netrc")"
+          
+          	[ -n "$$password" ] || exit 0
+          
+          	printf 'username=%s\n' 'x-access-token'
+          	printf 'password=%s\n' "$$password"
+          EOF
+              chmod 700 "$$helper"
+            fi
+
+            git config --global --replace-all credential.helper "$$helper"
+          fi
+
+          npm ci && npm --workspace apps/api run dev
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  agent_api_node_modules:

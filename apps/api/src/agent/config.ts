@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execShell } from "./tools/exec";
 
 export type AgentConfig = {
   allowedPaths: {
@@ -21,7 +21,13 @@ export type AgentConfig = {
 };
 
 export function getRepoRootFromGit(): string {
-  const out = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8" }).trim();
+  const res = execShell("git rev-parse --show-toplevel", { cwd: process.cwd() });
+  if (!res.ok) {
+    const detail = (res.stderr || res.stdout || "unknown error").trim() || "unknown error";
+    throw new Error(`git rev-parse --show-toplevel failed: ${detail}`);
+  }
+  const out = res.stdout.trim();
+  if (!out) throw new Error("git rev-parse --show-toplevel returned empty output");
   return out;
 }
 

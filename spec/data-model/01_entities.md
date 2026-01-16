@@ -5,13 +5,16 @@
 - Työpakettisuunnittelu on oma vaihe ennen ennustetapahtumaa.
 - Työpakettilittera ja tavoitearvio-littera erotetaan mappingilla.
 - Raportointi aggregoi ryhmittain (group_code 0-9).
+- Multi-tenant SaaS:ssa domain-data eristetään tenanttiin (`tenant_id`) (katso `docs/adr/ADR-002-tenant-id-everywhere.md`).
 
 ## 1) Littera
 Yksi taulu palvelee seka työpakettilitteraa etta tavoitearvio-litteraa. Rooli tulee mappingista ja kontekstista.
 
 Kentat:
 - littera_id (UUID, PK)
-- code (string, esim. "2200")
+- project_id (UUID, FK)
+- tenant_id (UUID, FK)
+- code (string, **aina 4 numeroa** `^\d{4}$`, esim. "0310" tai "2200" — leading zerot säilyvät)
 - title (string)
 - group_code (int 0-9, = LEFT(code, 1))
 - is_active (bool)
@@ -20,22 +23,35 @@ Kentat:
 ## 2) Mapping (tavoitearvio-littera -> työpakettilittera)
 Mapping on ajallinen, koska kohdistus voi muuttua.
 
-LitteraMapping:
-- mapping_id (UUID, PK)
+MappingVersion:
+- mapping_version_id (UUID, PK)
+- tenant_id (UUID, FK)
 - project_id (UUID, FK)
+- valid_from (date)
+- valid_to (date, nullable)
+- status (enum: DRAFT, ACTIVE, RETIRED)
+- reason (text)
+- created_at, created_by
+
+MappingLine:
+- mapping_line_id (UUID, PK)
+- tenant_id (UUID, FK)
+- project_id (UUID, FK)
+- mapping_version_id (UUID, FK)
 - target_littera_id (FK -> Littera) (tavoitearvio-littera, alkuperäinen koodi säilyy)
 - work_littera_id (FK -> Littera) (työpakettilittera)
 - allocation_rule (enum: FULL, PERCENT, AMOUNT)
 - allocation_value (decimal)
-- valid_from (date)
-- valid_to (date, nullable)
-- created_at, created_by
+- cost_type (enum, optional)
+- note (text, optional)
 
 ## 3) Työpakettisuunnittelu
 Työpakettisuunnittelu kirjataan ennen ennustetapahtumia ja lukitaan ennen ennustamista (baseline).
 
-Työpakettisuunnittelu:
-- plan_id (UUID, PK)
+Työpakettisuunnittelu (PlanningEvent, append-only):
+- planning_event_id (UUID, PK)
+- event_time (datetime)
+- tenant_id (UUID, FK)
 - project_id (UUID, FK)
 - target_littera_id (FK -> Littera)
 - status (enum: DRAFT, READY_FOR_FORECAST, LOCKED)
@@ -44,12 +60,12 @@ Työpakettisuunnittelu:
 - risks (text)
 - decisions (text)
 - created_at, created_by
-- updated_at, updated_by
 
 ## 4) Ennustetapahtuma (append-only)
 
 Ennustetapahtuma:
-- event_id (UUID, PK)
+- forecast_event_id (UUID, PK)
+- tenant_id (UUID, FK)
 - project_id (UUID, FK)
 - target_littera_id (FK -> Littera)
 - event_time (datetime)
@@ -63,8 +79,8 @@ Ennustetapahtuma:
 - lock_reason (text, optional)
 
 EnnusteRivi (kustannuslajit):
-- line_id (UUID, PK)
-- event_id (FK -> Ennustetapahtuma)
+- forecast_event_line_id (UUID, PK)
+- forecast_event_id (FK -> Ennustetapahtuma)
 - cost_type (enum: LABOR, MATERIAL, SUBCONTRACT, RENTAL, OTHER)
 - forecast_value (money/decimal)
 - memo_general (text)
@@ -76,7 +92,8 @@ Liitteet liitetaan joko työpakettisuunnitteluun tai ennustetapahtumaan.
 
 Liite:
 - attachment_id (UUID, PK)
-- owner_type (enum: PLAN, FORECAST_EVENT)
+- tenant_id (UUID, FK)
+- owner_type (enum: PLANNING_EVENT, FORECAST_EVENT)
 - owner_id (UUID)
 - filename
 - storage_ref (polku / blob-id)
@@ -86,6 +103,7 @@ Liite:
 
 BudgetLine (tavoitearvio):
 - budget_id (UUID, PK)
+- tenant_id (UUID, FK)
 - project_id (UUID)
 - target_littera_id (FK -> Littera)
 - cost_type (enum)
@@ -96,6 +114,7 @@ BudgetLine (tavoitearvio):
 
 ActualCostLine (toteuma):
 - actual_id (UUID, PK)
+- tenant_id (UUID, FK)
 - project_id (UUID)
 - work_littera_id (FK -> Littera)
 - cost_type (enum)

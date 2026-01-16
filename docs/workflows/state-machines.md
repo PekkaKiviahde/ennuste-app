@@ -14,8 +14,8 @@ Tarkoitus: helpottaa RBAC:tä, nappeja ja “lukituslogiikkaa”.
 ### Tilat
 | Koodi | Tila | Kuvaus |
 |---|---|---|
-| `C0_PROVISIONED` | Provisioned | Yritys (tenant) luotu (stub) |
-| `C1_ONBOARDING_LINK_SENT` | Link sent | Onboarding-linkki lähetetty |
+| `C0_PROVISIONED` | Provisioned | Yhtiö (organization) + tenant luotu ja demoprojekti olemassa |
+| `C1_ONBOARDING_LINK_SENT` | Link sent | ORG_ADMIN-kutsulinkki (Invite) luotu ja toimitettu |
 | `C2_ONBOARDING_IN_PROGRESS` | In progress | Asiakas täyttää tiedot / kutsuu käyttäjät |
 | `C3_READY` | Ready | Yritys valmis (minimiasetukset kunnossa) |
 
@@ -252,6 +252,7 @@ Nämä verify-skriptit ajetaan:
 ## Mitä muuttui
 - Päivitetty päivämäärä 2026-01-02.
 - Lisätty muutososiot dokumentin loppuun.
+- Täsmennetty tenant-onboarding-tilojen C0/C1 merkitys nykyisen kutsulinkkimallin mukaiseksi (yhtiö+demo, invite).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
@@ -260,3 +261,4 @@ Nämä verify-skriptit ajetaan:
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Tarkista, että C0/C1 kuvaukset vastaavat master- ja nappipolkujen myyjä-vaihetta.

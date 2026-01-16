@@ -1,10 +1,23 @@
 # Master workflow – Ennustus (MVP)
 
-Päivitetty: 2026-01-02
+Päivitetty: 2026-01-15
 
 Tämä on “kokonaiskuva” (master): **Sales/Admin/Production/DevOps** + linkit Incident- ja Data-fix -runbookeihin.
 
 > Huom: Incident ja Data-fix ovat tässä masterissa **linkkeinä**. Detaljit löydät runbookeista.
+
+## Rajaus: missä on “totuus”
+- Toteutuskelpoinen prosessi, päätökset ja validoinnit: `spec/workflows/*`.
+- Tämä dokumentti on navigaatio ja kokonaiskuva (ei toteutusspeksi). Jos ristiriita, `spec/` voittaa.
+- S-1/S0/S1/E0/E1 tiivis työpuu: `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.
+- Tilojen tarkemmat määritelmät: `docs/workflows/state-machines.md`.
+- PLG trial/entitlement + projektin STANDBY: `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`.
+
+## Nimeäminen (ettei “0” mene sekaisin)
+- SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
+- Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
+- `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
+- Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
 
 ```mermaid
 flowchart LR
@@ -14,13 +27,14 @@ flowchart LR
 %% =========================
 
 subgraph SALES["Myyjä (Seller)"]
-  S0["S0: Sopimus tehty"]
-  S1["Action: Luo tenant + projekti (stub)"]
-  S2["Action: Lähetä onboarding-linkki asiakkaalle"]
+  SAAS_PRE_DEMO["S-1: Pre-sales demo toimitettu"]
+  SAAS_CONTRACT["S-1: Sopimus tehty"]
+  SAAS_PROVISION["S-1: Luo yhtiö + demoprojekti (minimi)"]
+  SAAS_INVITE["S-1: Luo ORG_ADMIN-kutsulinkki (Invite) ja toimita asiakkaalle"]
 end
 
 subgraph SA["Superadmin"]
-  A0["C0: PROVISIONED (tenant created)"]
+  A0["C0: PROVISIONED (yhtiö + tenant + demoprojekti luotu)"]
   A1["Action: Aseta yritysadmin"]
   A2["Action: Override / tuki (tarvittaessa)"]
   A3["Action: Häiriöbanneri ON/OFF (Incident link)"]
@@ -100,8 +114,8 @@ end
 %% =========================
 %% Flow: Sales → Provisioning → Onboarding
 %% =========================
-S0 --> S1 --> A0
-A0 --> S2 --> C1
+SAAS_PRE_DEMO --> SAAS_CONTRACT --> SAAS_PROVISION --> A0
+A0 --> SAAS_INVITE --> C1
 A0 --> A1 --> C1
 
 C1 --> C2
@@ -179,8 +193,14 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 - Traceability: `docs/traceability.md`
 
 ## Mitä muuttui
-- Päivitetty päivämäärä 2026-01-02.
+- Päivitetty päivämäärä 2026-01-15.
 - Lisätty muutososiot dokumentin loppuun.
+- Myyjän (Seller) provisioning päivitetty nykyiseen kutsulinkkimalliin: yhtiö + demoprojekti + ORG_ADMIN-invite.
+- Lisätty pre-sales demo myyjän vaiheeseen (ennen sopimusta).
+- Lisätty rajaus: `spec/workflows/*` on kanoninen toteutusspeksi, `docs/workflows/*` on navigaatio.
+- Lisätty nimeämissääntö: SaaS-vaiheet (`S-1/S0/S1`) vs ennustusprosessin vaiheet (`E0..E5`).
+- Lisätty viite PLG-entitlementiin (S1): `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`.
+- Täsmennetty myyjän mermaid-labelit käyttämään `S-1`-prefiksiä ja nimetty node-id:t prefiksillä (`SAAS_*`), jotta id:t eivät näytä vaihekoodeilta.
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
@@ -189,3 +209,4 @@ P1 -.-> D0 --> D1 --> D2 --> D3 --> D4 --> D5 --> D6
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Varmista, että “Rajaus: missä on totuus” -osio linkittää `spec/workflows/*` ja `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md`.

@@ -1,6 +1,6 @@
 import type { PlanningPort } from "@ennuste/application";
 import { dbForTenant } from "./db";
-import { selectEffectivePlanningRows } from "./planning-selection";
+import { selectEffectivePlanningRows, type PlanningRow } from "./planning-selection";
 
 export const planningRepository = (): PlanningPort => ({
   async createPlanningEvent(input) {
@@ -37,7 +37,7 @@ export const planningRepository = (): PlanningPort => ({
   async listPlanningCurrent(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    const result = await tenantDb.query(
+    const result = await tenantDb.query<PlanningRow>(
       "SELECT * FROM planning_events WHERE project_id = $1::uuid ORDER BY event_time DESC, planning_event_id DESC",
       [projectId]
     );

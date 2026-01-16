@@ -8,13 +8,18 @@ Asiakkailla voi olla konsernirakenne. Lisäksi SaaS‑myyjä vastaa uusien
 yhtiöiden luonnista ja yrityksen pääkäyttäjän kutsumisesta.
 
 ## Päätös
-- Konserni on oma entiteetti (Group).
-- SaaS‑myyjä luo yhtiön ja lähettää kutsulinkin yrityksen pääkäyttäjälle.
-- Yhtiön luonnissa luodaan demoprojekti.
-- Pääkäyttäjä saa ORG_ADMIN + demoprojektin owner‑roolin.
-- Konserni‑adminilla on lukuoikeus konsernin kaikkiin yhtiöihin.
-- Konsernitasolle lisätään ylätason raportointi.
+- Konserni‑taso (Group) on olemassa ja käytettävissä, mutta valinnainen käyttää (aina ei ole konsernia).
+- SaaS‑myyjä luo yhtiön (Organization) ja luo ORG_ADMIN‑kutsulinkin yrityksen pääkäyttäjälle.
+- Yhtiön luonnissa luodaan demoprojekti automaattisesti (`is_demo=true`, oletusnimi “Demo – <Yhtiö>”).
+- Kutsulinkki on sähköpostiin sidottu, kertakäyttöinen ja vanheneva.
+- Roolit ovat scopekohtaisia:
+  - `ORG_ADMIN` = organisaatiotaso (yhtiö)
+  - `PROJECT_OWNER` = projektitaso
+  - kutsun hyväksyjä saa `ORG_ADMIN` + demoprojektin `PROJECT_OWNER` onboardingissa.
 - Kaikki tapahtumat kirjataan append‑only audit‑logiin.
+
+Suositus (ei lukittu päätös):
+- vältä NULL‑konsernia: jos konsernia ei anneta, luo yhtiölle “oma konserni” ‑Group (`is_implicit=true`) ja liitä yhtiö siihen.
 
 ## Seuraukset
 - Rooliperintä on selkeä: konserni -> yhtiö -> projekti.
@@ -22,7 +27,7 @@ yhtiöiden luonnista ja yrityksen pääkäyttäjän kutsumisesta.
 - Dokumentaatio ohjaa Next‑UI:hin, Express on API‑only.
 
 ## Mitä muuttui
-- Päätettiin konsernirakenne ja SaaS‑myyjän onboarding‑virta.
+- Päivitettiin ADR vastaamaan nykyistä kutsulinkkimallia (email-sidonta, kertakäyttö, vanheneminen) ja demoprojektin `is_demo`-mallia.
 
 ## Miksi
 - Yksi malli vähentää sekaannusta ja tukee asiakkaiden konsernirakenteita.

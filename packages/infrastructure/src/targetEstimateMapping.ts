@@ -3,11 +3,14 @@ import { dbForTenant } from "./db";
 
 const hasOwn = (obj: object, key: string) => Object.prototype.hasOwnProperty.call(obj, key);
 
+type TargetEstimateItemRow = Awaited<ReturnType<TargetEstimateMappingPort["listItems"]>>[number];
+type ProcPackageRow = Awaited<ReturnType<TargetEstimateMappingPort["listProcPackages"]>>[number];
+
 export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => ({
   async listItems(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    const result = await tenantDb.query(
+    const result = await tenantDb.query<TargetEstimateItemRow>(
       `
       WITH latest_batch AS (
         SELECT id
@@ -50,7 +53,7 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
   async listProcPackages(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
-    const result = await tenantDb.query(
+    const result = await tenantDb.query<ProcPackageRow>(
       `SELECT id AS proc_package_id,
               name,
               NULL::text AS description,
