@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test",
     "db:setup": "node scripts/db-setup.js",
     "db:seed": "node scripts/seed.js"
   },

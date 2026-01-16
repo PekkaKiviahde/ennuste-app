@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import fs from "fs/promises";
 import os from "os";
 import { execFile } from "child_process";
@@ -9,6 +9,14 @@ import { createHash, randomBytes } from "crypto";
 import dotenv from "dotenv";
 import PDFDocument from "pdfkit";
 import { query, withClient } from "./db.js";
+import {
+  buildLegacyAuthTokenClearCookie,
+  buildLegacyAuthTokenCookie,
+  createLegacyAuthToken,
+  isLegacyAuthTokenEnabled,
+  legacyAuthTokenDisabled,
+  requireLegacyAuthToken,
+} from "./legacy-authToken.js";
 import {
   buildHeaderLookup,
   computeBudgetAggregates,
@@ -79,7 +87,6 @@ function groupCodeFromLittera(code) {
   return Number(s[0]);
 }
 
-const SYSTEM_ROLES = ["superadmin", "admin", "director", "seller"];
 const PROJECT_ROLES = ["viewer", "editor", "manager", "owner"];
 const IMPORT_TYPES = ["BUDGET", "JYDA"];
 const PROJECT_ROLE_RANK = {
@@ -97,47 +104,9 @@ const ROLE_CODE_TO_PROJECT_ROLE = {
   EXEC_READONLY: "viewer",
 };
 
-function parseToken(req) {
-  const auth = req.header("authorization") || "";
-  let tokenValue = "";
-  const parts = auth.split(" ");
-  if (parts.length === 2 && parts[0] === "Bearer") {
-    tokenValue = parts[1];
-  }
-  if (!tokenValue && req.headers.cookie) {
-    const match = req.headers.cookie.match(/(?:^|;\s*)authToken=([^;]+)/);
-    if (match) {
-      tokenValue = decodeURIComponent(match[1]);
-    }
-  }
-  if (!tokenValue) {
-    return null;
-  }
-  try {
-    const raw = Buffer.from(tokenValue, "base64").toString("utf8");
-    const token = JSON.parse(raw);
-    if (!token.userId) {
-      return null;
-    }
-    if (token.systemRole && !SYSTEM_ROLES.includes(token.systemRole)) {
-      return null;
-    }
-    if (token.projectRoles && typeof token.projectRoles !== "object") {
-      return null;
-    }
-    return token;
-  } catch (err) {
-    return null;
-  }
-}
-
 function hashPin(pin) {
   const salt = process.env.PIN_SALT || "dev-salt";
   return createHash("sha256").update(`${pin}${salt}`).digest("hex");
-}
-
-function encodeToken(payload) {
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
 }
 
 function selectHigherProjectRole(currentRole, nextRole) {
@@ -212,13 +181,7 @@ async function loadSystemRole(userId, organizationId) {
 }
 
 function requireAuth(req, res) {
-  const token = parseToken(req);
-  if (!token) {
-    res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
-    return null;
-  }
-  req.user = token;
-  return token;
+  return requireLegacyAuthToken(req, res);
 }
 
 function hasProjectRole(user, projectId, minRole) {
@@ -773,16 +736,16 @@ app.get("/api/terminology/dictionary", async (req, res, next) => {
         ? req.query.orgId.trim()
         : null;
 
-    let organizationId = null;
-    if (orgId) {
-      const token = parseToken(req);
-      if (!token) {
-        return res.status(401).json({ error: "Token puuttuu tai on virheellinen." });
-      }
-      const membership = await query(
-        `SELECT 1
-         FROM organization_memberships
-         WHERE organization_id=$1 AND user_id=$2 AND left_at IS NULL`,
+	    let organizationId = null;
+	    if (orgId) {
+	      const token = requireLegacyAuthToken(req, res);
+	      if (!token) {
+	        return;
+	      }
+	      const membership = await query(
+	        `SELECT 1
+	         FROM organization_memberships
+	         WHERE organization_id=$1 AND user_id=$2 AND left_at IS NULL`,
         [orgId, token.userId]
       );
       if (membership.rowCount === 0) {
@@ -1034,6 +997,10 @@ app.post("/api/assistant/chat", async (req, res, next) => {
 
 app.post("/api/login", async (req, res, next) => {
   try {
+    if (!isLegacyAuthTokenEnabled()) {
+      legacyAuthTokenDisabled(res);
+      return;
+    }
     const { username, pin } = req.body || {};
     if (!username || !pin) {
       return badRequest(res, "username ja pin vaaditaan.");
@@ -1058,28 +1025,29 @@ app.post("/api/login", async (req, res, next) => {
     const projectRoles = await loadProjectRoles(userId, currentOrganizationId);
     const systemRole = await loadSystemRole(userId, currentOrganizationId);
 
-    const token = encodeToken({
+    const ttlSeconds = Number(process.env.LEGACY_AUTHTOKEN_TTL_SECONDS || "") || 12 * 60 * 60;
+    const token = createLegacyAuthToken(
+      {
       userId,
       organizationId: currentOrganizationId,
       systemRole,
       projectRoles,
-    });
+      },
+      { ttlSeconds }
+    );
 
     res.setHeader(
       "Set-Cookie",
-      `authToken=${encodeURIComponent(token)}; Path=/; SameSite=Lax`
+      buildLegacyAuthTokenCookie(token, { maxAgeSeconds: ttlSeconds })
     );
-    res.json({ token });
+    res.status(204).end();
   } catch (err) {
     next(err);
   }
 });
 
 app.post("/api/logout", (_req, res) => {
-  res.setHeader(
-    "Set-Cookie",
-    "authToken=; Path=/; Max-Age=0; SameSite=Lax"
-  );
+  res.setHeader("Set-Cookie", buildLegacyAuthTokenClearCookie());
   res.status(204).end();
 });
 
@@ -1145,6 +1113,26 @@ app.post("/api/session/switch-org", async (req, res, next) => {
     if (!organizationId) {
       return badRequest(res, "organizationId puuttuu.");
     }
+
+    const ttlSeconds = Number(process.env.LEGACY_AUTHTOKEN_TTL_SECONDS || "") || 12 * 60 * 60;
+    if (organizationId === token.organizationId) {
+      const refreshed = createLegacyAuthToken(
+        {
+          userId: token.userId,
+          organizationId,
+          systemRole: token.systemRole || null,
+          projectRoles: token.projectRoles || {},
+        },
+        { ttlSeconds }
+      );
+      res.setHeader(
+        "Set-Cookie",
+        buildLegacyAuthTokenCookie(refreshed, { maxAgeSeconds: ttlSeconds })
+      );
+      res.status(204).end();
+      return;
+    }
+
     const { rowCount } = await query(
       `SELECT 1
        FROM organization_memberships
@@ -1156,13 +1144,21 @@ app.post("/api/session/switch-org", async (req, res, next) => {
     }
 
     const projectRoles = await loadProjectRoles(token.userId, organizationId);
-    const nextToken = encodeToken({
-      userId: token.userId,
-      organizationId,
-      systemRole: token.systemRole || null,
-      projectRoles,
-    });
-    res.json({ token: nextToken });
+    const systemRole = await loadSystemRole(token.userId, organizationId);
+    const nextToken = createLegacyAuthToken(
+      {
+        userId: token.userId,
+        organizationId,
+        systemRole,
+        projectRoles,
+      },
+      { ttlSeconds }
+    );
+    res.setHeader(
+      "Set-Cookie",
+      buildLegacyAuthTokenCookie(nextToken, { maxAgeSeconds: ttlSeconds })
+    );
+    res.status(204).end();
   } catch (err) {
     next(err);
   }
@@ -4142,6 +4138,12 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Express-UI poistettu. Kayta Next-UI:ta." });
 });
 
-app.listen(port, () => {
-  console.log(`MVP API: http://localhost:${port}`);
-});
+export { app };
+
+const isMain =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  app.listen(port, () => {
+    console.log(`MVP API: http://localhost:${port}`);
+  });
+}
