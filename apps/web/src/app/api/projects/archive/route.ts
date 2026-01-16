@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { archiveDemoProject } from "@ennuste/application";
 import { createServices } from "../../../../server/services";
-import { getSessionFromRequest } from "../../../../server/session";
+import { requireTenantContextFromRequest } from "../../../../server/tenantContext";
 import { AppError } from "@ennuste/shared";
 
 export async function POST(request: Request) {
   try {
-    const session = await getSessionFromRequest(request);
-    if (!session) {
-      return NextResponse.json({ error: "Kirjaudu ensin sisaan" }, { status: 401 });
-    }
+    const ctx = await requireTenantContextFromRequest(request);
 
     const body = await request.json();
     const demoProjectId = String(body.demoProjectId || "").trim();
@@ -19,9 +16,9 @@ export async function POST(request: Request) {
 
     const services = createServices();
     const result = await archiveDemoProject(services, {
-      projectId: session.projectId,
-      tenantId: session.tenantId,
-      username: session.username,
+      projectId: ctx.projectId,
+      tenantId: ctx.tenantId,
+      username: ctx.username,
       demoProjectId
     });
 
@@ -33,4 +30,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Tapahtui odottamaton virhe" }, { status: 500 });
   }
 }
-

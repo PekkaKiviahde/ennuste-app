@@ -1,21 +1,27 @@
 import { NextResponse } from "next/server";
-import { getSessionFromRequest } from "../../../server/session";
+import { requireTenantContextFromRequest } from "../../../server/tenantContext";
+import { AppError } from "@ennuste/shared";
 
 export async function GET(request: Request) {
-  const session = await getSessionFromRequest(request);
-  if (!session) {
-    return NextResponse.json({ error: "Kirjaudu ensin sisaan" }, { status: 401 });
-  }
+  try {
+    const ctx = await requireTenantContextFromRequest(request);
 
-  return NextResponse.json({
-    user: {
-      userId: session.userId,
-      username: session.username,
-      displayName: session.displayName ?? null,
-      organizationId: session.organizationId,
-      tenantId: session.tenantId,
-      projectId: session.projectId,
-      permissions: session.permissions
+    return NextResponse.json({
+      user: {
+        userId: ctx.userId,
+        username: ctx.username,
+        displayName: ctx.displayName ?? null,
+        organizationId: ctx.organizationId,
+        tenantId: ctx.tenantId,
+        projectId: ctx.projectId,
+        permissions: ctx.permissions,
+        roles: ctx.roles
+      }
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
-  });
+    return NextResponse.json({ error: "Tapahtui odottamaton virhe" }, { status: 500 });
+  }
 }

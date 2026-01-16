@@ -49,6 +49,13 @@ Tässä dokumentissa kuvataan MVP-tason **authn/authz** (autentikointi/autorisoi
 - Backend asettaa DB-session kontekstiin `app.tenant_id` ja käyttää sitä kaikissa kyselyissä.
 - Varmista myös verify-skripteillä, että kaikki kriittiset näkymät/taulut sisältävät tenant-filtterin.
 
+### Nykyinen toteutus (Next-session)
+- UI/API käyttää allekirjoitettua cookiea `ennuste_session` (HMAC, `SESSION_SECRET`).
+- Cookie sisältää `sessions.session_id` ja backend hakee kontekstin DB:stä:
+  - `sessions.tenant_id` (tenant)
+  - `sessions.project_id` + join `projects.organization_id` (org)
+- Clientin lähettämää `tenant_id`-parametria ei luoteta.
+
 ---
 
 ## 4) Autorisointi (RBAC + tilagaatit)

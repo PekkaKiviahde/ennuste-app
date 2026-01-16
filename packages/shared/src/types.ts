@@ -36,4 +36,5 @@ export type SessionUser = {
   tenantId: string;
   projectId: string;
   permissions: PermissionCode[];
+  roles?: RoleCode[];
 };

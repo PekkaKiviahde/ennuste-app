@@ -28,6 +28,57 @@ const loadPermissions = async (projectId: string, username: string) => {
   );
 };
 
+const loadRoles = async (projectId: string, username: string) => {
+  const rolesResult = await query<{ role_code: string }>(
+    `
+    WITH u AS (
+      SELECT user_id
+      FROM users
+      WHERE username = $2::text AND is_active = true
+      LIMIT 1
+    ),
+    p AS (
+      SELECT project_id, organization_id
+      FROM projects
+      WHERE project_id = $1::uuid
+      LIMIT 1
+    ),
+    member AS (
+      SELECT 1
+      FROM organization_memberships m
+      JOIN u ON u.user_id = m.user_id
+      JOIN p ON p.organization_id = m.organization_id
+      WHERE m.left_at IS NULL
+      LIMIT 1
+    ),
+    roles AS (
+      SELECT pra.role_code
+      FROM project_role_assignments pra
+      JOIN u ON u.user_id = pra.user_id
+      JOIN p ON p.project_id = pra.project_id
+      WHERE pra.revoked_at IS NULL
+        AND (pra.valid_from IS NULL OR pra.valid_from <= now())
+        AND (pra.valid_to IS NULL OR pra.valid_to >= now())
+      UNION
+      SELECT ora.role_code
+      FROM organization_role_assignments ora
+      JOIN u ON u.user_id = ora.user_id
+      JOIN p ON p.organization_id = ora.organization_id
+      WHERE ora.revoked_at IS NULL
+        AND (ora.valid_from IS NULL OR ora.valid_from <= now())
+        AND (ora.valid_to IS NULL OR ora.valid_to >= now())
+    )
+    SELECT DISTINCT r.role_code
+    FROM roles r
+    JOIN member ON true
+    ORDER BY r.role_code
+    `,
+    [projectId, username]
+  );
+
+  return rolesResult.rows.map((row) => row.role_code as NonNullable<SessionUser["roles"]>[number]);
+};
+
 export const authRepository = (): AuthPort => ({
   async loginWithPin(input: LoginInput): Promise<LoginResult> {
     const userResult = await query<{
@@ -79,6 +130,7 @@ export const authRepository = (): AuthPort => ({
     }
 
     const permissions = await loadPermissions(projectId, user.username);
+    const roles = await loadRoles(projectId, user.username);
 
     const session: SessionUser = {
       userId: user.user_id,
@@ -87,7 +139,8 @@ export const authRepository = (): AuthPort => ({
       organizationId,
       tenantId,
       projectId,
-      permissions
+      permissions,
+      roles
     };
 
     return { session };
@@ -127,6 +180,7 @@ export const authRepository = (): AuthPort => ({
     }
 
     const permissions = await loadPermissions(input.projectId, user.username);
+    const roles = await loadRoles(input.projectId, user.username);
 
     const session: SessionUser = {
       userId: user.user_id,
@@ -135,7 +189,8 @@ export const authRepository = (): AuthPort => ({
       organizationId,
       tenantId,
       projectId: input.projectId,
-      permissions
+      permissions,
+      roles
     };
 
     return { session };
@@ -197,6 +252,7 @@ export const authRepository = (): AuthPort => ({
     }
 
     const permissions = await loadPermissions(sessionRow.project_id, sessionRow.username);
+    const roles = await loadRoles(sessionRow.project_id, sessionRow.username);
 
     return {
       userId: sessionRow.user_id,
@@ -205,7 +261,8 @@ export const authRepository = (): AuthPort => ({
       organizationId: sessionRow.organization_id,
       tenantId: sessionRow.tenant_id,
       projectId: sessionRow.project_id,
-      permissions
+      permissions,
+      roles
     };
   },
   async createSession(session) {

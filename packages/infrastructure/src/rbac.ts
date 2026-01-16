@@ -13,6 +13,26 @@ export const rbacRepository = (): RbacPort => ({
     );
 
     if (!result.rows[0]?.allowed) {
+      try {
+        const actorResult = await tenantDb.query<{ user_id: string }>(
+          "SELECT user_id FROM users WHERE username = $1::text AND is_active = true LIMIT 1",
+          [username]
+        );
+        const actorUserId = actorResult.rows[0]?.user_id ?? null;
+        await tenantDb.query(
+          `INSERT INTO app_audit_log (project_id, actor, actor_user_id, action, payload)
+           VALUES ($1::uuid, $2::text, $3::uuid, $4::text, $5::jsonb)`,
+          [
+            projectId,
+            actorUserId ? String(actorUserId) : null,
+            actorUserId,
+            "rbac.access_denied",
+            { permission_code: permission }
+          ]
+        );
+      } catch {
+        // ignore audit failures (authorization must still deny)
+      }
       throw new ForbiddenError("Ei oikeuksia");
     }
   },
