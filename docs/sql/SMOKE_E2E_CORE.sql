@@ -25,6 +25,7 @@
 BEGIN;
 
 CREATE TEMP TABLE smoke_ids (
+  tenant_id uuid,
   organization_id uuid,
   project_id uuid,
   import_batch_id uuid,
@@ -39,6 +40,7 @@ CREATE TEMP TABLE smoke_ids (
 
 DO $$
 DECLARE
+  v_tenant_id uuid;
   v_org_id uuid;
   v_project_id uuid;
   v_import_batch_id uuid;
@@ -52,6 +54,14 @@ DECLARE
   v_current_mapping_count integer;
   v_stored_littera_code text;
 BEGIN
+  -- Tenant (multi-tenant): luodaan oma tenant, jotta projects.tenant_id on aina asetettu.
+  INSERT INTO tenants (name, created_by)
+  VALUES (
+    'smoke-tenant-' || substring(gen_random_uuid()::text, 1, 8),
+    'smoke'
+  )
+  RETURNING tenant_id INTO v_tenant_id;
+
   -- Tenant-raja: org + project
   INSERT INTO organizations (slug, name, created_by)
   VALUES (
@@ -61,8 +71,8 @@ BEGIN
   )
   RETURNING organization_id INTO v_org_id;
 
-  INSERT INTO projects (organization_id, name)
-  VALUES (v_org_id, 'Smoke project')
+  INSERT INTO projects (tenant_id, organization_id, name, customer, project_state)
+  VALUES (v_tenant_id, v_org_id, 'Smoke project', 'Smoke', 'P1_PROJECT_ACTIVE')
   RETURNING project_id INTO v_project_id;
 
   -- Littera (Talo 80): 4-num merkkijono + leading zeros säilyy.
@@ -202,6 +212,7 @@ BEGIN
   );
 
   INSERT INTO smoke_ids (
+    tenant_id,
     organization_id,
     project_id,
     import_batch_id,
@@ -213,6 +224,7 @@ BEGIN
     item_row_mapping_id,
     forecast_event_id
   ) VALUES (
+    v_tenant_id,
     v_org_id,
     v_project_id,
     v_import_batch_id,

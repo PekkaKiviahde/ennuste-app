@@ -29,10 +29,11 @@ Lisäksi migraatio lukitsee Phase 18 “selvitettävät” -fixin:
 ---
 
 ## Asennus
-1) Kopioi `migrations/0009_saas_rbac_phase19.sql` repoosi.
-2) Aja pgAdminissa (Query Tool).
+1) Aja migraatio `migrations/0042_saas_rbac_phase19.sql` (Phase19 minimi).
+2) Aja lopuksi `docs/sql/VERIFY_INVARIANTS.sql` ja `docs/sql/SMOKE_E2E_CORE.sql`.
 
-Jos ajo onnistuu, `projects.organization_id` täytetään automaattisesti “default”-organisaatiolla.
+Jos ajo onnistuu:
+- `projects.tenant_id` backfillataan “Default”-tenantille niissä riveissä, joissa se puuttui.
 
 ---
 
