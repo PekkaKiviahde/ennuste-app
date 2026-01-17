@@ -15,7 +15,11 @@ services:
       - "3000:3002"
     stdin_open: true
     tty: true
-    command: sh -lc "npm ci && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3002"
+    command: >-
+      sh -lc "npm ci
+      && (npm run db:migrate || (echo \"WARN: db:migrate epaonnistui (todennakoisesti vanha/ristiriitainen dev-DB). Katso docs/dev/DEV_DB_RESET.md tai aja: docker compose -f docker-compose.yml -f docker-compose.next.yml down -v && docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build db web_next\" >&2; true))
+      && if [ \"$${DEMO_MODE:-}\" = \"true\" ]; then (npm run db:seed-demo || (echo \"WARN: db:seed-demo epaonnistui (skeema puuttuu tai on ristiriitainen). Katso docs/dev/DEV_DB_RESET.md\" >&2; true)); fi
+      && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3002"
     depends_on:
       db:
         condition: service_healthy

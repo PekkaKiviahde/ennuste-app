@@ -27,6 +27,10 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --remove-o
 2) Avaa UI:
 - `http://localhost:3000`
 
+Demo-UI (DEMO_MODE=true):
+- `web_next` ajaa automaattisesti `db:migrate` ja `db:seed-demo` ennen Nextin kaynnistysta.
+- PIN kaikille demo-kayttajille: `1234` (esim. `production.manager.a`).
+
 ## Agenttiarmeija (API) – smoke
 1) Tee tyopuu tarkoituksella likaiseksi:
 ```bash
@@ -76,3 +80,10 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml down
   - Aja sama kaynnistyskomento `--remove-orphans` -lipulla.
 - Next-UI ei lataudu / logissa `EBADENGINE` (node 24.x vaaditaan) tai `Failed to patch lockfile`:
   - Paivita kontti uusiksi: `docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build web_next`
+- Login antaa `Virheellinen tunnus tai PIN` demo-tunnuksilla:
+  - Aja manuaalisesti:
+    - `DATABASE_URL="postgres://codex:codex@localhost:5433/codex" npm run db:migrate`
+    - `DATABASE_URL="postgres://codex:codex@localhost:5433/codex" npm run db:seed-demo`
+  - Jos `db:migrate` failaa (esim. `column "kind" does not exist`), nollaa dev-DB:
+    - `docker compose -f docker-compose.yml -f docker-compose.next.yml down -v`
+    - `docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build db web_next`
