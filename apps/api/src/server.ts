@@ -4,7 +4,7 @@ import agentRouter from "./routes/agent.routes";
 import { checkEnv } from "./config/env";
 
 const app = express();
-const required = checkEnv(["DATABASE_URL", "AGENT_INTERNAL_TOKEN"]);
+const required = checkEnv(["AGENT_INTERNAL_TOKEN"]);
 if (!required.ok) {
   console.error(`Missing required env vars: ${required.missing.join(", ")}`);
   process.exit(1);
