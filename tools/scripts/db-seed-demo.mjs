@@ -480,7 +480,7 @@ const seedTenant = async (client, config) => {
     let projectId = existingProject.rows[0]?.project_id;
     if (!projectId) {
       const projectResult = await client.query(
-        "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, project_details, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, $5::project_state, $6::jsonb, now()) RETURNING project_id",
+        "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, project_details, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, $5::text, $6::jsonb, now()) RETURNING project_id",
         [
           project.name,
           project.customer || null,
