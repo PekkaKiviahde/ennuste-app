@@ -32,15 +32,23 @@ type ModelPatchResponse = {
 };
 
 const ALLOWED_CHANGE_PATHS = [
-  "apps/api/src",
-  "apps/api/agent.config.json",
   "docs/runbooks",
   "docs/workflows",
-  "Dockerfile.agent-api",
-  "docker-compose.agent-api.yml",
 ];
 
 const REQUIRED_GATE_COMMANDS = ["npm run lint", "npm run typecheck", "npm test"];
+
+const WORKFLOW_REPORT_REL_PATH = "docs/workflows/workflow_report.md";
+const SPEC_WORKFLOWS_REL_DIR = "spec/workflows";
+const WORKFLOW_SPEC_PRIORITY: string[] = [
+  "spec/workflows/00_workflow_outline.md",
+  "spec/workflows/01_mvp_flow.md",
+  "spec/workflows/01_plg_entitlement_and_project_lifecycle.md",
+  "spec/workflows/02_org_hierarchy_onboarding.md",
+  "spec/workflows/02_work_phases_and_baseline.md",
+  "spec/workflows/03_weekly_update_ghost_and_reconciliation.md",
+  "spec/workflows/04_change_control_and_learning.md",
+];
 
 function shellDetail(result: { stdout: string; stderr: string }): string {
   return (result.stderr || result.stdout || "unknown error").trim() || "unknown error";
@@ -83,8 +91,32 @@ function sanitizePatch(raw: string): string {
 function parseModelJson(text: string):
   | { ok: true; value: ModelPatchResponse }
   | { ok: false; error: string; rawPreview: string } {
-  const trimmed = text.trim();
-  const rawPreview = truncate2000(trimmed);
+  const originalTrimmed = text.trim();
+
+  const sanitizeForJson = (raw: string): string => {
+    let value = raw.trim();
+    if (!value) return value;
+
+    if (value.includes("```")) {
+      const lines = value.split("\n");
+      while (lines.length > 0 && lines[0].trim().startsWith("```")) lines.shift();
+      while (lines.length > 0 && lines[lines.length - 1]?.trim() === "```") lines.pop();
+      value = lines.join("\n").trim();
+    }
+
+    if (!value.startsWith("{")) {
+      const first = value.indexOf("{");
+      const last = value.lastIndexOf("}");
+      if (first !== -1 && last !== -1 && last > first) {
+        value = value.slice(first, last + 1).trim();
+      }
+    }
+
+    return value;
+  };
+
+  const trimmed = sanitizeForJson(originalTrimmed);
+  const rawPreview = truncate2000(trimmed || originalTrimmed);
 
   let parsed: unknown;
   try {
@@ -234,6 +266,25 @@ function validateDocsPatchSmall(patch: string): { ok: true } | { ok: false; erro
   return { ok: true };
 }
 
+function patchCreatesNewFile(patch: string, targetRelPath: string): boolean {
+  const blocks = listDiffBlocks(patch);
+  for (const block of blocks) {
+    if (block.bPath !== targetRelPath) continue;
+    if (/^new file mode /m.test(block.content)) return true;
+    if (/^--- \/dev\/null$/m.test(block.content)) return true;
+    if (/^\+\+\+ \/dev\/null$/m.test(block.content)) return true;
+  }
+  return false;
+}
+
+function patchTouchesPath(patch: string, targetRelPath: string): boolean {
+  const blocks = listDiffBlocks(patch);
+  for (const block of blocks) {
+    if (block.aPath === targetRelPath || block.bPath === targetRelPath) return true;
+  }
+  return false;
+}
+
 function safeFilenamePart(value: string): string {
   return value.replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 80) || "unknown";
 }
@@ -325,7 +376,173 @@ function validatePatchFormat(patch: string): { ok: boolean; error?: string } {
   return { ok: true };
 }
 
-function buildPatchPrompt(task: string, mission0: any): string {
+function repairUnifiedDiffHunkCounts(patch: string): { patch: string; repaired: boolean } {
+  const lines = patch.split("\n");
+  let repaired = false;
+
+  const isDiffStart = (line: string) => line.startsWith("diff --git ");
+  const isHunkStart = (line: string) => line.startsWith("@@ ");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
+    if (!isHunkStart(line)) continue;
+
+    const match = line.match(/^@@ -([0-9]+)(?:,([0-9]+))? \+([0-9]+)(?:,([0-9]+))? @@/);
+    if (!match) continue;
+
+    const oldStart = match[1] ?? "0";
+    const newStart = match[3] ?? "0";
+
+    let oldCount = 0;
+    let newCount = 0;
+
+    for (let j = i + 1; j < lines.length; j++) {
+      const hunkLine = lines[j] ?? "";
+      if (isDiffStart(hunkLine) || isHunkStart(hunkLine)) break;
+      if (hunkLine.startsWith("\\ No newline at end of file")) continue;
+      if (hunkLine.startsWith("+") && !hunkLine.startsWith("+++")) newCount += 1;
+      else if (hunkLine.startsWith("-") && !hunkLine.startsWith("---")) oldCount += 1;
+      else if (hunkLine.startsWith(" ")) {
+        oldCount += 1;
+        newCount += 1;
+      }
+    }
+
+    const normalized = `@@ -${oldStart},${oldCount} +${newStart},${newCount} @@`;
+    if (normalized !== line) {
+      lines[i] = normalized;
+      repaired = true;
+    }
+  }
+
+  return { patch: lines.join("\n"), repaired };
+}
+
+function readTextFileIfExists(absPath: string): string | null {
+  if (!fs.existsSync(absPath)) return null;
+  try {
+    return fs.readFileSync(absPath, "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+function truncateForPrompt(label: string, value: string, maxChars: number): { text: string; truncated: boolean } {
+  if (value.length <= maxChars) return { text: value, truncated: false };
+  const clipped = value.slice(0, maxChars);
+  const note = `\n\n[TRUNCATED:${label}:chars=${value.length} max=${maxChars}]\n`;
+  return { text: `${clipped}${note}`, truncated: true };
+}
+
+function buildWorkflowSourceBundle(worktreeDir: string): {
+  currentReportExists: boolean;
+  currentReport: string;
+  currentReportSnippets: string;
+  sourceSpecsList: string[];
+  sourceSpecs: string;
+  truncated: boolean;
+} {
+  let truncated = false;
+
+  const reportAbs = path.join(worktreeDir, WORKFLOW_REPORT_REL_PATH);
+  const currentReportRaw = readTextFileIfExists(reportAbs);
+  const currentReportExists = currentReportRaw !== null;
+  const currentReport = currentReportExists
+    ? truncateForPrompt("CURRENT_REPORT", currentReportRaw ?? "", 80_000)
+    : { text: "(missing)", truncated: false };
+  truncated ||= currentReport.truncated;
+
+  const buildSnippets = (raw: string | null): string => {
+    if (!raw) return "(no CURRENT_REPORT snippets; file missing)";
+    const lines = raw.split("\n");
+    const head = lines.slice(0, 60).join("\n");
+
+    const extractSection = (heading: string): string | null => {
+      const start = lines.findIndex((l) => l.trim() === heading);
+      if (start === -1) return null;
+      let end = lines.length;
+      for (let i = start + 1; i < lines.length; i++) {
+        if (lines[i]?.startsWith("## ")) {
+          end = i;
+          break;
+        }
+      }
+      return lines.slice(start, end).join("\n");
+    };
+
+    const sourceSpecs = extractSection("## Source specs (luetut kanoniset speksit)") ?? "(section missing)";
+    const additionalRefs = extractSection("## Additional references (ei-kanoninen)") ?? "(section missing)";
+
+    return [
+      "=== CURRENT_REPORT_SNIPPET_HEAD (first 60 lines) ===",
+      head,
+      "=== END CURRENT_REPORT_SNIPPET_HEAD ===",
+      "",
+      "=== CURRENT_REPORT_SNIPPET_SOURCE_SPECS ===",
+      sourceSpecs,
+      "=== END CURRENT_REPORT_SNIPPET_SOURCE_SPECS ===",
+      "",
+      "=== CURRENT_REPORT_SNIPPET_ADDITIONAL_REFERENCES ===",
+      additionalRefs,
+      "=== END CURRENT_REPORT_SNIPPET_ADDITIONAL_REFERENCES ===",
+    ].join("\n");
+  };
+
+  const specDirAbs = path.join(worktreeDir, SPEC_WORKFLOWS_REL_DIR);
+  const allSpecFiles = fs.existsSync(specDirAbs)
+    ? fs
+        .readdirSync(specDirAbs)
+        .filter((name) => name.endsWith(".md"))
+        .map((name) => `${SPEC_WORKFLOWS_REL_DIR}/${name}`)
+        .sort()
+    : [];
+
+  const available = new Set(allSpecFiles);
+  const prioritized = WORKFLOW_SPEC_PRIORITY.filter((p) => available.has(p));
+  const remaining = allSpecFiles.filter((p) => !prioritized.includes(p));
+  const ordered = [...prioritized, ...remaining];
+
+  const maxSpecsChars = 200_000;
+  let used = 0;
+  const parts: string[] = [];
+  const included: string[] = [];
+
+  for (const relPath of ordered) {
+    const abs = path.join(worktreeDir, relPath);
+    const raw = readTextFileIfExists(abs);
+    if (raw === null) continue;
+
+    const header = `\n===== FILE: ${relPath} =====\n`;
+    const footer = `\n===== END FILE: ${relPath} =====\n`;
+
+    const remainingChars = maxSpecsChars - used;
+    if (remainingChars <= header.length + footer.length + 1) {
+      truncated = true;
+      break;
+    }
+
+    const budgetForBody = remainingChars - header.length - footer.length;
+    const body = truncateForPrompt(relPath, raw, budgetForBody);
+    parts.push(`${header}${body.text}${footer}`);
+    included.push(relPath);
+    used += header.length + body.text.length + footer.length;
+    truncated ||= body.truncated;
+
+    if (used >= maxSpecsChars) break;
+  }
+
+  return {
+    currentReportExists,
+    currentReport: currentReport.text,
+    currentReportSnippets: buildSnippets(currentReportRaw),
+    sourceSpecsList: included,
+    sourceSpecs: parts.join(""),
+    truncated,
+  };
+}
+
+function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): string {
+  const bundle = buildWorkflowSourceBundle(worktreeDir);
   return [
     "Olet Backend/Debug-agentti. Tuota MUUTOSPATCH deterministisesti ilman korjailukierroksia.",
     "",
@@ -344,16 +561,57 @@ function buildPatchPrompt(task: string, mission0: any): string {
     "- Patch alkaa rivilla: diff --git ...",
     "- Patch sisaltaa diff --git -headerit (a/... b/...).",
     "- Uusille tiedostoille on mukana: new file mode 100644, --- /dev/null, +++ b/<path>.",
+    "- Ala lisaa index-riveja (index <sha>..<sha>) jos et tieda oikeita arvoja.",
     "- Patch paattyy aina rivinvaihtoon (\\n).",
+    "- Hunk headerit on oltava tarkkoja. Unified diffissa:",
+    "  - oldCount = rivit jotka alkavat ' ' tai '-' (hunki sisalla)",
+    "  - newCount = rivit jotka alkavat ' ' tai '+' (hunki sisalla)",
+    "  - Jos et pysty tuottamaan oikeita hunk-countteja, ala yrita arvata: tuota pienempi hunki ja laske rivit oikein.",
+    "",
+    "PIKAESIMERKKI (insertti yhden rivin jalkeen, oikeat countit):",
+    "diff --git a/docs/workflows/workflow_report.md b/docs/workflows/workflow_report.md",
+    "--- a/docs/workflows/workflow_report.md",
+    "+++ b/docs/workflows/workflow_report.md",
+    "@@ -1,3 +1,7 @@",
+    " # Otsikko",
+    " ",
+    " Vanha rivi",
+    "+",
+    "+Uusi kappale",
+    "+- uusi bullet",
+    "+- toinen bullet",
     "",
     "POLKURAJAT (pakollinen): Patch saa muuttaa vain naita polkuja:",
     ...ALLOWED_CHANGE_PATHS.map((p) => `- ${p}`),
     "",
+    "WORKFLOW-RAPORTTI (pakollinen kohde):",
+    `- TARGET_FILE: ${WORKFLOW_REPORT_REL_PATH}`,
+    `- CURRENT_REPORT_EXISTS: ${bundle.currentReportExists ? "yes" : "no"}`,
+    "- Jos CURRENT_REPORT_EXISTS=yes, sinun ON PAKKO tuottaa diff joka PAIVITTAA olemassa olevaa tiedostoa.",
+    `  - ALA kayta "new file mode" tai "/dev/null" kohteelle: ${WORKFLOW_REPORT_REL_PATH}`,
+    `  - Hunkeissa on oltava oikeat kontekstilinjat CURRENT_REPORTista (space-prefixed rivit).`,
+    "  - Kayta erityisesti CURRENT_REPORT_SNIPPET_* osioiden riveja hunki-kontekstina (ne ovat pienet ja tasmalliset).",
+    "- Jos CURRENT_REPORT_EXISTS=no, sinun ON PAKKO luoda uusi tiedosto PATCH-VAATIMUSTEN mukaisella new file diffilla:",
+    `  - Sisallyta: new file mode 100644, --- /dev/null, +++ b/${WORKFLOW_REPORT_REL_PATH}`,
+    "  - Hunki: @@ -0,0 +1,<n> @@ (ei @@ -1,0 ...).",
+    "- Tuota muutos vain kohdetiedostoon (taman tehtavan odotus: changedFiles = [TARGET_FILE]).",
+    "",
     "TEHTAVA:",
     task,
     "",
+    "CURRENT_REPORT (nykyinen kohdetiedosto):",
+    bundle.currentReportSnippets,
+    "",
+    "CURRENT_REPORT (koko tiedosto, trimmattu):",
+    bundle.currentReport,
+    "",
+    "SOURCE_SPECS (kanoniset lahteet, kayta vain naita tietoja tiivistyksessa):",
+    `FILES_INCLUDED: ${bundle.sourceSpecsList.join(", ") || "(none)"}`,
+    bundle.truncated ? "NOTE: SOURCE BUNDLE TRUNCATED (priorisoi WORKFLOW_SPEC_PRIORITY tiedostot)" : "",
+    bundle.sourceSpecs,
+    "",
     "REPO-KONTEKSTI (Mission0):",
-    JSON.stringify(mission0).slice(0, 200000),
+    JSON.stringify(mission0).slice(0, 80_000),
   ].join("\n");
 }
 
@@ -612,7 +870,7 @@ export async function runChange(req: ChangeRequest) {
     const openai = createOpenAIClient();
 
     clearWorkingTree(worktreeDir);
-    const prompt = buildPatchPrompt(req.task, mission0);
+    const prompt = buildPatchPrompt(req.task, mission0, worktreeDir);
     const promptSummary = summarizePrompt(prompt);
 
     await addEvent("MODEL_PROMPT", {
@@ -681,6 +939,8 @@ export async function runChange(req: ChangeRequest) {
       return response;
     }
     patch = extracted.patch;
+    const repaired = repairUnifiedDiffHunkCounts(patch);
+    patch = repaired.patch;
     patchPreview = buildPatchPreview(patch);
 
     const newFileCheck = validateNewFileBlocks(patch);
@@ -717,6 +977,49 @@ export async function runChange(req: ChangeRequest) {
       };
       await addEvent("DONE", { status: "failed", branchName, reason: "PATCH_DOCS_TOO_BROAD", notes });
       return response;
+    }
+
+    {
+      const reportAbs = path.join(worktreeDir, WORKFLOW_REPORT_REL_PATH);
+      const reportExists = fs.existsSync(reportAbs);
+      const reportTouched = patchTouchesPath(patch, WORKFLOW_REPORT_REL_PATH);
+      const reportIsNewFile = patchCreatesNewFile(patch, WORKFLOW_REPORT_REL_PATH);
+
+      if (reportExists && reportIsNewFile) {
+        const error = "patch tries to create existing file; must update existing file";
+        applyStderr = error;
+        applyPatchPath = writeTempPatch(sessionId, patch);
+        response = {
+          status: "failed",
+          error,
+          branchName,
+          changedFiles: [],
+          applyStdout,
+          applyStderr,
+          patchPreview,
+          ...(applyPatchPath ? { applyPatchPath } : {}),
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "PATCH_TRIES_CREATE_EXISTING_FILE", notes });
+        return response;
+      }
+
+      if (!reportExists && reportTouched && !reportIsNewFile) {
+        const error = "patch tries to update missing file; must create new file with new file mode";
+        applyStderr = error;
+        applyPatchPath = writeTempPatch(sessionId, patch);
+        response = {
+          status: "failed",
+          error,
+          branchName,
+          changedFiles: [],
+          applyStdout,
+          applyStderr,
+          patchPreview,
+          ...(applyPatchPath ? { applyPatchPath } : {}),
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "PATCH_TRIES_UPDATE_MISSING_FILE", notes });
+        return response;
+      }
     }
 
     applyPatchPath = writeTempPatch(sessionId, patch);
