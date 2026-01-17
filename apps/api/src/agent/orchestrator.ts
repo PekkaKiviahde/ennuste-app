@@ -35,6 +35,7 @@ const ALLOWED_CHANGE_PATHS = [
   "apps/api/src",
   "apps/api/agent.config.json",
   "docs/runbooks",
+  "docs/workflows",
   "Dockerfile.agent-api",
   "docker-compose.agent-api.yml",
 ];

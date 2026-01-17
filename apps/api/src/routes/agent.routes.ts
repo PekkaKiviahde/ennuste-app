@@ -3,7 +3,6 @@ import { requireInternalToken } from "../middleware/requireInternalToken";
 import { checkEnv } from "../config/env";
 import { runMission0 } from "../agent/mission0";
 import { runChange } from "../agent/orchestrator";
-import { runCleanup, runPreflight } from "../agent/preflight";
 import { getRepoRootFromGit } from "../agent/config";
 
 type AgentRunBody = {
@@ -24,61 +23,28 @@ router.post("/run", requireInternalToken, async (req, res) => {
   const mode = body.mode ?? "mission0";
 
   if (mode === "mission0") {
-    const env = checkEnv(["AGENT_INTERNAL_TOKEN"]);
-    if (!env.ok) return res.status(500).json({ error: "Missing env", missing: env.missing });
-
-    const repoRoot = getRepoRootFromGit();
     const sessionId = `mission0-${new Date().toISOString()}`;
 
-    let preflight = null;
-    let cleanup = null;
-    let response: any = null;
-
     try {
-      preflight = await runPreflight(repoRoot, sessionId);
-      if (!preflight.ok) {
-        response = {
-          status: "failed",
-          mode: "mission0",
-          sessionId,
-          branchName: null,
-          changedFiles: [],
-          gateCommands: [],
-          error: preflight.error ?? "preflight failed",
-          preflight,
-        };
-      } else {
-        const report = runMission0();
-        response = {
-          status: "ok",
-          mode: "mission0",
-          sessionId,
-          branchName: null,
-          changedFiles: [],
-          gateCommands: report.gateCandidates ?? [],
-          preflight,
-          report,
-        };
-      }
+      const repoRoot = getRepoRootFromGit();
+      const report = runMission0();
+      return res.json({
+        status: "ok",
+        mode: "mission0",
+        sessionId,
+        repoRoot,
+        report,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "mission0 failed";
-      response = {
+      const response = {
         status: "failed",
         mode: "mission0",
         sessionId,
-        branchName: null,
-        changedFiles: [],
-        gateCommands: [],
         error: message,
-        preflight,
       };
-    } finally {
-      cleanup = await runCleanup(repoRoot);
-      if (response) response.cleanup = cleanup;
+      return res.status(500).json(response);
     }
-
-    const status = response?.status === "ok" ? 200 : 500;
-    return res.status(status).json(response);
   }
 
   if (mode === "change") {
@@ -87,10 +53,17 @@ router.post("/run", requireInternalToken, async (req, res) => {
       return res.status(400).json({ error: "Missing field", missing: ["projectId"] });
     }
 
+    if (body.dryRun !== true) {
+      return res.status(400).json({
+        error: "MVP mode: dryRun must be true",
+        note: "Commit/push (dryRun=false) pidetään pois päältä kunnes ensimmäinen demo on hyväksytty.",
+      });
+    }
+
     const task = body.task?.trim();
     if (!task) return res.status(400).json({ error: "Missing task" });
 
-    const env = checkEnv(["AGENT_INTERNAL_TOKEN", "OPENAI_API_KEY", "DATABASE_URL"]);
+    const env = checkEnv(["AGENT_INTERNAL_TOKEN", "OPENAI_API_KEY", "DATABASE_URL", "GH_TOKEN"]);
     if (!env.ok) return res.status(500).json({ error: "Missing env", missing: env.missing });
 
     try {
