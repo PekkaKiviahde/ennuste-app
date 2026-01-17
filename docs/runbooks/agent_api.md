@@ -55,6 +55,7 @@ curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
 Odotus:
 - Onnistuu: `status: "ok"` + `branchName` + `changedFiles`
 - Jos gate kaatuu: `status: "failed"` + `gateLog`
+- MVP: `dryRun=false` on estetty toistaiseksi (ei commit/push).
 
 ## Pysäytys
 ```bash
@@ -71,4 +72,3 @@ docker compose -f docker-compose.yml -f docker-compose.agent-api.yml down
 
 ## Miten testataan (manuaali)
 - Aja “Käynnistys (Docker)” ja molemmat smoke-curlit.
-

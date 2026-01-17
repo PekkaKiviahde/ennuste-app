@@ -53,6 +53,13 @@ router.post("/run", requireInternalToken, async (req, res) => {
       return res.status(400).json({ error: "Missing field", missing: ["projectId"] });
     }
 
+    if (body.dryRun !== true) {
+      return res.status(400).json({
+        error: "MVP mode: dryRun must be true",
+        note: "Commit/push (dryRun=false) pidetään pois päältä kunnes ensimmäinen demo on hyväksytty.",
+      });
+    }
+
     const task = body.task?.trim();
     if (!task) return res.status(400).json({ error: "Missing task" });
 
