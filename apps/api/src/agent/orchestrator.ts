@@ -112,6 +112,9 @@ function parseModelJson(text: string):
       }
     }
 
+    // Tolerate trailing commas (common model mistake): {"a":1,}
+    value = value.replace(/,\s*([}\]])/g, "$1");
+
     return value;
   };
 
@@ -418,6 +421,48 @@ function repairUnifiedDiffHunkCounts(patch: string): { patch: string; repaired: 
   return { patch: lines.join("\n"), repaired };
 }
 
+function normalizeUnifiedDiffMarkers(patch: string): { patch: string; normalized: boolean } {
+  const lines = patch.split("\n");
+  let normalized = false;
+
+  const isDiffStart = (line: string) => line.startsWith("diff --git ");
+  const isHunkStart = (line: string) => line.startsWith("@@ ");
+
+  let inHunk = false;
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i] ?? "";
+
+    if (isDiffStart(line)) {
+      inHunk = false;
+      continue;
+    }
+    if (isHunkStart(line)) {
+      inHunk = true;
+      continue;
+    }
+    if (!inHunk) continue;
+
+    // Some models emit hunk lines like " +foo" (leading space before + marker),
+    // which makes the patch invalid/corrupt. Normalize the marker if it looks accidental.
+    // Heuristic: only fix when the first char is space and the second is '+'.
+    // NOTE: We intentionally do NOT normalize " -..." because that frequently occurs as a valid context line
+    // for Markdown bullets (file content begins with "- ...") and would corrupt otherwise valid diffs.
+    if (line.length >= 2 && line[0] === " " && line[1] === "+") {
+      if (!line.startsWith(" +++") && !line.startsWith(" ---")) {
+        line = line.slice(1);
+        lines[i] = line;
+        normalized = true;
+      }
+    }
+  }
+
+  return { patch: lines.join("\n"), normalized };
+}
+
+function looksLikeUnifiedDiff(patch: string): boolean {
+  return /^diff --git a\/.+ b\/.+$/m.test(patch);
+}
+
 function readTextFileIfExists(absPath: string): string | null {
   if (!fs.existsSync(absPath)) return null;
   try {
@@ -543,6 +588,7 @@ function buildWorkflowSourceBundle(worktreeDir: string): {
 
 function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): string {
   const bundle = buildWorkflowSourceBundle(worktreeDir);
+  const preferFullFileContent = task.includes(WORKFLOW_REPORT_REL_PATH);
   return [
     "Olet Backend/Debug-agentti. Tuota MUUTOSPATCH deterministisesti ilman korjailukierroksia.",
     "",
@@ -556,30 +602,46 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
     "- patch-kentassa rivinvaihdot ovat \\n (valid JSON); client parsii sen takaisin oikeiksi riveiksi.",
     "- Ei ylimaaraisia kenttia.",
     "",
-    "PATCH-VAATIMUKSET:",
-    "- Patch on unified diff.",
-    "- Patch alkaa rivilla: diff --git ...",
-    "- Patch sisaltaa diff --git -headerit (a/... b/...).",
-    "- Uusille tiedostoille on mukana: new file mode 100644, --- /dev/null, +++ b/<path>.",
-    "- Ala lisaa index-riveja (index <sha>..<sha>) jos et tieda oikeita arvoja.",
-    "- Patch paattyy aina rivinvaihtoon (\\n).",
-    "- Hunk headerit on oltava tarkkoja. Unified diffissa:",
-    "  - oldCount = rivit jotka alkavat ' ' tai '-' (hunki sisalla)",
-    "  - newCount = rivit jotka alkavat ' ' tai '+' (hunki sisalla)",
-    "  - Jos et pysty tuottamaan oikeita hunk-countteja, ala yrita arvata: tuota pienempi hunki ja laske rivit oikein.",
-    "",
-    "PIKAESIMERKKI (insertti yhden rivin jalkeen, oikeat countit):",
-    "diff --git a/docs/workflows/workflow_report.md b/docs/workflows/workflow_report.md",
-    "--- a/docs/workflows/workflow_report.md",
-    "+++ b/docs/workflows/workflow_report.md",
-    "@@ -1,3 +1,7 @@",
-    " # Otsikko",
-    " ",
-    " Vanha rivi",
-    "+",
-    "+Uusi kappale",
-    "+- uusi bullet",
-    "+- toinen bullet",
+    ...(preferFullFileContent
+      ? [
+          "PATCH-VAATIMUKSET (pakollinen tassa tehtavassa):",
+          `- Koska kohde on ${WORKFLOW_REPORT_REL_PATH}, ala yrita kirjoittaa unified diffa itse.`,
+          "- Palauta patch-kentassa TASMALLEEN kohdetiedoston koko uusi sisalto (Markdown), ilman diff-otsikoita.",
+          "- Aloita sisalto rivilla: # Workflow-raportti (Task B)",
+          "- Ala palauta muita tiedostoja tai muita formaatteja.",
+          "- Järjestelmä generoi unified diffin deterministisesti sisällöstä.",
+        ]
+      : [
+          "PATCH-VAATIMUKSET:",
+          "- Patch on unified diff.",
+          "- Patch alkaa rivilla: diff --git ...",
+          "- Patch sisaltaa diff --git -headerit (a/... b/...).",
+          "- Uusille tiedostoille on mukana: new file mode 100644, --- /dev/null, +++ b/<path>.",
+          "- Ala lisaa index-riveja (index <sha>..<sha>) jos et tieda oikeita arvoja.",
+          "- Patch paattyy aina rivinvaihtoon (\\n).",
+          "- Hunk headerit on oltava tarkkoja. Unified diffissa:",
+          "  - oldCount = rivit jotka alkavat ' ' tai '-' (hunki sisalla)",
+          "  - newCount = rivit jotka alkavat ' ' tai '+' (hunki sisalla)",
+          "  - Jos et pysty tuottamaan oikeita hunk-countteja, ala yrita arvata: tuota pienempi hunki ja laske rivit oikein.",
+          "",
+          "PIKAESIMERKKI (insertti yhden rivin jalkeen, oikeat countit):",
+          "diff --git a/docs/workflows/workflow_report.md b/docs/workflows/workflow_report.md",
+          "--- a/docs/workflows/workflow_report.md",
+          "+++ b/docs/workflows/workflow_report.md",
+          "@@ -1,3 +1,7 @@",
+          " # Otsikko",
+          " ",
+          " Vanha rivi",
+          "+",
+          "+Uusi kappale",
+          "+- uusi bullet",
+          "+- toinen bullet",
+          "",
+          "VAIHTOEHTOINEN OUTPUT (vain jos et pysty tuottamaan apply-kelpoista unified diffa):",
+          `- Palauta patch-kentassa TASMALLEEN ${WORKFLOW_REPORT_REL_PATH} koko tiedoston uusi sisalto (Markdown), ilman diff-otsikoita.`,
+          "- Aloita sisalto rivilla: # Workflow-raportti (Task B)",
+          "- Ala palauta muita tiedostoja tai muita formaatteja.",
+        ]),
     "",
     "POLKURAJAT (pakollinen): Patch saa muuttaa vain naita polkuja:",
     ...ALLOWED_CHANGE_PATHS.map((p) => `- ${p}`),
@@ -587,13 +649,21 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
     "WORKFLOW-RAPORTTI (pakollinen kohde):",
     `- TARGET_FILE: ${WORKFLOW_REPORT_REL_PATH}`,
     `- CURRENT_REPORT_EXISTS: ${bundle.currentReportExists ? "yes" : "no"}`,
-    "- Jos CURRENT_REPORT_EXISTS=yes, sinun ON PAKKO tuottaa diff joka PAIVITTAA olemassa olevaa tiedostoa.",
-    `  - ALA kayta "new file mode" tai "/dev/null" kohteelle: ${WORKFLOW_REPORT_REL_PATH}`,
-    `  - Hunkeissa on oltava oikeat kontekstilinjat CURRENT_REPORTista (space-prefixed rivit).`,
-    "  - Kayta erityisesti CURRENT_REPORT_SNIPPET_* osioiden riveja hunki-kontekstina (ne ovat pienet ja tasmalliset).",
-    "- Jos CURRENT_REPORT_EXISTS=no, sinun ON PAKKO luoda uusi tiedosto PATCH-VAATIMUSTEN mukaisella new file diffilla:",
-    `  - Sisallyta: new file mode 100644, --- /dev/null, +++ b/${WORKFLOW_REPORT_REL_PATH}`,
-    "  - Hunki: @@ -0,0 +1,<n> @@ (ei @@ -1,0 ...).",
+    ...(preferFullFileContent
+      ? [
+          "- Tuota patch-kentassa vain TARGET_FILE:n koko uusi sisalto (Markdown).",
+          "- Ala tuota unified diffa (jarjestelma tekee diffin).",
+          "- Ala poista tiedostoa tai vaihda polkua; paivita olemassa oleva tiedosto sisallon kautta.",
+        ]
+      : [
+          "- Jos CURRENT_REPORT_EXISTS=yes, sinun ON PAKKO tuottaa diff joka PAIVITTAA olemassa olevaa tiedostoa.",
+          `  - ALA kayta "new file mode" tai "/dev/null" kohteelle: ${WORKFLOW_REPORT_REL_PATH}`,
+          "  - Hunkeissa on oltava oikeat kontekstilinjat CURRENT_REPORTista (space-prefixed rivit).",
+          "  - Kayta erityisesti CURRENT_REPORT_SNIPPET_* osioiden riveja hunki-kontekstina (ne ovat pienet ja tasmalliset).",
+          "- Jos CURRENT_REPORT_EXISTS=no, sinun ON PAKKO luoda uusi tiedosto PATCH-VAATIMUSTEN mukaisella new file diffilla:",
+          `  - Sisallyta: new file mode 100644, --- /dev/null, +++ b/${WORKFLOW_REPORT_REL_PATH}`,
+          "  - Hunki: @@ -0,0 +1,<n> @@ (ei @@ -1,0 ...).",
+        ]),
     "- Tuota muutos vain kohdetiedostoon (taman tehtavan odotus: changedFiles = [TARGET_FILE]).",
     "",
     "TEHTAVA:",
@@ -798,10 +868,11 @@ export async function runChange(req: ChangeRequest) {
   let response: any = null;
   let lastGateLog: { status: "ok" | "failed"; gate: DiagGateEntry[] } | null = null;
   let applyStdout = "";
-  let applyStderr = "";
-  let patchPreview = "";
-  let applyPatchPath: string | null = null;
-  let rawPreview: string | null = null;
+    let applyStderr = "";
+    let patchPreview = "";
+    let applyPatchPath: string | null = null;
+    let rawPreview: string | null = null;
+    let patchGeneratedFromContent = false;
 
   let branchName: string | null = null;
   let model = "";
@@ -870,41 +941,106 @@ export async function runChange(req: ChangeRequest) {
     const openai = createOpenAIClient();
 
     clearWorkingTree(worktreeDir);
-    const prompt = buildPatchPrompt(req.task, mission0, worktreeDir);
-    const promptSummary = summarizePrompt(prompt);
+    const workflowReportTask = req.task.includes(WORKFLOW_REPORT_REL_PATH);
 
-    await addEvent("MODEL_PROMPT", {
-      iteration: 1,
-      model,
-      ...promptSummary,
-    });
+    let commitMessage = "";
+    let notes = "";
+    let patch = "";
 
-    const raw = await callModelText(openai, model, prompt);
-    const parsed = parseModelJson(raw);
-    if (!parsed.ok) {
-      rawPreview = parsed.rawPreview;
-      const rawAsPatch = sanitizePatch(raw);
-      patchPreview = buildPatchPreview(rawAsPatch || raw);
-      applyStderr = truncate8000(parsed.error);
-      applyPatchPath = writeTempPatch(sessionId, rawAsPatch || raw);
-      response = {
-        status: "failed",
-        branchName,
-        changedFiles: [],
-        error: "strict_json_parse_failed",
-        applyStdout,
-        applyStderr,
-        patchPreview,
-        rawPreview,
-        ...(applyPatchPath ? { applyPatchPath } : {}),
-      };
-      return response;
+    if (workflowReportTask) {
+      const bundle = buildWorkflowSourceBundle(worktreeDir);
+      const prompt = [
+        "Tuota VAIN Markdown-sisalto tiedostolle docs/workflows/workflow_report.md.",
+        "ALA palauta unified diffa. ALA palauta JSONia. ALA palauta ```-aitoja.",
+        "ALA muokkaa yhtaan muuta tiedostoa. ALA koske spec/workflows/* tiedostoihin.",
+        "",
+        "VAATIMUKSET:",
+        "- Aloita rivilla: # Workflow-raportti (Task B)",
+        "- Kayta 00_workflow_outline.md rakennetta: Goals & Constraints, Terms & Concepts, Decisions, Gates, Audit Events, Changes, Manual Test Instructions.",
+        "- Sisalto perustuu SOURCE_SPECS tekstisisaltoon (ei geneerista).",
+        "- Lisaa loppuun 'Source specs' lista kaikista luetuista spec/workflows/*.md tiedostoista (SOURCE_SPECS FILES_INCLUDED).",
+        "",
+        "TEHTAVA:",
+        req.task,
+        "",
+        "CURRENT_REPORT_SNIPPETS:",
+        bundle.currentReportSnippets,
+        "",
+        "SOURCE_SPECS:",
+        `FILES_INCLUDED: ${bundle.sourceSpecsList.join(", ") || "(none)"}`,
+        bundle.sourceSpecs,
+      ].join("\n");
+
+      const promptSummary = summarizePrompt(prompt);
+      await addEvent("MODEL_PROMPT", { iteration: 1, model, ...promptSummary, mode: "workflow_report_markdown" });
+
+      const raw = await callModelText(openai, model, prompt);
+      patch = sanitizePatch(raw);
+
+      // Defensive: some models still append an (often broken) unified diff after the Markdown.
+      // For workflow_report tasks we treat the response as Markdown-only and drop any embedded diffs.
+      const embeddedDiffAt = patch.search(/^diff --git /m);
+      if (embeddedDiffAt !== -1) {
+        patch = `${patch.slice(0, embeddedDiffAt).trimEnd()}\n`;
+      }
+
+      patchPreview = buildPatchPreview(patch);
+      commitMessage = "docs(workflow): update workflow report";
+      notes = "workflow_report_markdown";
+
+      if (!patch.startsWith("# Workflow-raportti (Task B)")) {
+        applyStderr = "workflow_report markdown missing required title line";
+        applyPatchPath = writeTempPatch(sessionId, patch);
+        response = {
+          status: "failed",
+          branchName,
+          changedFiles: [],
+          error: "invalid_workflow_report_markdown",
+          applyStdout,
+          applyStderr,
+          patchPreview,
+          ...(applyPatchPath ? { applyPatchPath } : {}),
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "MARKDOWN_INVALID", notes });
+        return response;
+      }
+    } else {
+      const prompt = buildPatchPrompt(req.task, mission0, worktreeDir);
+      const promptSummary = summarizePrompt(prompt);
+
+      await addEvent("MODEL_PROMPT", {
+        iteration: 1,
+        model,
+        ...promptSummary,
+      });
+
+      const raw = await callModelText(openai, model, prompt);
+      const parsed = parseModelJson(raw);
+      if (!parsed.ok) {
+        rawPreview = parsed.rawPreview;
+        const rawAsPatch = sanitizePatch(raw);
+        patchPreview = buildPatchPreview(rawAsPatch || raw);
+        applyStderr = truncate8000(parsed.error);
+        applyPatchPath = writeTempPatch(sessionId, rawAsPatch || raw);
+        response = {
+          status: "failed",
+          branchName,
+          changedFiles: [],
+          error: "strict_json_parse_failed",
+          applyStdout,
+          applyStderr,
+          patchPreview,
+          rawPreview,
+          ...(applyPatchPath ? { applyPatchPath } : {}),
+        };
+        return response;
+      }
+
+      commitMessage = parsed.value.commitMessage?.trim() ?? "";
+      notes = parsed.value.notes ?? "";
+      patch = sanitizePatch(parsed.value.patch ?? "");
+      patchPreview = buildPatchPreview(patch);
     }
-
-    const commitMessage = parsed.value.commitMessage?.trim() ?? "";
-    const notes = parsed.value.notes ?? "";
-    let patch = sanitizePatch(parsed.value.patch ?? "");
-    patchPreview = buildPatchPreview(patch);
 
     if (!commitMessage || !patch) {
       applyStderr = "commitMessage or patch missing";
@@ -919,6 +1055,65 @@ export async function runChange(req: ChangeRequest) {
       };
       await addEvent("DONE", { status: "failed", branchName, reason: "NO_PATCH", notes });
       return response;
+    }
+
+    // If the model returns full file content instead of a unified diff, generate a diff deterministically
+    // against the current worktree file so that git apply can work reliably.
+    if (!looksLikeUnifiedDiff(patch)) {
+      const targetAbs = path.join(worktreeDir, WORKFLOW_REPORT_REL_PATH);
+      try {
+        fs.mkdirSync(path.dirname(targetAbs), { recursive: true });
+        fs.writeFileSync(targetAbs, patch, "utf-8");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "failed to write target content";
+        applyStderr = truncate8000(message);
+        response = {
+          status: "failed",
+          branchName,
+          changedFiles: [],
+          applyStdout,
+          applyStderr,
+          patchPreview,
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "WRITE_TARGET_FAILED", notes });
+        return response;
+      }
+
+      const generated = execShell(`git diff -- ${JSON.stringify(WORKFLOW_REPORT_REL_PATH)}`, { cwd: worktreeDir });
+      clearWorkingTree(worktreeDir);
+
+      if (!generated.ok) {
+        applyStderr = truncate8000(`git diff failed: ${shellDetail(generated)}`);
+        response = {
+          status: "failed",
+          branchName,
+          changedFiles: [],
+          applyStdout,
+          applyStderr,
+          patchPreview,
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "DIFF_GENERATE_FAILED", notes });
+        return response;
+      }
+
+      const diffText = String(generated.stdout ?? "").trim();
+      if (!diffText) {
+        applyStderr = "generated diff is empty";
+        response = {
+          status: "failed",
+          branchName,
+          changedFiles: [],
+          applyStdout,
+          applyStderr,
+          patchPreview,
+        };
+        await addEvent("DONE", { status: "failed", branchName, reason: "DIFF_EMPTY", notes });
+        return response;
+      }
+
+      patch = diffText.endsWith("\n") ? diffText : `${diffText}\n`;
+      patchPreview = buildPatchPreview(patch);
+      patchGeneratedFromContent = true;
     }
 
     const extracted = extractDiff(patch);
@@ -939,8 +1134,11 @@ export async function runChange(req: ChangeRequest) {
       return response;
     }
     patch = extracted.patch;
-    const repaired = repairUnifiedDiffHunkCounts(patch);
-    patch = repaired.patch;
+    if (!patchGeneratedFromContent) {
+      patch = normalizeUnifiedDiffMarkers(patch).patch;
+      const repaired = repairUnifiedDiffHunkCounts(patch);
+      patch = repaired.patch;
+    }
     patchPreview = buildPatchPreview(patch);
 
     const newFileCheck = validateNewFileBlocks(patch);
