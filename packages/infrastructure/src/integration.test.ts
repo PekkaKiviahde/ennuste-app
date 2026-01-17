@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { Client } from "pg";
 import { POST as planningPost } from "../../../apps/web/src/app/api/planning/route";
 import { POST as loginPost } from "../../../apps/web/src/app/api/login/route";
+import { GET as projectGet } from "../../../apps/web/src/app/api/projects/[projectId]/route";
 import { GET as workflowStatusGet } from "../../../apps/web/src/app/api/workflow/status/route";
 import { pool } from "./db";
 
@@ -62,12 +63,17 @@ test("planning endpoint writes planning event and audit log", { skip: !databaseU
   const userId = userResult.rows[0].user_id;
 
   await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [organizationId, userId]
+  );
+
+  await client.query(
     "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
     [projectId, userId]
   );
 
   const litteraResult = await client.query(
-    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9000', 'Test Littera', 9) RETURNING littera_id",
+    "INSERT INTO litteras (project_id, code, title) VALUES ($1::uuid, '9000', 'Test Littera') RETURNING littera_id",
     [projectId]
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
@@ -144,8 +150,13 @@ test("planning endpoint denies without permissions", { skip: !databaseUrl || !se
   );
   const userId = userResult.rows[0].user_id;
 
+  await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [organizationId, userId]
+  );
+
   const litteraResult = await client.query(
-    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9100', 'Deny Littera', 9) RETURNING littera_id",
+    "INSERT INTO litteras (project_id, code, title) VALUES ($1::uuid, '9100', 'Deny Littera') RETURNING littera_id",
     [projectId]
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
@@ -175,7 +186,7 @@ test("planning endpoint denies without permissions", { skip: !databaseUrl || !se
   await client.end();
 });
 
-test("tenant isolation blocks cross-tenant project access", { skip: !databaseUrl || !sessionSecret }, async () => {
+test("tenant isolation blocks cross-tenant project read", { skip: !databaseUrl || !sessionSecret }, async () => {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();
 
@@ -215,36 +226,29 @@ test("tenant isolation blocks cross-tenant project access", { skip: !databaseUrl
   const userId = userResult.rows[0].user_id;
 
   await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [orgA.rows[0].organization_id, userId]
+  );
+
+  await client.query(
     "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
     [projectA.rows[0].project_id, userId]
   );
 
-  const litteraResult = await client.query(
-    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9200', 'Tenant B Littera', 9) RETURNING littera_id",
-    [projectB.rows[0].project_id]
-  );
-  const targetLitteraId = litteraResult.rows[0].littera_id;
-
   const sessionResult = await client.query(
     "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
-    [userId, projectB.rows[0].project_id, tenantA.rows[0].tenant_id]
+    [userId, projectA.rows[0].project_id, tenantA.rows[0].tenant_id]
   );
   const sessionToken = createSessionToken(sessionResult.rows[0].session_id);
 
-  const request = new Request("http://localhost/api/planning", {
-    method: "POST",
+  const request = new Request(`http://localhost/api/projects/${projectB.rows[0].project_id}`, {
+    method: "GET",
     headers: {
-      "content-type": "application/json",
       cookie: `ennuste_session=${sessionToken}`
-    },
-    body: JSON.stringify({
-      targetLitteraId,
-      status: "READY_FOR_FORECAST",
-      summary: "Cross-tenant attempt"
-    })
+    }
   });
 
-  const response = await planningPost(request);
+  const response = await projectGet(request, { params: { projectId: projectB.rows[0].project_id } });
   assert.equal(response.status, 403);
 
   await client.end();
@@ -406,6 +410,11 @@ test("login endpoint writes audit log entry", { skip: !databaseUrl || !sessionSe
   const userId = userResult.rows[0].user_id;
 
   await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [organizationId, userId]
+  );
+
+  await client.query(
     "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
     [projectId, userId]
   );
@@ -468,12 +477,17 @@ test("workflow status endpoint returns latest planning status", { skip: !databas
   const userId = userResult.rows[0].user_id;
 
   await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [organizationId, userId]
+  );
+
+  await client.query(
     "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
     [projectId, userId]
   );
 
   const litteraResult = await client.query(
-    "INSERT INTO litteras (project_id, code, title, group_code) VALUES ($1::uuid, '9300', 'Workflow Littera', 9) RETURNING littera_id",
+    "INSERT INTO litteras (project_id, code, title) VALUES ($1::uuid, '9300', 'Workflow Littera') RETURNING littera_id",
     [projectId]
   );
   const targetLitteraId = litteraResult.rows[0].littera_id;
