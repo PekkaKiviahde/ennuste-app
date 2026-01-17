@@ -115,8 +115,8 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 ### 6.2 Tiedostot (ehdotus)
 - `apps/api/src/routes/agent.routes.ts`
-- `apps/api/src/agent_army/orchestrator.ts`
-- `apps/api/src/agent_army/tools.ts`
+- `apps/api/src/agent/orchestrator.ts`
+- `apps/api/src/agent/tools/*`
 - `apps/api/src/memory/agentMemoryRepo.ts`
 
 ### 6.3 Reitin kytkentä
@@ -148,3 +148,16 @@ Tuotos:
 - pieni muutos (esim. agent endpoint skeleton + token auth + smoke test)
 - branch → gate → commit → push → PR (selaimessa)
 
+---
+
+## Muutos (2026-01-17)
+
+### Mitä muuttui
+- Päivitettiin polut vastaamaan nykyistä toteutusta: `apps/api/src/agent_army/*` → `apps/api/src/agent/*`.
+- Täsmennettiin työkalupolku: `tools.ts` → `apps/api/src/agent/tools/*`.
+
+### Miksi
+- Doksin polut eivät vastanneet repo-työpuuta, mikä aiheutti “file not found” -sekaannusta.
+
+### Miten testataan (manuaali)
+- Varmista, että polut löytyvät: `ls apps/api/src/agent` ja `ls apps/api/src/agent/tools`.
