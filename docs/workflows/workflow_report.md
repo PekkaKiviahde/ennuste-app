@@ -8,7 +8,7 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 
 ---
 
-## 1) Tavoite
+## Tavoite
 
 - Antaa “workflow ensin” kokonaiskuva.
 - Helpottaa keskustelua: missä vaiheessa ollaan ja mitä saa tehdä.
@@ -29,7 +29,7 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 
 ---
 
-## 2) Termit
+## Termit
 
 - **Group / konserni**: valinnainen liiketoiminnassa. Tietomallissa suositus: aina jokin Group (myös “oma konserni”, `is_implicit=true`).
 - **Organization / yhtiö**: asiakasorganisaatio.
@@ -52,7 +52,7 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 
 ---
 
-## 3) Työnkulku vaiheittain (S/E)
+## Työnkulku (S/E)
 
 ### S-1: Myynti ja asiakkuuden avaus (Seller / Superadmin)
 Tavoite: luo asiakkuus turvallisesti ja idempotentisti.
@@ -131,7 +131,7 @@ Tavoite: johtamisen näkymä.
 
 ---
 
-## 4) Päätökset (yhteenveto)
+## Päätökset
 
 - (S-1) Yhtiön luonnissa luodaan demoprojekti. Kutsulinkki on email-sidottu, kertakäyttöinen ja vanheneva.
 - (S0) Org-roolit ja projekt-roolit eivät periydy automaattisesti. Onboardingissa ORG_ADMIN saa demoprojektiin PROJECT_OWNER.
@@ -144,7 +144,9 @@ Tavoite: johtamisen näkymä.
 
 ---
 
-## 5) Gate (mitä estetään ja milloin)
+## Gate
+
+Mitä estetään ja milloin.
 
 ### Kutsulinkki (S-1 / S0)
 Estä hyväksyntä, jos:
@@ -176,7 +178,7 @@ Trialing-tilassa estä:
 
 ---
 
-## 6) Audit-eventit (append-only)
+## Audit-eventit
 
 ### Spekseissä nimetyt eventit
 - `group.created`, `org.created`, `project.created`, `project.archived`
@@ -196,7 +198,7 @@ Trialing-tilassa estä:
 
 ---
 
-## 7) Mitä muuttui
+## Mitä muuttui
 - Yhtenäistetty S/E-vaiheistus ja otsikkorakenne.
 - Täsmennetty onboarding (demoprojekti + kutsulinkkisäännöt).
 - Täsmennetty PLG-entitlement: read-only gate + commerce-poikkeus + grace-ajastus + reaktivoinnin idempotenssi.
@@ -206,14 +208,14 @@ Trialing-tilassa estä:
 
 ---
 
-## 8) Miksi
+## Miksi
 - Integraatiotestit ja tuotanto vaativat yhden yhteisen workflow-totuuden.
 - Gate estää virheelliset kirjoitukset (billing, trial, projekti, baseline).
 - Append-only ja audit ovat välttämättömiä jäljitettävyyteen.
 
 ---
 
-## 9) Miten testataan (manuaali)
+## Miten testataan
 
 ### S1 trial / entitlement (tiivis)
 1) Aloita trial → org `trialing`, 1 projekti ACTIVE.
@@ -239,7 +241,9 @@ Trialing-tilassa estä:
 
 ---
 
-## Source specs (luetut kanoniset speksit)
+## Source specs
+
+Luetut kanoniset speksit:
 - `spec/workflows/00_workflow_outline.md`
 - `spec/workflows/00_sales_phase.md`
 - `spec/workflows/01_plg_entitlement_and_project_lifecycle.md`
@@ -248,7 +252,3 @@ Trialing-tilassa estä:
 - `spec/workflows/01_mvp_flow.md`
 - `spec/workflows/03_weekly_update_ghost_and_reconciliation.md`
 - `spec/workflows/04_change_control_and_learning.md`
-
-## Additional references (ei-kanoninen)
-- `docs/adr/0002-mvp-workflow-decisions.md`
-- `docs/workflows/master.md`
