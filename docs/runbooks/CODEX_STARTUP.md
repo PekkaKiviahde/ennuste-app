@@ -74,3 +74,5 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml down
   - Kaynnista vain `web_next` (komento ylla).
 - Orpokontit:
   - Aja sama kaynnistyskomento `--remove-orphans` -lipulla.
+- Next-UI ei lataudu / logissa `EBADENGINE` (node 24.x vaaditaan) tai `Failed to patch lockfile`:
+  - Paivita kontti uusiksi: `docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build web_next`

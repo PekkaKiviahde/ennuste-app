@@ -1,6 +1,6 @@
 services:
   web_next:
-    image: node:20
+    image: node:24-bookworm
     container_name: codex_next_web
     working_dir: /app
     volumes:
