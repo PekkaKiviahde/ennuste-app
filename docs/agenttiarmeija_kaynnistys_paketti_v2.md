@@ -3,6 +3,8 @@
 **Päiväys:** 2026-01-11  
 **Tarkoitus:** Käynnistää ja viedä loppuun Tuotannonhallinta SaaS:n agenttiarmeijan MVP ilman rönsyilyä.
 
+**ALOITA TÄSTÄ (käyttö + troubleshooting):** `docs/runbooks/agent_army_overview.md`
+
 ---
 
 ## 1) Porttipäätökset (lukittu kooste)

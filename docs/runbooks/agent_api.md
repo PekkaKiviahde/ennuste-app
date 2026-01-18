@@ -4,6 +4,8 @@
 - Aja `POST /agent/run` paikallisesti Dockerilla.
 - Varmista `mode=mission0` (read-only) ja `mode=change` (`dryRun=true`) toiminta.
 
+ALOITA TÄSTÄ (koonti, envit, PR/compareLink, troubleshooting): `docs/runbooks/agent_army_overview.md`
+
 ## Esivaatimukset
 - Docker + Docker Compose
 - `.env` tiedosto (tai envit shellissä)
