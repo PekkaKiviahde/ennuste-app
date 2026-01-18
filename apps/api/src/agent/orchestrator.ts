@@ -1366,9 +1366,11 @@ export async function runChange(req: ChangeRequest) {
       ].join("\n\n");
 
       prUrl = await createOrFindPullRequest({
+        cwd: worktreeDir,
         branchName,
         title: commitMessage,
         body: prBody,
+        exec: execShell,
       });
     } catch {
       prUrl = null;

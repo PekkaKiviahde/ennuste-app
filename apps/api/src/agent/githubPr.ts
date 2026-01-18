@@ -1,19 +1,19 @@
 type GitHubFetch = (input: string, init?: RequestInit) => Promise<Response>;
 
 export type CreateOrFindPullRequestParams = {
+  cwd: string;
   branchName: string;
   title: string;
   body: string;
   fetch?: GitHubFetch;
+  exec?: (commandLine: string, opts: { cwd: string }) => { ok: boolean; stdout: string; stderr: string };
 };
 
 type PullSummary = {
   html_url: string;
 };
 
-const OWNER = "PekkaKiviahde";
-const REPO = "ennuste-app";
-const BASE = "main";
+const DEFAULT_BASE_BRANCH = "main";
 
 function buildHeaders(): HeadersInit {
   const token = process.env.GH_TOKEN;
@@ -34,18 +34,72 @@ async function readJsonOrThrow<T>(res: Response): Promise<T> {
   throw new Error(`GitHub API error ${res.status}${hint}`);
 }
 
-function headRef(branchName: string): string {
-  return `${OWNER}:${branchName}`;
+export function parseGithubOwnerRepo(remoteUrl: string): { owner: string; repo: string } | null {
+  const trimmed = remoteUrl.trim().replace(/\/+$/, "");
+  if (!trimmed) return null;
+
+  const https = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/;
+  const ssh = /^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/;
+
+  let match = https.exec(trimmed);
+  if (!match) match = ssh.exec(trimmed);
+  if (!match) return null;
+
+  const owner = match[1]?.trim() ?? "";
+  const repo = match[2]?.trim() ?? "";
+  if (!owner || !repo) return null;
+  return { owner, repo };
+}
+
+export function resolveBaseBranchFromOriginHead(
+  exec: (commandLine: string, opts: { cwd: string }) => { ok: boolean; stdout: string; stderr: string },
+  cwd: string,
+): string | null {
+  const result = exec("git symbolic-ref --quiet --short refs/remotes/origin/HEAD", { cwd });
+  if (!result.ok) return null;
+
+  const ref = (result.stdout ?? "").trim();
+  const match = /^origin\/(.+)$/.exec(ref);
+  return match?.[1]?.trim() || null;
+}
+
+export function resolveRepoTarget(
+  cwd: string,
+  exec: (commandLine: string, opts: { cwd: string }) => { ok: boolean; stdout: string; stderr: string },
+): { owner: string; repo: string; base: string; warnings: string[] } {
+  const warnings: string[] = [];
+
+  const originUrlRes = exec("git remote get-url origin", { cwd });
+  const originUrl = (originUrlRes.stdout ?? "").trim();
+  const parsed = parseGithubOwnerRepo(originUrl);
+  if (!originUrlRes.ok || !parsed) {
+    throw new Error("cannot derive github owner/repo from origin url");
+  }
+
+  const baseResolved = resolveBaseBranchFromOriginHead(exec, cwd);
+  const base = baseResolved ?? DEFAULT_BASE_BRANCH;
+  if (!baseResolved) warnings.push(`origin/HEAD not found; defaulting base branch to ${DEFAULT_BASE_BRANCH}`);
+  if (warnings.length) console.warn(`[githubPr] ${warnings.join("; ")}`);
+
+  return { owner: parsed.owner, repo: parsed.repo, base, warnings };
+}
+
+function headRef(owner: string, branchName: string): string {
+  return `${owner}:${branchName}`;
 }
 
 export async function createOrFindPullRequest(params: CreateOrFindPullRequestParams): Promise<string> {
   const fetchImpl = params.fetch ?? globalThis.fetch;
   if (!fetchImpl) throw new Error("fetch missing");
 
-  const headers = buildHeaders();
-  const head = headRef(params.branchName);
+  const exec = params.exec;
+  if (!exec) throw new Error("exec missing");
 
-  const listUrl = new URL(`https://api.github.com/repos/${OWNER}/${REPO}/pulls`);
+  const headers = buildHeaders();
+  const target = resolveRepoTarget(params.cwd, exec);
+  const head = headRef(target.owner, params.branchName);
+
+  const listUrl = new URL(`https://api.github.com/repos/${target.owner}/${target.repo}/pulls`);
   listUrl.searchParams.set("state", "open");
   listUrl.searchParams.set("head", head);
 
@@ -54,14 +108,14 @@ export async function createOrFindPullRequest(params: CreateOrFindPullRequestPar
   const found = existing[0]?.html_url;
   if (found) return found;
 
-  const createUrl = `https://api.github.com/repos/${OWNER}/${REPO}/pulls`;
+  const createUrl = `https://api.github.com/repos/${target.owner}/${target.repo}/pulls`;
   const createRes = await fetchImpl(createUrl, {
     method: "POST",
     headers: { ...headers, "content-type": "application/json" },
     body: JSON.stringify({
       title: params.title,
       head,
-      base: BASE,
+      base: target.base,
       body: params.body,
     }),
   });
@@ -69,4 +123,3 @@ export async function createOrFindPullRequest(params: CreateOrFindPullRequestPar
   if (!created?.html_url) throw new Error("GitHub PR create: missing html_url");
   return created.html_url;
 }
-
