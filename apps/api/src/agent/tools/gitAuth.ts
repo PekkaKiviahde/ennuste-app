@@ -83,8 +83,8 @@ export function ensureOriginUsesToken(repoRoot: string, opts: { token: string; r
   const pushUrlRes = exec(`git remote get-url --push ${remote}`, { cwd: repoRoot });
   const pushUrl = ((pushUrlRes.ok ? pushUrlRes.stdout : fetchUrlRes.stdout) ?? "").trim() || fetchUrl;
 
-  const parsed = parseGithubHttpsOrigin(fetchUrl);
-  if (!parsed) {
+  const parsedFetch = parseGithubHttpsOrigin(fetchUrl);
+  if (!parsedFetch) {
     // Keep SSH remotes untouched; they might work if keys exist. For non-GitHub HTTPS, do nothing.
     return { ok: true, changed: false, fetchUrl, pushUrl, restore: null };
   }
@@ -92,22 +92,28 @@ export function ensureOriginUsesToken(repoRoot: string, opts: { token: string; r
   const token = opts.token?.trim();
   if (!token) return { ok: false, error: "GH_TOKEN missing" };
 
-  const tokenUrl = buildTokenOriginUrl(parsed.owner, parsed.repo, token);
+  const tokenFetchUrl = buildTokenOriginUrl(parsedFetch.owner, parsedFetch.repo, token);
+  const parsedPush = parseGithubHttpsOrigin(pushUrl);
+  const tokenPushUrl = parsedPush ? buildTokenOriginUrl(parsedPush.owner, parsedPush.repo, token) : null;
 
-  const setFetch = exec(`git remote set-url ${remote} ${JSON.stringify(tokenUrl)}`, { cwd: repoRoot });
+  const setFetch = exec(`git remote set-url ${remote} ${JSON.stringify(tokenFetchUrl)}`, { cwd: repoRoot });
   if (!setFetch.ok) {
     return { ok: false, error: `git remote set-url ${remote} failed` };
   }
 
-  const setPush = exec(`git remote set-url --push ${remote} ${JSON.stringify(tokenUrl)}`, { cwd: repoRoot });
-  if (!setPush.ok) {
-    exec(`git remote set-url ${remote} ${JSON.stringify(fetchUrl)}`, { cwd: repoRoot });
-    return { ok: false, error: `git remote set-url --push ${remote} failed` };
+  let changedPush = false;
+  if (tokenPushUrl) {
+    const setPush = exec(`git remote set-url --push ${remote} ${JSON.stringify(tokenPushUrl)}`, { cwd: repoRoot });
+    if (!setPush.ok) {
+      exec(`git remote set-url ${remote} ${JSON.stringify(fetchUrl)}`, { cwd: repoRoot });
+      return { ok: false, error: `git remote set-url --push ${remote} failed` };
+    }
+    changedPush = true;
   }
 
   const restore = () => {
     exec(`git remote set-url ${remote} ${JSON.stringify(fetchUrl)}`, { cwd: repoRoot });
-    exec(`git remote set-url --push ${remote} ${JSON.stringify(pushUrl)}`, { cwd: repoRoot });
+    if (changedPush) exec(`git remote set-url --push ${remote} ${JSON.stringify(pushUrl)}`, { cwd: repoRoot });
   };
 
   return { ok: true, changed: true, fetchUrl, pushUrl, restore };
