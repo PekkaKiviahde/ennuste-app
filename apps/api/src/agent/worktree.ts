@@ -39,25 +39,25 @@ export function createWorktree(opts: {
   const worktreeWebNodeModules = path.join(worktreeDir, "apps", "web", "node_modules");
 
   // NOTE(first delivery lock): always base worktree on origin/main (ignore config/baseBranch for now).
-  const baseRef = "origin/main";
+  const baseRef = `${opts.remote}/main`;
 
-  const fetch = execShell("git fetch origin --prune", { cwd: opts.repoRoot });
+  const fetch = execShell(`git fetch ${shellQuote(opts.remote)} --prune`, { cwd: opts.repoRoot });
   if (!fetch.ok) {
     return {
       ok: false,
       worktreeDir,
-      error: `git fetch origin --prune failed: ${(fetch.stderr || fetch.stdout || "unknown error").trim()}`,
+      error: `git fetch ${opts.remote} --prune failed: ${(fetch.stderr || fetch.stdout || "unknown error").trim()}`,
     };
   }
 
   const verifyBase = execShell(`git rev-parse --verify ${shellQuote(`${baseRef}^{commit}`)}`, { cwd: opts.repoRoot });
   if (!verifyBase.ok) {
-    const fetchMain = execShell("git fetch origin main", { cwd: opts.repoRoot });
+    const fetchMain = execShell(`git fetch ${shellQuote(opts.remote)} main`, { cwd: opts.repoRoot });
     if (!fetchMain.ok) {
       return {
         ok: false,
         worktreeDir,
-        error: `git fetch origin main failed: ${(fetchMain.stderr || fetchMain.stdout || "unknown error").trim()}`,
+        error: `git fetch ${opts.remote} main failed: ${(fetchMain.stderr || fetchMain.stdout || "unknown error").trim()}`,
       };
     }
 

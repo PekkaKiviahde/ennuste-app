@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { runMission0 } from "./mission0";
 import { getRepoRootFromGit, loadAgentConfig, resolveModel } from "./config";
 import { execShell } from "./tools/exec";
+import { ensureOriginUsesToken, resolveGitHubTokenFromEnvOrDotEnv } from "./tools/gitAuth";
 import { isPathAllowed } from "./tools/paths";
 import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
 import { createOpenAIClient, callModelText } from "./openaiClient";
@@ -331,7 +332,12 @@ function hashValue(value: string): string {
 
 function safeErrorMessage(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error);
-  const replacements = [process.env.OPENAI_API_KEY, process.env.DATABASE_URL, process.env.AGENT_INTERNAL_TOKEN];
+  const replacements = [
+    process.env.OPENAI_API_KEY,
+    process.env.DATABASE_URL,
+    process.env.AGENT_INTERNAL_TOKEN,
+    process.env.GH_TOKEN,
+  ];
   let cleaned = raw;
   for (const value of replacements) {
     if (value && value.length > 4) {
@@ -806,29 +812,6 @@ function runReadOnlyPreflight(repoRoot: string): any {
   };
 }
 
-function hasGitHubTokenFromEnvOrDotEnv(repoRoot: string): boolean {
-  if (process.env.GH_TOKEN?.trim()) return true;
-
-  const envPath = path.join(repoRoot, ".env");
-  if (!fs.existsSync(envPath)) return false;
-
-  try {
-    const raw = fs.readFileSync(envPath, "utf-8");
-    for (const line of raw.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const match = trimmed.match(/^GH_TOKEN\s*=\s*(.+)\s*$/);
-      if (!match) continue;
-      const value = match[1]?.trim() ?? "";
-      if (value && value !== '""' && value !== "''") return true;
-    }
-  } catch {
-    return false;
-  }
-
-  return false;
-}
-
 function buildCompareLink(branchName: string): string {
   return `https://github.com/PekkaKiviahde/ennuste-app/compare/main...${branchName}?expand=1`;
 }
@@ -883,6 +866,7 @@ export async function runChange(req: ChangeRequest) {
   let mission0: any = null;
   let worktreeDir = "";
   let baseSha: string | null = null;
+  let restoreOriginAuth: null | (() => void) = null;
 
   const addEvent = async (eventType: string, payload: unknown) => {
     if (!memory) return;
@@ -917,8 +901,9 @@ export async function runChange(req: ChangeRequest) {
     model = resolveModel(config);
     branchName = makeBranchName(config.git.branchPrefix, sessionId);
 
-    if (!hasGitHubTokenFromEnvOrDotEnv(repoRoot)) {
-      applyStderr = "GH_TOKEN missing";
+    const token = resolveGitHubTokenFromEnvOrDotEnv(repoRoot);
+    if (!token) {
+      applyStderr = "GH_TOKEN missing (required for mode=change)";
       response = {
         status: "failed",
         branchName,
@@ -930,6 +915,22 @@ export async function runChange(req: ChangeRequest) {
       };
       return response;
     }
+
+    const auth = ensureOriginUsesToken(repoRoot, { token, remote: "origin" });
+    if (!auth.ok) {
+      applyStderr = auth.error;
+      response = {
+        status: "failed",
+        branchName,
+        changedFiles: [],
+        applyStdout,
+        applyStderr,
+        patchPreview,
+        ...(applyPatchPath ? { applyPatchPath } : {}),
+      };
+      return response;
+    }
+    restoreOriginAuth = auth.restore;
 
     const worktree = createWorktree({
       repoRoot,
@@ -1427,6 +1428,13 @@ export async function runChange(req: ChangeRequest) {
         removeWorktree({ repoRoot, worktreeDir });
       } catch {
         // ignore cleanup errors
+      }
+    }
+    if (restoreOriginAuth) {
+      try {
+        restoreOriginAuth();
+      } catch {
+        // ignore restore errors
       }
     }
     await runCleanup(repoRoot);
