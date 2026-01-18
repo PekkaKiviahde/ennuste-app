@@ -19,8 +19,9 @@ Jos haluat pelkän smoke-ajon: katso `docs/runbooks/agent_api.md`.
 **`POST /agent/run`** on ainoa MVP-endpoint.
 
 Kaksi ajotilaa:
-- `mode=mission0`: read-only inventaario/diagnoosi (ei tee git-muutoksia).
+- `mode=mission0`: read-only inventaario/diagnoosi (ei tee git-muutoksia; ei vaadi DB-yhteyttä).
 - `mode=change`: tekee muutoksen worktreeyn, ajaa gate-komennot, ja:
+  - luo worktree:n `origin/main` pohjalta
   - `dryRun=true`: palauttaa mitä muuttuisi (ei commit/push).
   - `dryRun=false`: tekee commit + push + avaa PR (tai antaa `compareLink` fallbackina).
 
@@ -134,6 +135,9 @@ Tarkista:
 - `x-internal-token` header vastaa `AGENT_INTERNAL_TOKEN` arvoa
 - agent_api-kontti käyttää samaa env-arvoa (compose + `.env`)
 
+Jos epäselvää (tai vanha client-scripti käyttää tätä), voit lisätä myös:
+- `authorization: Bearer ${AGENT_INTERNAL_TOKEN}`
+
 ### 7.2 “Missing env” (DATABASE_URL / OPENAI_API_KEY / GH_TOKEN)
 Oire:
 - `mode=change` failaa heti (esim. `GH_TOKEN missing`).
@@ -190,4 +194,3 @@ Ennen kuin laajennat agentin kykyjä, kysy päätös (ja dokumentoi tarvittaessa
 - `docs/runbooks/workflow_report_maintenance.md`
 - `docs/runbooks/commit_signing.md`
 - `docs/runbooks/CODEX_STARTUP.md`
-
