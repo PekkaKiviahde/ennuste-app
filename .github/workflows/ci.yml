@@ -20,14 +20,17 @@ jobs:
           node-version: "24.x"
           cache: npm
 
-      - name: Cleanup invalid node_modules paths
+      - name: Assert no tracked node_modules
         run: |
-          if [ -e node_modules ] && [ ! -d node_modules ]; then
-            rm -f node_modules
+          if git ls-files | grep -E '(^|/)node_modules(/|$)'; then
+            echo "ERROR: node_modules paths are tracked in git (must not happen)." >&2
+            exit 1
           fi
-          if [ -e apps/web/node_modules ] && [ ! -d apps/web/node_modules ]; then
-            rm -f apps/web/node_modules
-          fi
+
+      - name: Pre-clean node_modules artifacts
+        run: |
+          rm -rf node_modules apps/web/node_modules
+          find . -maxdepth 4 -name node_modules -prune -exec rm -rf {} +
 
       - run: npm ci
       - run: npm run lint
