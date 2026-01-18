@@ -4,7 +4,7 @@
 - Generoi tai päivitä workflow-yhteenveto kanonisista spekseistä `spec/workflows/*` tiedostoon `docs/workflows/workflow_report.md`.
 - Varmistaa, että muutos pysyy doc-only-polussa ja läpäisee agentin gate-komennot.
 
-> Huom (MVP): `POST /agent/run` tukee vain `mode=change` + `dryRun=true`. Tämä tarkoittaa, että agentti **ei commitoi eikä pushaa** muutosta; se ajaa muutoksen työpuussa ja palauttaa vain `changedFiles`-listan. Kun commit/push avataan, sama runbook toimii PR-tuottoon.
+> Huom (MVP): `POST /agent/run` tukee `mode=change` sekä `dryRun=true` (vain ehdotus) että `dryRun=false` (commit+push+PR). `dryRun=false` palauttaa `prUrl` (tai fallbackina `compareLink`).
 
 ## Rajaukset (turvakaide)
 - Älä muokkaa `spec/workflows/*` (read-only).
@@ -57,6 +57,25 @@ Odotus:
 - `status: "ok"`
 - `changedFiles` sisältää `docs/workflows/workflow_report.md` (ja mahdollisesti `docs/runbooks/agent_workflow_report.md`, jos pyysit runbookin päivitystä)
 
+## Ajo: change (dryRun=false) – auto PR
+Kun haluat viedä muutoksen suoraan PR:ään:
+
+```bash
+curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
+  -H "x-internal-token: ${AGENT_INTERNAL_TOKEN}" \
+  -H "content-type: application/json" \
+  -d '{
+    "mode":"change",
+    "dryRun":false,
+    "projectId":"<PROJECT_UUID>",
+    "task":"Generate/Update workflow report from spec/workflows into docs/workflows/workflow_report.md (Task B). Summary must follow spec/workflows/00_workflow_outline.md sections and list all source specs read."
+  }'
+```
+
+Odotus:
+- `status: "ok"`
+- `prUrl` on mukana (tai jos PR:n luonti epäonnistuu: `compareLink` fallbackina)
+
 Jos `status: "failed"`:
 - Tarkista `error`, `applyStderr` ja `gateLog` (jos mukana).
 - Jos mukana on `deniedFiles`, agentti yritti koskea polkuihin jotka eivät ole sallittuja → korjaa tehtäväteksti ja aja uudelleen.
@@ -93,4 +112,3 @@ docker compose -f docker-compose.yml -f docker-compose.agent-api.yml down
 - Käynnistä `agent_api` Dockerilla (`docs/runbooks/agent_api.md`).
 - Aja `POST /agent/run` `mode=change`, `dryRun=true` ja varmista, että `changedFiles` sisältää `docs/workflows/workflow_report.md`.
 - Avaa `docs/workflows/workflow_report.md` ja käy läpi “Tarkistuslista” kohdat.
-

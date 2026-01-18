@@ -10,6 +10,7 @@ import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
 import { createOpenAIClient, callModelText } from "./openaiClient";
 import { runCleanup } from "./preflight";
 import { createWorktree, removeWorktree } from "./worktree";
+import { createOrFindPullRequest } from "./githubPr";
 
 export type ChangeRequest = {
   projectId: string;
@@ -1353,11 +1354,32 @@ export async function runChange(req: ChangeRequest) {
     const push = execShell(`git push -u origin ${JSON.stringify(branchName)}`, { cwd: worktreeDir });
     if (!push.ok) throw new Error("git push failed");
 
+    const compareLink = buildCompareLink(branchName);
+    let prUrl: string | null = null;
+    try {
+      const notesBlock = (notes ?? "").trim();
+      const changedList = changedBeforeCommit.map((file) => `- \`${file}\``).join("\n");
+      const prBody = [
+        notesBlock ? `## Notes\n${notesBlock}` : "## Notes\n(none)",
+        "## How to verify\n- Review the diff\n- Confirm only intended files changed",
+        `## Changed files\n${changedList || "(none)"}`,
+      ].join("\n\n");
+
+      prUrl = await createOrFindPullRequest({
+        branchName,
+        title: commitMessage,
+        body: prBody,
+      });
+    } catch {
+      prUrl = null;
+    }
+
     response = {
       status: "ok",
       branchName,
       changedFiles: changedBeforeCommit,
-      compareLink: buildCompareLink(branchName),
+      prUrl,
+      compareLink,
     };
     await addEvent("DONE", { status: "ok", branchName, changedFiles: changedBeforeCommit });
     return response;

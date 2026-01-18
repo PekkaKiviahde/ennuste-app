@@ -55,7 +55,23 @@ curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
 Odotus:
 - Onnistuu: `status: "ok"` + `branchName` + `changedFiles`
 - Jos gate kaatuu: `status: "failed"` + `gateLog`
-- MVP: `dryRun=false` on estetty toistaiseksi (ei commit/push).
+
+## Smoke: change (dryRun=false) – auto PR
+```bash
+curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
+  -H "x-internal-token: ${AGENT_INTERNAL_TOKEN}" \
+  -H "content-type: application/json" \
+  -d '{
+    "mode":"change",
+    "dryRun":false,
+    "projectId":"cb1b9b85-d1d4-4b00-b0b4-774b8a35e241",
+    "task":"DIAG: gate smoke"
+  }'
+```
+
+Odotus:
+- Onnistuu: `status: "ok"` + `branchName` + `compareLink` + `prUrl`
+- Jos PR:n luonti epäonnistuu: `prUrl` puuttuu tai on `null`, mutta `compareLink` on mukana (fallback)
 
 ## Pysäytys
 ```bash
