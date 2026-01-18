@@ -8,6 +8,38 @@ import {
   resolveRepoTarget,
 } from "./githubPr";
 
+test("createOrFindPullRequest returns null when GH_TOKEN missing (compareLink fallback)", async () => {
+  const prev = process.env.GH_TOKEN;
+  delete (process.env as any).GH_TOKEN;
+
+  const execMock = mock.fn(() => {
+    throw new Error("exec should not be called");
+  });
+  const fetchMock = mock.fn(async () => {
+    throw new Error("fetch should not be called");
+  });
+
+  const warnMock = mock.method(console, "warn", () => {});
+
+  const prUrl = await createOrFindPullRequest({
+    cwd: "/tmp",
+    branchName: "agent/session-0",
+    title: "t",
+    body: "b",
+    fetch: fetchMock,
+    exec: execMock as any,
+  });
+
+  assert.equal(prUrl, null);
+  assert.equal(fetchMock.mock.calls.length, 0);
+  assert.equal(execMock.mock.calls.length, 0);
+  assert.ok(warnMock.mock.calls.length >= 1);
+
+  if (prev === undefined) delete (process.env as any).GH_TOKEN;
+  else process.env.GH_TOKEN = prev;
+  mock.restoreAll();
+});
+
 test("createOrFindPullRequest returns existing PR url (idempotent)", async () => {
   const prev = process.env.GH_TOKEN;
   process.env.GH_TOKEN = "test-token";

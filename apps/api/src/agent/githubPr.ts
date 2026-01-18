@@ -15,10 +15,14 @@ type PullSummary = {
 
 const DEFAULT_BASE_BRANCH = "main";
 
-function buildHeaders(): HeadersInit {
-  const token = process.env.GH_TOKEN;
-  if (!token) throw new Error("GH_TOKEN missing");
+function resolveGitHubToken(): string | null {
+  const raw = process.env.GH_TOKEN;
+  const token = raw?.trim();
+  if (!token) return null;
+  return token;
+}
 
+function buildHeaders(token: string): HeadersInit {
   return {
     authorization: `token ${token}`,
     accept: "application/vnd.github+json",
@@ -88,14 +92,20 @@ function headRef(owner: string, branchName: string): string {
   return `${owner}:${branchName}`;
 }
 
-export async function createOrFindPullRequest(params: CreateOrFindPullRequestParams): Promise<string> {
+export async function createOrFindPullRequest(params: CreateOrFindPullRequestParams): Promise<string | null> {
   const fetchImpl = params.fetch ?? globalThis.fetch;
   if (!fetchImpl) throw new Error("fetch missing");
 
   const exec = params.exec;
   if (!exec) throw new Error("exec missing");
 
-  const headers = buildHeaders();
+  const token = resolveGitHubToken();
+  if (!token) {
+    console.warn("[githubPr] GH_TOKEN missing; skipping PR creation (compareLink fallback stays in response)");
+    return null;
+  }
+
+  const headers = buildHeaders(token);
   const target = resolveRepoTarget(params.cwd, exec);
   const head = headRef(target.owner, params.branchName);
 

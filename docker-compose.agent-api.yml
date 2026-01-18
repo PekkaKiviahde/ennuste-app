@@ -12,7 +12,7 @@ services:
       APP_HOST: "0.0.0.0"
       APP_PORT: "3011"
       AGENT_INTERNAL_TOKEN: ${AGENT_INTERNAL_TOKEN:-dev-token}
-      GH_TOKEN: ${GH_TOKEN:-}
+      GH_TOKEN: ${GH_TOKEN}
       DATABASE_URL: postgresql://codex:codex@db:5432/codex
     ports:
       - "3011:3011"
