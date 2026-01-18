@@ -14,6 +14,19 @@ Pakolliset envit:
 - `OPENAI_API_KEY` (vain `mode=change`)
 - `GH_TOKEN` (vain `mode=change`)
 
+## GitHub PR automation (GH_TOKEN)
+
+Agentin automaattinen PR-luonti käyttää GitHub API:a ja vaatii `GH_TOKEN`-ympäristömuuttujan.
+
+Aseta token ennen Docker Compose -käynnistystä:
+```bash
+export GH_TOKEN=ghp_xxx
+```
+
+Vaatimukset tokenille:
+- Classic token: `repo`
+- Fine-grained token: `contents:write` + `pull_requests:write`
+
 ## Käynnistys (Docker)
 
 Käynnistä DB + agent_api:
