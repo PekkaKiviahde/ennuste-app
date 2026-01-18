@@ -1,4 +1,4 @@
-# Workflow-raportti (MVP)
+# Workflow-raportti (Task B)
 
 Tämä on yhteenveto kanonisista workflow-speksistä (`spec/workflows/*`).
 Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
