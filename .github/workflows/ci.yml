@@ -20,6 +20,15 @@ jobs:
           node-version: "24.x"
           cache: npm
 
+      - name: Cleanup invalid node_modules paths
+        run: |
+          if [ -e node_modules ] && [ ! -d node_modules ]; then
+            rm -f node_modules
+          fi
+          if [ -e apps/web/node_modules ] && [ ! -d apps/web/node_modules ]; then
+            rm -f apps/web/node_modules
+          fi
+
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
