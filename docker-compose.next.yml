@@ -9,13 +9,13 @@ services:
     environment:
       SESSION_SECRET: dev-secret
       DEMO_MODE: "true"
-      PORT: "3002"
+      PORT: "3000"
       DATABASE_URL: postgresql://codex:codex@db:5432/codex
     ports:
-      - "3000:3002"
+      - "3000:3000"
     stdin_open: true
     tty: true
-    command: sh -lc "npm ci && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3002"
+    command: sh -lc "npm ci && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3000"
     depends_on:
       db:
         condition: service_healthy
