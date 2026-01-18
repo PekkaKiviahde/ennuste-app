@@ -122,6 +122,32 @@ Workflow-raportti pidetään docs-yhteenvedossa:
 - generointi: `docs/runbooks/agent_workflow_report.md`
 - ylläpitorytmi ja checklist: `docs/runbooks/workflow_report_maintenance.md`
 
+### 6.1 Yksi komento: workflow_report PR (amatöörille)
+Tavoite: päivitä `docs/workflows/workflow_report.md` vain `spec/workflows/*` pohjalta ja tee PR automaattisesti.
+
+Pakolliset envit:
+- `AGENT_INTERNAL_TOKEN`
+- `OPENAI_API_KEY`
+- `GH_TOKEN`
+
+Valinnainen:
+- `AGENT_PROJECT_ID` (default: `demo`)
+
+Yksi komento:
+```bash
+export AGENT_INTERNAL_TOKEN=dev-token
+export OPENAI_API_KEY="sk-..."
+export GH_TOKEN="ghp_..."
+export AGENT_PROJECT_ID=demo
+
+npm run agent:workflow-report
+```
+
+Odotus:
+- Skripti käynnistää `db` + `agent_api` Dockerilla.
+- Ajaa yhden `mode=change` (`dryRun=false`) -pyynnön, joka saa muokata vain `docs/workflows/workflow_report.md`.
+- Tulostaa lopuksi joko `PR: <url>` tai `COMPARE: <url>`.
+
 ---
 
 ## 7) Troubleshooting (yleisimmät virheet)
@@ -190,4 +216,3 @@ Ennen kuin laajennat agentin kykyjä, kysy päätös (ja dokumentoi tarvittaessa
 - `docs/runbooks/workflow_report_maintenance.md`
 - `docs/runbooks/commit_signing.md`
 - `docs/runbooks/CODEX_STARTUP.md`
-
