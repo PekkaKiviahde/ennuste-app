@@ -15,7 +15,7 @@ services:
       - "3000:3000"
     stdin_open: true
     tty: true
-    command: sh -lc "npm ci && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3000"
+    command: sh -lc "npm ci && npm run db:migrate && npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3000"
     depends_on:
       db:
         condition: service_healthy
