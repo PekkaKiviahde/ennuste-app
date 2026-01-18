@@ -874,6 +874,9 @@ export async function runChange(req: ChangeRequest) {
     let applyPatchPath: string | null = null;
     let rawPreview: string | null = null;
     let patchGeneratedFromContent = false;
+    let commitStdout = "";
+    let commitStderr = "";
+    let commitCode: number | null = null;
 
   let branchName: string | null = null;
   let model = "";
@@ -1348,8 +1351,11 @@ export async function runChange(req: ChangeRequest) {
     const add = execShell("git add -A", { cwd: worktreeDir });
     if (!add.ok) throw new Error("git add failed");
 
-    const commit = execShell(`git commit -m ${JSON.stringify(commitMessage)}`, { cwd: worktreeDir });
-    if (!commit.ok) throw new Error("git commit failed");
+    const commit = execShell(`git -c commit.gpgsign=false commit -m ${JSON.stringify(commitMessage)}`, { cwd: worktreeDir });
+    commitStdout = commit.stdout;
+    commitStderr = commit.stderr;
+    commitCode = commit.code;
+    if (!commit.ok) throw new Error(`git commit failed: ${shellDetail(commit)}`);
 
     const push = execShell(`git push -u origin ${JSON.stringify(branchName)}`, { cwd: worktreeDir });
     if (!push.ok) throw new Error("git push failed");
@@ -1399,6 +1405,9 @@ export async function runChange(req: ChangeRequest) {
       applyStdout,
       applyStderr: truncate8000(applyStderr || message),
       patchPreview,
+      ...(commitStdout ? { commitStdout } : {}),
+      ...(commitStderr ? { commitStderr } : {}),
+      ...(commitCode !== null ? { commitCode } : {}),
       ...(applyPatchPath ? { applyPatchPath } : {}),
       ...(rawPreview ? { rawPreview } : {}),
       ...(lastGateLog ? { gateLog: lastGateLog } : {}),
