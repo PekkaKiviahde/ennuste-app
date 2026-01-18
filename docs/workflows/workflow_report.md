@@ -13,9 +13,9 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 - Antaa “workflow ensin” kokonaiskuva.
 - Helpottaa keskustelua: missä vaiheessa ollaan ja mitä saa tehdä.
 - Lukita MVP:n tärkeimmät säännöt:
-  - ennuste vaatii lukitun baselinen
-  - domain-write on append-only (korjaus = uusi tapahtuma)
-  - SaaS-gate ja projektigate estävät kirjoitukset
+  - ennuste vaatii lukitun baselinen.
+  - domain-write on append-only (korjaus = uusi tapahtuma).
+  - SaaS-gate ja projektigate estävät kirjoitukset.
 
 ### Rajaukset (MVP)
 - Kanoninen totuus: `spec/workflows/*`.
@@ -41,93 +41,11 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 - **TARGET_ESTIMATE import_batch**: tavoitearvion tuontierä.
 - **Tavoitearviorivi (item)**: mäppäyksen perusyksikkö.
 - **Littera (4-num koodi)**: säilytetään merkkijonona. Leading zerot säilyvät.
-- **Työpaketti (TP)**: työjakso + kustannusjakso (ISO-viikot) + `cost_bias_pct`.
-- **Hankintapaketti (HP)**: maksuerälista (milestones), `due_week` + `%` tai `€`.
+- **Työpaketti (TP)**, **Hankintapaketti (HP)**: mallit taloudelliselle suunnittelulle ja aikarajoille.
 - **Baseline (LOCKED)**: lukittu suunnitelma. Ennuste sallitaan vasta tämän jälkeen.
 - **Ghost-kustannus**: “aiheutunut mutta ei vielä toteumassa”. Tilat `OPEN | SETTLED`.
-- **Muutosluokat**:
-  - `Correction` (oli tavoitearviossa)
-  - `Missing from Target Estimate` (ei ollut tavoitearviossa)
+- **Muutosluokat**: korjaukset ja puuttuvat kohteet tavoitearviossa.
 - **Selvitettävät**: kohdistamattomat kustannukset/ghostit. Pakko käsitellä ennustekierroksessa.
-
----
-
-## Työnkulku (S/E)
-
-### S-1: Myynti ja asiakkuuden avaus (Seller / Superadmin)
-Tavoite: luo asiakkuus turvallisesti ja idempotentisti.
-- Luo yhtiö.
-- Luo demoprojekti automaattisesti.
-- Luo ORG_ADMIN-kutsulinkki.
-- Toimita kutsu asiakkaalle.
-
-### S0: Onboarding ja hierarkia (konserni–yhtiö–projekti)
-Tavoite: roolit ja vastuut selkeiksi.
-- Roolit ovat scopekohtaisia:
-  - org-roolit ja projekt-roolit ovat eri asia.
-- ORG_ADMIN saa demoprojektiin `PROJECT_OWNER` automaattisesti (onboarding-poikkeus).
-- ORG_ADMIN luo oikeat projektit ja roolittaa henkilöt.
-- Demoprojekti arkistoidaan myöhemmin (ei muunneta “oikeaksi projektiksi” in-place).
-
-### S1: Trial / entitlement / projektin elinkaari
-Tavoite: gate käyttöoikeudelle.
-- Trial:
-  - aikarajattu
-  - ei korttia
-  - rajat: 1 org + 1 projekti + max 3 käyttäjää + max 1 tavoitearvio-importti
-- Trialin jälkeen:
-  - org read-only
-  - projekti(t) STANDBY (reason `trial_ended`)
-- past_due:
-  - grace (7–14 päivää)
-  - grace jälkeen org read-only ja projektit STANDBY (reason `past_due`)
-- Reaktivointi:
-  - kertamaksu per projekti per aktivointi
-  - checkout → webhook → ACTIVE
-  - idempotentti
-
----
-
-### E0: Tavoitearvion import
-Tavoite: saada lähtötieto järjestelmään.
-- Importoi tavoitearvio (TARGET_ESTIMATE import_batch).
-- Tee esimäppäys 4-num koodille `litteras`-masterdataan.
-- Järjestelmä voi ehdottaa. Ihminen hyväksyy.
-- Näytä “selvitettävät” ennen suunnittelua.
-
-### E1: Suunnittelu ja mäppäys (TP/HP)
-Tavoite: määritä “missä kustannus tehdään”.
-- Liitä tavoitearviorivit työpaketteihin ja tarvittaessa hankintapaketteihin.
-- Kaikki on append-only ja versioitua.
-- “Poisto” tehdään poissulkemalla versiossa perustelulla.
-
-### E2: Baseline-lukitus
-Tavoite: lukittu suunnitelma ennen ennustamista.
-- Baseline lukitsee:
-  - HP maksuerät
-  - TP työ- ja kustannusjaksot (ISO-viikot)
-  - `cost_bias_pct`
-  - itemien kuulumisen TP/HP:hen siinä baseline-versiossa
-- Validoinnit:
-  - HP maksuerät summa 100% tai €-summa täsmää
-  - viikkijaksot: start <= end ja ISO-viikkoformaatti
-
-### E3: Seuranta ja ennuste (viikko)
-Tavoite: viikkotaso.
-- Viikkopäivitys (% + memo).
-- Ghost-kustannukset.
-- Ennustetapahtumat ovat append-only.
-
-### E4: Loki
-Tavoite: perustelut näkyviin.
-- Kaikki muutokset kirjataan tapahtumina.
-- “Miksi muuttui” pysyy nähtävissä.
-
-### E5: Raportti
-Tavoite: johtamisen näkymä.
-- Aggregointi (mm. group_code 0–9).
-- EV/AC/CPI/SPI ja tarvittaessa EAC/BAC.
-- Oppiminen: “oli tavoitearviossa” vs “ei ollut”.
 
 ---
 
@@ -163,7 +81,7 @@ Estä hyväksyntä, jos:
   - checkout/portaali-session on sallittu (maksaminen ei saa estyä)
 
 ### Trial (S1)
-Trialing-tilassa estä:
+Trial-tilassa estä:
 - 2. projekti
 - 4. käyttäjä
 - 2. tavoitearvio-importti
