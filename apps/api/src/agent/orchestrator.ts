@@ -1351,7 +1351,15 @@ export async function runChange(req: ChangeRequest) {
     const add = execShell("git add -A", { cwd: worktreeDir });
     if (!add.ok) throw new Error("git add failed");
 
-    const commit = execShell(`git -c commit.gpgsign=false commit -m ${JSON.stringify(commitMessage)}`, { cwd: worktreeDir });
+    // Worktree-only identity: avoid relying on global git config and avoid affecting the main repo/dev environment.
+    // NOTE: The commit command still sets identity via -c to guarantee the commit works even if config fails.
+    execShell(`git config --worktree user.name ${JSON.stringify("agent-bot")}`, { cwd: worktreeDir });
+    execShell(`git config --worktree user.email ${JSON.stringify("agent-bot@local")}`, { cwd: worktreeDir });
+
+    const commit = execShell(
+      `git -c user.name=${JSON.stringify("agent-bot")} -c user.email=${JSON.stringify("agent-bot@local")} -c commit.gpgsign=false commit -m ${JSON.stringify(commitMessage)}`,
+      { cwd: worktreeDir },
+    );
     commitStdout = commit.stdout;
     commitStderr = commit.stderr;
     commitCode = commit.code;
