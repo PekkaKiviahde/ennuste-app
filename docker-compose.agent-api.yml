@@ -88,7 +88,7 @@ services:
             git config --global --replace-all credential.helper "$$helper"
           fi
 
-          npm ci && npm --workspace apps/api run dev
+          npm ci && npm run db:migrate && npm --workspace apps/api run dev
     depends_on:
       db:
         condition: service_healthy

@@ -41,6 +41,13 @@ Seuraa agent_api-lokeja:
 docker compose -f docker-compose.yml -f docker-compose.agent-api.yml logs -f --tail=200 agent_api
 ```
 
+Huom (fresh DB volume):
+- `agent_api` ajaa automaattisesti migraatiot käynnistyksessä (`npm run db:migrate`).
+- Jos näet virheen “relation does not exist” (esim. `agent_sessions`), aja migraatiot käsin:
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.agent-api.yml exec -T agent_api npm run db:migrate
+  ```
+
 ## Smoke: mission0 (read-only)
 ```bash
 curl -sS -X POST "http://127.0.0.1:3011/agent/run" \

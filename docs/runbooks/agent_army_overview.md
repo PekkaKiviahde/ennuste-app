@@ -64,6 +64,9 @@ docker compose -f docker-compose.yml -f docker-compose.agent-api.yml up -d --bui
 docker compose -f docker-compose.yml -f docker-compose.agent-api.yml logs -f --tail=200 agent_api
 ```
 
+Huom (fresh DB volume):
+- `agent_api` ajaa automaattisesti migraatiot käynnistyksessä (`npm run db:migrate`). Odota että se valmistuu ennen `mode=change`-ajoja.
+
 ### 4.3 Ajo 1: mission0 (read-only)
 ```bash
 curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
@@ -168,7 +171,16 @@ Korjaus:
 - aseta puuttuva env ja käynnistä agent_api uudelleen
 - perusrunbook: `docs/runbooks/agent_api.md`
 
-### 7.3 GitHub auth: `git fetch origin --prune` / `git push` authentication failed
+### 7.3 “relation does not exist” (DB migraatiot puuttuu)
+Oire:
+- virhe kuten `relation "agent_sessions" does not exist`.
+
+Korjaus:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.agent-api.yml exec -T agent_api npm run db:migrate
+```
+
+### 7.4 GitHub auth: `git fetch origin --prune` / `git push` authentication failed
 Oire:
 - `Authentication failed` tai “Invalid username or token”.
 
@@ -176,7 +188,7 @@ Korjaus:
 - varmista että `GH_TOKEN` on asetettu ja sillä on write-oikeudet repo:hon
 - jos `origin` on HTTPS GitHub, agentti asettaa `origin`-URL:n token-muotoon ajon ajaksi
 
-### 7.4 `prUrl` puuttuu / `null`
+### 7.5 `prUrl` puuttuu / `null`
 Oire:
 - push onnistui, mutta PR-linkki puuttuu.
 
@@ -184,7 +196,7 @@ Korjaus:
 - avaa `compareLink` ja luo PR käsin
 - tarkista `GH_TOKEN` oikeudet (pull requests + contents write)
 
-### 7.5 `npm ERR! ENOTDIR` (apps/web/node_modules ei ole hakemisto)
+### 7.6 `npm ERR! ENOTDIR` (apps/web/node_modules ei ole hakemisto)
 Oire:
 - CI (tai paikallinen `npm ci`) kaatuu, koska `apps/web/node_modules` on tiedosto/symlink, ei hakemisto.
 
@@ -192,7 +204,7 @@ Korjaus:
 - varmista että `node_modules` ja `apps/web/node_modules` eivät ole gitissä seurattuja (symlink/tiedosto)
 - CI:ssä on siivous-step ennen `npm ci` (belt & suspenders)
 
-### 7.6 Commit signing / `403 | Author is invalid`
+### 7.7 Commit signing / `403 | Author is invalid`
 Oire:
 - commitointi/push blokkaa Codespaces signeerauksen tai author-identiteetin takia.
 
