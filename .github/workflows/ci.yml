@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: ["main"]
   push:
-    branches: ["agent/pr2-mode-change"]
+    branches: ["main", "agent/pr2-mode-change"]
 
 permissions:
   contents: read
@@ -29,8 +29,9 @@ jobs:
 
       - name: Pre-clean node_modules artifacts
         run: |
-          rm -rf node_modules apps/web/node_modules
-          find . -maxdepth 4 -name node_modules -prune -exec rm -rf {} +
+          set -euo pipefail
+          # Remove any stray node_modules (dir/file/symlink) before npm ci to avoid ENOTDIR
+          find . -path './.git' -prune -o -name node_modules -prune -exec rm -rf -- {} +
 
       - run: npm ci
       - run: npm run lint
