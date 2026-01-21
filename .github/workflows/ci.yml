@@ -29,9 +29,11 @@ jobs:
 
       - name: Pre-clean node_modules artifacts
         run: |
-          set -euo pipefail
-          # Remove any stray node_modules (dir/file/symlink) before npm ci to avoid ENOTDIR
-          find . -path './.git' -prune -o -name node_modules -prune -exec rm -rf -- {} +
+          rm -rf node_modules apps/web/node_modules
+          find . -maxdepth 4 -name node_modules -prune -exec rm -rf {} +
+
+      - name: ENOTDIR verification report
+        run: bash tools/scripts/verify_ci_npm_ci_enotdir.sh
 
       - run: npm ci
       - run: npm run lint
