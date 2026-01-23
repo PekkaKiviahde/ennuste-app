@@ -1,0 +1,85 @@
+ARCH-AUDIT
+root: /workspaces/ennuste-app
+
+DIRECTORIES
+- api
+- ui
+- db
+- spec
+- docs
+- tools
+- migrations
+- data
+- excel
+- vba
+missing:
+(none)
+
+REQUIRED FILES
+- docs/ARCHITECTURE.md
+- docs/adr/0001-event-sourcing.md
+- spec/data-model/01_entities.md
+- spec/workflows/01_mvp_flow.md
+missing:
+(none)
+
+ADR
+count: 13
+- docs/adr/0001-event-sourcing.md
+- docs/adr/0002-mvp-workflow-decisions.md
+- docs/adr/0006-auth-session-flow.md
+- docs/adr/0007-decision-log-policy.md
+- docs/adr/0008-postgres-schema.md
+- docs/adr/0009-reporting-indexes.md
+- docs/adr/0010-primary-ui-path.md
+- docs/adr/ADR-001-hybrid-data-model.md
+- docs/adr/ADR-002-tenant-id-everywhere.md
+- docs/adr/ADR-003-rbac-timebounded.md
+- docs/adr/ADR-004-audit-log.md
+- docs/adr/ADR-005-project-metadata.md
+- docs/adr/README.md
+
+SPEC FILES
+spec/data-model:
+- spec/data-model/01_entities.md
+- spec/data-model/02_mapping_spec.md
+- spec/data-model/03_postgres_tables.md
+- spec/data-model/04_reporting_indexes.md
+spec/workflows:
+- spec/workflows/01_mvp_flow.md
+- spec/workflows/02_work_phases_and_baseline.md
+- spec/workflows/03_weekly_update_ghost_and_reconciliation.md
+- spec/workflows/04_change_control_and_learning.md
+spec/imports:
+- spec/imports/01_jyda_import_spec.md
+- spec/imports/02_budget_import_spec.md
+spec/ui:
+- spec/ui/01_work_phase_ui.md
+spec/api:
+- spec/api/01_endpoints.md
+spec/migrations:
+- spec/migrations/0001_spec_mvp_schema.sql
+- spec/migrations/0002_spec_mvp_indexes.sql
+
+ARCHITECTURE HEADINGS
+- # Arkkitehtuuri (MVP)
+- ## Tavoite
+- ## Komponentit
+- ## Keskeinen tietovirta
+- ## Tietokerrokset
+- ## Rajaukset (MVP)
+- ## Mitä muuttui
+- ## Miksi
+- ## Miten testataan (manuaali)
+
+FILE COUNTS
+- api: 15
+- ui: 3
+- db: 2
+- spec: 15
+- docs: 63
+- tools: 14
+- migrations: 23
+- data: 7
+- excel: 6
+- vba: 17
