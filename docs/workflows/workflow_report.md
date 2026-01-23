@@ -62,6 +62,9 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 - (E0) Importin jälkeen mäppäys on manuaalinen (suggestion only).
 - (E2) Ennustetapahtuma sallitaan vasta lukitun baselinen jälkeen.
 - (Baseline-korjaukset) Baselineen saa lisätä vain asioita, jotka olivat samassa TARGET_ESTIMATE:ssa. Muut menevät oppimiseen.
+- (Paketit) Työ- ja hankintapaketti voivat sisältää useita 4-num litteroita; paketin tunnus on `header_code`.
+- (Split-estot) Sama `budget_line_id` ei voi kuulua kahteen eri pakettiin (ei jaeta tavoitearvioriviä kahteen pakettiin MVP:ssä).
+- (Baseline-snapshot) Pakettibaseline lukitaan snapshot-riveihin (`*_baseline_lines`) ja BAC lasketaan niistä.
 
 ---
 
@@ -96,6 +99,13 @@ Trialing-tilassa estä:
 
 ### Baseline (E2/E3)
 - Estä ennustetapahtumat ja viikkokirjaukset, jos baseline ei ole lukittu.
+- Baseline-korjaukset:
+  - salli baselinen muutos vain `Correction`-tapauksissa (rivi löytyy samasta TARGET_ESTIMATE import_batchista)
+  - muutostyöt ja lisätyöt kirjataan erikseen (oppiminen), eikä niillä muuteta baselinea
+
+### Paketointi (E1/E2)
+- Monilittera-paketit ovat sallittuja (jäsenlitterat voivat olla eri koodeja).
+- Split-estot ovat pakollisia: `budget_line_id` kuuluu vain yhteen pakettiin (DB-constraint).
 
 ---
 
@@ -137,6 +147,7 @@ Trialing-tilassa estä:
 - Täsmennetty baseline: import ensin, ennuste vasta lukituksen jälkeen.
 - Täsmennetty viikkopäivitys ja ghost-kustannukset.
 - Täsmennetty oppimisen muutosluokat (oli tavoitearviossa vs ei ollut).
+- Lisätty pakettirakenne: monilittera-paketit, `header_code`, `budget_line_id`-split-estot sekä baseline-snapshotit (`*_baseline_lines`).
 
 ---
 
@@ -144,6 +155,7 @@ Trialing-tilassa estä:
 - Integraatiotestit ja tuotanto vaativat yhden yhteisen workflow-totuuden.
 - Gate estää virheelliset kirjoitukset (billing, trial, projekti, baseline).
 - Append-only ja audit ovat välttämättömiä jäljitettävyyteen.
+- Pakettien sisällön pitää tukea tuotannon todellista tekemistä (useita litteroita yhdessä paketissa), mutta samalla estää tavoitearviorivin splittaus MVP:ssä.
 
 ---
 

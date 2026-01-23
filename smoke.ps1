@@ -147,8 +147,8 @@ PsqlFromFile "migrations\0002_views.sql"
 if (Test-Path "migrations\0003_jyda_snapshot_views.sql") {
   PsqlFromFile "migrations\0003_jyda_snapshot_views.sql"
 }
-if (Test-Path "migrations\0004_budget_items.sql.txt") {
-  PsqlFromFile "migrations\0004_budget_items.sql.txt"
+if (Test-Path "migrations\0004_budget_items.sql") {
+  PsqlFromFile "migrations\0004_budget_items.sql"
 }
 
 # ---------- ENFORCE TCP PASSWORD ----------
