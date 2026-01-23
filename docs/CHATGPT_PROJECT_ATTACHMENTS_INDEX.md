@@ -39,6 +39,7 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `spec/ui/02_saas_onboarding_ui.md` — SaaS onboarding UI: portit
 
 ## 5) Importit & handoffit
+
 - `docs/Talo80_handoff_v2.md` — Talo80-tulkinta, Phase21 + snapshot-raportointi, RBAC-vastuut, VSS ja audit-trail
 - `spec/imports/01_jyda_import_spec.md` — Jyda-ajo tuonti speksi
 - `spec/imports/02_budget_import_spec.md` — budjetti tuonti speksi
