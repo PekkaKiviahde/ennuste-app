@@ -94,7 +94,7 @@ Kaiken kaikkiaan Codexin järjestelmä on vahvalla pohjalla suhteessa GAO:n, ISO 2
 ________________________________________
 [1] [70] [71] [72] [73] [74] [76] [77] [78] [79] [80] [83] [84] 0009_saas_rbac_phase19.sql
 file://file-MLoJb1vaR4CvUFdfffbbnR
-[2] [39] [42] [43] [52] [53] [67] [92] [93] [94] [95] UI_ONE_SCREEN_V1.md.txt
+[2] [39] [42] [43] [52] [53] [67] [92] [93] [94] [95] UI_ONE_SCREEN_V1.md
 file://file-Jp1LkFanh5GwiDjbvbnQxB
 [3] [4] [5] [6] [7] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [40] [41] [57] [58] [59] [60] [61] [66] [75] [85] [86] [87] [88] [89] [90] [91] [96] [97] Codex SaaS -projektin selvitys.pdf
 file://file-Ga2CroVu5WF111nNgkrxuq
