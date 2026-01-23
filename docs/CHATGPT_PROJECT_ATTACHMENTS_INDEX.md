@@ -27,12 +27,14 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `docs/RUNBOOK_BUDGET_IMPORT.md` — tavoitearvio/budjetti tuonti käytännössä
 - `tools/scripts/RUNBOOK_JYDA_IMPORT.md` — Jyda-importin ajaminen ja virheet
 
+- `docs/runbooks/CHANGE_REQUESTS_MT_LT.md` — MT/LT muutospyynnöt: prosessi + audit + testaus
 ## 3) SQL-migraatiot
 - `migrations/0001_baseline.sql` — baseline-skeema ja append-only
 - `migrations/0044_budget_lines.sql` — budget_lines koontitaso tavoitearviolle
 - `migrations/0042_saas_rbac_phase19.sql` — RBAC taulut ja roolit
 - `migrations/0043_reporting_phase18_views.sql` — raporttinäkymät ja aggregaatit
 
+- `migrations/0048_change_requests_mt_lt.sql` — MT/LT change requests (muutospyynnöt)
 ## 4) UI/UX
 - `docs/UI_ONE_SCREEN_V1.md` — yhden ruudun UI-kuvaus
 - `spec/ui/01_work_phase_ui.md` — työpaketti UI: peruspolku
@@ -65,6 +67,8 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `docs/adr/0020-hp-maksuerat-ja-tp-aikajanat.md`
 
 ### Prioriteetti C (tarpeen mukaan)
+- `docs/runbooks/CHANGE_REQUESTS_MT_LT.md`
+- `migrations/0048_change_requests_mt_lt.sql`
 - `docs/UI_ONE_SCREEN_V1.md`
 - `docs/RUNBOOK_BUDGET_IMPORT.md`
 - `tools/scripts/RUNBOOK_JYDA_IMPORT.md`
