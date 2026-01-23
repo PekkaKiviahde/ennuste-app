@@ -2,6 +2,11 @@
 
 Päivitetty: 2025-12-18
 
+> Huom (päivitys 2026-01): Tässä repossa on lisätty pakettirakenne ja baseline-snapshotit migraatioissa
+> `migrations/0046_package_header_code_and_budget_line_links.sql` ja `migrations/0047_package_baselines.sql`.
+> Nämä määrittelevät monilittera-työpaketit/hankintapaketit (`header_code`) sekä pakettibaselinen snapshot-riveihin (`*_baseline_lines`).
+> Tämä Phase17-runbook kuvaa erillistä “work_phase_*” -korjauspolkua, jota ei ole tällä hetkellä mukana uusimmassa minimi-skeemassa sellaisenaan.
+
 ## Mitä tämä vaihe tekee?
 Kun huomataan, että **tavoitearviossa ollut** kustannus (item_code) puuttuu työvaiheen sisällöstä, voidaan tehdä korjaus hallitusti:
 
@@ -21,7 +26,9 @@ Siksi v1:ssä item_code toimii **todisteena ja logina**, mutta korjaus lisää *
 ---
 
 ## Asennus
-1) Kopioi `migrations/0007_work_phase_corrections_phase17.sql` repoosi ja aja pgAdminissa.
+1) Jos käytätte Phase17 “work_phase_*” -korjauspolkua erillisessä tietokannassa:
+   - varmista että teillä on vastaava migraatio, joka luo `work_phase_*`-taulut ja funktiot.
+   - tässä repossa migraatiot ovat siirtyneet pakettipohjaiseen baselineen (0046/0047).
 
 Jos ajo onnistuu, DB:hen syntyy:
 - taulu `work_phase_corrections`
@@ -117,6 +124,20 @@ SELECT work_phase_reject_correction(
 ## Mitä seuraavaksi (vaihe 18 ja 19)
 - Vaihe 18: raportointi (työvaihe/pääryhmä/projekti + viikko+kuukausi trendit)
 - Vaihe 19: SaaS-tenantit, käyttäjät, roolit ja oikeudet (multi-org membership) + hyväksyntäpolut UI:ssa
+
+---
+
+## Huomautus: pakettibaseline (0046/0047)
+Jos teidän tavoite on varmistaa monilittera-paketit ja baseline-snapshotit:
+- Työpaketti: `work_packages` (+ `work_package_members`, `header_code`)
+- Hankintapaketti: `proc_packages` (+ `proc_package_members`, `header_code`)
+- Tavoitearviorivi (koonti): `budget_lines.budget_line_id`
+  - kytkentä paketteihin: `package_budget_line_links`
+  - split estyy: sama `budget_line_id` ei voi kuulua kahteen eri pakettiin (`UNIQUE(budget_line_id)`)
+- Baseline-snapshot:
+  - työpaketti: `work_package_baselines` + `work_package_baseline_lines` (BAC = SUM(amount))
+  - hankintapaketti: `proc_package_baselines` + `proc_package_baseline_lines` (BAC = SUM(amount))
+- Päätös: baseline-korjaukset ovat sallittuja vain jos lisättävä rivi löytyy samasta TARGET_ESTIMATE-importista; muut kirjataan oppimiseen eikä niillä muuteta baselinea (ks. `spec/workflows/04_change_control_and_learning.md`).
 
 ## Mitä muuttui
 - Lisätty muutososiot dokumentin loppuun.

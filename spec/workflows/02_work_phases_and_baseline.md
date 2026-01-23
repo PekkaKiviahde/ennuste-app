@@ -21,6 +21,28 @@ Tässä määritellään prosessi, jolla:
 - **Ghost-kustannus**: tehty/aiheutunut kustannus, joka ei vielä näy laskuissa/järjestelmässä (tai näkyy myöhässä).
 - **Tavoitearvio**: tuotu DB:hen `TARGET_ESTIMATE` import_batchilla, sekä 4-num taso (`budget_lines`) että nimiketaso (`budget_items`).
 
+### 2.1 Pakettirakenne (työpaketti + hankintapaketti)
+Tässä repossa “työvaihe” mallinnetaan paketteina:
+- **Työpaketti**: `work_packages`
+- **Hankintapaketti**: `proc_packages`
+
+Paketin tunnus:
+- `header_code` = paketin “pääkoodi”
+  - aina 4-numeroinen Talo80-koodi merkkijonona (`^\d{4}$`)
+  - leading zerot säilyvät (esim. `0310`)
+
+Monilittera-sisältö (MVP):
+- sekä työ- että hankintapaketti voivat sisältää **useita** 4-numeroisia litteroita
+- tämä toteutetaan jäsenlistalla:
+  - `work_package_members` (`member_type='LITTERA'`)
+  - `proc_package_members` (`member_type='LITTERA'`)
+
+Tavoitearviorivi → paketti -kytkentä ja split-estot:
+- tavoitearvion 4-num koontirivi = `budget_lines.budget_line_id`
+- kytkentä taulussa `package_budget_line_links`
+  - `budget_line_id` kuuluu **täsmälleen yhteen** työpakettiin (ja voi samalla kuulua yhteen hankintapakettiin)
+  - split ei ole sallittu: sama `budget_line_id` ei saa esiintyä kahdessa eri paketissa (`UNIQUE(budget_line_id)`)
+
 ## 3. Roolit (MVP)
 - **Työnjohto**: tekee työvaiheen suunnittelun, viikkopäivityksen ja ghost-kirjaukset.
 - **Hankinta**: osallistuu työvaihepaketin koostamiseen (mitä ostetaan ja miltä koodeilta).
@@ -71,6 +93,19 @@ Baseline-lukitus luo “totuuden” EV-laskentaa varten:
 - **BAC** (Budget at Completion) = baseline-budjetti €
 - Baseline linkitetään **TARGET_ESTIMATE import_batch_id:hen** (millä tavoitearvioversiolla baseline on tehty)
 
+### 7.1 Baseline-snapshotit (paketit)
+Baseline muodostetaan snapshotiksi (append-only), jotta myöhemmät muutokset eivät muuta vanhaa baselinen totuutta.
+
+Työpaketin baseline:
+- `work_package_baselines`
+- `work_package_baseline_lines` (snapshot `package_budget_line_links` → `budget_lines`)
+- **BAC (työpaketti)** = `SUM(work_package_baseline_lines.amount)`
+
+Hankintapaketin baseline:
+- `proc_package_baselines`
+- `proc_package_baseline_lines`
+- **BAC (hankintapaketti)** = `SUM(proc_package_baseline_lines.amount)`
+
 ## 8. Baseline lukitus (LOCKED)
 Lukituksen yhteydessä tallennetaan (audit trail):
 - kuka lukitsi, milloin
@@ -116,10 +151,15 @@ MVP on “prosessi kunnossa”, kun:
 
 ## Mitä muuttui
 - Lisätty esivaatimukseksi tavoitearvion import + esimäppäys (koodi → litteras) ennen työvaiheiden ja baselinen muodostamista.
+- Täsmennetty pakettirakenne: monilittera-paketit, `header_code`, `budget_line_id`-kytkentä ja split-estot.
+- Dokumentoitu baseline-snapshotit (`*_baseline_lines`) ja BAC-laskenta työ- ja hankintapaketeille.
 
 ## Miksi
 - Työvaiheen budjetti, johtolittera-ehdotus ja baseline-linkitys nojaavat tavoitearvion import-batchiin, joten importin pitää olla ensin tehty ja koodit tunnistettu master-dataksi.
+- Pakettien todellinen “koostumus” tulee tuotannon ja hankinnan työstä, ja se voi sisältää useita litteroita; split-estot varmistavat, että tavoitearviorivi ei jakaudu kahteen pakettiin MVP:ssä.
 
 ## Miten testataan (manuaali)
 - Luo projekti, importoi tavoitearvio ja varmista että 4-num koodit löytyvät `litteras`-listasta (sis. leading zeros).
 - Luo työvaihe DRAFTina ja varmista, että johtolittera-ehdotus voidaan tehdä tavoitearvion euroista.
+- Luo työpaketti, lisää siihen 2 litteraa (`work_package_members`) ja kytke 2 `budget_line_id`:tä (`package_budget_line_links`) samaan pakettiin.
+- Lukitse baseline ja varmista, että BAC = molempien rivien summa (`work_package_baseline_lines` / `proc_package_baseline_lines`).
