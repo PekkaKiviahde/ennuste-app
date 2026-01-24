@@ -76,3 +76,4 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml down
   - Aja sama kaynnistyskomento `--remove-orphans` -lipulla.
 - Next-UI ei lataudu / logissa `EBADENGINE` (node 24.x vaaditaan) tai `Failed to patch lockfile`:
   - Paivita kontti uusiksi: `docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build web_next`
+  - Jos logissa edelleen `Failed to patch lockfile`: varmista, etta `web_next`-palvelulla on `NEXT_IGNORE_INCORRECT_LOCKFILE=1`
