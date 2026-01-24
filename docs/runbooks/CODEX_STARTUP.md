@@ -27,6 +27,11 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --remove-o
 2) Avaa UI:
 - `http://localhost:3000`
 
+Vaihtoehto (suositus Codespacesissa): yksi komento, joka hoitaa myos porttikolarit (3000/5433):
+```bash
+bash tools/scripts/dev-up.sh --auto
+```
+
 ## Agenttiarmeija (API) – smoke
 1) Tee tyopuu tarkoituksella likaiseksi:
 ```bash
