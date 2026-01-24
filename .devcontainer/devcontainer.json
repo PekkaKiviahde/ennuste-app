@@ -1,0 +1,15 @@
+{
+  "name": "ennuste-app",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "postStartCommand": "bash tools/scripts/dev-up.sh --auto",
+  "forwardPorts": [3000, 5050, 5433],
+  "portsAttributes": {
+    "3000": { "label": "Next-UI", "onAutoForward": "openBrowser" },
+    "5050": { "label": "pgAdmin" },
+    "5433": { "label": "Postgres (host 5433)" }
+  }
+}
+
