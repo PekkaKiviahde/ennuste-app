@@ -713,7 +713,7 @@ export const importStagingRepository = (): ImportStagingPort => ({
       const title = aggregates.titlesByCode.get(code) || "";
       lines.push(
         [code, title, row.LABOR, row.MATERIAL, row.SUBCONTRACT, row.RENTAL, row.OTHER]
-          .map((value) => csvEscape(value))
+          .map((value) => csvEscape(value, ";"))
           .join(";")
       );
     }

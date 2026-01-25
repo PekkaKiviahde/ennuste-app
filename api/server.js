@@ -470,13 +470,13 @@ function reportSnapshotUri(checksum) {
   return `snapshot://${checksum}`;
 }
 
-function csvEscape(value) {
+function csvEscape(value, delimiter = ",") {
   if (value === null || value === undefined) {
     return "";
   }
   const text = String(value);
   const escaped = text.replace(/"/g, '""');
-  if (/[",\n]/.test(escaped)) {
+  if (escaped.includes(delimiter) || /["\n]/.test(escaped)) {
     return `"${escaped}"`;
   }
   return escaped;
