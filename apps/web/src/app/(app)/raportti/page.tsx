@@ -121,7 +121,7 @@ export default async function ReportPage() {
           </div>
           <div className="status-item">
             <div className="label">CPI</div>
-            <div className="value">{formatCpi(summary?.cpi ?? null, Boolean(summary?.cpi))}</div>
+            <div className="value">{formatCpi(summary?.cpi ?? null, summary?.cpi != null)}</div>
           </div>
           <div className="status-item">
             <div className="label">Poikkeama (EV - AC*)</div>
