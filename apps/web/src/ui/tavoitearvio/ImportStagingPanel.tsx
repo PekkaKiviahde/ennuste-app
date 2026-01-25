@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { t } from "../i18n";
 
 type Issue = {
@@ -41,6 +41,31 @@ const fetchJson = async (url: string, options: RequestInit = {}) => {
   return payload;
 };
 
+const buildErrorLog = (summary: any, errorLines: StagingLine[]) => {
+  const lines: string[] = [
+    `Batch: ${summary.staging_batch_id}`,
+    `ERROR-issuet: ${summary.error_issues}`,
+    `Ohitetut rivit: ${summary.skipped_rows}`,
+    `Ohitetut arvot: ${summary.skipped_values}`,
+    ""
+  ];
+
+  if (errorLines.length === 0) {
+    lines.push("Ei rivikohtaisia virheitä.");
+    return lines.join("\n");
+  }
+
+  lines.push("Virherivit:");
+  for (const line of errorLines) {
+    const issueTexts = line.issues
+      .filter((issue) => issue.severity === "ERROR")
+      .map((issue) => `${issue.issue_code}: ${issue.issue_message || "-"}`);
+    const issueSummary = issueTexts.length > 0 ? issueTexts.join(" | ") : "ERROR ilman kuvausta";
+    lines.push(`- rivi ${line.row_no} (${line.staging_line_id}): ${issueSummary}`);
+  }
+  return lines.join("\n");
+};
+
 export default function ImportStagingPanel({ username }: { username: string }) {
   const repoChoices = (process.env.NEXT_PUBLIC_REPO_BUDGET_CSV_WHITELIST ?? "test_budget.csv,data/samples/budget.csv")
     .split(",")
@@ -52,6 +77,8 @@ export default function ImportStagingPanel({ username }: { username: string }) {
   const [actor, setActor] = useState(username);
   const [repoPath, setRepoPath] = useState(repoChoices[0] ?? "");
   const [result, setResult] = useState("");
+  const [errorLog, setErrorLog] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [lines, setLines] = useState<StagingLine[]>([]);
   const [batches, setBatches] = useState<StagingBatch[]>([]);
@@ -65,6 +92,10 @@ export default function ImportStagingPanel({ username }: { username: string }) {
   const hasRepoChoices = repoChoices.length > 0;
 
   const visibleLines = useMemo(() => lines, [lines]);
+
+  useEffect(() => {
+    setCopyStatus(null);
+  }, [errorLog]);
 
   const handleFileChange = async (file?: File | null) => {
     if (!file) {
@@ -99,6 +130,45 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     setBatches(data.batches || []);
   };
 
+  const runAutoTransfer = async (createRequest: () => Promise<any>, sourceLabel: string) => {
+    setErrorLog(null);
+    setSummary("");
+    const res = await createRequest();
+    const nextBatchId = String(res.staging_batch_id);
+    setBatchId(nextBatchId);
+    setResult(
+      `Staging luotu (${sourceLabel}). batch=${nextBatchId} · rivit=${res.line_count} · issueita=${res.issue_count}${
+        res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
+      }`
+    );
+    await loadLines(nextBatchId);
+
+    const preview = await fetchJson(`/api/import-staging/${nextBatchId}/summary`);
+    if (preview.error_issues > 0) {
+      const errorRes = await fetchJson(`/api/import-staging/${nextBatchId}/lines?mode=issues&severity=ERROR`);
+      const errorLines: StagingLine[] = errorRes.lines || [];
+      setErrorLog(buildErrorLog(preview, errorLines));
+      setResult(`Tuonti pysäytetty: ${preview.error_issues} ERROR-issueta. Katso virheloki.`);
+      return;
+    }
+
+    await fetchJson(`/api/import-staging/${nextBatchId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ message: "Autohyvaksytty UI:ssa" })
+    });
+    const commitRes = await fetchJson(`/api/import-staging/${nextBatchId}/commit`, {
+      method: "POST",
+      body: JSON.stringify({
+        message: "Autosirretty UI:ssa",
+        allowDuplicate,
+        force
+      })
+    });
+    setResult(
+      `Automaattinen siirto valmis. import_batch_id=${commitRes.import_batch_id} · rivit=${commitRes.inserted_rows}`
+    );
+  };
+
   const createStaging = async () => {
     if (!csvText) {
       throw new Error("CSV ei ole ladattuna.");
@@ -106,21 +176,18 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     if (!actor.trim()) {
       throw new Error("Tuojan nimi puuttuu.");
     }
-    const res = await fetchJson("/api/import-staging/budget", {
-      method: "POST",
-      body: JSON.stringify({
-        importedBy: actor.trim(),
-        filename: fileName,
-        csvText
-      })
-    });
-    setBatchId(res.staging_batch_id);
-    setResult(
-      `Staging luotu. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}${
-        res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
-      }`
+    await runAutoTransfer(
+      () =>
+        fetchJson("/api/import-staging/budget", {
+          method: "POST",
+          body: JSON.stringify({
+            importedBy: actor.trim(),
+            filename: fileName,
+            csvText
+          })
+        }),
+      "tiedostosta"
     );
-    await loadLines(res.staging_batch_id);
   };
 
   const createStagingFromRepo = async () => {
@@ -130,17 +197,14 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     if (!repoPath) {
       throw new Error("Repo-CSV polku puuttuu.");
     }
-    const res = await fetchJson("/api/import-staging/budget/from-repo", {
-      method: "POST",
-      body: JSON.stringify({ importedBy: actor.trim(), repoPath: repoPath.trim() })
-    });
-    setBatchId(res.staging_batch_id);
-    setResult(
-      `Staging luotu repo-CSV:lla. batch=${res.staging_batch_id} · rivit=${res.line_count} · issueita=${res.issue_count}${
-        res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
-      }`
+    await runAutoTransfer(
+      () =>
+        fetchJson("/api/import-staging/budget/from-repo", {
+          method: "POST",
+          body: JSON.stringify({ importedBy: actor.trim(), repoPath: repoPath.trim() })
+        }),
+      "tietovarastosta"
     );
-    await loadLines(res.staging_batch_id);
   };
 
   const showSummary = async () => {
@@ -247,6 +311,18 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     link.remove();
     URL.revokeObjectURL(url);
     setResult(`CSV ladattu (${exportMode}).`);
+  };
+
+  const copyErrorLog = async () => {
+    if (!errorLog) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(errorLog);
+      setCopyStatus("Kopioitu");
+    } catch {
+      setCopyStatus("Kopiointi epaonnistui");
+    }
   };
 
   return (
@@ -405,6 +481,21 @@ export default function ImportStagingPanel({ username }: { username: string }) {
       </div>
 
       {result && <div className="notice">{result}</div>}
+
+      {errorLog ? (
+        <div className="error-log">
+          <div className="error-log-header">
+            <span className="label">Virheen logitiedot</span>
+            <div className="error-log-actions">
+              <button className="btn btn-secondary btn-sm" type="button" onClick={copyErrorLog}>
+                Kopioi virhe
+              </button>
+              {copyStatus ? <span className="muted">{copyStatus}</span> : null}
+            </div>
+          </div>
+          <textarea className="error-log-text" readOnly value={errorLog} />
+        </div>
+      ) : null}
 
       <div className="form-grid">
         <label className="label" htmlFor="staging-mode">{t("budgetImport.staging.label.rowMode")}</label>

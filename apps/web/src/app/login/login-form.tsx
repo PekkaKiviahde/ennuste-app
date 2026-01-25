@@ -6,22 +6,11 @@ import { loginAction, type LoginFormState } from "../../server/actions/auth";
 
 const initialState: LoginFormState = { error: null, errorLog: null };
 
-const demoUsers = [
-  { label: "Myyja (SELLER_UI)", username: "seller.a" },
-  { label: "Tyonjohtaja", username: "site.foreman.a" },
-  { label: "Vastaava mestari", username: "general.foreman.a" },
-  { label: "Tyopaallikko", username: "project.manager.a" },
-  { label: "Tuotantojohtaja", username: "production.manager.a" },
-  { label: "Hankinta", username: "procurement.a" },
-  { label: "Johto", username: "exec.readonly.a" },
-  { label: "Org-admin", username: "org.admin.a" }
-];
-
 type LoginFormProps = {
-  demoMode?: boolean;
+  demoMode: boolean;
 };
 
-export default function LoginForm({ demoMode = false }: LoginFormProps) {
+export default function LoginForm({ demoMode }: LoginFormProps) {
   const [state, formAction] = useFormState(loginAction, initialState);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -31,16 +20,6 @@ export default function LoginForm({ demoMode = false }: LoginFormProps) {
   useEffect(() => {
     setCopyStatus(null);
   }, [state.errorLog]);
-
-  const fillDemo = (username: string) => {
-    if (usernameRef.current) {
-      usernameRef.current.value = username;
-    }
-    if (pinRef.current) {
-      pinRef.current.value = "1234";
-    }
-    formRef.current?.requestSubmit();
-  };
 
   const copyErrorLog = async () => {
     if (!state.errorLog) {
@@ -56,7 +35,12 @@ export default function LoginForm({ demoMode = false }: LoginFormProps) {
 
   return (
     <>
-      <form ref={formRef} className="form-grid" action={formAction}>
+      <form
+        ref={formRef}
+        className="form-grid"
+        action={formAction}
+        data-show-demo-users={demoMode ? "true" : "false"}
+      >
         <label className="label" htmlFor="username">Kayttajatunnus</label>
         <input ref={usernameRef} className="input" id="username" name="username" placeholder="etunimi.sukunimi" />
 
@@ -82,27 +66,6 @@ export default function LoginForm({ demoMode = false }: LoginFormProps) {
 
         <button className="btn btn-primary" type="submit">Kirjaudu</button>
       </form>
-
-      {demoMode ? (
-        <details className="dialog" open>
-          <summary>Demo-tunnukset</summary>
-          <div className="dialog-panel">
-            <p className="muted">PIN kaikille: 1234.</p>
-            <div className="demo-grid">
-              {demoUsers.map((user) => (
-                <button
-                  key={user.username}
-                  className="btn btn-secondary btn-sm"
-                  type="button"
-                  onClick={() => fillDemo(user.username)}
-                >
-                  {user.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </details>
-      ) : null}
     </>
   );
 }
