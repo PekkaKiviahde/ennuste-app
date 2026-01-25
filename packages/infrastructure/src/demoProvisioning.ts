@@ -74,6 +74,43 @@ type DemoExport = {
 const hashPayload = (seedKey: string, label: string, payload: unknown) =>
   crypto.createHash("sha256").update(`${seedKey}:${label}:${JSON.stringify(payload)}`, "utf8").digest("hex");
 
+const costTypeOrder: CostType[] = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
+
+// Hash payload sisältää sekä targetEstimateItems että budgetLines → budjettimuutos ei jää vanhaan batchiin onboarding-uusintajossa.
+const buildTargetEstimateHashPayload = (data: DemoExport) => {
+  const normalizeBreakdown = (breakdown: Record<string, number> | undefined | null) =>
+    Object.entries(breakdown ?? {})
+      .map(([key, value]) => ({ key, value: Number(value) }))
+      .filter((entry) => Number.isFinite(entry.value))
+      .sort((a, b) => a.key.localeCompare(b.key));
+
+  const items = (data.targetEstimateItems ?? [])
+    .map((item) => ({
+      itemCode: item.itemCode ?? null,
+      litteraCode: item.litteraCode,
+      qty: item.qty ?? null,
+      unit: item.unit ?? null,
+      sumEur: item.sumEur ?? null,
+      breakdown: normalizeBreakdown(item.breakdown)
+    }))
+    .sort((a, b) => `${a.litteraCode}:${a.itemCode ?? ""}`.localeCompare(`${b.litteraCode}:${b.itemCode ?? ""}`));
+
+  const budgetLines = (data.budgetLines ?? [])
+    .flatMap((line) => {
+      const costs = line.costs ?? {};
+      return costTypeOrder
+        .map((costType) => ({ code: line.code, costType, amount: Number(costs[costType]) }))
+        .filter((row) => Number.isFinite(row.amount));
+    })
+    .sort((a, b) =>
+      a.code === b.code
+        ? costTypeOrder.indexOf(a.costType) - costTypeOrder.indexOf(b.costType)
+        : a.code.localeCompare(b.code)
+    );
+
+  return { items, budgetLines };
+};
+
 const resolveDemoDataFile = (seedKey: string) => {
   const candidates = [
     path.resolve(__dirname, "../../..", seedKey, "data.json"),
@@ -699,7 +736,7 @@ export const provisionDemoProjectAndData = async (
     "TARGET_ESTIMATE",
     seedKey,
     "target",
-    data.targetEstimateItems ?? data.budgetLines,
+    buildTargetEstimateHashPayload(data),
     actor
   );
   const targetItems = data.targetEstimateItems ? await ensureTargetEstimateItems(client, targetBatchId, data.targetEstimateItems) : new Map<string, string>();
