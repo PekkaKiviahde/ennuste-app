@@ -30,13 +30,20 @@ Lisätieto arkkitehtuurista ja taustapäätöksistä: `docs/agenttiarmeija_kaynn
 
 ## 3) Turvallisuusrajat (allowed paths)
 
-MVP:ssä agentti on tarkoituksella “doc-only” (turvakaide):
-- sallitut muutosalueet ovat rajattuja (esim. workflow-raportti: `docs/workflows/**`, runbookit: `docs/runbooks/**`)
-- kanoninen totuus on `spec/` (erityisesti `spec/workflows/*`) → älä anna agentin muokata speksejä ilman erillistä päätöstä
+MVP:ssä agentin muutosalueet ovat rajatut, mutta eivät “doc-only”:
+- `docs/runbooks`
+- `docs/workflows`
+- `apps/api/src`
+- `apps/web/src`
+- `packages`
+- `migrations`
+- `spec/` on kanoninen totuus (erityisesti `spec/workflows/*`) → älä anna agentin muokata speksejä ilman erillistä päätöstä
 
 Jos agentti yrittää koskea kiellettyihin polkuihin, ajo epäonnistuu ja vastauksessa näkyy tyypillisesti `deniedFiles`.
 
 Workflow-raportin rajaukset: `docs/runbooks/agent_workflow_report.md`.
+
+Source of truth: `apps/api/src/agent/orchestrator.ts:37` ja `apps/api/agent.config.json:3`. Docs kuvaa näitä.
 
 ---
 
