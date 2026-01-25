@@ -34,5 +34,22 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_DEMO_ONBOARDING_DATA.s
 - ACTUALS + mapping_rules (sekä mapped että unmapped)
 - Suunnitelma + forecast-näkyvyys (minimi)
 
+### Kirjautuminen (ei kovakoodattuja demo-tunnuksia)
+- Kirjautumissivu ei enää näytä kovakoodattuja demo-käyttäjiä.
+- Käytä onboardingissa antamaasi adminEmail-tunnusta (PIN 1234, jos onboarding loi käyttäjän oletuksilla).
+
 ### Rollback
 - Poista demoprojekti/organisaatio tarvittaessa manuaalisesti (append-only: ei poisteta rivejä, luo uusi org slugilla jos tarvitset uuden demon).
+
+## Mitä muuttui
+- Demo-exportin `data.json` etsitään nyt kävelemällä ylöspäin hakemistopuuta (`process.cwd()` + `__dirname`).
+
+## Miksi
+- Nextin workspace-ajossa polku ei osoittanut repojuureen, jolloin onboarding kaatui virheeseen “data.json ei löydy”.
+
+## Miten testataan (manuaali)
+- `bash tools/scripts/dev-up.sh --auto`
+- Aja vaiheen 1 curl kirjautumiscookiella.
+- Aja smoke-testit:
+  - `docs/sql/SMOKE_DEMO_CANONICAL.sql`
+  - `docs/sql/SMOKE_DEMO_ONBOARDING_DATA.sql`

@@ -4,8 +4,8 @@ export const fiFI = {
       title: "Välivarastotuonti (tavoitearvio)",
       button: {
         chooseFile: "Valitse tiedosto",
-        createStaging: "Luo välivarasto",
-        createStagingFromRepo: "Luo välivarasto tietovaraston CSV:stä",
+        createStaging: "Luo välivarasto ja siirrä budjettiin",
+        createStagingFromRepo: "Luo välivarasto tietovaraston CSV:stä ja siirrä",
         fetchBatches: "Hae tuontierät",
         fetchRows: "Näytä erän rivit",
         previewTransfer: "Esikatsele budjettisiirto",
@@ -17,8 +17,8 @@ export const fiFI = {
       },
       tooltip: {
         chooseFile: "Valitse tuotava CSV-tiedosto.",
-        createStaging: "Tuo CSV välivarastoon tarkistusta varten.",
-        createStagingFromRepo: "Tuo repossa oleva CSV välivarastoon.",
+        createStaging: "Tuo CSV, esikatsele ja siirrä automaattisesti jos virheitä ei ole.",
+        createStagingFromRepo: "Tuo repossa oleva CSV ja siirrä automaattisesti jos virheitä ei ole.",
         fetchBatches: "Näytä aiemmat tuontierät.",
         fetchRows: "Näytä valitun tuontierän rivit.",
         previewTransfer: "Katso vaikutus budjettiin ennen siirtoa.",
@@ -38,7 +38,7 @@ export const fiFI = {
       },
       info: {
         intro:
-          "Budjettitiedot voidaan tuoda välivarastoon CSV-tiedostosta. Tuonti vaatii vähintään litterakoodin sekä kustannussarakkeet (esim. Työ, Aine, Alihankinta, Vmiehet, Muu tai Summa)."
+          "Budjettitiedot voidaan tuoda välivarastoon CSV-tiedostosta. Tuonti vaatii vähintään litterakoodin sekä kustannussarakkeet (esim. Työ, Aine, Alihankinta, Vmiehet, Muu tai Summa). Jos ERROR-virheitä ei ole, erä hyväksytään ja siirretään automaattisesti budjettiin."
       },
       checkbox: {
         forceTransfer: "Pakota siirto",

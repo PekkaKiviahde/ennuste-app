@@ -173,7 +173,10 @@ UI tarjoaa listan issueista:
 - kaikki korjaukset kirjataan `import_staging_line_edits`-lokiin
 
 ### 6.4 Hyvaksynta ja siirto
-Kun batch on "PUHDAS":
+Oletus MVP:ssa:
+- jos ERROR-issueita ei ole, UI saa auto-hyvaksya ja auto-siirtaa eran
+- jos ERROR-issueita on, siirto pysahtyy ja virheloki naytetaan
+Kun siirto tehdaan:
 - luodaan `import_batches`
 - kirjataan `budget_lines` vain hyvaksytyista riveista
 - siirron yhteenveto (montako rivia, montako ohitettu)

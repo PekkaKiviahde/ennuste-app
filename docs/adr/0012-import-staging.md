@@ -14,6 +14,8 @@ Lisataan import staging -vaihe ennen `budget_lines`-kirjausta:
 - raakadata tallennetaan append-only `import_staging_lines_raw`-tauluun
 - korjaukset kirjataan append-only `import_staging_line_edits`-tauluun
 - validointiongelmat kirjataan `import_staging_issues`-tauluun
+- jos batchissa ei ole ERROR-issueita, UI voi auto-hyvaksya ja auto-siirtaa eran
+- jos ERROR-issueita on, siirto pysahtyy ja virheloki naytetaan korjausta varten
 - vasta hyvaksytty staging-batch siirretaan `import_batches` + `budget_lines`
 
 ## Alternatives considered
