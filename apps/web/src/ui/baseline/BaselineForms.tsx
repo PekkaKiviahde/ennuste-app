@@ -32,10 +32,10 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
   return (
     <>
       <section className="card">
-        <h2>Viikkopaivitys</h2>
-        {!hasWorkPackages ? <div className="notice">Ei tyopaketteja, lisaa ensin tyopaketti.</div> : null}
+        <h2>Viikkopäivitys</h2>
+        {!hasWorkPackages ? <div className="notice">Ei työpaketteja, lisää ensin työpaketti.</div> : null}
         <form className="form-grid" action={weeklyAction}>
-          <label className="label" htmlFor="workPackageId">Tyopaketti</label>
+          <label className="label" htmlFor="workPackageId">Työpaketti</label>
           <select className="input" id="workPackageId" name="workPackageId" disabled={!hasWorkPackages}>
             {hasWorkPackages ? (
               workPackages.map((workPackage) => (
@@ -44,11 +44,11 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
                 </option>
               ))
             ) : (
-              <option>Ei tyopaketteja</option>
+              <option>Ei työpaketteja</option>
             )}
           </select>
 
-          <label className="label" htmlFor="weekEnding">Viikon paattymispaiva</label>
+          <label className="label" htmlFor="weekEnding">Viikon päättymispäivä</label>
           <input className="input" id="weekEnding" name="weekEnding" type="date" required />
 
           <label className="label" htmlFor="percentComplete">Valmiusaste %</label>
@@ -63,16 +63,16 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
           <FormStatus state={weeklyState} />
 
           <button className="btn btn-primary" type="submit" disabled={!hasWorkPackages}>
-            Tallenna viikkopaivitys
+            Tallenna viikkopäivitys
           </button>
         </form>
       </section>
 
       <section className="card">
         <h2>Ghost-kulut</h2>
-        {!hasWorkPackages ? <div className="notice">Ei tyopaketteja, lisaa ensin tyopaketti.</div> : null}
+        {!hasWorkPackages ? <div className="notice">Ei työpaketteja, lisää ensin työpaketti.</div> : null}
         <form className="form-grid" action={ghostAction}>
-          <label className="label" htmlFor="workPackageIdGhost">Tyopaketti</label>
+          <label className="label" htmlFor="workPackageIdGhost">Työpaketti</label>
           <select className="input" id="workPackageIdGhost" name="workPackageId" disabled={!hasWorkPackages}>
             {hasWorkPackages ? (
               workPackages.map((workPackage) => (
@@ -81,23 +81,23 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
                 </option>
               ))
             ) : (
-              <option>Ei tyopaketteja</option>
+              <option>Ei työpaketteja</option>
             )}
           </select>
 
-          <label className="label" htmlFor="weekEndingGhost">Viikon paattymispaiva</label>
+          <label className="label" htmlFor="weekEndingGhost">Viikon päättymispäivä</label>
           <input className="input" id="weekEndingGhost" name="weekEnding" type="date" required />
 
           <label className="label" htmlFor="costType">Kustannuslaji</label>
           <select className="input" id="costType" name="costType">
-            <option value="LABOR">Tyo</option>
+            <option value="LABOR">Työ</option>
             <option value="MATERIAL">Aine</option>
             <option value="SUBCONTRACT">Alih</option>
-            <option value="RENTAL">Valineet</option>
+            <option value="RENTAL">Välineet</option>
             <option value="OTHER">Muu</option>
           </select>
 
-          <label className="label" htmlFor="amount">Maara</label>
+          <label className="label" htmlFor="amount">Määrä</label>
           <input className="input" id="amount" name="amount" type="number" step="0.01" min="0" required />
 
           <label className="label" htmlFor="description">Selite</label>
@@ -114,13 +114,13 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
       <section className="card">
         <h2>Baseline-lukitus</h2>
         <form className="form-grid" action={lockAction}>
-          <label className="label" htmlFor="workPackageIdLock">Tyopaketti (UUID)</label>
+          <label className="label" htmlFor="workPackageIdLock">Työpaketti (UUID)</label>
           <input className="input" id="workPackageIdLock" name="workPackageId" required />
 
-          <label className="label" htmlFor="workPackageVersionId">Version ID</label>
+          <label className="label" htmlFor="workPackageVersionId">Versio-ID</label>
           <input className="input" id="workPackageVersionId" name="workPackageVersionId" required />
 
-          <label className="label" htmlFor="targetImportBatchId">TARGET_ESTIMATE batch ID</label>
+          <label className="label" htmlFor="targetImportBatchId">TARGET_ESTIMATE-erä-ID</label>
           <input className="input" id="targetImportBatchId" name="targetImportBatchId" required />
 
           <label className="label" htmlFor="notes">Muistiinpano</label>
@@ -133,9 +133,9 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
       </section>
 
       <section className="card">
-        <h2>Korjausehdotus ja hyvaksynta</h2>
+        <h2>Korjausehdotus ja hyväksyntä</h2>
         <form className="form-grid" action={proposeAction}>
-          <label className="label" htmlFor="workPackageIdCorrection">Tyopaketti (UUID)</label>
+          <label className="label" htmlFor="workPackageIdCorrection">Työpaketti (UUID)</label>
           <input className="input" id="workPackageIdCorrection" name="workPackageId" required />
 
           <label className="label" htmlFor="itemCode">Item code (budget_items)</label>
@@ -156,7 +156,7 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
             <label className="label" htmlFor="commentPm">Kommentti</label>
             <input className="input" id="commentPm" name="comment" />
             <FormStatus state={pmState} />
-            <button className="btn btn-secondary" type="submit">Hyvaksy 1/2</button>
+            <button className="btn btn-secondary" type="submit">Hyväksy 1/2</button>
           </form>
           <form className="form-grid" action={finalAction}>
             <label className="label" htmlFor="correctionIdFinal">Korjaus ID</label>
@@ -164,7 +164,7 @@ export default function BaselineForms({ workPackages }: { workPackages: WorkPack
             <label className="label" htmlFor="commentFinal">Kommentti</label>
             <input className="input" id="commentFinal" name="comment" />
             <FormStatus state={finalState} />
-            <button className="btn btn-primary" type="submit">Hyvaksy 2/2</button>
+            <button className="btn btn-primary" type="submit">Hyväksy 2/2</button>
           </form>
         </div>
       </section>

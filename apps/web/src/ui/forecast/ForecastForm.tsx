@@ -306,7 +306,7 @@ export default function ForecastForm({
           <input className="input" name="subcontractMemo" placeholder="Perustelu" ref={subcontractMemoRef} />
         </div>
         <div>
-          <label className="label">Valineet</label>
+          <label className="label">Välineet</label>
           <input className="input" name="rentalValue" type="number" step="0.01" min="0" ref={rentalValueRef} />
           <input className="input" name="rentalMemo" placeholder="Perustelu" ref={rentalMemoRef} />
         </div>

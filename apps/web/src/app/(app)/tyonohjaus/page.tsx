@@ -63,7 +63,7 @@ export default async function WorkflowPage() {
   return (
     <div className="grid grid-2">
       <section className="card">
-        <h1>Tyonohjaus</h1>
+        <h1>Työnohjaus</h1>
         <p>Seuraa työpakettisuunnittelu → ennustetapahtuma → lukitus (baseline) → loki → raportti -virtaa.</p>
 
         <div className="status-grid">
@@ -118,21 +118,21 @@ export default async function WorkflowPage() {
       </section>
 
       <section className="card">
-        <h2>Tavoitearvio ja mapping</h2>
-        <p>Seuraa tavoitearvio-litteroita ja työpakettilittera-mappingia.</p>
+        <h2>Tavoitearvio ja mäppäys</h2>
+        <p>Seuraa tavoitearvio-litteroita ja työpakettilittera-mäppäystä.</p>
         <div className="status-grid">
           <div className="status-item">
             <div className="label">Tavoitearvio-litterat</div>
             <div className="value">{targetLitteraCount}</div>
-            <div className="value muted">Riveja: {targetRows.length}</div>
+            <div className="value muted">Rivejä: {targetRows.length}</div>
           </div>
           <div className="status-item">
-            <div className="label">Mapping-rivit</div>
+            <div className="label">Mäppäysrivit</div>
             <div className="value">{mappingLineCount}</div>
             <div className="value muted">Työpakettilitterat: {mappingWorkCount}</div>
           </div>
           <div className="status-item">
-            <div className="label">Mapping-tavoitteet</div>
+            <div className="label">Mäppäystavoitteet</div>
             <div className="value">{mappingTargetCount}</div>
             <div className="value muted">Avaa tavoitearvio</div>
           </div>

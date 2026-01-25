@@ -14,8 +14,8 @@ export type AdminLoginFormState = {
   errorLog?: string | null;
 };
 
-const INVALID_MESSAGE = "Vaara kayttajatunnus tai PIN.";
-const RATE_LIMIT_MESSAGE = "Liian monta yritysta. Yrita hetken paasta uudelleen.";
+const INVALID_MESSAGE = "Väärä käyttäjätunnus tai PIN.";
+const RATE_LIMIT_MESSAGE = "Liian monta yritystä. Yritä hetken päästä uudelleen.";
 
 const ensureRedirectErrorsAreRethrown = (error: unknown) => {
   if (error instanceof Error) {
@@ -27,7 +27,7 @@ const ensureRedirectErrorsAreRethrown = (error: unknown) => {
 };
 
 const buildErrorLog = (username: string, error: unknown) => {
-  const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
+  const message = error instanceof Error ? error.message : "Kirjautuminen epäonnistui";
   const details: string[] = [];
   details.push(`time=${new Date().toISOString()}`);
   details.push(`username=${username || "-"}`);
@@ -54,7 +54,7 @@ export const adminLoginAction = async (
 
   if (!isAdminModeEnabled()) {
     console.warn("admin_login_blocked_mode_disabled", { username });
-    return { error: "Admin-tila ei ole kaytossa." };
+    return { error: "Admin-tila ei ole käytössä." };
   }
 
   const rateLimit = getAdminRateLimitStatus();

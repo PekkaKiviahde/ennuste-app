@@ -34,7 +34,7 @@ export default function LoginForm({ demoMode, action = loginAction, submitLabel 
       await navigator.clipboard.writeText(state.errorLog);
       setCopyStatus("Kopioitu");
     } catch {
-      setCopyStatus("Kopiointi epaonnistui");
+      setCopyStatus("Kopiointi epäonnistui");
     }
   };
 
@@ -46,7 +46,7 @@ export default function LoginForm({ demoMode, action = loginAction, submitLabel 
         action={formAction}
         data-show-demo-users={demoMode ? "true" : "false"}
       >
-        <label className="label" htmlFor="username">Kayttajatunnus</label>
+        <label className="label" htmlFor="username">Käyttäjätunnus</label>
         <input
           ref={usernameRef}
           className="input"
@@ -73,7 +73,7 @@ export default function LoginForm({ demoMode, action = loginAction, submitLabel 
             type="button"
             onClick={() => setShowPin((value) => !value)}
           >
-            {showPin ? "Piilota PIN" : "Nayta PIN"}
+            {showPin ? "Piilota PIN" : "Näytä PIN"}
           </button>
         </div>
 

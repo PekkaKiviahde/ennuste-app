@@ -13,7 +13,7 @@ export type LoginFormState = {
   errorLog?: string | null;
 };
 
-const INVALID_MESSAGE = "Vaara kayttajatunnus tai PIN.";
+const INVALID_MESSAGE = "Väärä käyttäjätunnus tai PIN.";
 
 const resolvePostLoginRedirect = (permissions: string[]) => {
   if (permissions.includes("SELLER_UI") && !permissions.includes("REPORT_READ")) {
@@ -42,7 +42,7 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
         throw error;
       }
     }
-    const rawMessage = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
+    const rawMessage = error instanceof Error ? error.message : "Kirjautuminen epäonnistui";
     const message = error instanceof AuthError ? INVALID_MESSAGE : rawMessage;
     const details: string[] = [];
     details.push(`time=${new Date().toISOString()}`);

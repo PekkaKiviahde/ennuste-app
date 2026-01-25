@@ -56,7 +56,7 @@ const formatQty = (value: number) =>
 
 const getStatusLabel = (item: MappingItem) => {
   if (!item.is_leaf) return "Otsikko";
-  if (!item.work_package_id) return "Tyopaketti puuttuu";
+  if (!item.work_package_id) return "Työpaketti puuttuu";
   if (!item.proc_package_id) return "Hankintapaketti puuttuu";
   return "OK";
 };
@@ -86,11 +86,11 @@ export default function TargetEstimateMappingView() {
       const response = await fetch("/api/target-estimate-mapping", { cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Tietojen lataus epaonnistui");
+        throw new Error(payload?.error ?? "Tietojen lataus epäonnistui");
       }
       setData(payload);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Tietojen lataus epaonnistui");
+      setError(err instanceof Error ? err.message : "Tietojen lataus epäonnistui");
     } finally {
       setLoading(false);
     }
@@ -166,11 +166,11 @@ export default function TargetEstimateMappingView() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error ?? "Paivitys epaonnistui");
+        throw new Error(result?.error ?? "Päivitys epäonnistui");
       }
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Paivitys epaonnistui");
+      setError(err instanceof Error ? err.message : "Päivitys epäonnistui");
     } finally {
       setBusy(false);
     }
@@ -197,13 +197,13 @@ export default function TargetEstimateMappingView() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error ?? "Tyopaketin luonti epaonnistui");
+        throw new Error(result?.error ?? "Työpaketin luonti epäonnistui");
       }
       setNewWorkPackageCode("");
       setNewWorkPackageName("");
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Tyopaketin luonti epaonnistui");
+      setError(err instanceof Error ? err.message : "Työpaketin luonti epäonnistui");
     } finally {
       setBusy(false);
     }
@@ -234,14 +234,14 @@ export default function TargetEstimateMappingView() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error ?? "Hankintapaketin luonti epaonnistui");
+        throw new Error(result?.error ?? "Hankintapaketin luonti epäonnistui");
       }
       setNewProcPackageCode("");
       setNewProcPackageName("");
       setNewProcDefaultWorkPackage("");
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Hankintapaketin luonti epaonnistui");
+      setError(err instanceof Error ? err.message : "Hankintapaketin luonti epäonnistui");
     } finally {
       setBusy(false);
     }
@@ -261,30 +261,30 @@ export default function TargetEstimateMappingView() {
 
   return (
     <section className="card">
-      <h1>Tavoitearvion mappays</h1>
-      <p>Mappaa tavoitearviorivit tyopaketteihin ja hankintapaketteihin item-tasolla.</p>
+      <h1>Tavoitearvion mäppäys</h1>
+      <p>Mäppää tavoitearviorivit työpaketteihin ja hankintapaketteihin item-tasolla.</p>
 
       <div className="grid grid-2">
         <div>
-          <div className="label">Progress</div>
+          <div className="label">Etenemä</div>
           <div className="status-actions">
-            <span className="badge">LEAF € tyopaketti: {formatNumber(workMappedPercent, { maximumFractionDigits: 1 })}%</span>
+            <span className="badge">LEAF € työpaketti: {formatNumber(workMappedPercent, { maximumFractionDigits: 1 })}%</span>
             <span className="badge">LEAF € hankintapaketti: {formatNumber(procMappedPercent, { maximumFractionDigits: 1 })}%</span>
           </div>
-          <div className="muted">LEAF yhteensa € {formatMoney(totalLeafSum)}</div>
+          <div className="muted">LEAF yhteensä € {formatMoney(totalLeafSum)}</div>
         </div>
         <div>
-          <div className="label">Bulk-assign</div>
+          <div className="label">Massakohdistus</div>
           <div className="form-grid">
             <div>
-              <label className="label" htmlFor="bulk-work">Tyopaketti</label>
+              <label className="label" htmlFor="bulk-work">Työpaketti</label>
               <select
                 id="bulk-work"
                 className="input"
                 value={bulkWorkPackage}
                 onChange={(event) => setBulkWorkPackage(event.target.value)}
               >
-                <option value="">Valitse tyopaketti</option>
+                <option value="">Valitse työpaketti</option>
                 {data.workPackages.map((work) => (
                   <option key={work.work_package_id} value={work.work_package_id}>
                     {work.name}
@@ -292,7 +292,7 @@ export default function TargetEstimateMappingView() {
                 ))}
               </select>
               <button className="btn btn-secondary btn-sm" type="button" disabled={busy || selected.size === 0} onClick={bulkAssignWork}>
-                Assign tyopaketti
+                Kohdista työpaketti
               </button>
             </div>
             <div>
@@ -311,7 +311,7 @@ export default function TargetEstimateMappingView() {
                 ))}
               </select>
               <button className="btn btn-secondary btn-sm" type="button" disabled={busy || selected.size === 0} onClick={bulkAssignProc}>
-                Assign hankintapaketti
+                Kohdista hankintapaketti
               </button>
             </div>
           </div>
@@ -335,7 +335,7 @@ export default function TargetEstimateMappingView() {
             checked={leafOnly}
             onChange={(event) => setLeafOnly(event.target.checked)}
           />{" "}
-          LEAF only
+          Vain LEAF
         </label>
         <label className="label">
           <input
@@ -343,7 +343,7 @@ export default function TargetEstimateMappingView() {
             checked={missingWork}
             onChange={(event) => setMissingWork(event.target.checked)}
           />{" "}
-          Puuttuu tyopaketti
+          Puuttuu työpaketti
         </label>
         <label className="label">
           <input
@@ -356,17 +356,17 @@ export default function TargetEstimateMappingView() {
       </div>
 
       <details className="dialog">
-        <summary className="label">Luo uusi tyopaketti</summary>
+        <summary className="label">Luo uusi työpaketti</summary>
         <div className="dialog-panel">
           <input
             className="input"
-            placeholder="Tyopaketin koodi (4 numeroa)"
+            placeholder="Työpaketin koodi (4 numeroa)"
             value={newWorkPackageCode}
             onChange={(event) => setNewWorkPackageCode(event.target.value)}
           />
           <input
             className="input"
-            placeholder="Tyopaketin nimi"
+            placeholder="Työpaketin nimi"
             value={newWorkPackageName}
             onChange={(event) => setNewWorkPackageName(event.target.value)}
           />
@@ -376,7 +376,7 @@ export default function TargetEstimateMappingView() {
             disabled={busy || !newWorkPackageCode.trim() || !newWorkPackageName.trim()}
             onClick={createWorkPackage}
           >
-            Luo tyopaketti
+            Luo työpaketti
           </button>
         </div>
       </details>
@@ -401,7 +401,7 @@ export default function TargetEstimateMappingView() {
             value={newProcDefaultWorkPackage}
             onChange={(event) => setNewProcDefaultWorkPackage(event.target.value)}
           >
-            <option value="">Oletus-tyopaketti (valinnainen)</option>
+            <option value="">Oletustyöpaketti (valinnainen)</option>
             {data.workPackages.map((work) => (
               <option key={work.work_package_id} value={work.work_package_id}>
                 {work.name}
@@ -435,9 +435,9 @@ export default function TargetEstimateMappingView() {
               </th>
               <th>Item code</th>
               <th>Selite</th>
-              <th>Maara</th>
+              <th>Määrä</th>
               <th>Summa EUR</th>
-              <th>Tyopaketti</th>
+              <th>Työpaketti</th>
               <th>Hankintapaketti</th>
               <th>Status</th>
             </tr>
