@@ -33,9 +33,16 @@ type ModelPatchResponse = {
   notes?: string;
 };
 
+
 const ALLOWED_CHANGE_PATHS = [
+  // Allow changes only within explicitly whitelisted directories.
+  // Keep this aligned with apps/api/agent.config.json allowedPaths.
   "docs/runbooks",
   "docs/workflows",
+  "apps/api/src",
+  "apps/web/src",
+  "packages",
+  "migrations",
 ];
 
 const REQUIRED_GATE_COMMANDS = ["npm run lint", "npm run typecheck", "npm test"];
@@ -1349,8 +1356,9 @@ export async function runChange(req: ChangeRequest) {
       return response;
     }
 
-    const add = execShell("git add -A", { cwd: worktreeDir });
+    const add = execShell(`git add -A -- ${patchFiles.join(" ")}`, { cwd: worktreeDir });
     if (!add.ok) throw new Error("git add failed");
+
 
     // Worktree-only identity: avoid relying on global git config and avoid affecting the main repo/dev environment.
     // NOTE: The commit command still sets identity via -c to guarantee the commit works even if config fails.
@@ -1371,6 +1379,8 @@ export async function runChange(req: ChangeRequest) {
 
     const compareLink = buildCompareLink(branchName);
     let prUrl: string | null = null;
+    let prError: string | null = null;
+
     try {
       const notesBlock = (notes ?? "").trim();
       const changedList = changedBeforeCommit.map((file) => `- \`${file}\``).join("\n");
@@ -1387,8 +1397,10 @@ export async function runChange(req: ChangeRequest) {
         body: prBody,
         exec: execShell,
       });
-    } catch {
+    } catch (error) {
       prUrl = null;
+      prError = safeErrorMessage(error);
+      await addEvent("PR_ERROR", { status: "failed", branchName, reason: prError });
     }
 
     response = {
@@ -1397,7 +1409,10 @@ export async function runChange(req: ChangeRequest) {
       changedFiles: changedBeforeCommit,
       prUrl,
       compareLink,
+      ...(prError ? { prError } : {}),
     };
+
+
     await addEvent("DONE", { status: "ok", branchName, changedFiles: changedBeforeCommit });
     return response;
   } catch (error) {
