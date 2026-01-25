@@ -4,6 +4,9 @@ import { listUserProjects } from "@ennuste/application";
 import { getSessionFromCookies } from "../../server/session";
 import { redirect } from "next/navigation";
 import { logoutAction, switchProjectAction } from "../../server/actions/auth";
+import { clearAdminActingRoleAction } from "../../server/actions/adminAuth";
+import { getActingRoleFromCookies } from "../../server/actingRole";
+import { hasAdminSessionCookie, isAdminModeEnabled, isAdminUser } from "../../server/adminSession";
 import { createServices } from "../../server/services";
 
 export default async function AuthedLayout({ children }: { children: ReactNode }) {
@@ -19,6 +22,10 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
   const hasReportRead = session.permissions.includes("REPORT_READ");
   const hasSellerUi = session.permissions.includes("SELLER_UI");
   const hasMembersManage = session.permissions.includes("MEMBERS_MANAGE");
+  const adminModeEnabled = isAdminModeEnabled();
+  const adminUser = isAdminUser(session);
+  const hasAdminSession = adminModeEnabled && adminUser && hasAdminSessionCookie();
+  const actingRole = hasAdminSession ? getActingRoleFromCookies() : null;
   if (!hasReportRead) {
     redirect(hasSellerUi ? "/sales" : "/login");
   }
@@ -66,6 +73,14 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
           </form>
         )}
         {hasMembersManage && <Link href="/admin">Admin</Link>}
+        {adminModeEnabled && adminUser && !hasAdminSession && <Link href="/admin/login">Admin-tila</Link>}
+        {hasAdminSession && <Link href="/admin/act-as">Roolivalinta</Link>}
+        {actingRole && <span className="badge">Toimit roolissa: {actingRole.label}</span>}
+        {actingRole && (
+          <form action={clearAdminActingRoleAction}>
+            <button className="btn btn-secondary btn-sm" type="submit">Palaa adminiin</button>
+          </form>
+        )}
         <span className="badge">{session.displayName ?? session.username}</span>
         <form action={logoutAction}>
           <button className="btn btn-secondary" type="submit">Kirjaudu ulos</button>

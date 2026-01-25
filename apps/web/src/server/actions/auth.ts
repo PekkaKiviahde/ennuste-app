@@ -1,15 +1,19 @@
 "use server";
 
 import { login, switchProject } from "@ennuste/application";
-import { AppError } from "@ennuste/shared";
+import { AppError, AuthError } from "@ennuste/shared";
 import { createServices } from "../services";
 import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, requireSession, setSessionCookie } from "../session";
 import { redirect } from "next/navigation";
+import { setAdminSessionCookie } from "../adminSession";
+import { setActingRoleCookie } from "../actingRole";
 
 export type LoginFormState = {
   error?: string | null;
   errorLog?: string | null;
 };
+
+const INVALID_MESSAGE = "Vaara kayttajatunnus tai PIN.";
 
 const resolvePostLoginRedirect = (permissions: string[]) => {
   if (permissions.includes("SELLER_UI") && !permissions.includes("REPORT_READ")) {
@@ -28,6 +32,8 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
     const result = await login(services, { username, pin, projectId });
     const sessionId = await services.auth.createSession(result.session);
     setSessionCookie(sessionId);
+    setAdminSessionCookie(false);
+    setActingRoleCookie(null);
     redirect(resolvePostLoginRedirect(result.session.permissions));
   } catch (error) {
     if (error instanceof Error) {
@@ -36,12 +42,13 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
         throw error;
       }
     }
-    const message = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
+    const rawMessage = error instanceof Error ? error.message : "Kirjautuminen epaonnistui";
+    const message = error instanceof AuthError ? INVALID_MESSAGE : rawMessage;
     const details: string[] = [];
     details.push(`time=${new Date().toISOString()}`);
     details.push(`username=${username || "-"}`);
     details.push(`projectId=${projectId ?? "-"}`);
-    details.push(`error=${message}`);
+    details.push(`error=${rawMessage}`);
     if (error instanceof AppError) {
       details.push(`code=${error.code}`);
       details.push(`status=${error.status}`);
@@ -63,6 +70,8 @@ export const logoutAction = async () => {
     await services.auth.deleteSession(sessionId);
   }
   clearSessionCookie();
+  setAdminSessionCookie(false);
+  setActingRoleCookie(null);
   if (session) {
     await services.audit.recordEvent({
       projectId: session.projectId,

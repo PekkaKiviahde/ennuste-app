@@ -179,6 +179,16 @@ textarea {
   gap: 1rem;
 }
 
+.pin-field {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.pin-toggle {
+  white-space: nowrap;
+}
+
 .table-filters {
   display: grid;
   gap: 1rem;
@@ -192,6 +202,12 @@ textarea {
   border-radius: 12px;
   border: 1px solid var(--border);
   background: #fff;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(196, 87, 44, 0.25);
 }
 
 .label {
@@ -268,6 +284,33 @@ textarea {
   border-style: solid;
   border-color: var(--success);
   color: #1c4a2b;
+}
+
+.admin-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.admin-banner form {
+  margin-left: auto;
+}
+
+.role-card {
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.role-card-code {
+  font-size: 0.8rem;
+}
+
+.role-card-actions {
+  margin-top: 0.6rem;
 }
 
 .error-log {
