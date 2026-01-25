@@ -35,13 +35,13 @@ export const parseFiNumber = (value: unknown): number | null => {
   return Number.isFinite(num) ? num : null;
 };
 
-export const csvEscape = (value: unknown): string => {
+export const csvEscape = (value: unknown, delimiter = ","): string => {
   if (value === null || value === undefined) {
     return "";
   }
   const text = String(value);
   const escaped = text.replace(/"/g, '""');
-  if (/[",\n]/.test(escaped)) {
+  if (escaped.includes(delimiter) || /["\n]/.test(escaped)) {
     return `"${escaped}"`;
   }
   return escaped;
