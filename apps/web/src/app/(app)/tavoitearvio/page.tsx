@@ -100,11 +100,11 @@ export default async function TargetEstimatePage({
         </form>
         {query && (
           <div className="notice">
-            Naytetaan suodatetut rivit haulla: "{query}"
+            Näytetään suodatetut rivit haulla: "{query}"
           </div>
         )}
         <div className="status-actions">
-          <span className="badge">Riveja: {targetCount}</span>
+          <span className="badge">Rivejä: {targetCount}</span>
         </div>
         <table className="table table-compact">
           <thead>
@@ -112,7 +112,7 @@ export default async function TargetEstimatePage({
               <th>Littera</th>
               <th>Nimi</th>
               <th>Kustannuslaji</th>
-              <th>Maara EUR</th>
+              <th>Määrä EUR</th>
               <th>Voimassa</th>
             </tr>
         </thead>
@@ -120,7 +120,7 @@ export default async function TargetEstimatePage({
           {filteredRows.length === 0 ? (
             <tr>
               <td colSpan={5}>
-                <div className="notice">Ei tavoitearvioriveja viela.</div>
+                <div className="notice">Ei tavoitearviorivejä vielä.</div>
               </td>
             </tr>
           ) : (
@@ -141,10 +141,10 @@ export default async function TargetEstimatePage({
     </section>
 
       <section className="card">
-        <h2>Mapping</h2>
-        <p>Työpakettilittera {"->"} tavoitearvio-littera mapping, status ja saanto.</p>
+        <h2>Mäppäys</h2>
+        <p>Työpakettilittera {"->"} tavoitearvio-littera mäppäys, status ja sääntö.</p>
         <div className="status-actions">
-          <span className="badge">Riveja: {mappingLineCount}</span>
+          <span className="badge">Rivejä: {mappingLineCount}</span>
         </div>
         <table className="table table-compact">
           <thead>
@@ -152,7 +152,7 @@ export default async function TargetEstimatePage({
               <th>Status</th>
               <th>Työpakettilittera</th>
               <th>Tavoitearvio</th>
-              <th>Saanto</th>
+              <th>Sääntö</th>
               <th>Kustannuslaji</th>
             </tr>
         </thead>
@@ -160,7 +160,7 @@ export default async function TargetEstimatePage({
           {filteredMappingLines.length === 0 ? (
             <tr>
               <td colSpan={5}>
-                <div className="notice">Ei mapping-riveja viela.</div>
+                <div className="notice">Ei mäppäysrivejä vielä.</div>
               </td>
             </tr>
           ) : (
@@ -179,15 +179,15 @@ export default async function TargetEstimatePage({
     </section>
 
       <section className="card">
-        <h2>Mapping-versiot</h2>
-        <p>Mapping-versiot, voimassaolo ja hyvaksynta.</p>
+        <h2>Mäppäysversiot</h2>
+        <p>Mäppäysversiot, voimassaolo ja hyväksyntä.</p>
         <form className="form-grid" method="get">
-          <label className="label" htmlFor="mv">Mapping-versiot haku</label>
+          <label className="label" htmlFor="mv">Mäppäysversioiden haku</label>
           <input
             className="input"
             id="mv"
             name="mv"
-            placeholder="Hae status, peruste tai hyvaksyja"
+            placeholder="Hae status, peruste tai hyväksyjä"
             defaultValue={searchParams?.mv ?? ""}
           />
           <div className="status-actions">
@@ -197,11 +197,11 @@ export default async function TargetEstimatePage({
         </form>
         {mappingQuery && (
           <div className="notice">
-            Naytetaan mapping-versiot haulla: "{mappingQuery}"
+            Näytetään mäppäysversiot haulla: "{mappingQuery}"
           </div>
         )}
         <div className="status-actions">
-          <span className="badge">Riveja: {mappingVersionCount}</span>
+          <span className="badge">Rivejä: {mappingVersionCount}</span>
         </div>
         <table className="table table-compact">
           <thead>
@@ -209,7 +209,7 @@ export default async function TargetEstimatePage({
               <th>Status</th>
               <th>Voimassa</th>
               <th>Peruste</th>
-              <th>Hyvaksynta</th>
+              <th>Hyväksyntä</th>
               <th>Luotu</th>
             </tr>
           </thead>
@@ -217,7 +217,7 @@ export default async function TargetEstimatePage({
             {filteredMappingVersions.length === 0 ? (
               <tr>
                 <td colSpan={5}>
-                  <div className="notice">Ei mapping-versioita viela.</div>
+                  <div className="notice">Ei mäppäysversioita vielä.</div>
                 </td>
               </tr>
             ) : (

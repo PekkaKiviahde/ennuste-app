@@ -21,8 +21,8 @@ export default async function SalesPage() {
         </form>
       </nav>
       <section className="card">
-        <h1>Myyjan nakyma</h1>
-        <p>Tama on SaaS-myyjan onboarding-nakyma.</p>
+        <h1>Myyjän näkymä</h1>
+        <p>Tämä on SaaS-myyjän käyttöönottonäkymä.</p>
         <div className="grid">
           <div className="notice">
             <strong>Myyntimallit</strong>
@@ -38,8 +38,8 @@ export default async function SalesPage() {
         <SaasOnboardingForm />
       ) : (
         <section className="card">
-          <h2>Onboarding</h2>
-          <div className="notice error">Ei oikeuksia onboarding-toimintoihin.</div>
+          <h2>Käyttöönotto</h2>
+          <div className="notice error">Ei oikeuksia käyttöönottoon.</div>
         </section>
       )}
     </div>

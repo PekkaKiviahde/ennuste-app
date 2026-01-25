@@ -50,7 +50,7 @@ export const fiFI = {
       },
       option: {
         rowMode: {
-          issues: "Issueita",
+          issues: "Ongelmia",
           clean: "Virheettömät",
           all: "Kaikki"
         },

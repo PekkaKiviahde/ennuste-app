@@ -37,7 +37,7 @@ export default function SaasOnboardingForm() {
     }
 
     if (!orgName.trim() || !orgSlug.trim() || !adminEmail.trim()) {
-      throw new Error("Yhtion nimi, slug ja adminin email vaaditaan.");
+      throw new Error("Yhtiön nimi, tunnus ja adminin sähköposti vaaditaan.");
     }
 
     const orgRes = await fetchJson("/api/saas/organizations", {
@@ -52,13 +52,13 @@ export default function SaasOnboardingForm() {
 
     const link = `${window.location.origin}/invite/${orgRes.invite_token}`;
     setInviteLink(link);
-    setResult(`Yhtio luotu. organization_id=${orgRes.organization_id} · demo=${orgRes.project_id}`);
+    setResult(`Yhtiö luotu. organization_id=${orgRes.organization_id} · demo=${orgRes.project_id}`);
   };
 
   return (
     <section className="card">
-      <h1>Myyjan onboarding</h1>
-      <p>Luo konserni (valinnainen), yhtio ja kutsu yrityksen paakayttajalle.</p>
+      <h1>Myyjän käyttöönotto</h1>
+      <p>Luo konserni (valinnainen), yhtiö ja kutsu yrityksen pääkäyttäjälle.</p>
       <div className="form-grid">
         <label className="label" htmlFor="groupName">Konsernin nimi (valinnainen)</label>
         <input
@@ -78,7 +78,7 @@ export default function SaasOnboardingForm() {
           placeholder="uuid"
         />
 
-        <label className="label" htmlFor="orgName">Yhtion nimi</label>
+        <label className="label" htmlFor="orgName">Yhtiön nimi</label>
         <input
           id="orgName"
           className="input"
@@ -87,7 +87,7 @@ export default function SaasOnboardingForm() {
           placeholder="Kide-Asunnot"
         />
 
-        <label className="label" htmlFor="orgSlug">Slug</label>
+        <label className="label" htmlFor="orgSlug">Tunnus (slug)</label>
         <input
           id="orgSlug"
           className="input"
@@ -96,7 +96,7 @@ export default function SaasOnboardingForm() {
           placeholder="kide-asunnot"
         />
 
-        <label className="label" htmlFor="adminEmail">Paakayttajan email</label>
+        <label className="label" htmlFor="adminEmail">Pääkäyttäjän sähköposti</label>
         <input
           id="adminEmail"
           className="input"
@@ -108,7 +108,7 @@ export default function SaasOnboardingForm() {
 
       <div className="status-actions">
         <button className="btn btn-primary" type="button" onClick={() => createAll().catch((err) => setResult(err.message))}>
-          Luo yhtio + kutsu
+          Luo yhtiö + kutsu
         </button>
       </div>
 
