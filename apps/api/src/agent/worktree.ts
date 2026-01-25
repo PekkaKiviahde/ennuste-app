@@ -11,6 +11,18 @@ function worktreeKey(sessionId: string): string {
   return sessionId.replace(/[\\/]/g, "-");
 }
 
+function getGithubExtraHeader(repoRoot: string): string | null {
+  const res = execShell("git config --local --get http.https://github.com/.extraheader", { cwd: repoRoot });
+  const value = (res.ok ? res.stdout : "").trim();
+  return value ? value : null;
+}
+
+function withGithubExtraHeader(repoRoot: string, gitCommand: string): string {
+  const header = getGithubExtraHeader(repoRoot);
+  if (!header) return gitCommand;
+  return `git -c http.https://github.com/.extraheader=${shellQuote(header)} ${gitCommand.replace(/^git\s+/, "")}`;
+}
+
 export function getWorktreeDir(sessionId: string): string {
   return path.join("/tmp/agent_worktrees", worktreeKey(sessionId));
 }
@@ -41,7 +53,9 @@ export function createWorktree(opts: {
   // NOTE(first delivery lock): always base worktree on origin/main (ignore config/baseBranch for now).
   const baseRef = `${opts.remote}/main`;
 
-  const fetch = execShell(`git fetch ${shellQuote(opts.remote)} --prune`, { cwd: opts.repoRoot });
+  const fetch = execShell(withGithubExtraHeader(opts.repoRoot, `git fetch ${shellQuote(opts.remote)} --prune`), {
+    cwd: opts.repoRoot,
+  });
   if (!fetch.ok) {
     return {
       ok: false,
@@ -52,7 +66,9 @@ export function createWorktree(opts: {
 
   const verifyBase = execShell(`git rev-parse --verify ${shellQuote(`${baseRef}^{commit}`)}`, { cwd: opts.repoRoot });
   if (!verifyBase.ok) {
-    const fetchMain = execShell(`git fetch ${shellQuote(opts.remote)} main`, { cwd: opts.repoRoot });
+    const fetchMain = execShell(withGithubExtraHeader(opts.repoRoot, `git fetch ${shellQuote(opts.remote)} main`), {
+      cwd: opts.repoRoot,
+    });
     if (!fetchMain.ok) {
       return {
         ok: false,

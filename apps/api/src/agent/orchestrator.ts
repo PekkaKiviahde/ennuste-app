@@ -600,9 +600,35 @@ function buildWorkflowSourceBundle(worktreeDir: string): {
   };
 }
 
-function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): string {
+function extractTaskPathCandidates(task: string): string[] {
+  const matches = task.match(/[A-Za-z0-9._/-]+\.[A-Za-z0-9]+/g) ?? [];
+  return matches.map((pathMatch) => pathMatch.replace(/[),.;:]+$/, ""));
+}
+
+function resolveTargetFile(task: string, worktreeDir: string): string {
+  const candidates = extractTaskPathCandidates(task);
+  for (const candidate of candidates) {
+    if (isPathAllowed(worktreeDir, candidate, ALLOWED_CHANGE_PATHS)) {
+      return candidate;
+    }
+  }
+  return WORKFLOW_REPORT_REL_PATH;
+}
+
+function buildPatchPrompt(task: string, mission0: any, worktreeDir: string, targetFileOverride?: string): string {
   const bundle = buildWorkflowSourceBundle(worktreeDir);
-  const preferFullFileContent = task.includes(WORKFLOW_REPORT_REL_PATH);
+  const targetFile = targetFileOverride ?? resolveTargetFile(task, worktreeDir);
+  const targetAbs = path.join(worktreeDir, targetFile);
+  const targetExists = fs.existsSync(targetAbs);
+  const targetContent = targetExists ? fs.readFileSync(targetAbs, "utf-8") : "";
+  const targetSnippets = targetExists
+    ? truncate8000(targetContent.split("\n").slice(0, 120).join("\n"))
+    : "(missing)";
+  const targetFull = targetExists ? truncate8000(targetContent) : "(missing)";
+  const includeSourceSpecs = targetFile === WORKFLOW_REPORT_REL_PATH || task.includes("spec/");
+  const preferFullFileContentWorkflow = targetFile === WORKFLOW_REPORT_REL_PATH && task.includes(WORKFLOW_REPORT_REL_PATH);
+  const preferFullFileContentRunbook = targetFile.startsWith("docs/runbooks/");
+  const preferFullFileContent = preferFullFileContentWorkflow || preferFullFileContentRunbook;
   return [
     "Olet Backend/Debug-agentti. Tuota MUUTOSPATCH deterministisesti ilman korjailukierroksia.",
     "",
@@ -616,13 +642,22 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
     "- patch-kentassa rivinvaihdot ovat \\n (valid JSON); client parsii sen takaisin oikeiksi riveiksi.",
     "- Ei ylimaaraisia kenttia.",
     "",
-    ...(preferFullFileContent
+    ...(preferFullFileContentWorkflow
       ? [
           "PATCH-VAATIMUKSET (pakollinen tassa tehtavassa):",
           `- Koska kohde on ${WORKFLOW_REPORT_REL_PATH}, ala yrita kirjoittaa unified diffa itse.`,
           "- Palauta patch-kentassa TASMALLEEN kohdetiedoston koko uusi sisalto (Markdown), ilman diff-otsikoita.",
           "- Aloita sisalto rivilla: # Workflow-raportti (Task B)",
           "- Ala palauta muita tiedostoja tai muita formaatteja.",
+          "- Järjestelmä generoi unified diffin deterministisesti sisällöstä.",
+        ]
+      : preferFullFileContentRunbook
+      ? [
+          "PATCH-VAATIMUKSET (runbook):",
+          "- Kohde on docs/runbooks/*, joten ala yrita kirjoittaa unified diffa itse.",
+          "- Palauta patch-kentassa TASMALLEEN TARGET_FILE:n koko sisalto ilman diff-otsikoita.",
+          "- Pida kaikki rivit ennallaan ja muuta vain pyydetty rivi.",
+          "- Runbook-gate: yhden hunki max +3/-3 riviä.",
           "- Järjestelmä generoi unified diffin deterministisesti sisällöstä.",
         ]
       : [
@@ -652,17 +687,18 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
           "+- toinen bullet",
           "",
           "VAIHTOEHTOINEN OUTPUT (vain jos et pysty tuottamaan apply-kelpoista unified diffa):",
-          `- Palauta patch-kentassa TASMALLEEN ${WORKFLOW_REPORT_REL_PATH} koko tiedoston uusi sisalto (Markdown), ilman diff-otsikoita.`,
-          "- Aloita sisalto rivilla: # Workflow-raportti (Task B)",
+          `- Palauta patch-kentassa TASMALLEEN ${targetFile} koko tiedoston uusi sisalto, ilman diff-otsikoita.`,
+          ...(targetFile === WORKFLOW_REPORT_REL_PATH ? ["- Aloita sisalto rivilla: # Workflow-raportti (Task B)"] : []),
           "- Ala palauta muita tiedostoja tai muita formaatteja.",
         ]),
     "",
     "POLKURAJAT (pakollinen): Patch saa muuttaa vain naita polkuja:",
     ...ALLOWED_CHANGE_PATHS.map((p) => `- ${p}`),
     "",
-    "WORKFLOW-RAPORTTI (pakollinen kohde):",
-    `- TARGET_FILE: ${WORKFLOW_REPORT_REL_PATH}`,
-    `- CURRENT_REPORT_EXISTS: ${bundle.currentReportExists ? "yes" : "no"}`,
+    "KOHDE (pakollinen):",
+    `- TARGET_FILE: ${targetFile}`,
+    `- TARGET_EXISTS: ${targetExists ? "yes" : "no"}`,
+    ...(targetFile.startsWith("docs/runbooks/") ? ["- RUNBOOK-GATE: yhden hunki max +3/-3 riviä."] : []),
     ...(preferFullFileContent
       ? [
           "- Tuota patch-kentassa vain TARGET_FILE:n koko uusi sisalto (Markdown).",
@@ -670,12 +706,11 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
           "- Ala poista tiedostoa tai vaihda polkua; paivita olemassa oleva tiedosto sisallon kautta.",
         ]
       : [
-          "- Jos CURRENT_REPORT_EXISTS=yes, sinun ON PAKKO tuottaa diff joka PAIVITTAA olemassa olevaa tiedostoa.",
-          `  - ALA kayta "new file mode" tai "/dev/null" kohteelle: ${WORKFLOW_REPORT_REL_PATH}`,
-          "  - Hunkeissa on oltava oikeat kontekstilinjat CURRENT_REPORTista (space-prefixed rivit).",
-          "  - Kayta erityisesti CURRENT_REPORT_SNIPPET_* osioiden riveja hunki-kontekstina (ne ovat pienet ja tasmalliset).",
-          "- Jos CURRENT_REPORT_EXISTS=no, sinun ON PAKKO luoda uusi tiedosto PATCH-VAATIMUSTEN mukaisella new file diffilla:",
-          `  - Sisallyta: new file mode 100644, --- /dev/null, +++ b/${WORKFLOW_REPORT_REL_PATH}`,
+          "- Jos TARGET_EXISTS=yes, sinun ON PAKKO tuottaa diff joka paivittaa olemassa olevaa tiedostoa.",
+          `  - ALA kayta "new file mode" tai "/dev/null" kohteelle: ${targetFile}`,
+          "  - Hunkeissa on oltava oikeat kontekstilinjat TARGET_SNIPPET osiosta (space-prefixed rivit).",
+          "- Jos TARGET_EXISTS=no, sinun ON PAKKO luoda uusi tiedosto PATCH-VAATIMUSTEN mukaisella new file diffilla:",
+          `  - Sisallyta: new file mode 100644, --- /dev/null, +++ b/${targetFile}`,
           "  - Hunki: @@ -0,0 +1,<n> @@ (ei @@ -1,0 ...).",
         ]),
     "- Tuota muutos vain kohdetiedostoon (taman tehtavan odotus: changedFiles = [TARGET_FILE]).",
@@ -683,17 +718,21 @@ function buildPatchPrompt(task: string, mission0: any, worktreeDir: string): str
     "TEHTAVA:",
     task,
     "",
-    "CURRENT_REPORT (nykyinen kohdetiedosto):",
-    bundle.currentReportSnippets,
+    `TARGET_SNIPPET (${targetFile}):`,
+    targetSnippets,
     "",
-    "CURRENT_REPORT (koko tiedosto, trimmattu):",
-    bundle.currentReport,
+    `TARGET_FULL (${targetFile}, trimmattu):`,
+    targetFull,
     "",
-    "SOURCE_SPECS (kanoniset lahteet, kayta vain naita tietoja tiivistyksessa):",
-    `FILES_INCLUDED: ${bundle.sourceSpecsList.join(", ") || "(none)"}`,
-    bundle.truncated ? "NOTE: SOURCE BUNDLE TRUNCATED (priorisoi WORKFLOW_SPEC_PRIORITY tiedostot)" : "",
-    bundle.sourceSpecs,
-    "",
+    ...(includeSourceSpecs
+      ? [
+          "SOURCE_SPECS (kanoniset lahteet, kayta vain naita tietoja tiivistyksessa):",
+          `FILES_INCLUDED: ${bundle.sourceSpecsList.join(", ") || "(none)"}`,
+          bundle.truncated ? "NOTE: SOURCE BUNDLE TRUNCATED (priorisoi WORKFLOW_SPEC_PRIORITY tiedostot)" : "",
+          bundle.sourceSpecs,
+          "",
+        ]
+      : []),
     "REPO-KONTEKSTI (Mission0):",
     JSON.stringify(mission0).slice(0, 80_000),
   ].join("\n");
@@ -872,6 +911,7 @@ export async function runChange(req: ChangeRequest) {
   let model = "";
   let mission0: any = null;
   let worktreeDir = "";
+  let targetFile = WORKFLOW_REPORT_REL_PATH;
   let baseSha: string | null = null;
   let restoreOriginAuth: null | (() => void) = null;
 
@@ -899,9 +939,6 @@ export async function runChange(req: ChangeRequest) {
     } catch {
       memory = null;
     }
-
-    preflight = runReadOnlyPreflight(repoRoot);
-    if (!preflight.ok) throw new Error(preflight.error ?? "preflight failed");
 
     const { config } = loadAgentConfig();
     mission0 = runMission0();
@@ -952,6 +989,9 @@ export async function runChange(req: ChangeRequest) {
     }
     restoreOriginAuth = auth.restore;
 
+    preflight = runReadOnlyPreflight(repoRoot);
+    if (!preflight.ok) throw new Error(preflight.error ?? "preflight failed");
+
     const worktree = createWorktree({
       repoRoot,
       sessionId,
@@ -962,11 +1002,12 @@ export async function runChange(req: ChangeRequest) {
     if (!worktree.ok) throw new Error(worktree.error);
     worktreeDir = worktree.worktreeDir;
     baseSha = worktree.baseSha;
+    targetFile = resolveTargetFile(req.task, worktreeDir);
 
     const openai = createOpenAIClient();
 
     clearWorkingTree(worktreeDir);
-    const workflowReportTask = req.task.includes(WORKFLOW_REPORT_REL_PATH);
+    const workflowReportTask = targetFile === WORKFLOW_REPORT_REL_PATH && req.task.includes(WORKFLOW_REPORT_REL_PATH);
 
     let commitMessage = "";
     let notes = "";
@@ -1033,7 +1074,7 @@ export async function runChange(req: ChangeRequest) {
         return response;
       }
     } else {
-      const prompt = buildPatchPrompt(req.task, mission0, worktreeDir);
+      const prompt = buildPatchPrompt(req.task, mission0, worktreeDir, targetFile);
       const promptSummary = summarizePrompt(prompt);
 
       await addEvent("MODEL_PROMPT", {
@@ -1088,7 +1129,7 @@ export async function runChange(req: ChangeRequest) {
     // If the model returns full file content instead of a unified diff, generate a diff deterministically
     // against the current worktree file so that git apply can work reliably.
     if (!looksLikeUnifiedDiff(patch)) {
-      const targetAbs = path.join(worktreeDir, WORKFLOW_REPORT_REL_PATH);
+      const targetAbs = path.join(worktreeDir, targetFile);
       try {
         fs.mkdirSync(path.dirname(targetAbs), { recursive: true });
         fs.writeFileSync(targetAbs, patch, "utf-8");
@@ -1107,7 +1148,7 @@ export async function runChange(req: ChangeRequest) {
         return response;
       }
 
-      const generated = execShell(`git diff -- ${JSON.stringify(WORKFLOW_REPORT_REL_PATH)}`, { cwd: worktreeDir });
+      const generated = execShell(`git diff -- ${JSON.stringify(targetFile)}`, { cwd: worktreeDir });
       clearWorkingTree(worktreeDir);
 
       if (!generated.ok) {
@@ -1285,7 +1326,7 @@ export async function runChange(req: ChangeRequest) {
     }
 
     if (!applyPatchPath) throw new Error("applyPatchPath missing");
-    const apply = execShell(`git apply --whitespace=nowarn ${JSON.stringify(applyPatchPath)}`, { cwd: worktreeDir });
+    const apply = execShell(`git apply --recount --whitespace=nowarn ${JSON.stringify(applyPatchPath)}`, { cwd: worktreeDir });
 
     if (!apply.ok) {
       applyStdout = truncate8000(apply.stdout ?? "");

@@ -7,7 +7,11 @@ export function requireInternalToken(req: Request, res: Response, next: NextFunc
     return res.status(500).json({ error: "Server misconfigured: AGENT_INTERNAL_TOKEN is missing" });
   }
 
-  const received = req.header("x-internal-token");
+  const internalHeader = req.header("x-internal-token")?.trim();
+  const authHeader = req.header("authorization")?.trim();
+  const bearerToken =
+    authHeader && authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7).trim() : null;
+  const received = internalHeader || bearerToken;
   if (!received || received !== expected) {
     return res.status(401).json({ error: "Unauthorized" });
   }

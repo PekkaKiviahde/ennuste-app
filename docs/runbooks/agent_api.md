@@ -16,6 +16,10 @@ Pakolliset envit:
 - `OPENAI_API_KEY` (vain `mode=change`)
 - `GH_TOKEN` (vain `mode=change`)
 
+Auth-header:
+- `x-internal-token: ${AGENT_INTERNAL_TOKEN}`
+- tai `authorization: Bearer ${AGENT_INTERNAL_TOKEN}`
+
 ## GitHub PR automation (GH_TOKEN)
 
 Agentin automaattinen PR-luonti käyttää GitHub API:a ja vaatii `GH_TOKEN`-ympäristömuuttujan.
