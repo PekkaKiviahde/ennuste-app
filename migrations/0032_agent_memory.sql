@@ -1,7 +1,7 @@
 -- 0032_agent_memory.sql
 -- Agenttiarmeijan pysyvä muisti (append-only)
 -- HUOM: Numerointi pidetään kasvavana (0031 -> 0032 -> ...).
--- Edellyttää prevent_update_delete() -funktiota (luotu 0001_init.sql:ssa).
+-- Edellyttää prevent_update_delete() -funktiota (luotu 0001_baseline.sql:ssa).
 
 CREATE TABLE IF NOT EXISTS agent_sessions (
   agent_session_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
