@@ -243,18 +243,18 @@ LIMIT 1
 \gset
 
 SELECT
-  (to_regclass('public.v_report_work_package_actuals_latest') IS NOT NULL)::int AS has_wp_mapped_view,
-  (to_regclass('public.v_report_proc_package_actuals_latest') IS NOT NULL)::int AS has_proc_mapped_view
+  (to_regclass('public.v_report_work_package_actuals_latest') IS NOT NULL) AS has_wp_mapped_view,
+  (to_regclass('public.v_report_proc_package_actuals_latest') IS NOT NULL) AS has_proc_mapped_view
 \gset
 
-\if :has_wp_mapped_view = 1
+\if :has_wp_mapped_view
 SELECT *
 FROM v_report_work_package_actuals_latest
 WHERE project_id = :'demo_project_id'::uuid
 LIMIT 20;
 \endif
 
-\if :has_proc_mapped_view = 1
+\if :has_proc_mapped_view
 SELECT *
 FROM v_report_proc_package_actuals_latest
 WHERE project_id = :'demo_project_id'::uuid

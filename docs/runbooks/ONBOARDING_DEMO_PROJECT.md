@@ -43,9 +43,16 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_DEMO_ONBOARDING_DATA.s
 
 ## Mitä muuttui
 - Demo-exportin `data.json` etsitään nyt kävelemällä ylöspäin hakemistopuuta (`process.cwd()` + `__dirname`).
+- Baseline-lukituksen funktion olemassaolo tarkistetaan nyt `pg_proc`-kyselyllä (ei `to_regclass`).
+- Onboarding varmistaa nyt myös MT/LT change requestit APPROVED-tilassa.
+- Lisättiin latest toteumien raporttinäkymät migraatiossa `migrations/0054_actuals_latest_report_views.sql`.
+- Actuals mapping -version `valid_from` sidotaan demo-datan earliest toteumapäivään.
 
 ## Miksi
 - Nextin workspace-ajossa polku ei osoittanut repojuureen, jolloin onboarding kaatui virheeseen “data.json ei löydy”.
+- `to_regclass` ei toimi funktioihin, joten baselinea ei koskaan lukittu ja canonical smoke kaatui.
+- Canonical smoke edellyttää sekä MT että LT hyväksyttynä raporttinäkymässä.
+- Canonical smoke edellyttää myös mapped/unmapped toteumanäkymät ja voimassa olevan mapping-version.
 
 ## Miten testataan (manuaali)
 - `bash tools/scripts/dev-up.sh --auto`
@@ -53,3 +60,5 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_DEMO_ONBOARDING_DATA.s
 - Aja smoke-testit:
   - `docs/sql/SMOKE_DEMO_CANONICAL.sql`
   - `docs/sql/SMOKE_DEMO_ONBOARDING_DATA.sql`
+- Aja onboarding kahdesti; MT/LT ei duplikoidu ja smokes pysyvät vihreinä.
+- Tarvittaessa aja migraatiot erikseen: `docker exec codex_next_web npm run db:migrate`

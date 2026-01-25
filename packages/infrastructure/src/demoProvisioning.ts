@@ -112,14 +112,25 @@ const buildTargetEstimateHashPayload = (data: DemoExport) => {
 };
 
 const resolveDemoDataFile = (seedKey: string) => {
-  const candidates = [
-    path.resolve(__dirname, "../../..", seedKey, "data.json"),
-    path.resolve(process.cwd(), seedKey, "data.json"),
-    path.resolve(process.cwd(), "..", seedKey, "data.json")
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
+  const findFrom = (startDir: string): string | null => {
+    let current = startDir;
+    while (true) {
+      const candidate = path.resolve(current, seedKey, "data.json");
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+      const parent = path.dirname(current);
+      if (parent === current) {
+        return null;
+      }
+      current = parent;
+    }
+  };
+
+  for (const root of [process.cwd(), __dirname]) {
+    const found = findFrom(root);
+    if (found) {
+      return found;
     }
   }
   throw new AppError(`Demo-export ${seedKey} puuttuu (data.json ei löydy).`);
@@ -459,12 +470,177 @@ const ensureWorkPackageBaselines = async (
       continue;
     }
     const fnExists = await client.query<{ exists: boolean }>(
-      "SELECT to_regclass('public.work_package_lock_baseline') IS NOT NULL AS exists"
+      `SELECT EXISTS (
+         SELECT 1
+         FROM pg_proc p
+         JOIN pg_namespace n ON n.oid = p.pronamespace
+         WHERE n.nspname = 'public' AND p.proname = 'work_package_lock_baseline'
+       ) AS exists`
     );
     if (!fnExists.rows[0]?.exists) {
       continue;
     }
     await client.query("SELECT work_package_lock_baseline($1::uuid, $2, $3)", [workPackageId, actor, note]);
+  }
+};
+
+const ensureChangeRequests = async (
+  client: PoolClient,
+  projectId: string,
+  workPackageIds: Map<string, string>,
+  seedKey: string,
+  actor: string
+) => {
+  const fnRows = await client.query<{ proname: string }>(
+    `SELECT p.proname
+     FROM pg_proc p
+     JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public'
+       AND p.proname = ANY($1::text[])`,
+    [["change_request_create", "change_request_set_status"]]
+  );
+  const fnNames = new Set(fnRows.rows.map((row) => row.proname));
+  if (!fnNames.has("change_request_create") || !fnNames.has("change_request_set_status")) {
+    return;
+  }
+
+  const statusViewExists = await client.query<{ exists: boolean }>(
+    "SELECT to_regclass('public.v_change_request_current_status') IS NOT NULL AS exists"
+  );
+  if (!statusViewExists.rows[0]?.exists) {
+    return;
+  }
+
+  const pickWorkPackage = (preferredCodes: string[]) => {
+    for (const code of preferredCodes) {
+      const id = workPackageIds.get(code);
+      if (id) {
+        return { code, id };
+      }
+    }
+    const first = workPackageIds.entries().next();
+    if (first.done) {
+      return undefined;
+    }
+    const [code, id] = first.value;
+    return { code, id };
+  };
+
+  const mtTarget = pickWorkPackage(["0310", "2100"]);
+  const ltTarget = pickWorkPackage(["4100", "5200"]);
+  if (!mtTarget || !ltTarget) {
+    return;
+  }
+
+  const titlePrefix = `[${seedKey}]`;
+  const definitions = [
+    {
+      changeType: "MT" as const,
+      title: `${titlePrefix} MT demo`,
+      scheduleNote: "Aikataulu +2 pv",
+      description: `${seedKey} MT seed`,
+      target: mtTarget,
+      costType: "LABOR" as const,
+      costEur: 1200,
+      revenueEur: 1500,
+      note: `${seedKey} MT line`
+    },
+    {
+      changeType: "LT" as const,
+      title: `${titlePrefix} LT demo`,
+      scheduleNote: null,
+      description: `${seedKey} LT seed`,
+      target: ltTarget,
+      costType: "MATERIAL" as const,
+      costEur: 900,
+      revenueEur: 1200,
+      note: `${seedKey} LT line`
+    }
+  ];
+
+  for (const def of definitions) {
+    const existing = await client.query<{ change_request_id: string; status: string | null }>(
+      `SELECT r.change_request_id, s.status::text AS status
+       FROM change_requests r
+       LEFT JOIN v_change_request_current_status s ON s.change_request_id = r.change_request_id
+       WHERE r.project_id = $1::uuid
+         AND r.change_type = $2::change_type
+         AND r.title = $3
+         AND COALESCE(s.status::text, '') <> 'CANCELLED'
+       ORDER BY r.created_at DESC, r.change_request_id DESC
+       LIMIT 1`,
+      [projectId, def.changeType, def.title]
+    );
+
+    let changeRequestId = existing.rows[0]?.change_request_id;
+    let status = existing.rows[0]?.status ?? "DRAFT";
+
+    if (!changeRequestId) {
+      const created = await client.query<{ change_request_id: string }>(
+        `SELECT change_request_id
+         FROM change_request_create($1::uuid, $2::change_type, $3, $4, $5, $6)`,
+        [projectId, def.changeType, def.title, def.scheduleNote, actor, def.description]
+      );
+      changeRequestId = created.rows[0]?.change_request_id;
+      status = "DRAFT";
+    }
+
+    if (!changeRequestId) {
+      continue;
+    }
+
+    await client.query(
+      `INSERT INTO change_request_lines (
+        change_request_id,
+        project_id,
+        littera_code,
+        work_package_id,
+        cost_type,
+        cost_eur,
+        revenue_eur,
+        created_by,
+        note
+      )
+      SELECT $1::uuid, $2::uuid, $3, $4::uuid, $5::cost_type, $6, $7, $8, $9
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM change_request_lines
+        WHERE change_request_id = $1::uuid
+          AND littera_code = $3
+          AND work_package_id = $4::uuid
+          AND cost_eur = $6
+          AND revenue_eur = $7
+      )`,
+      [
+        changeRequestId,
+        projectId,
+        def.target.code,
+        def.target.id,
+        def.costType,
+        def.costEur,
+        def.revenueEur,
+        actor,
+        def.note
+      ]
+    );
+
+    if (status === "DRAFT") {
+      await client.query("SELECT change_request_set_status($1::uuid, $2::change_status, $3, $4)", [
+        changeRequestId,
+        "SUBMITTED",
+        actor,
+        `${seedKey} submitted`
+      ]);
+      status = "SUBMITTED";
+    }
+    if (status === "SUBMITTED") {
+      await client.query("SELECT change_request_set_status($1::uuid, $2::change_status, $3, $4)", [
+        changeRequestId,
+        "APPROVED",
+        actor,
+        `${seedKey} approved`
+      ]);
+    }
   }
 };
 
@@ -582,19 +758,27 @@ const ensureActualsMapping = async (
   rules: NonNullable<DemoExport["actualsMappingRules"]>,
   workPackageIds: Map<string, string>,
   procPackageIds: Map<string, string>,
-  seedKey: string
+  seedKey: string,
+  actualsMinDate: string | null
 ) => {
+  const desiredValidFrom = actualsMinDate ?? new Date().toISOString().slice(0, 10);
   const existingVersion = await client.query<{ id: string }>(
-    "SELECT id FROM actuals_mapping_versions WHERE project_id = $1::uuid AND status = 'ACTIVE' ORDER BY valid_from DESC LIMIT 1",
-    [projectId]
+    `SELECT id
+     FROM actuals_mapping_versions
+     WHERE project_id = $1::uuid
+       AND status = 'ACTIVE'
+       AND valid_from <= $2::date
+     ORDER BY valid_from DESC, id DESC
+     LIMIT 1`,
+    [projectId, desiredValidFrom]
   );
   let versionId = existingVersion.rows[0]?.id;
   if (!versionId) {
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO actuals_mapping_versions (project_id, status, valid_from, created_by)
-       VALUES ($1::uuid, 'ACTIVE', current_date, $2)
+       VALUES ($1::uuid, 'ACTIVE', $2::date, $3)
        RETURNING id`,
-      [projectId, seedKey]
+      [projectId, desiredValidFrom, seedKey]
     );
     versionId = inserted.rows[0].id;
   }
@@ -752,6 +936,7 @@ export const provisionDemoProjectAndData = async (
   );
   await ensurePackageBudgetLinks(client, input.projectId, budgetLineIds, workPackageIds, procPackageIds, actor);
   await ensureWorkPackageBaselines(client, workPackageIds, seedKey, actor);
+  await ensureChangeRequests(client, input.projectId, workPackageIds, seedKey, actor);
 
   await ensureMappingVersion(client, input.projectId, data, litteraIds, actor, seedKey);
 
@@ -759,8 +944,15 @@ export const provisionDemoProjectAndData = async (
     const actualsBatchId = await ensureImportBatch(client, input.projectId, "ACTUALS", seedKey, "actuals", data.actuals, actor);
     await ensureActuals(client, actualsBatchId, data.actuals);
   }
+  const actualsMinDate = (data.actuals ?? []).reduce<string | null>((minDate, row) => {
+    const postingDate = row.postingDate;
+    if (!postingDate) {
+      return minDate;
+    }
+    return !minDate || postingDate < minDate ? postingDate : minDate;
+  }, null);
   if (data.actualsMappingRules && data.actualsMappingRules.length > 0) {
-    await ensureActualsMapping(client, input.projectId, data.actualsMappingRules, workPackageIds, procPackageIds, seedKey);
+    await ensureActualsMapping(client, input.projectId, data.actualsMappingRules, workPackageIds, procPackageIds, seedKey, actualsMinDate);
   }
 
   if (data.planningEvents && data.planningEvents.length > 0) {

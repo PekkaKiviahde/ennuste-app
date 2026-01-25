@@ -1,6 +1,6 @@
 # ChatGPT-projektin liitteet — indeksi
 
-Päivitetty: 2026-01-23
+Päivitetty: 2026-01-25
 
 Tämä tiedosto on yhden liitteen “hakemisto”.
 Se kertoo mitä liitteitä on ja mitä ne ovat.
@@ -28,6 +28,7 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `tools/scripts/RUNBOOK_JYDA_IMPORT.md` — Jyda-importin ajaminen ja virheet
 - `docs/runbooks/CHANGE_REQUESTS_MT_LT.md` — MT/LT muutospyynnöt: prosessi + audit + testaus
 - `docs/runbooks/ONBOARDING_DEMO_PROJECT.md` — onboarding luo täytetyn demoprojektin (demo_exports/v1)
+- `docs/runbooks/DEMO_ONBOARDING_VERIFICATION_NOTES.md` — demo-onboardingin verifiointi ja smoke-polku
 ## 3) SQL-migraatiot
 - `migrations/0001_baseline.sql` — baseline-skeema ja append-only
 - `migrations/0044_budget_lines.sql` — budget_lines koontitaso tavoitearviolle
@@ -35,6 +36,7 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `migrations/0043_reporting_phase18_views.sql` — raporttinäkymät ja aggregaatit
 
 - `migrations/0048_change_requests_mt_lt.sql` — MT/LT change requests (muutospyynnöt)
+- `migrations/0054_actuals_latest_report_views.sql` — latest toteumat: mapped/unmapped raporttinäkymät
 ## 4) UI/UX
 - `docs/UI_ONE_SCREEN_V1.md` — yhden ruudun UI-kuvaus
 - `spec/ui/01_work_phase_ui.md` — työpaketti UI: peruspolku
@@ -76,3 +78,6 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `migrations/0044_budget_lines.sql`
 - `demo_exports/v1/README.md`
 - `docs/sql/SMOKE_DEMO_ONBOARDING_DATA.sql`
+- `docs/sql/SMOKE_DEMO_CANONICAL.sql`
+- `docs/runbooks/DEMO_ONBOARDING_VERIFICATION_NOTES.md`
+- `migrations/0054_actuals_latest_report_views.sql`
