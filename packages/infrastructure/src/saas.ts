@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { SaasPort } from "@ennuste/application";
 import { AppError } from "@ennuste/shared";
+import { provisionDemoProjectAndData } from "./demoProvisioning";
 import { pool, query } from "./db";
 
 const hashToken = (token: string) =>
@@ -173,6 +174,14 @@ export const saasRepository = (): SaasPort => ({
           demoProjectCreated = true;
         }
       }
+
+      await provisionDemoProjectAndData(client, {
+        projectId: demoProjectId,
+        tenantId,
+        organizationId,
+        createdBy: input.createdBy,
+        seedKey: "demo_exports/v1"
+      });
 
       const revoked = await client.query<{ invite_id: string }>(
         `UPDATE org_invites

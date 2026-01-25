@@ -1,0 +1,184 @@
+{
+  "workPackages": [
+    { "code": "0310", "name": "Maaperä ja perustukset" },
+    { "code": "2100", "name": "Runko" },
+    { "code": "4100", "name": "Julkisivu" },
+    { "code": "4200", "name": "Ikkunat ja ulko-ovet" },
+    { "code": "5200", "name": "Sisätyöt" },
+    { "code": "6700", "name": "Sähkö" }
+  ],
+  "procPackages": [
+    { "code": "0310", "name": "Perustusten urakka", "defaultWorkPackageCode": "0310" },
+    { "code": "4100", "name": "Julkisivu-urakka", "defaultWorkPackageCode": "4100" },
+    { "code": "6700", "name": "Sähköurakka", "defaultWorkPackageCode": "6700" }
+  ],
+  "litteras": [
+    { "code": "0310", "title": "Maaperä ja perustukset" },
+    { "code": "2100", "title": "Runko" },
+    { "code": "4100", "title": "Julkisivu" },
+    { "code": "4200", "title": "Ikkunat ja ulko-ovet" },
+    { "code": "5200", "title": "Sisätyöt" },
+    { "code": "6700", "title": "Sähkö" }
+  ],
+  "budgetLines": [
+    { "code": "0310", "title": "Maankaivuu", "costs": { "LABOR": 12000, "MATERIAL": 3500 } },
+    { "code": "0310", "title": "Maankaivuu", "costs": { "SUBCONTRACT": 8000 } },
+    { "code": "2100", "title": "Runkoelementit", "costs": { "SUBCONTRACT": 25000, "LABOR": 9000 } },
+    { "code": "4100", "title": "Julkisivu", "costs": { "MATERIAL": 14000, "LABOR": 7000 } },
+    { "code": "4200", "title": "Ikkunat", "costs": { "MATERIAL": 8000 } },
+    { "code": "5200", "title": "Sisävalmistus", "costs": { "LABOR": 6000, "SUBCONTRACT": 4000, "OTHER": 2000 } },
+    { "code": "6700", "title": "Sähkötyöt", "costs": { "LABOR": 5500, "SUBCONTRACT": 4500, "MATERIAL": 2500 } }
+  ],
+  "targetEstimateItems": [
+    {
+      "itemCode": "0310-01",
+      "litteraCode": "0310",
+      "description": "Kaivutyöt ja pohjatyöt",
+      "qty": 12,
+      "unit": "h",
+      "sumEur": 23500,
+      "breakdown": { "labor_eur": 12000, "material_eur": 3500, "subcontract_eur": 8000 }
+    },
+    {
+      "itemCode": "2100-01",
+      "litteraCode": "2100",
+      "description": "Runkoelementtien toimitus",
+      "qty": 5,
+      "unit": "kpl",
+      "sumEur": 25000,
+      "breakdown": { "subcontract_eur": 25000 }
+    },
+    {
+      "itemCode": "2100-02",
+      "litteraCode": "2100",
+      "description": "Runkoelementtien asennus",
+      "qty": 10,
+      "unit": "h",
+      "sumEur": 9000,
+      "breakdown": { "labor_eur": 9000 }
+    },
+    {
+      "itemCode": "4100-01",
+      "litteraCode": "4100",
+      "description": "Julkisivuelementit",
+      "qty": 8,
+      "unit": "kpl",
+      "sumEur": 21000,
+      "breakdown": { "labor_eur": 7000, "material_eur": 14000 }
+    },
+    {
+      "itemCode": "4200-01",
+      "litteraCode": "4200",
+      "description": "Ikkunat ja ovet",
+      "qty": 14,
+      "unit": "kpl",
+      "sumEur": 8000,
+      "breakdown": { "material_eur": 8000 }
+    },
+    {
+      "itemCode": "5200-01",
+      "litteraCode": "5200",
+      "description": "Sisävalmistuksen erät",
+      "qty": 20,
+      "unit": "h",
+      "sumEur": 12000,
+      "breakdown": { "labor_eur": 6000, "subcontract_eur": 4000, "other_eur": 2000 }
+    },
+    {
+      "itemCode": "6700-01",
+      "litteraCode": "6700",
+      "description": "Sähköjärjestelmät",
+      "qty": 15,
+      "unit": "h",
+      "sumEur": 12500,
+      "breakdown": { "labor_eur": 5500, "subcontract_eur": 4500, "material_eur": 2500 }
+    }
+  ],
+  "itemMappings": [
+    { "itemCode": "0310-01", "workPackageCode": "0310", "procPackageCode": "0310" },
+    { "itemCode": "2100-01", "workPackageCode": "2100" },
+    { "itemCode": "2100-02", "workPackageCode": "2100" },
+    { "itemCode": "4100-01", "workPackageCode": "4100", "procPackageCode": "4100" },
+    { "itemCode": "4200-01", "workPackageCode": "4200" },
+    { "itemCode": "5200-01", "workPackageCode": "5200" },
+    { "itemCode": "6700-01", "workPackageCode": "6700", "procPackageCode": "6700" }
+  ],
+  "mappingLines": [
+    { "workCode": "0310", "targetCode": "0310", "allocationRule": "FULL", "allocationValue": 1, "costType": null },
+    { "workCode": "2100", "targetCode": "2100", "allocationRule": "FULL", "allocationValue": 1, "costType": null },
+    { "workCode": "4100", "targetCode": "4100", "allocationRule": "FULL", "allocationValue": 1, "costType": null },
+    { "workCode": "4200", "targetCode": "4200", "allocationRule": "FULL", "allocationValue": 1, "costType": null },
+    { "workCode": "5200", "targetCode": "5200", "allocationRule": "FULL", "allocationValue": 1, "costType": null },
+    { "workCode": "6700", "targetCode": "6700", "allocationRule": "FULL", "allocationValue": 1, "costType": null }
+  ],
+  "actuals": [
+    {
+      "postingDate": "2025-01-15",
+      "amountEur": 5000,
+      "account": "4000",
+      "costCenter": "DEMO",
+      "vendor": "Maa Oy",
+      "invoiceNo": "DEMO-001",
+      "description": "Maarakennus ensimmäinen erä",
+      "litteraCode": "0310"
+    },
+    {
+      "postingDate": "2025-02-03",
+      "amountEur": 3200,
+      "account": "4300",
+      "costCenter": "DEMO",
+      "vendor": "Julkisivu Oy",
+      "invoiceNo": "DEMO-002",
+      "description": "Julkisivuerä",
+      "litteraCode": "4100"
+    },
+    {
+      "postingDate": "2025-02-10",
+      "amountEur": 2800,
+      "account": "4500",
+      "costCenter": "DEMO",
+      "vendor": "Sähkö Oy",
+      "invoiceNo": "DEMO-003",
+      "description": "Sähköasennus",
+      "litteraCode": "6700"
+    },
+    {
+      "postingDate": "2025-02-12",
+      "amountEur": 900,
+      "account": "4999",
+      "costCenter": "DEMO",
+      "vendor": "Sekalaiset",
+      "invoiceNo": "DEMO-004",
+      "description": "Kirjaus ilman mapitusta",
+      "litteraCode": "9999"
+    }
+  ],
+  "actualsMappingRules": [
+    { "match": { "littera_code": "0310" }, "workPackageCode": "0310", "procPackageCode": "0310", "priority": 100 },
+    { "match": { "littera_code": "4100" }, "workPackageCode": "4100", "procPackageCode": "4100", "priority": 100 },
+    { "match": { "littera_code": "6700" }, "workPackageCode": "6700", "procPackageCode": "6700", "priority": 100 }
+  ],
+  "planningEvents": [
+    {
+      "targetCode": "0310",
+      "status": "READY_FOR_FORECAST",
+      "summary": "Demo-suunnitelma: maarakennus",
+      "observations": "Perustukset valmiit",
+      "createdBy": "demo.seed"
+    }
+  ],
+  "forecastEvents": [
+    {
+      "targetCode": "0310",
+      "mappingVersionCode": "demo_exports/v1",
+      "comment": "Ensimmäinen forecast demolle",
+      "technicalProgress": 0.25,
+      "financialProgress": 0.2,
+      "createdBy": "demo.seed",
+      "lines": [
+        { "costType": "LABOR", "forecastValue": 8000, "memoGeneral": "Maankaivuu jatkuu" },
+        { "costType": "SUBCONTRACT", "forecastValue": 7000, "memoGeneral": "Urakka käynnissä" }
+      ]
+    }
+  ]
+}
