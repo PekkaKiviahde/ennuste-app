@@ -22,6 +22,10 @@ curl -X POST http://localhost:3000/api/saas/organizations \
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_DEMO_CANONICAL.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/sql/SMOKE_DEMO_ONBOARDING_DATA.sql
 ```
+3) Budjetin päivitys (hash päivittyy):
+   - Muuta `demo_exports/v1/data.json` budjetin summia (ilman että `targetEstimateItems` muuttuu).
+   - Aja vaihe 1 uudelleen.
+   - Tarkista, että `import_batches` saa uuden `TARGET_ESTIMATE`-rivin (file_hash muuttuu) ja `budget_lines` sisältää uudet summat.
 
 ### Mitä demodata sisältää (demo_exports/v1)
 - TARGET_ESTIMATE + target_estimate_items + budget_lines (>=10 riviä)
