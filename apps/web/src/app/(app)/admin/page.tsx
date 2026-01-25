@@ -1,9 +1,14 @@
 import { loadAdminOverview } from "@ennuste/application";
 import { ForbiddenError } from "@ennuste/shared";
+import { notFound } from "next/navigation";
 import { createServices } from "../../../server/services";
+import { isAdminModeEnabled } from "../../../server/adminSession";
 import { requireSession } from "../../../server/session";
 
 export default async function AdminPage() {
+  if (!isAdminModeEnabled()) {
+    notFound();
+  }
   const session = await requireSession();
   const services = createServices();
   let overview: Awaited<ReturnType<typeof loadAdminOverview>> | null = null;
