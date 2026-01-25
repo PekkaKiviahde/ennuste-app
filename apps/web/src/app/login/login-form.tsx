@@ -6,7 +6,11 @@ import { loginAction, type LoginFormState } from "../../server/actions/auth";
 
 const initialState: LoginFormState = { error: null, errorLog: null };
 
-export default function LoginForm() {
+type LoginFormProps = {
+  demoMode: boolean;
+};
+
+export default function LoginForm({ demoMode }: LoginFormProps) {
   const [state, formAction] = useFormState(loginAction, initialState);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -31,7 +35,12 @@ export default function LoginForm() {
 
   return (
     <>
-      <form ref={formRef} className="form-grid" action={formAction}>
+      <form
+        ref={formRef}
+        className="form-grid"
+        action={formAction}
+        data-show-demo-users={demoMode ? "true" : "false"}
+      >
         <label className="label" htmlFor="username">Kayttajatunnus</label>
         <input ref={usernameRef} className="input" id="username" name="username" placeholder="etunimi.sukunimi" />
 
