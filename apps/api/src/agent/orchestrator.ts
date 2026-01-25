@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import { runMission0 } from "./mission0";
 import { getRepoRootFromGit, loadAgentConfig, resolveModel } from "./config";
 import { execShell } from "./tools/exec";
-import { ensureOriginUsesToken, resolveGitHubTokenFromEnvOrDotEnv } from "./tools/gitAuth";
+import { ensureOriginUsesToken } from "./tools/gitAuth";
 import { isPathAllowed } from "./tools/paths";
 import { AgentMemoryRepo } from "../memory/agentMemoryRepo";
 import { createOpenAIClient, callModelText } from "./openaiClient";
@@ -908,7 +908,20 @@ export async function runChange(req: ChangeRequest) {
     model = resolveModel(config);
     branchName = makeBranchName(config.git.branchPrefix, sessionId);
 
-    const token = resolveGitHubTokenFromEnvOrDotEnv(repoRoot);
+    const token = (process.env.GH_TOKEN ?? "").trim();
+    if (!token) {
+      applyStderr = "GH_TOKEN missing";
+      response = {
+        status: "failed",
+        branchName,
+        changedFiles: [],
+        applyStdout,
+        applyStderr,
+        patchPreview,
+        ...(applyPatchPath ? { applyPatchPath } : {}),
+      };
+      return response;
+    }
     if (!token) {
       applyStderr = "GH_TOKEN missing (required for mode=change)";
       response = {
