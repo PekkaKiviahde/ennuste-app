@@ -29,6 +29,13 @@ const buildUsersWithSuffix = (users, suffix) =>
 
 const costTypes = ["LABOR", "MATERIAL", "SUBCONTRACT", "RENTAL", "OTHER"];
 
+const ensureDemoFlag = async (client, projectId) => {
+  await client.query(
+    "UPDATE projects SET is_demo = true, project_details = COALESCE(project_details, '{}'::jsonb) || '{\"demo\": true}'::jsonb WHERE project_id = $1::uuid",
+    [projectId]
+  );
+};
+
 const ensureBaselineImportBatch = async (client, projectId, kind, sourceSystem, fileName) => {
   const fileHash = crypto
     .createHash("sha256")
@@ -473,24 +480,33 @@ const seedTenant = async (client, config) => {
 
   const projectIdsByName = new Map();
   for (const project of config.projects) {
+    const isDemoProject = project.seedDemoData === true || project.seedDemoData === "true";
+    const projectDetails = {
+      ...(project.details || {}),
+      ...(isDemoProject ? { demo: true } : {})
+    };
     const existingProject = await client.query(
-      "SELECT project_id FROM projects WHERE name = $1 AND organization_id = $2::uuid",
+      "SELECT project_id FROM projects WHERE name = $1 AND organization_id = $2::uuid ORDER BY created_at DESC LIMIT 1",
       [project.name, organizationId]
     );
     let projectId = existingProject.rows[0]?.project_id;
     if (!projectId) {
       const projectResult = await client.query(
-        "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, project_details, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, $5::project_state, $6::jsonb, now()) RETURNING project_id",
+        "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state, is_demo, project_details, created_at) VALUES ($1, $2, $3::uuid, $4::uuid, $5::project_state, $6, $7::jsonb, now()) RETURNING project_id",
         [
           project.name,
           project.customer || null,
           organizationId,
           tenantId,
           project.projectState || "P1_PROJECT_ACTIVE",
-          JSON.stringify(project.details || {})
+          isDemoProject,
+          JSON.stringify(projectDetails)
         ]
       );
       projectId = projectResult.rows[0].project_id;
+    }
+    if (isDemoProject && projectId) {
+      await ensureDemoFlag(client, projectId);
     }
     projectIdsByName.set(project.name, projectId);
   }
