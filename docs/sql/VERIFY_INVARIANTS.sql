@@ -164,7 +164,7 @@ BEGIN
       RETURNING project_id INTO v_project_id;
 
       INSERT INTO litteras (project_id, code)
-      VALUES (v_project_id, 'V1000')
+      VALUES (v_project_id, '1000')
       RETURNING littera_id INTO v_littera_id;
 
       BEGIN
