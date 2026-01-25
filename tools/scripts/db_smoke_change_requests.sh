@@ -23,7 +23,7 @@ fi
 # We keep it simple and pragmatic: take the token after TABLE/VIEW/FUNCTION (and before '(' for functions).
 extract_table_like() {
   # tables + (materialized) views
-  grep -Eis '^\s*CREATE\s+(TABLE|VIEW|MATERIALIZED\s+VIEW)\b' "$MIGRATION_FILE" \
+  grep -Eis '^\s*CREATE\s+(OR\s+REPLACE\s+)?(TABLE|VIEW|MATERIALIZED\s+VIEW)\b' "$MIGRATION_FILE" \
   | sed -E 's/--.*$//' \
   | awk '
     BEGIN{IGNORECASE=1}

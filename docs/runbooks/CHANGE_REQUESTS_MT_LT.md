@@ -44,11 +44,29 @@ Tekninen toteutus tulee migraatiosta: `migrations/0048_change_requests_mt_lt.sql
   - näkyy kuka teki mitä ja milloin
   - päätös ja perustelu ovat todennettavissa myöhemmin
 
+## Append-only poikkeus: laskurit
+- `project_change_counters` on tekninen laskuritaulu.
+- Siinä sallitaan `UPDATE` vain funktiossa `change_request_create(...)`.
+- Muut change request -taulut ovat append-only triggereillä.
+
 ## DB-objektit
 Tekninen toteutus tulee migraatiosta:
 - `migrations/0048_change_requests_mt_lt.sql`
 
 Vinkki: listaa objektit nopeasti:
 ```bash
-grep -nE "CREATE (TABLE|VIEW|FUNCTION)" migrations/0048_change_requests_mt_lt.sql
+grep -nE "CREATE (TABLE|OR REPLACE VIEW|VIEW|FUNCTION)" migrations/0048_change_requests_mt_lt.sql
 ```
+
+## Mitä muuttui
+- Lisätty append-only poikkeus laskureille (`project_change_counters`).
+- Päivitetty objektilistauskomento kattamaan `CREATE OR REPLACE VIEW`.
+
+## Miksi
+- 0048 sisältää hallitun `UPDATE`-poikkeuksen laskuritauluun.
+- Manuaalitarkistuksen pitää nähdä myös OR REPLACE -näkymät.
+
+## Miten testataan (manuaali)
+- Aja: `bash -n tools/scripts/db_smoke_change_requests.sh`
+- Aja: `tools/scripts/db_smoke_change_requests.sh` (DB:llä, jossa migraatiot on ajettu)
+- Aja: runbookin objektilistauskomento.
