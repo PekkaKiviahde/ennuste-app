@@ -26,8 +26,8 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `docs/runbooks/workflow_report_maintenance.md` — workflow-raportin päivitysohje
 - `docs/RUNBOOK_BUDGET_IMPORT.md` — tavoitearvio/budjetti tuonti käytännössä
 - `tools/scripts/RUNBOOK_JYDA_IMPORT.md` — Jyda-importin ajaminen ja virheet
-
 - `docs/runbooks/CHANGE_REQUESTS_MT_LT.md` — MT/LT muutospyynnöt: prosessi + audit + testaus
+- `docs/runbooks/ONBOARDING_DEMO_PROJECT.md` — onboarding luo täytetyn demoprojektin (demo_exports/v1)
 ## 3) SQL-migraatiot
 - `migrations/0001_baseline.sql` — baseline-skeema ja append-only
 - `migrations/0044_budget_lines.sql` — budget_lines koontitaso tavoitearviolle
@@ -74,3 +74,5 @@ Se kertoo mitä liitteitä on ja mitä ne ovat.
 - `tools/scripts/RUNBOOK_JYDA_IMPORT.md`
 - `migrations/0001_baseline.sql`
 - `migrations/0044_budget_lines.sql`
+- `demo_exports/v1/README.md`
+- `docs/sql/SMOKE_DEMO_ONBOARDING_DATA.sql`
