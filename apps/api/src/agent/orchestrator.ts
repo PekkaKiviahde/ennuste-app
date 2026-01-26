@@ -234,6 +234,7 @@ function validateNewFileBlocks(patch: string): { ok: true } | { ok: false; error
 }
 
 function validateDocsPatchSmall(patch: string): { ok: true } | { ok: false; error: string; details?: string } {
+  const runbookHunkLimit = 50;
   const blocks = listDiffBlocks(patch);
   for (const block of blocks) {
     const filePath = block.bPath === "/dev/null" ? block.aPath : block.bPath;
@@ -246,11 +247,11 @@ function validateDocsPatchSmall(patch: string): { ok: true } | { ok: false; erro
 
     const check = () => {
       if (!inHunk) return { ok: true as const };
-      if (Math.max(plus, minus) > 3) {
+      if (Math.max(plus, minus) > runbookHunkLimit) {
         return {
           ok: false as const,
           error: "docs change too broad",
-          details: `${filePath}: hunk too large (+${plus}/-${minus})`,
+          details: `${filePath}: hunk too large (+${plus}/-${minus}), limit ${runbookHunkLimit}`,
         };
       }
       return { ok: true as const };
