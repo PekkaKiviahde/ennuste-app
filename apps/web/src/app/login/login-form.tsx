@@ -15,7 +15,8 @@ type LoginFormProps = {
 };
 
 export default function LoginForm({ demoMode, action = loginAction, submitLabel = "Kirjaudu" }: LoginFormProps) {
-  const [state, formAction] = useFormState(action, initialState);
+  const [stateRaw, formAction] = useFormState(action, initialState);
+  const state = stateRaw ?? initialState; // guard: useFormState should not yield undefined, mutta vältetään runtime-crash
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [showPin, setShowPin] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
