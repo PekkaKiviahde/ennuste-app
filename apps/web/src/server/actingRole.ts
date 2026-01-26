@@ -7,7 +7,7 @@ import { hasAdminSessionCookie, isAdminModeEnabled, isAdminUser } from "./adminS
 export const ACTING_ROLE_COOKIE = "ennuste_acting_role";
 
 export const actingRoleOptions = [
-  { roleCode: "SELLER", label: "Myyja" },
+  { roleCode: "SELLER", label: "Myyjä" },
   { roleCode: "SITE_FOREMAN", label: "Tyonjohtaja" },
   { roleCode: "GENERAL_FOREMAN", label: "Vastaava mestari" },
   { roleCode: "PROJECT_MANAGER", label: "Tyopaallikko" },

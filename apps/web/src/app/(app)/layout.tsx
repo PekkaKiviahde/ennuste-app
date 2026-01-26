@@ -45,10 +45,10 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
         <span className="badge">{contextLabel}</span>
         {hasReportRead && (
           <>
-            <Link href="/ylataso">Ylataso</Link>
-            <Link href="/tyonohjaus">Tyonohjaus</Link>
+            <Link href="/ylataso">Ylätaso</Link>
+            <Link href="/tyonohjaus">Työnohjaus</Link>
             <Link href="/tavoitearvio">Tavoitearvio</Link>
-            <Link href="/tavoitearvio/mappaus">Tavoitearvion mappays</Link>
+            <Link href="/tavoitearvio/mappaus">Tavoitearvion mäppäys</Link>
             <Link href="/suunnittelu">Työpakettisuunnittelu</Link>
             <Link href="/baseline">Baseline</Link>
             <Link href="/ennuste">Ennuste</Link>

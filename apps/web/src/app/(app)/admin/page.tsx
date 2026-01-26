@@ -41,7 +41,7 @@ export default async function AdminPage() {
     return (
       <div className="card">
         <h1>Admin</h1>
-        <div className="notice error">Ei oikeuksia admin-nakymiin.</div>
+        <div className="notice error">Ei oikeuksia admin-näkymiin.</div>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default async function AdminPage() {
     <div className="grid grid-2">
       <section className="card">
         <h1>Admin</h1>
-        <p>Kayttajat, roolit ja projektin jasenyydet.</p>
+        <p>Käyttäjät, roolit ja projektin jäsenyydet.</p>
         <h3>Roolit</h3>
         <div className="grid">
           {overview.roles.length === 0 ? (
@@ -65,14 +65,14 @@ export default async function AdminPage() {
         </div>
       </section>
       <section className="card">
-        <h2>Assignoinnit</h2>
+        <h2>Kohdistukset</h2>
         <table className="table">
           <thead>
             <tr>
-              <th>Scope</th>
-              <th>Kayttaja</th>
+              <th>Kohde</th>
+              <th>Käyttäjä</th>
               <th>Rooli</th>
-              <th>Myonnetty</th>
+              <th>Myönnetty</th>
             </tr>
           </thead>
           <tbody>

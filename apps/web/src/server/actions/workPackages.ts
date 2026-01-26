@@ -37,7 +37,7 @@ export const createWeeklyUpdateAction = async (
     const percentComplete = parseNumber(formData.get("percentComplete"));
 
     if (!workPackageId || !weekEnding) {
-      return { ok: false, message: null, error: "Tyopaketti ja paivamaara ovat pakollisia." };
+      return { ok: false, message: null, error: "Työpaketti ja päivämäärä ovat pakollisia." };
     }
     if (percentComplete < 0 || percentComplete > 100) {
       return { ok: false, message: null, error: "Valmiusasteen tulee olla 0-100." };
@@ -53,9 +53,9 @@ export const createWeeklyUpdateAction = async (
       risks: String(formData.get("risks") ?? "") || null,
       username: session.username
     });
-    return { ok: true, message: `Viikkopaivitys tallennettu (${result.workPackageWeeklyUpdateId}).`, error: null };
+    return { ok: true, message: `Viikkopäivitys tallennettu (${result.workPackageWeeklyUpdateId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Viikkopaivitys epaonnistui.";
+    const message = error instanceof Error ? error.message : "Viikkopäivitys epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };
@@ -72,10 +72,10 @@ export const createGhostEntryAction = async (
     const amount = parseNumber(formData.get("amount"));
 
     if (!workPackageId || !weekEnding) {
-      return { ok: false, message: null, error: "Tyopaketti ja paivamaara ovat pakollisia." };
+      return { ok: false, message: null, error: "Työpaketti ja päivämäärä ovat pakollisia." };
     }
     if (amount <= 0) {
-      return { ok: false, message: null, error: "Maara tulee olla suurempi kuin 0." };
+      return { ok: false, message: null, error: "Määrän tulee olla suurempi kuin 0." };
     }
 
     const result = await createGhostEntry(services, {
@@ -90,7 +90,7 @@ export const createGhostEntryAction = async (
     });
     return { ok: true, message: `Ghost kirjattu (${result.ghostCostEntryId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ghost-kirjaus epaonnistui.";
+    const message = error instanceof Error ? error.message : "Ghost-kirjaus epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };
@@ -107,7 +107,7 @@ export const lockBaselineAction = async (
     const targetImportBatchId = String(formData.get("targetImportBatchId") ?? "").trim();
 
     if (!workPackageId || !workPackageVersionId || !targetImportBatchId) {
-      return { ok: false, message: null, error: "Tyopaketti, versio ja batch ID ovat pakollisia." };
+      return { ok: false, message: null, error: "Työpaketti, versio ja batch ID ovat pakollisia." };
     }
 
     const result = await lockBaseline(services, {
@@ -121,7 +121,7 @@ export const lockBaselineAction = async (
     });
     return { ok: true, message: `Baseline lukittu (${result.workPackageBaselineId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Baseline-lukitus epaonnistui.";
+    const message = error instanceof Error ? error.message : "Baseline-lukitus epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };
@@ -137,7 +137,7 @@ export const proposeCorrectionAction = async (
     const itemCode = String(formData.get("itemCode") ?? "").trim();
 
     if (!workPackageId || !itemCode) {
-      return { ok: false, message: null, error: "Tyopaketti ja item code ovat pakollisia." };
+      return { ok: false, message: null, error: "Työpaketti ja item code ovat pakollisia." };
     }
 
     const result = await proposeCorrection(services, {
@@ -150,7 +150,7 @@ export const proposeCorrectionAction = async (
     });
     return { ok: true, message: `Korjausehdotus tallennettu (${result.correctionId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Korjausehdotus epaonnistui.";
+    const message = error instanceof Error ? error.message : "Korjausehdotus epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };
@@ -174,9 +174,9 @@ export const approveCorrectionPmAction = async (
       comment: String(formData.get("comment") ?? "") || null,
       username: session.username
     });
-    return { ok: true, message: "Korjaus hyvaksytty 1/2.", error: null };
+    return { ok: true, message: "Korjaus hyväksytty 1/2.", error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Hyvaksynta epaonnistui.";
+    const message = error instanceof Error ? error.message : "Hyväksyntä epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };
@@ -200,9 +200,9 @@ export const approveCorrectionFinalAction = async (
       comment: String(formData.get("comment") ?? "") || null,
       username: session.username
     });
-    return { ok: true, message: `Korjaus hyvaksytty 2/2 (${result.baselineId}).`, error: null };
+    return { ok: true, message: `Korjaus hyväksytty 2/2 (${result.baselineId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Lopullinen hyvaksynta epaonnistui.";
+    const message = error instanceof Error ? error.message : "Lopullinen hyväksyntä epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };

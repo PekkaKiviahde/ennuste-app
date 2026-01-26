@@ -48,7 +48,7 @@ export default async function ReportPage() {
   const planningTime = formatDateTime(status.planning?.event_time);
   const planningSummary = status.planning?.summary?.trim();
   const lockSummaryLabel = status.isLocked
-    ? planningSummary || "Ei lukituksen selitetta."
+    ? planningSummary || "Ei lukituksen selitettä."
     : "Lukitus ei ole voimassa.";
   const summary = dashboard as
     | {
@@ -73,8 +73,8 @@ export default async function ReportPage() {
     varianceTotal == null
       ? "Poikkeamaa ei voida laskea."
       : varianceTotal >= 0
-        ? "EV ylittaa AC*:n."
-        : "AC* ylittaa EV:n.";
+        ? "EV ylittää AC*:n."
+        : "AC* ylittää EV:n.";
   const maxKpi = Math.max(summary?.bac_total ?? 0, summary?.ev_total ?? 0, summary?.ac_star_total ?? 0, 0);
   const toPercent = (value: number | null | undefined) => {
     if (!value || maxKpi <= 0) return "0%";
@@ -85,7 +85,7 @@ export default async function ReportPage() {
     <div className="grid">
       <section className="card">
         <h1>Raportti</h1>
-        <p>Tyovaiheiden yhteenveto, KPI ja poikkeamat.</p>
+        <p>Työvaiheiden yhteenveto, KPI ja poikkeamat.</p>
         {!status.planning && (
           <div className="notice error">Työpakettisuunnittelu puuttuu. Ennustetapahtumia ei voi luoda.</div>
         )}
@@ -108,15 +108,15 @@ export default async function ReportPage() {
         <p>Projektitason KPI ja toteuman kooste.</p>
         <div className="status-grid">
           <div className="status-item">
-            <div className="label">BAC yhteensa</div>
+            <div className="label">BAC yhteensä</div>
             <div className="value">{formatNumber(summary?.bac_total ?? null)}</div>
           </div>
           <div className="status-item">
-            <div className="label">EV yhteensa</div>
+            <div className="label">EV yhteensä</div>
             <div className="value">{formatNumber(summary?.ev_total ?? null)}</div>
           </div>
           <div className="status-item">
-            <div className="label">AC* yhteensa</div>
+            <div className="label">AC* yhteensä</div>
             <div className="value">{formatNumber(summary?.ac_star_total ?? null)}</div>
           </div>
           <div className="status-item">
@@ -133,7 +133,7 @@ export default async function ReportPage() {
             <div className="value">{formatNumber(summary?.actual_including_unmapped_total ?? null)}</div>
           </div>
           <div className="status-item">
-            <div className="label">Tyovaiheet lukittu/viikkopaivitetty</div>
+            <div className="label">Työvaiheet lukittu/viikkopäivitetty</div>
             <div className="value">
               {summaryBaseline} / {summaryWeekly}
             </div>
@@ -178,23 +178,23 @@ export default async function ReportPage() {
 
       <section className="card">
         <h2>KPI-selitteet</h2>
-        <p>Nain tulkitset raportin mittarit.</p>
+        <p>Näin tulkitset raportin mittarit.</p>
         <ul className="kpi-notes">
           <li><strong>BAC</strong> = budjetoitu kokonaiskustannus.</li>
           <li><strong>EV</strong> = ansaittu arvo suhteessa valmiusasteeseen.</li>
-          <li><strong>AC*</strong> = toteuma sisaltaen ghost-rivit.</li>
-          <li><strong>CPI</strong> = EV / AC* (miten tehokkaasti edetaan).</li>
+          <li><strong>AC*</strong> = toteuma sisältäen ghost-rivit.</li>
+          <li><strong>CPI</strong> = EV / AC* (miten tehokkaasti edetään).</li>
           <li><strong>Poikkeama</strong> = EV - AC* (plus = ahead, miinus = overrun).</li>
         </ul>
       </section>
 
       <section className="card">
-        <h2>Tyovaiheet</h2>
-        <p>Tyovaiheiden yhteenveto, KPI ja poikkeamat.</p>
+        <h2>Työvaiheet</h2>
+        <p>Työvaiheiden yhteenveto, KPI ja poikkeamat.</p>
       <table className="table">
         <thead>
           <tr>
-            <th>Tyovaihe</th>
+            <th>Työvaihe</th>
             <th>BAC</th>
             <th>EV</th>
             <th>AC*</th>
@@ -206,7 +206,7 @@ export default async function ReportPage() {
           {rows.length === 0 ? (
             <tr>
               <td colSpan={6}>
-                <div className="notice">Ei raporttiriveja viela.</div>
+                <div className="notice">Ei raporttirivejä vielä.</div>
               </td>
             </tr>
           ) : (

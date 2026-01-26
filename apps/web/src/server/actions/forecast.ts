@@ -106,7 +106,7 @@ export const createForecastAction = async (
 
     return { ok: true, message: `Ennuste tallennettu (${result.forecastEventId}).`, error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ennusteen tallennus epaonnistui.";
+    const message = error instanceof Error ? error.message : "Ennusteen tallennus epäonnistui.";
     return { ok: false, message: null, error: message };
   }
 };

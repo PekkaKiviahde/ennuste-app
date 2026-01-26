@@ -31,13 +31,13 @@ export default function AcceptInviteForm({ token }: { token: string }) {
         displayName: displayName.trim() || null
       })
     });
-    setResult("Kutsu hyvaksytty. Voit kirjautua sisaan.");
+    setResult("Kutsu hyväksytty. Voit kirjautua sisään.");
   };
 
   return (
     <section className="card">
-      <h1>Hyvaksy kutsu</h1>
-      <p>Syota nimesi ja valitse PIN.</p>
+      <h1>Hyväksy kutsu</h1>
+      <p>Syötä nimesi ja valitse PIN.</p>
       <div className="form-grid">
         <label className="label" htmlFor="displayName">Nimi</label>
         <input
@@ -60,7 +60,7 @@ export default function AcceptInviteForm({ token }: { token: string }) {
       </div>
       <div className="status-actions">
         <button className="btn btn-primary" type="button" onClick={() => submit().catch((err) => setResult(err.message))}>
-          Hyvaksy kutsu
+          Hyväksy kutsu
         </button>
         <a className="btn btn-secondary" href="/login">Kirjautumiseen</a>
       </div>

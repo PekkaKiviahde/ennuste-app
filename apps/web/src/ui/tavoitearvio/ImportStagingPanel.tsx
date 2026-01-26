@@ -43,8 +43,8 @@ const fetchJson = async (url: string, options: RequestInit = {}) => {
 
 const buildErrorLog = (summary: any, errorLines: StagingLine[]) => {
   const lines: string[] = [
-    `Batch: ${summary.staging_batch_id}`,
-    `ERROR-issuet: ${summary.error_issues}`,
+    `Erä: ${summary.staging_batch_id}`,
+    `ERROR-ongelmat: ${summary.error_issues}`,
     `Ohitetut rivit: ${summary.skipped_rows}`,
     `Ohitetut arvot: ${summary.skipped_values}`,
     ""
@@ -114,7 +114,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     nextSeverity: string = severity
   ) => {
     if (!targetBatchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const params = new URLSearchParams();
     params.set("mode", nextMode);
@@ -137,7 +137,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
     const nextBatchId = String(res.staging_batch_id);
     setBatchId(nextBatchId);
     setResult(
-      `Staging luotu (${sourceLabel}). batch=${nextBatchId} · rivit=${res.line_count} · issueita=${res.issue_count}${
+      `Välivarasto luotu (${sourceLabel}). erä=${nextBatchId} · rivit=${res.line_count} · ongelmia=${res.issue_count}${
         res.warnings?.length ? ` · varoitukset: ${res.warnings.join(" | ")}` : ""
       }`
     );
@@ -148,18 +148,18 @@ export default function ImportStagingPanel({ username }: { username: string }) {
       const errorRes = await fetchJson(`/api/import-staging/${nextBatchId}/lines?mode=issues&severity=ERROR`);
       const errorLines: StagingLine[] = errorRes.lines || [];
       setErrorLog(buildErrorLog(preview, errorLines));
-      setResult(`Tuonti pysäytetty: ${preview.error_issues} ERROR-issueta. Katso virheloki.`);
+      setResult(`Tuonti pysäytetty: ${preview.error_issues} ERROR-ongelmaa. Katso virheloki.`);
       return;
     }
 
     await fetchJson(`/api/import-staging/${nextBatchId}/approve`, {
       method: "POST",
-      body: JSON.stringify({ message: "Autohyvaksytty UI:ssa" })
+      body: JSON.stringify({ message: "Autohyväksytty UI:ssa" })
     });
     const commitRes = await fetchJson(`/api/import-staging/${nextBatchId}/commit`, {
       method: "POST",
       body: JSON.stringify({
-        message: "Autosirretty UI:ssa",
+        message: "Autosiirretty UI:ssa",
         allowDuplicate,
         force
       })
@@ -209,18 +209,18 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
   const showSummary = async () => {
     if (!batchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const res = await fetchJson(`/api/import-staging/${batchId}/summary`);
     const totals = res.totals_by_cost_type || {};
     const totalsAll = res.totals_by_cost_type_all || {};
     const lines: string[] = [
-      `Batch: ${res.staging_batch_id}`,
-      `Riveja: ${res.line_count}`,
+      `Erä: ${res.staging_batch_id}`,
+      `Rivejä: ${res.line_count}`,
       `Koodit: ${res.codes_count}`,
       `Ohitetut rivit: ${res.skipped_rows}`,
       `Ohitetut arvot: ${res.skipped_values}`,
-      `ERROR-issuet: ${res.error_issues}`,
+      `ERROR-ongelmat: ${res.error_issues}`,
       `LABOR (puhdas): ${formatAmount(totals.LABOR || 0)}`,
       `LABOR (kaikki): ${formatAmount(totalsAll.LABOR || 0)}`,
       `MATERIAL (puhdas): ${formatAmount(totals.MATERIAL || 0)}`,
@@ -233,14 +233,14 @@ export default function ImportStagingPanel({ username }: { username: string }) {
       `OTHER (kaikki): ${formatAmount(totalsAll.OTHER || 0)}`
     ];
     if (res.top_codes?.length) {
-      lines.push("", "Top 10 litterat:");
+      lines.push("", "Kärkikymmenen litterat:");
       res.top_codes.forEach((row: any, idx: number) => {
         const title = row.title ? ` — ${row.title}` : "";
         lines.push(`${idx + 1}. ${row.code}${title}: ${formatAmount(row.total || 0)}`);
       });
     }
     if (res.top_lines?.length) {
-      lines.push("", "Top 10 littera+kustannuslaji:");
+      lines.push("", "Kärkikymmenen littera+kustannuslaji:");
       res.top_lines.forEach((row: any, idx: number) => {
         const title = row.title ? ` — ${row.title}` : "";
         lines.push(`${idx + 1}. ${row.code}${title} (${row.cost_type}): ${formatAmount(row.total || 0)}`);
@@ -251,33 +251,33 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
   const approveBatch = async () => {
     if (!batchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const preview = await fetchJson(`/api/import-staging/${batchId}/summary`);
     if (preview.error_issues > 0) {
-      throw new Error("Batchissa on ERROR-issueita. Korjaa ennen hyväksyntää.");
+      throw new Error("Erässä on ERROR-ongelmia. Korjaa ennen hyväksyntää.");
     }
     const res = await fetchJson(`/api/import-staging/${batchId}/approve`, {
       method: "POST",
-      body: JSON.stringify({ message: "Hyvaksytty UI:ssa" })
+      body: JSON.stringify({ message: "Hyväksytty UI:ssa" })
     });
-    setResult(`Batch hyväksytty (event=${res.staging_batch_event_id}).`);
+    setResult(`Erä hyväksytty (event=${res.staging_batch_event_id}).`);
   };
 
   const rejectBatch = async () => {
     if (!batchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const res = await fetchJson(`/api/import-staging/${batchId}/reject`, {
       method: "POST",
-      body: JSON.stringify({ message: "Hylatty UI:ssa" })
+      body: JSON.stringify({ message: "Hylätty UI:ssa" })
     });
-    setResult(`Batch hylätty (event=${res.staging_batch_event_id}).`);
+    setResult(`Erä hylätty (event=${res.staging_batch_event_id}).`);
   };
 
   const commitBatch = async () => {
     if (!batchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const res = await fetchJson(`/api/import-staging/${batchId}/commit`, {
       method: "POST",
@@ -292,7 +292,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
   const exportCsv = async () => {
     if (!batchId) {
-      throw new Error("Staging-batch ID puuttuu.");
+      throw new Error("Tuontierä-ID puuttuu.");
     }
     const res = await fetch(`/api/import-staging/${batchId}/export?mode=${exportMode}`, {
       credentials: "include"
@@ -321,7 +321,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
       await navigator.clipboard.writeText(errorLog);
       setCopyStatus("Kopioitu");
     } catch {
-      setCopyStatus("Kopiointi epaonnistui");
+      setCopyStatus("Kopiointi epäonnistui");
     }
   };
 
@@ -554,7 +554,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
               <strong>{batch.staging_batch_id}</strong>
               <div>
                 {batch.file_name || "-"} · {new Date(batch.created_at).toLocaleString("fi-FI")} ·{" "}
-                {batch.status || "DRAFT"} · issueita={batch.issue_count}
+                {batch.status || "DRAFT"} · ongelmia={batch.issue_count}
               </div>
               <button className="btn btn-secondary btn-sm" type="button" onClick={() => setBatchId(batch.staging_batch_id)}>
                 {t("budgetImport.staging.button.selectBatch")}
@@ -572,7 +572,7 @@ export default function ImportStagingPanel({ username }: { username: string }) {
 
       <div className="history">
         {visibleLines.length === 0 ? (
-          <div className="notice">Ei riveja.</div>
+          <div className="notice">Ei rivejä.</div>
         ) : (
           visibleLines.map((line) => (
             <StagingLineCard
@@ -629,7 +629,7 @@ function StagingLineCard({
           reason: "Peruutus"
         })
       });
-      setPreview("Yhdistelma: (peruttu)");
+      setPreview("Yhdistelmä: (peruttu)");
       onEditSaved();
     } catch (error) {
       onError(error instanceof Error ? error.message : "Peruutus epäonnistui.");
@@ -652,10 +652,10 @@ function StagingLineCard({
       <div>
         {line.issues?.length
           ? line.issues.map((i) => `${i.severity || "INFO"} ${i.issue_code}: ${i.issue_message || ""}`).join(" | ")
-          : "Ei issueita."}
+          : "Ei ongelmia."}
       </div>
       <pre>{JSON.stringify(line.raw_json || {}, null, 2)}</pre>
-      {preview ? <pre>{preview}</pre> : <pre>Yhdistelma: (ei esikatselua)</pre>}
+      {preview ? <pre>{preview}</pre> : <pre>Yhdistelmä: (ei esikatselua)</pre>}
       <label className="label">Korjaus JSON (vain muuttuvat kentät)</label>
       <textarea
         className="input"
@@ -669,7 +669,7 @@ function StagingLineCard({
           Tallenna korjaus
         </button>
         <button className="btn btn-secondary btn-sm" type="button" onClick={() => previewMerged()}>
-          Esikatsele yhdistelma
+          Esikatsele yhdistelmä
         </button>
         <button className="btn btn-secondary btn-sm" type="button" onClick={undoEdit}>
           Peru korjaus
