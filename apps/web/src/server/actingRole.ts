@@ -12,6 +12,7 @@ export const actingRoleOptions = [
   { roleCode: "GENERAL_FOREMAN", label: "Vastaava mestari" },
   { roleCode: "PROJECT_MANAGER", label: "Tyopaallikko" },
   { roleCode: "PRODUCTION_MANAGER", label: "Tuotantojohtaja" },
+  { roleCode: "OPERATIONS", label: "Toiminta" },
   { roleCode: "PROCUREMENT", label: "Hankinta" },
   { roleCode: "EXEC_READONLY", label: "Johto" },
   { roleCode: "ORG_ADMIN", label: "Org-admin" }

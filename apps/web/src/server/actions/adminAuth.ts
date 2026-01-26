@@ -1,7 +1,7 @@
 "use server";
 
 import { login } from "@ennuste/application";
-import { AppError, AuthError } from "@ennuste/shared";
+import { AppError } from "@ennuste/shared";
 import { redirect } from "next/navigation";
 import { createServices } from "../services";
 import { requireSession, setSessionCookie } from "../session";
@@ -52,18 +52,16 @@ export const adminLoginAction = async (
   const pin = String(formData.get("pin") ?? "").trim();
   const services = createServices();
 
-  if (!isAdminModeEnabled()) {
+    if (!isAdminModeEnabled()) {
     console.warn("admin_login_blocked_mode_disabled", { username });
     return { error: "Admin-tila ei ole käytössä." };
   }
 
+
   const rateLimit = getAdminRateLimitStatus();
   if (rateLimit.blocked) {
-    console.warn("admin_login_blocked_rate_limit", { username, retryAt: rateLimit.retryAt });
     return { error: RATE_LIMIT_MESSAGE };
   }
-
-  console.info("admin_login_attempt", { username });
 
   try {
     const result = await login(services, { username, pin });
@@ -91,7 +89,6 @@ export const adminLoginAction = async (
           reason: "NOT_ADMIN"
         }
       });
-      console.warn("admin_login_fail_not_admin", { username });
       return { error: INVALID_MESSAGE };
     }
 
@@ -115,12 +112,6 @@ export const adminLoginAction = async (
   } catch (error) {
     ensureRedirectErrorsAreRethrown(error);
     registerAdminRateLimitAttempt("fail");
-    const logMessage = error instanceof Error ? error.message : String(error);
-    if (error instanceof AuthError) {
-      console.warn("admin_login_fail_auth", { username });
-    } else {
-      console.warn("admin_login_fail_error", { username, error: logMessage });
-    }
     return { error: INVALID_MESSAGE, errorLog: buildErrorLog(username, error) };
   }
 };
@@ -150,7 +141,7 @@ export const setAdminActingRoleAction = async (formData: FormData) => {
     projectId: session.projectId,
     tenantId: session.tenantId,
     actor: session.username,
-    action: "admin_act_as_set",
+    action: `admin_act_as_set(${roleMeta.roleCode})`,
     payload: {
       roleCode: roleMeta.roleCode,
       roleLabel: roleMeta.label,

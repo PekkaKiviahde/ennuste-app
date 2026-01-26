@@ -10,6 +10,8 @@ services:
     environment:
       SESSION_SECRET: dev-secret
       DEMO_MODE: "true"
+      ADMIN_MODE: "true"
+      SHOW_DEMO_USERS: "false"
       NEXT_IGNORE_INCORRECT_LOCKFILE: "1"
       PORT: "3000"
       DATABASE_URL: postgresql://codex:codex@db:5432/codex

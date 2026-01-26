@@ -10,6 +10,7 @@
     "db:status": "node tools/scripts/db-status.mjs",
     "db:migrate": "node tools/scripts/db-migrate.mjs",
     "db:seed-demo": "node tools/scripts/db-seed-demo.mjs",
+    "db:reset-admin": "node tools/scripts/db-reset-admin.mjs",
     "dev": "npm --workspace apps/web run dev",
     "agent:workflow-report": "sh tools/scripts/agent_workflow_report_pr.sh",
     "ci:guards": "bash tools/ci/guard_no_openai_in_web.sh",

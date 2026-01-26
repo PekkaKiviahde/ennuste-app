@@ -7,6 +7,9 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
+const adminModeEnabled = process.env.ADMIN_MODE === "true";
+const seedDemoUsers = !adminModeEnabled && process.env.SEED_DEMO_USERS !== "false";
+
 const baseDemoUsers = [
   { username: "site.foreman", display: "Tyonjohtaja", projectRoles: ["SITE_FOREMAN"] },
   { username: "general.foreman", display: "Vastaava mestari", projectRoles: ["GENERAL_FOREMAN"] },
@@ -511,8 +514,9 @@ const seedTenant = async (client, config) => {
     projectIdsByName.set(project.name, projectId);
   }
 
+  const usersToSeed = seedDemoUsers ? config.users : [];
   const userIdsByUsername = new Map();
-  for (const user of config.users) {
+  for (const user of usersToSeed) {
     const userResult = await client.query(
       "INSERT INTO users (username, display_name, email, created_by, pin_hash) VALUES ($1, $2, $3, 'seed', crypt('1234', gen_salt('bf'))) ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name, pin_hash = EXCLUDED.pin_hash RETURNING user_id",
       [user.username, user.display, user.email || `${user.username}@demo.local`]
@@ -546,7 +550,7 @@ const seedTenant = async (client, config) => {
   }
 
   const allProjectNames = [...projectIdsByName.keys()];
-  for (const user of config.users) {
+  for (const user of usersToSeed) {
     const projectRoles = user.projectRoles || [];
     if (projectRoles.length === 0) {
       continue;

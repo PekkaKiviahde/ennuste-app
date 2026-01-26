@@ -72,7 +72,7 @@ export default async function AuthedLayout({ children }: { children: ReactNode }
             {!hasMultipleProjects && <span className="muted project-switcher-note">Vain yksi projekti</span>}
           </form>
         )}
-        {hasMembersManage && <Link href="/admin">Admin</Link>}
+        {adminModeEnabled && hasMembersManage && <Link href="/admin">Admin</Link>}
         {adminModeEnabled && adminUser && !hasAdminSession && <Link href="/admin/login">Admin-tila</Link>}
         {hasAdminSession && <Link href="/admin/act-as">Roolivalinta</Link>}
         {actingRole && <span className="badge">Toimit roolissa: {actingRole.label}</span>}
