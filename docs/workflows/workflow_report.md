@@ -3,6 +3,8 @@
 Tämä on yhteenveto kanonisista workflow-speksistä (`spec/workflows/*`).
 Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 
+- Budjetin tuontipolku: `spec/imports/02_budget_import_spec.md`.
+
 - Päiväys (UTC): 2026-01-17
 - Commit-ref: (täytetään mergehetkellä)
 
