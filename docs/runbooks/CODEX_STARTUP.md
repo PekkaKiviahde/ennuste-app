@@ -2,7 +2,20 @@
 
 Tama runbook on tarkoitettu Codexille: lue aina ennen dev-ympariston kaynnistamista.
 
+## Mita muuttui (tahan runbookiin)
+- Lisatty dev-only ohje agenttiarmeijan Docker-palvelun (`agent_api`) kaynnistykseen ja pysaytykseen erillaan Next-UI:sta.
+- Lisatty `DIAG: fast` -smoke `mode=change` -ajolle (ajaa vain lint+typecheck, ei testeja).
+
 ## Miksi
+- Agenttiarmeija ei ole pakollinen UI-kehityksessa, ja sen halutaan olevan selkea "opt-in" devissa.
+
+## Miten testataan (manuaali)
+1) Aja `bash tools/scripts/dev-up.sh --auto` ja varmista, etta UI aukeaa `http://localhost:3000`.
+2) Aja `docker compose -f docker-compose.yml -f docker-compose.agent-api.yml up -d --build db agent_api` ja varmista, etta `codex_agent_api` kaynnistyy.
+3) Aja `curl` smoke (katso "Smoke (Docker, mode=mission0)") ja varmista, etta saat JSON-responsen.
+4) Aja `curl` smoke (katso "Smoke (Docker, mode=change, DIAG: fast)") ja varmista, etta saat JSON-responsen nopeasti.
+
+## Miksi (Next-UI)
 - Express-UI on poistettu: kayta aina Next-UI:ta.
 - Vahennetaan virhetiloja (vaarat kontit, vaara portit).
 
@@ -31,6 +44,41 @@ Vaihtoehto (suositus Codespacesissa): yksi komento, joka hoitaa myos porttikolar
 ```bash
 bash tools/scripts/dev-up.sh --auto
 ```
+
+## Agenttiarmeija (Docker) – dev-only kaytto (ei pakollinen UI:lle)
+Tama on erillinen `agent_api`-palvelu (portti `3011`), jota kaytetaan dev-tyohon (mission0/change).
+Se ei ole osa Next-UI:n normaalia kayttoa, eika tata tarvitse kaynnistaa, ellei halua ajaa agenttia.
+
+Kaynnista (kun tarvitset agenttia):
+```bash
+docker compose -f docker-compose.yml -f docker-compose.agent-api.yml up -d --build db agent_api
+```
+
+Pysayta (kun et tarvitse agenttia):
+```bash
+docker compose -f docker-compose.yml -f docker-compose.agent-api.yml down
+```
+
+### Smoke (Docker, mode=mission0)
+```bash
+curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
+  -H "x-internal-token: ${AGENT_INTERNAL_TOKEN:-dev-token}" \
+  -H "content-type: application/json" \
+  -d '{ "mode":"mission0" }'
+```
+
+### Smoke (Docker, mode=change, DIAG: fast)
+Tama ajaa vain `lint` + `typecheck` (ei `npm test`), eli palautuu tyypillisesti nopeammin.
+```bash
+curl -sS -X POST "http://127.0.0.1:3011/agent/run" \
+  -H "x-internal-token: ${AGENT_INTERNAL_TOKEN:-dev-token}" \
+  -H "content-type: application/json" \
+  -d '{ "mode":"change", "dryRun": true, "projectId":"demo", "task":"DIAG: fast gate smoke" }'
+```
+
+Huom:
+- `mode=change` vaatii myos `OPENAI_API_KEY` + `GH_TOKEN` + `DATABASE_URL` (katso `docs/runbooks/agent_army_overview.md`).
+ - `DIAG: gate smoke` ajaa myos `npm test` ja voi kestaa pitkaan.
 
 ## Agenttiarmeija (API) – smoke
 1) Tee tyopuu tarkoituksella likaiseksi:

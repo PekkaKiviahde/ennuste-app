@@ -46,6 +46,7 @@ const ALLOWED_CHANGE_PATHS = [
 ];
 
 const REQUIRED_GATE_COMMANDS = ["npm run lint", "npm run typecheck", "npm test"];
+const REQUIRED_GATE_COMMANDS_FAST = ["npm run lint", "npm run typecheck"];
 
 const WORKFLOW_REPORT_REL_PATH = "docs/workflows/workflow_report.md";
 const SPEC_WORKFLOWS_REL_DIR = "spec/workflows";
@@ -124,6 +125,11 @@ function parseModelJson(text: string):
     // Tolerate trailing commas (common model mistake): {"a":1,}
     value = value.replace(/,\s*([}\]])/g, "$1");
 
+    // Tolerate invalid backslash escapes inside JSON strings (common model mistake),
+    // e.g. "\\${VAR}" which is not valid JSON (because "\$" is not a JSON escape).
+    // We remove backslashes that do not start a valid JSON escape sequence.
+    value = value.replace(/\\(?!["\\/bfnrtu])/g, "");
+
     return value;
   };
 
@@ -168,6 +174,11 @@ function parseModelJson(text: string):
       ...(obj.notes !== undefined ? { notes: obj.notes } : {}),
     },
   };
+}
+
+// Exported for unit tests only (keep API surface small).
+export function __test_parseModelJson(text: string) {
+  return parseModelJson(text);
 }
 
 function extractDiff(patch: string): { ok: true; patch: string } | { ok: false; error: string } {
@@ -871,9 +882,15 @@ export async function runChange(req: ChangeRequest) {
   // curl -sS -H "x-internal-token: dev-token" -H "content-type: application/json" \
   //   -d '{"mode":"change","projectId":"demo","dryRun":true,"task":"DIAG: gate smoke"}' \
   //   http://127.0.0.1:3011/agent/run
-  if (req.task.trimStart().startsWith("DIAG:")) {
+  const task = req.task.trimStart();
+  if (task.startsWith("DIAG:")) {
+    // DIAG-mode is a read-only "developer smoke" path:
+    // - No OpenAI calls
+    // - No git fetch/worktrees
+    // - Runs only local gate commands
+    const isFast = /^DIAG:\s*fast\b/i.test(task);
     const repoRoot = findRepoRootFromFs(process.cwd());
-    const gateLog = runDiagGate(repoRoot, REQUIRED_GATE_COMMANDS);
+    const gateLog = runDiagGate(repoRoot, isFast ? REQUIRED_GATE_COMMANDS_FAST : REQUIRED_GATE_COMMANDS);
     if (gateLog.status === "ok") {
       return { status: "ok", branchName: null, changedFiles: [], baseSha: null };
     }
@@ -1363,7 +1380,13 @@ export async function runChange(req: ChangeRequest) {
       return response;
     }
 
-    const gateLog = runDiagGate(worktreeDir, REQUIRED_GATE_COMMANDS);
+    const docsOnly =
+      changedAfterApply.length > 0 &&
+      changedAfterApply.every((relPath) => relPath.startsWith("docs/"));
+
+    // MVP ergonomics: doc-only changes should not block on long-running integration tests.
+    const gateCommands = docsOnly ? REQUIRED_GATE_COMMANDS_FAST : REQUIRED_GATE_COMMANDS;
+    const gateLog = runDiagGate(worktreeDir, gateCommands);
     lastGateLog = gateLog;
     await addEvent("GATE_RESULT", gateLog);
 
