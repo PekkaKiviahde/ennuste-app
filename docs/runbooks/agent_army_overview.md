@@ -11,6 +11,7 @@ Tämä koonti kertoo “amatöörille sopivasti” miten agenttiarmeija ajetaan 
 - yleisimmät virheet ja korjaukset
 
 Jos haluat pelkän smoke-ajon: katso `docs/runbooks/agent_api.md`.
+Jos haluat valmiit tehtavamallit: katso `docs/runbooks/agent_task_catalog.md`.
 
 ---
 
