@@ -59,6 +59,7 @@ Täydet smoke-ohjeet: `docs/runbooks/agent_api.md`.
 
 Huom:
 - `mode=change` vaatii nämä kaikki; jos puuttuu, agentti failaa nopeasti selkeällä virheellä.
+ - Jos `GH_TOKEN`-arvo on vahingossa muotoa `export GH_TOKEN=...` (sisältää välilyöntejä), GitHub-auth epäonnistuu.
 
 ### 4.2 Käynnistä (Docker)
 ```bash
