@@ -30,6 +30,46 @@ export const reportRepository = (): ReportPort => ({
     );
     return result.rows;
   },
+  async getWorkPackageComposition(projectId, tenantId) {
+    const tenantDb = dbForTenant(tenantId);
+    await tenantDb.requireProject(projectId);
+    const result = await tenantDb.query(
+      `
+      WITH latest_batch AS (
+        SELECT id
+        FROM import_batches
+        WHERE project_id = $1::uuid AND kind = 'TARGET_ESTIMATE'
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+      SELECT
+        wp.id AS work_package_id,
+        wp.code AS work_package_code,
+        wp.name AS work_package_name,
+        pp.id AS proc_package_id,
+        pp.code AS proc_package_code,
+        pp.name AS proc_package_name,
+        tei.littera_code,
+        tei.item_code,
+        tei.description AS item_desc,
+        tei.sum_eur AS total_eur
+      FROM target_estimate_items tei
+      JOIN v_current_item_mappings m
+        ON m.target_estimate_item_id = tei.id
+       AND m.project_id = $1::uuid
+       AND m.import_batch_id = tei.import_batch_id
+      JOIN work_packages wp
+        ON wp.id = m.work_package_id
+      LEFT JOIN proc_packages pp
+        ON pp.id = m.proc_package_id
+      WHERE tei.import_batch_id IN (SELECT id FROM latest_batch)
+        AND COALESCE(tei.sum_eur, 0) <> 0
+      ORDER BY wp.code, wp.name, tei.littera_code, tei.item_code
+      `,
+      [projectId]
+    );
+    return result.rows;
+  },
   async getForecastReport(projectId, tenantId) {
     const tenantDb = dbForTenant(tenantId);
     await tenantDb.requireProject(projectId);
