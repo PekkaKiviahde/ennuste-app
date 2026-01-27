@@ -24,6 +24,10 @@ Kaksi ajotilaa:
   - `dryRun=true`: palauttaa mitä muuttuisi (ei commit/push).
   - `dryRun=false`: tekee commit + push + avaa PR (tai antaa `compareLink` fallbackina).
 
+#### DIAG: fast
+- **Mitä se tekee?**: DIAG: fast on optimoitu ajotila, joka skannaa järjestelmän nopeasti ilman syvempää analyysia.
+- **Miksi se on amatöörille turvallisempi?**: Tämä tila ei tee pysyviä muutoksia, joten käyttäjä voi suorittaa tarkistuksia ilman pelkoa vahingoittaa järjestelmää tai tehdä ei-toivottuja korjauksia.
+
 Lisätieto arkkitehtuurista ja taustapäätöksistä: `docs/agenttiarmeija_kaynnistys_paketti_v2.md`.
 
 ---
