@@ -105,6 +105,7 @@ export type ForecastPort = {
 export type ReportPort = {
   getDashboard(projectId: string, tenantId: string): Promise<unknown>;
   getWorkPackageReport(projectId: string, tenantId: string): Promise<unknown[]>;
+  getWorkPackageComposition(projectId: string, tenantId: string): Promise<unknown[]>;
   getForecastReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getPlanningReport(projectId: string, tenantId: string): Promise<unknown[]>;
   getTargetEstimate(projectId: string, tenantId: string): Promise<unknown[]>;

@@ -149,6 +149,14 @@ export const loadWorkPackageReport = async (
   return services.report.getWorkPackageReport(input.projectId, input.tenantId);
 };
 
+export const loadWorkPackageComposition = async (
+  services: AppServices,
+  input: { projectId: string; tenantId: string; username: string }
+) => {
+  await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
+  return services.report.getWorkPackageComposition(input.projectId, input.tenantId);
+};
+
 export const loadForecastReport = async (services: AppServices, input: { projectId: string; tenantId: string; username: string }) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "REPORT_READ");
   return services.report.getForecastReport(input.projectId, input.tenantId);

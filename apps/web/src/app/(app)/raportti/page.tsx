@@ -104,6 +104,14 @@ export default async function ReportPage() {
       </section>
 
       <section className="card">
+        <h2>Koostumus (item-taso)</h2>
+        <p>Työpaketin muodostuminen tavoitearvion item-riveistä.</p>
+        <div className="status-actions">
+          <a className="btn btn-secondary btn-sm" href="/raportti/koostumus">Avaa työpaketin koostumus</a>
+        </div>
+      </section>
+
+      <section className="card">
         <h2>KPI-yhteenveto</h2>
         <p>Projektitason KPI ja toteuman kooste.</p>
         <div className="status-grid">
