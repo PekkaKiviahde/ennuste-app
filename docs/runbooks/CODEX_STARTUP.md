@@ -15,6 +15,12 @@ Tama runbook on tarkoitettu Codexille: lue aina ennen dev-ympariston kaynnistami
 3) Aja `curl` smoke (katso "Smoke (Docker, mode=mission0)") ja varmista, etta saat JSON-responsen.
 4) Aja `curl` smoke (katso "Smoke (Docker, mode=change, DIAG: fast)") ja varmista, etta saat JSON-responsen nopeasti.
 
+## Nopea tarkistus
+
+1) curl -sS -H "x-internal-token: dev-token" http://127.0.0.1:3011/agent/health
+2) curl -sS -X POST http://127.0.0.1:3011/agent/run -H "x-internal-token: dev-token" -H "content-type: application/json" -d '{"mode":"mission0"}' 
+3) curl -sS -X POST http://127.0.0.1:3011/agent/run -H "x-internal-token: dev-token" -H "content-type: application/json" -d '{"mode":"change","dryRun":true,"projectId":"cb1b9b85-d1d4-4b00-b0b4-774b8a35e241","task":"DIAG: fast gate smoke"}'
+
 ## Miksi (Next-UI)
 - Express-UI on poistettu: kayta aina Next-UI:ta.
 - Vahennetaan virhetiloja (vaarat kontit, vaara portit).
