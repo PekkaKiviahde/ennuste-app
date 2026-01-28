@@ -299,10 +299,10 @@ subgraph USER["Käyttäjät"]
 end
 
 subgraph SUP["Support / On-call"]
-  S0["Action: Luo incident-tiketti (ulkoinen järjestelmä)"]
-  S1["Action: Aseta SEV (SEV1–SEV3) + vaikutus + workaround"]
-  S2["Action: Päivitysrytmi (next update time)"]
-  S3["Action: Viestintä: status/kommentit tikettiin"]
+  SUP0["Action: Luo incident-tiketti (ulkoinen järjestelmä)"]
+  SUP1["Action: Aseta SEV (SEV1–SEV3) + vaikutus + workaround"]
+  SUP2["Action: Päivitysrytmi (next update time)"]
+  SUP3["Action: Viestintä: status/kommentit tikettiin"]
 end
 
 subgraph SA["Superadmin (App)"]
@@ -346,18 +346,18 @@ subgraph PM["Postmortem"]
   M1["Action: Toimenpiteet (prevent/monitor/test)"]
 end
 
-U0 --> S0 --> S1 --> S2
-S1 --> B0
-S2 --> B1
-S1 --> E0 --> E1
+U0 --> SUP0 --> SUP1 --> SUP2
+SUP1 --> B0
+SUP2 --> B1
+SUP1 --> E0 --> E1
 E0 --> E2
 E2 --> C0 --> C1 --> C2 --> T0
 T0 --> T1 --> T2 --> T3 --> G0
 G0 --> P0 --> P1 --> P2 --> P3
 P3 --> B1
-S3 <---> B1
+SUP3 <---> B1
 P3 --> B2
-S1 --> M0 --> M1
+SUP1 --> M0 --> M1
 ```
 
 ---
@@ -370,11 +370,14 @@ Jos incident liittyy dataan (esim. väärä raporttisumma), tee korjaus **vain v
 ## Mitä muuttui
 - Päivitetty päivämäärä 2026-01-02.
 - Lisätty muutososiot dokumentin loppuun.
+- Mermaidiin vaihdettiin Support-solmujen tunnukset muotoon `SUP0–SUP3` (ei `S0/S1`).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Vältetään sekaannus SaaS-vaiheiden `S-1/S0/S1` kanssa.
 
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Avaa mermaid-kaavio ja varmista, että Support-solmut ovat `SUP0–SUP3`.

@@ -28,6 +28,7 @@ Tämä raportti ei ole speksi. Speksi voittaa ristiriidassa.
 - SaaS/org-vaiheet: `S-1`, `S0`, `S1`.
 - Projektin ennustusprosessi: `E0..E5`.
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa `0)–5)` = sama kuin `E0..E5`.
+- Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
 
 ---
 
@@ -150,6 +151,7 @@ Trialing-tilassa estä:
 - Täsmennetty viikkopäivitys ja ghost-kustannukset.
 - Täsmennetty oppimisen muutosluokat (oli tavoitearviossa vs ei ollut).
 - Lisätty pakettirakenne: monilittera-paketit, `header_code`, `budget_line_id`-split-estot sekä baseline-snapshotit (`*_baseline_lines`).
+- Lisätty nimeämisohje: “Vaihe 0” vaatii prefiksin (`S0`/`E0`).
 
 ---
 
@@ -158,10 +160,12 @@ Trialing-tilassa estä:
 - Gate estää virheelliset kirjoitukset (billing, trial, projekti, baseline).
 - Append-only ja audit ovat välttämättömiä jäljitettävyyteen.
 - Pakettien sisällön pitää tukea tuotannon todellista tekemistä (useita litteroita yhdessä paketissa), mutta samalla estää tavoitearviorivin splittaus MVP:ssä.
+- Vähennetään S- ja E‑vaiheiden sekoittumista viestinnässä.
 
 ---
 
 ## Miten testataan
+- Varmista, että Nimeäminen‑osiossa on “Vaihe 0” + prefiksi ‑ohje.
 
 ### S1 trial / entitlement (tiivis)
 1) Aloita trial → org `trialing`, 1 projekti ACTIVE.

@@ -6,6 +6,7 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 - SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
 - Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
 - `spec/workflows/01_mvp_flow.md` käyttää otsikoissa numerointia `0)–5)` = sama asia kuin `E0..E5`.
+- Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
 
 # spec/workflows/00_sales_phase.md
 - Vaihe −1: Myynti ja asiakkuuden avaus (SaaS‑myyjä)
@@ -112,9 +113,12 @@ Tämä on “sisällysluettelo” workflow-dokumenteille otsikkotasolla.
 - Päivitetty `spec/workflows/01_mvp_flow.md`-osion otsikot vastaamaan nykyistä vaiheistusta (baseline = 2, seuranta/ennuste = 3).
 - Lisätty nimeämiskappale: SaaS-vaiheet `S-1/S0` ja ennustusprosessin vaiheet `E0..E5`.
 - Lisätty PLG-entitlement + projektin elinkaari -workflow (S1).
+- Lisätty huomio: “Vaihe 0” vaatii aina prefiksin (`S0`/`E0`).
 
 ## Miksi
 - Helpottaa navigointia ja keskustelua “mikä vaihe/osa” ilman, että pitää avata useita tiedostoja.
+- Estää S- ja E-vaiheiden sekoittumista viestinnässä.
 
 ## Miten testataan (manuaali)
 - Avaa `spec/workflows/00_workflow_outline.md` ja tarkista, että otsikot vastaavat workflow-tiedostojen `#`, `##` ja `###` otsikoita.
+- Varmista, että Nimeäminen-kohdassa on maininta “Vaihe 0” + prefiksi (`S0`/`E0`).
