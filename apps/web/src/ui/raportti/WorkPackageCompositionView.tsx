@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 type WorkPackageCompositionRow = {
+  target_estimate_item_id: string;
   work_package_id: string;
   work_package_code: string | null;
   work_package_name: string | null;
@@ -306,7 +307,7 @@ export default function WorkPackageCompositionView({ rows }: { rows: unknown[] }
                 </thead>
                 <tbody>
                   {group.rows.map((row) => (
-                    <tr key={`${row.work_package_id}-${row.item_code}-${row.littera_code}-${row.proc_package_id ?? "none"}`}>
+                    <tr key={row.target_estimate_item_id}>
                       <td>{row.littera_code ?? "-"}</td>
                       <td>{row.item_code ?? "-"}</td>
                       <td>{row.item_desc ?? "-"}</td>
@@ -322,4 +323,3 @@ export default function WorkPackageCompositionView({ rows }: { rows: unknown[] }
     </>
   );
 }
-

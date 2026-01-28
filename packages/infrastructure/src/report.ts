@@ -43,6 +43,7 @@ export const reportRepository = (): ReportPort => ({
         LIMIT 1
       )
       SELECT
+        tei.id AS target_estimate_item_id,
         wp.id AS work_package_id,
         wp.code AS work_package_code,
         wp.name AS work_package_name,
