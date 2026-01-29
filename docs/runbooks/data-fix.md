@@ -88,10 +88,10 @@ subgraph DEV["Dev/DB"]
 end
 
 subgraph STG["Staging"]
-  S0["DB backup (staging)"]
-  S1["Run migrations/backfill"]
-  S2["Run verify"]
-  S3["Report diff + smoke"]
+  STG0["DB backup (staging)"]
+  STG1["Run migrations/backfill"]
+  STG2["Run verify"]
+  STG3["Report diff + smoke"]
 end
 
 subgraph APP["Approver"]
@@ -105,18 +105,21 @@ subgraph PROD["Production"]
   P3["Smoke + monitoring"]
 end
 
-T0 --> T1 --> D0 --> D1 --> D2 --> S0 --> S1 --> S2 --> S3 --> A0
+T0 --> T1 --> D0 --> D1 --> D2 --> STG0 --> STG1 --> STG2 --> STG3 --> A0
 A0 --> P0 --> P1 --> P2 --> P3
 ```
 
 ## Mitä muuttui
 - Päivitetty päivämäärä 2026-01-02.
 - Lisätty muutososiot dokumentin loppuun.
+- Mermaidiin vaihdettiin Staging-solmujen tunnukset muotoon `STG0–STG3` (ei `S0/S1`).
 
 ## Miksi
 - Päivämäärä pidetään linjassa päätöslokin kanssa.
 - Dokumentaatiokäytäntö: muutokset kirjataan näkyvästi.
+- Vältetään sekaannus SaaS-vaiheiden `S-1/S0/S1` kanssa.
 
 ## Miten testataan (manuaali)
 - Varmista, että päivämäärä vastaa päätöslokia.
 - Avaa dokumentti ja varmista, että osiot ovat mukana.
+- Avaa mermaid-kaavio ja varmista, että Staging-solmut ovat `STG0–STG3`.

@@ -35,13 +35,16 @@ ennen integraatiotestausta.
 - Yhdenmukaistettiin ADR-otsikon Status/Date-muoto ja päiväys.
 - Lisättiin API-minimin suunnitelma- ja ennustetapahtuma-päätepisteet.
 - Lisatty UI + API -tasoinen este ennustetapahtumalle ilman valmista suunnitelmaa.
+- Lisätty nimeämisohje: “Vaihe 0” vaatii prefiksin (`S0`/`E0`).
 
 ## Miksi
 - Integraatiotestit vaativat yhteisen, lukitun työnkulun.
 - SaaSissa roolit, audit ja append-only ovat kriittisiä.
 - ADR-päivämäärien on oltava yhdenmukaisia, jotta päätöshistoria on selkeä.
+- Vähennetään S- ja E-vaiheiden sekoittumista viestinnässä.
 
 ## Miten testataan (manuaali)
 - Aja integraatiopolku end-to-end ja varmista audit-loki.
 - Testaa roolit (alias + acting role) ja lukitukset (M0->M1->M2).
 - Varmista, että ADR-otsikossa on sama Status/Date-muoto kuin muissa ADR:issä.
+- Avaa `spec/workflows/00_workflow_outline.md` ja varmista “Vaihe 0” + prefiksi -ohje.

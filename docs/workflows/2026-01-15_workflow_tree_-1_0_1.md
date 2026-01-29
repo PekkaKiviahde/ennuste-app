@@ -14,6 +14,7 @@ Päivitämme tähän myöhemmin myös muita workflow-vaiheita ja tarkennuksia.
 ## Nimeäminen (ettei “0” mene sekaisin)
 - SaaS-vaiheet (org-taso): `S-1`, `S0`, `S1` (myynti/provisiointi → onboarding → trial/entitlement).
 - Ennustusprosessin vaiheet (projektitaso): `E0..E5` (tavoitearvion import → suunnittelu → baseline → seuranta → loki → raportti).
+- Älä käytä ilmaisua “Vaihe 0” ilman prefiksiä (`S0` tai `E0`).
 - Tässä tiedostossa:
   - `S-1`, `S0` ja `S1` ovat SaaS-vaiheita
   - `E0` ja `E1` ovat ennustusprosessin vaiheita
@@ -112,12 +113,15 @@ E1 — Tuotannon työpakettien taloudellinen suunnittelu (TP+HP)
 - Tarkennettu nimeäminen: SaaS-vaiheet `S-1/S0/S1` ja ennustusprosessin vaiheet `E0..`.
 - Lisätty E0-puu (tavoitearvio import) eksplisiittisesti, ei vain esivaatimusviittauksena.
 - Lisätty S1-puu (PLG trial/entitlement + projektin ACTIVE/STANDBY/ARCHIVED).
+- Lisätty nimeämisohje: “Vaihe 0” vaatii prefiksin (`S0`/`E0`).
 
 ## Miksi
 - Tarvitaan yhteinen, nopeasti silmäiltävä “vaihepuu”, joka erottaa myynnin/provisionoinnin, onboardingin ja tuotannon suunnittelun.
+- Vähennetään S- ja E‑vaiheiden sekoittumista viestinnässä.
 
 ## Miten testataan (manuaali)
 - Avaa `docs/workflows/2026-01-15_workflow_tree_-1_0_1.md` ja varmista, että `S-1`, `S0`, `S1`, `E0` ja `E1` ovat omissa osioissaan.
 - Varmista, että `E0`-osio sisältää importin ja leading zero -säännön.
 - Varmista, että E1:n esivaatimuksessa viitataan `E0`-importtiin (ei “vaihe 0”).
 - Varmista, että `S1`-osio sisältää read-only-gaten, commerce-poikkeuksen ja STANDBY-reaktivoinnin.
+- Varmista, että Nimeäminen‑osiossa on “Vaihe 0” + prefiksi ‑ohje.
