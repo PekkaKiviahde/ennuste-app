@@ -14,13 +14,17 @@ type LoginFormProps = {
   quickLogins?: DemoQuickLogin[];
   action?: LoginFormAction;
   submitLabel?: string;
+  supportLoginHref?: string;
+  supportLoginLabel?: string;
 };
 
 export default function LoginForm({
   demoMode,
   quickLogins = [],
   action = loginAction,
-  submitLabel = "Kirjaudu"
+  submitLabel = "Kirjaudu",
+  supportLoginHref,
+  supportLoginLabel = "Sovellustuen kirjautuminen"
 }: LoginFormProps) {
   const [stateRaw, formAction] = useFormState(action, initialState);
   const state = stateRaw ?? initialState; // guard: useFormState should not yield undefined, mutta vältetään runtime-crash
@@ -138,6 +142,11 @@ export default function LoginForm({
           ) : null}
 
           <button className="btn btn-primary" type="submit">{submitLabel}</button>
+          {supportLoginHref ? (
+            <a className="support-login-link" href={supportLoginHref}>
+              {supportLoginLabel}
+            </a>
+          ) : null}
         </form>
       </div>
     </>
