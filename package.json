@@ -6,6 +6,8 @@
     "packages/*"
   ],
   "scripts": {
+    "aja:ylos": "bash tools/scripts/aja-ylos.sh",
+    "ui:up": "bash tools/scripts/dev-keepalive.sh",
     "db:start": "docker compose up -d",
     "db:status": "node tools/scripts/db-status.mjs",
     "db:migrate": "node tools/scripts/db-migrate.mjs",
