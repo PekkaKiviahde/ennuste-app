@@ -49,10 +49,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paivitystiedot puuttuvat" }, { status: 400 });
     }
 
+    const normalizedWorkPackageId = hasWorkPackage
+      ? String(body.workPackageId ?? "").trim() || null
+      : undefined;
+    const normalizedProcPackageId = hasProcPackage
+      ? String(body.procPackageId ?? "").trim() || null
+      : undefined;
+
     const updates = itemIds.map((targetEstimateItemId: string) => ({
       targetEstimateItemId,
-      ...(hasWorkPackage ? { workPackageId: body.workPackageId ?? null } : {}),
-      ...(hasProcPackage ? { procPackageId: body.procPackageId ?? null } : {})
+      ...(hasWorkPackage ? { workPackageId: normalizedWorkPackageId } : {}),
+      ...(hasProcPackage ? { procPackageId: normalizedProcPackageId } : {})
     }));
 
     const services = createServices();
@@ -66,7 +73,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ updatedCount: result.updatedCount });
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: error.code, details: error.details ?? null },
+        { status: error.status }
+      );
     }
     return NextResponse.json({ error: "Tapahtui odottamaton virhe" }, { status: 500 });
   }

@@ -115,6 +115,14 @@ export default function TargetEstimateMappingView() {
   }, [data.items, leafOnly, missingWork, missingProc, search]);
 
   const leafItems = useMemo(() => data.items.filter((item) => item.is_leaf), [data.items]);
+  const occupiedWorkPackageIds = useMemo(
+    () => new Set(data.procPackages.map((proc) => proc.default_work_package_id).filter((id): id is string => Boolean(id))),
+    [data.procPackages]
+  );
+  const availableWorkPackagesForProc = useMemo(
+    () => data.workPackages.filter((work) => !occupiedWorkPackageIds.has(work.work_package_id)),
+    [data.workPackages, occupiedWorkPackageIds]
+  );
   const totalLeafSum = useMemo(
     () => leafItems.reduce((sum, item) => sum + toNumber(item.total_eur), 0),
     [leafItems]
@@ -166,6 +174,9 @@ export default function TargetEstimateMappingView() {
       });
       const result = await response.json();
       if (!response.ok) {
+        if (result?.code === "WORK_PROC_LINK_MISMATCH") {
+          throw new Error("Valittu hankintapaketti kuuluu toiseen tyopakettiin. Valitse hankintapaketin oma tyopaketti.");
+        }
         throw new Error(result?.error ?? "Päivitys epäonnistui");
       }
       await loadData();
@@ -212,12 +223,17 @@ export default function TargetEstimateMappingView() {
   const createProcPackage = async () => {
     const code = newProcPackageCode.trim();
     const name = newProcPackageName.trim();
+    const defaultWorkPackageId = newProcDefaultWorkPackage.trim();
     if (!code || !/^\d{4}$/.test(code)) {
       setError("Hankintapaketin koodi on pakollinen ja oltava 4 numeroa.");
       return;
     }
     if (!name) {
       setError("Hankintapaketin nimi on pakollinen.");
+      return;
+    }
+    if (!defaultWorkPackageId) {
+      setError("Hankintapaketti on linkitettävä tyopakettiin.");
       return;
     }
     try {
@@ -229,11 +245,14 @@ export default function TargetEstimateMappingView() {
         body: JSON.stringify({
           code,
           name,
-          defaultWorkPackageId: newProcDefaultWorkPackage || null
+          defaultWorkPackageId
         })
       });
       const result = await response.json();
       if (!response.ok) {
+        if (result?.code === "WORK_PACKAGE_ALREADY_LINKED") {
+          throw new Error("Valitulla tyopaketilla on jo hankintapaketti (1:1 MVP).");
+        }
         throw new Error(result?.error ?? "Hankintapaketin luonti epäonnistui");
       }
       setNewProcPackageCode("");
@@ -401,17 +420,29 @@ export default function TargetEstimateMappingView() {
             value={newProcDefaultWorkPackage}
             onChange={(event) => setNewProcDefaultWorkPackage(event.target.value)}
           >
-            <option value="">Oletustyöpaketti (valinnainen)</option>
+            <option value="">Valitse linkitetty työpaketti</option>
             {data.workPackages.map((work) => (
-              <option key={work.work_package_id} value={work.work_package_id}>
+              <option
+                key={work.work_package_id}
+                value={work.work_package_id}
+                disabled={occupiedWorkPackageIds.has(work.work_package_id)}
+              >
                 {work.name}
               </option>
             ))}
           </select>
+          {availableWorkPackagesForProc.length === 0 && (
+            <div className="notice">Kaikki työpaketit on jo linkitetty hankintapakettiin (1:1).</div>
+          )}
           <button
             className="btn btn-primary btn-sm"
             type="button"
-            disabled={busy || !newProcPackageCode.trim() || !newProcPackageName.trim()}
+            disabled={
+              busy ||
+              !newProcPackageCode.trim() ||
+              !newProcPackageName.trim() ||
+              !newProcDefaultWorkPackage.trim()
+            }
             onClick={createProcPackage}
           >
             Luo hankintapaketti

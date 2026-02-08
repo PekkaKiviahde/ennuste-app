@@ -4,7 +4,9 @@ import crypto from "node:crypto";
 import { Client } from "pg";
 import { POST as planningPost } from "../../../apps/web/src/app/api/planning/route";
 import { POST as loginPost } from "../../../apps/web/src/app/api/login/route";
+import { POST as procPackagesPost } from "../../../apps/web/src/app/api/proc-packages/route";
 import { GET as projectGet } from "../../../apps/web/src/app/api/projects/[projectId]/route";
+import { POST as targetEstimateMappingPost } from "../../../apps/web/src/app/api/target-estimate-mapping/route";
 import { GET as workflowStatusGet } from "../../../apps/web/src/app/api/workflow/status/route";
 import { pool } from "./db";
 
@@ -27,6 +29,104 @@ const createSessionToken = (sessionId: string) => {
   const b64 = Buffer.from(json, "utf8").toString("base64url");
   const signature = sign(b64);
   return `${b64}.${signature}`;
+};
+
+const createProjectSessionFixture = async (
+  client: Client,
+  suffix: string,
+  scopeTag: string
+): Promise<{ projectId: string; tenantId: string; sessionToken: string }> => {
+  const orgResult = await client.query(
+    "INSERT INTO organizations (slug, name, created_by) VALUES ($1, $2, 'seed') RETURNING organization_id",
+    [`${scopeTag}-org-${suffix}`, `${scopeTag} Org ${suffix}`]
+  );
+  const organizationId = orgResult.rows[0].organization_id as string;
+
+  const tenantResult = await client.query(
+    "INSERT INTO tenants (name, created_by) VALUES ($1, 'seed') RETURNING tenant_id",
+    [`${scopeTag} Tenant ${suffix}`]
+  );
+  const tenantId = tenantResult.rows[0].tenant_id as string;
+
+  const projectResult = await client.query(
+    "INSERT INTO projects (name, customer, organization_id, tenant_id, project_state) VALUES ($1, 'Test', $2::uuid, $3::uuid, 'P1_PROJECT_ACTIVE') RETURNING project_id",
+    [`${scopeTag} Projekti ${suffix}`, organizationId, tenantId]
+  );
+  const projectId = projectResult.rows[0].project_id as string;
+
+  const userResult = await client.query(
+    "INSERT INTO users (username, display_name, created_by, pin_hash) VALUES ($1, $2, 'seed', crypt('1234', gen_salt('bf'))) RETURNING user_id",
+    [`${scopeTag}.user.${suffix}`, `${scopeTag} User ${suffix}`]
+  );
+  const userId = userResult.rows[0].user_id as string;
+
+  await client.query(
+    "INSERT INTO organization_memberships (organization_id, user_id, joined_by) VALUES ($1::uuid, $2::uuid, 'seed')",
+    [organizationId, userId]
+  );
+
+  await client.query(
+    "INSERT INTO project_role_assignments (project_id, user_id, role_code, granted_by) VALUES ($1::uuid, $2::uuid, 'PROJECT_MANAGER', 'seed')",
+    [projectId, userId]
+  );
+
+  const sessionResult = await client.query(
+    "INSERT INTO sessions (user_id, project_id, tenant_id, expires_at) VALUES ($1::uuid, $2::uuid, $3::uuid, now() + interval '1 hour') RETURNING session_id",
+    [userId, projectId, tenantId]
+  );
+  const sessionToken = createSessionToken(sessionResult.rows[0].session_id as string);
+
+  return { projectId, tenantId, sessionToken };
+};
+
+const seedTargetEstimateItemWithActiveVersion = async (
+  client: Client,
+  projectId: string,
+  suffix: string
+): Promise<{ targetEstimateItemId: string }> => {
+  const batchResult = await client.query(
+    `INSERT INTO import_batches (
+      project_id,
+      kind,
+      source_system,
+      file_name,
+      file_hash,
+      created_by
+    )
+    VALUES ($1::uuid, 'TARGET_ESTIMATE', 'SEED', 'seed.csv', $2, 'seed')
+    RETURNING id`,
+    [projectId, crypto.createHash("sha256").update(`seed-${suffix}`).digest("hex")]
+  );
+  const importBatchId = batchResult.rows[0].id as string;
+
+  const itemResult = await client.query(
+    `INSERT INTO target_estimate_items (
+      import_batch_id,
+      item_code,
+      littera_code,
+      description,
+      sum_eur,
+      row_type
+    )
+    VALUES ($1::uuid, '9301001', '9301', 'Seed Item', 1500, 'LEAF')
+    RETURNING id`,
+    [importBatchId]
+  );
+  const targetEstimateItemId = itemResult.rows[0].id as string;
+
+  await client.query(
+    `INSERT INTO item_mapping_versions (
+      project_id,
+      import_batch_id,
+      status,
+      created_by,
+      activated_at
+    )
+    VALUES ($1::uuid, $2::uuid, 'ACTIVE', 'seed', now())`,
+    [projectId, importBatchId]
+  );
+
+  return { targetEstimateItemId };
 };
 
 test("planning endpoint writes planning event and audit log", { skip: !databaseUrl || !sessionSecret }, async () => {
@@ -372,6 +472,176 @@ test("item mappings keep append-only rows and view shows latest", { skip: !datab
   assert.equal(currentResult.rowCount, 1);
   assert.equal(currentResult.rows[0].work_package_id, workPackageId);
   assert.equal(currentResult.rows[0].proc_package_id, procPackageId);
+
+  await client.end();
+});
+
+test("proc package create requires default work package id", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { sessionToken } = await createProjectSessionFixture(client, suffix, "proc-required");
+
+  const request = new Request("http://localhost/api/proc-packages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      code: "9200",
+      name: "Proc without default"
+    })
+  });
+
+  const response = await procPackagesPost(request);
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.match(String(body.error ?? ""), /defaultWorkPackageId/i);
+
+  await client.end();
+});
+
+test("work package allows only one proc package (1:1)", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "work-proc-1to1");
+
+  const workPackageResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9206', $2, 'ACTIVE') RETURNING id",
+    [projectId, `OneToOne WP ${suffix}`]
+  );
+  const workPackageId = workPackageResult.rows[0].id as string;
+
+  const createRequestA = new Request("http://localhost/api/proc-packages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      code: "9207",
+      name: `OneToOne Proc A ${suffix}`,
+      defaultWorkPackageId: workPackageId
+    })
+  });
+  const createResponseA = await procPackagesPost(createRequestA);
+  assert.equal(createResponseA.status, 201);
+
+  const createRequestB = new Request("http://localhost/api/proc-packages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      code: "9208",
+      name: `OneToOne Proc B ${suffix}`,
+      defaultWorkPackageId: workPackageId
+    })
+  });
+  const createResponseB = await procPackagesPost(createRequestB);
+  assert.equal(createResponseB.status, 409);
+  const body = await createResponseB.json();
+  assert.equal(body.code, "WORK_PACKAGE_ALREADY_LINKED");
+
+  await client.end();
+});
+
+test("target-estimate mapping autofills work package from proc package default", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "mapping-autofill");
+  const { targetEstimateItemId } = await seedTargetEstimateItemWithActiveVersion(client, projectId, suffix);
+
+  const workPackageResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9201', $2, 'ACTIVE') RETURNING id",
+    [projectId, `Autofill WP ${suffix}`]
+  );
+  const workPackageId = workPackageResult.rows[0].id as string;
+
+  const procPackageResult = await client.query(
+    "INSERT INTO proc_packages (project_id, code, name, owner_type, default_work_package_id, status) VALUES ($1::uuid, '9202', $2, 'VENDOR', $3::uuid, 'ACTIVE') RETURNING id",
+    [projectId, `Autofill Proc ${suffix}`, workPackageId]
+  );
+  const procPackageId = procPackageResult.rows[0].id as string;
+
+  const request = new Request("http://localhost/api/target-estimate-mapping", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      itemIds: [targetEstimateItemId],
+      procPackageId
+    })
+  });
+
+  const response = await targetEstimateMappingPost(request);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.updatedCount, 1);
+
+  const mappingResult = await client.query(
+    "SELECT work_package_id, proc_package_id FROM v_current_item_mappings WHERE target_estimate_item_id = $1::uuid",
+    [targetEstimateItemId]
+  );
+  assert.equal(mappingResult.rowCount, 1);
+  assert.equal(mappingResult.rows[0].work_package_id, workPackageId);
+  assert.equal(mappingResult.rows[0].proc_package_id, procPackageId);
+
+  await client.end();
+});
+
+test("target-estimate mapping rejects mismatched work/proc pair", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "mapping-mismatch");
+  const { targetEstimateItemId } = await seedTargetEstimateItemWithActiveVersion(client, projectId, suffix);
+
+  const workPackageAResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9203', $2, 'ACTIVE') RETURNING id",
+    [projectId, `Mismatch WP A ${suffix}`]
+  );
+  const workPackageAId = workPackageAResult.rows[0].id as string;
+
+  const workPackageBResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9204', $2, 'ACTIVE') RETURNING id",
+    [projectId, `Mismatch WP B ${suffix}`]
+  );
+  const workPackageBId = workPackageBResult.rows[0].id as string;
+
+  const procPackageResult = await client.query(
+    "INSERT INTO proc_packages (project_id, code, name, owner_type, default_work_package_id, status) VALUES ($1::uuid, '9205', $2, 'VENDOR', $3::uuid, 'ACTIVE') RETURNING id",
+    [projectId, `Mismatch Proc ${suffix}`, workPackageAId]
+  );
+  const procPackageId = procPackageResult.rows[0].id as string;
+
+  const request = new Request("http://localhost/api/target-estimate-mapping", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      itemIds: [targetEstimateItemId],
+      workPackageId: workPackageBId,
+      procPackageId
+    })
+  });
+
+  const response = await targetEstimateMappingPost(request);
+  assert.equal(response.status, 409);
+  const body = await response.json();
+  assert.equal(body.code, "WORK_PROC_LINK_MISMATCH");
 
   await client.end();
 });

@@ -376,7 +376,7 @@ export type TargetEstimateMappingPort = {
     code: string;
     name: string;
     description?: string | null;
-    defaultWorkPackageId?: string | null;
+    defaultWorkPackageId: string;
     ownerType?: string | null;
     vendorName?: string | null;
     contractRef?: string | null;

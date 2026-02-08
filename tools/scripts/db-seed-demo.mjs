@@ -74,12 +74,28 @@ const ensureBaselineWorkPackage = async (client, projectId, code, name) => {
 };
 
 const ensureBaselineProcPackage = async (client, projectId, code, name, defaultWorkPackageId) => {
+  if (!defaultWorkPackageId) {
+    throw new Error("Hankintapaketti vaatii linkitetyn tyopaketin (defaultWorkPackageId).");
+  }
   const existing = await client.query(
     "SELECT id FROM proc_packages WHERE project_id = $1::uuid AND code = $2",
     [projectId, code]
   );
   if (existing.rowCount > 0) {
     return existing.rows[0].id;
+  }
+  const existingLinked = await client.query(
+    `SELECT id, code
+     FROM proc_packages
+     WHERE project_id = $1::uuid
+       AND default_work_package_id = $2::uuid
+     LIMIT 1`,
+    [projectId, defaultWorkPackageId]
+  );
+  if (existingLinked.rowCount > 0) {
+    throw new Error(
+      `Tyopaketille on jo linkitetty hankintapaketti (koodi ${existingLinked.rows[0].code}, 1:1 MVP).`
+    );
   }
   const result = await client.query(
     `INSERT INTO proc_packages (

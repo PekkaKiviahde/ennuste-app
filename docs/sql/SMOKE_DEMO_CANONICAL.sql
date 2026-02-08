@@ -66,6 +66,22 @@ BEGIN
     RAISE EXCEPTION 'Hankintapaketti puuttuu: odotettiin >=1 proc_packages-rivi (project_id=%). Run: npm run db:seed-demo', v_project_id;
   END IF;
 
+  -- D.1) 1:1-linkitys: yhdella työpaketilla voi olla enintaan yksi hankintapaketti.
+  -- Miksi tämä tarvitaan: MVP:ssa TP-HP-linkitys on 1:1.
+  SELECT COUNT(*)::int
+  INTO v_count
+  FROM (
+    SELECT default_work_package_id
+    FROM proc_packages
+    WHERE project_id = v_project_id
+    GROUP BY default_work_package_id
+    HAVING COUNT(*) > 1
+  ) duplicate_links;
+
+  IF v_count > 0 THEN
+    RAISE EXCEPTION 'TP-HP 1:1 rikkoontuu: % työpaketilla on useampi hankintapaketti (project_id=%).', v_count, v_project_id;
+  END IF;
+
   -- E) Baseline-snapshot (työpaketti): v_work_package_latest_baseline + baseline_lines.
   -- Miksi tämä tarvitaan: baseline (lukitus/snapshot) on raportoinnin perusta (BAC) ja append-only audit trail.
   IF to_regclass('public.v_work_package_latest_baseline') IS NULL THEN

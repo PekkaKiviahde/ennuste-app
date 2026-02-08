@@ -24,11 +24,14 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0019: Tuotannon taloudellisen suunnittelun jako (hankintapaketti → työpaketti) ja append-only “poisto/lisäys”
 - ADR-0020: Hankintapaketin maksuerät + työpaketin 2 aikajanaa + painotus (ISO-viikot)
 - ADR-0021: PLG-entitlement ja projektin elinkaari (trial, read-only, STANDBY, reaktivointi)
+- ADR-0022: Billing-webhook allekirjoituksen validointi
+- ADR-0023: Työpaketti-hankintapaketti linkitys 1:1 MVP:ssa
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
 - Lisättiin ADR-0010 listaan.
 - Lisättiin ADR-0021 listaan.
+- Lisättiin ADR-0022 ja ADR-0023 listaan.
 
 ## Miksi
 - Listauksen pitää vastata päätösdokumenttien otsikoita ja helpottaa hakua.

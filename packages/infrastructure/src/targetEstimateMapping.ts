@@ -1,4 +1,5 @@
 import type { TargetEstimateMappingPort } from "@ennuste/application";
+import { AppError } from "@ennuste/shared";
 import { dbForTenant } from "./db";
 
 const hasOwn = (obj: object, key: string) => Object.prototype.hasOwnProperty.call(obj, key);
@@ -68,6 +69,50 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
   async createProcPackage(input) {
     const tenantDb = dbForTenant(input.tenantId);
     await tenantDb.requireProject(input.projectId);
+    const defaultWorkPackageId = input.defaultWorkPackageId ?? null;
+    if (!defaultWorkPackageId) {
+      throw new AppError(
+        "Hankintapaketti vaatii linkitetyn tyopaketin.",
+        "DEFAULT_WORK_PACKAGE_REQUIRED",
+        400
+      );
+    }
+
+    const workPackageCheck = await tenantDb.query<{ id: string }>(
+      "SELECT id FROM work_packages WHERE project_id = $1::uuid AND id = $2::uuid",
+      [input.projectId, defaultWorkPackageId]
+    );
+    if (workPackageCheck.rowCount === 0) {
+      throw new AppError(
+        "Valittu tyopaketti ei kuulu projektiin.",
+        "WORK_PACKAGE_NOT_FOUND",
+        400,
+        { defaultWorkPackageId }
+      );
+    }
+
+    const existingLinkedProc = await tenantDb.query<{ id: string; code: string; name: string }>(
+      `SELECT id, code, name
+       FROM proc_packages
+       WHERE project_id = $1::uuid
+         AND default_work_package_id = $2::uuid
+       LIMIT 1`,
+      [input.projectId, defaultWorkPackageId]
+    );
+    if (existingLinkedProc.rowCount > 0) {
+      const current = existingLinkedProc.rows[0];
+      throw new AppError(
+        "Valitulla tyopaketilla on jo hankintapaketti (1:1 MVP).",
+        "WORK_PACKAGE_ALREADY_LINKED",
+        409,
+        {
+          defaultWorkPackageId,
+          existingProcPackageId: current.id,
+          existingProcPackageCode: current.code
+        }
+      );
+    }
+
     const result = await tenantDb.query<{ proc_package_id: string }>(
       `INSERT INTO proc_packages (
         project_id,
@@ -87,7 +132,7 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
         input.ownerType ?? "VENDOR",
         input.vendorName ?? null,
         input.contractRef ?? null,
-        input.defaultWorkPackageId ?? null,
+        defaultWorkPackageId,
         input.status ?? "ACTIVE"
       ]
     );
@@ -127,9 +172,8 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
                 m.work_package_id,
                 m.proc_package_id
          FROM v_current_item_mappings m
-         JOIN item_mapping_versions imv ON imv.id = m.item_mapping_version_id
-         WHERE imv.project_id = $1::uuid
-           AND imv.import_batch_id = $2::uuid
+         WHERE m.project_id = $1::uuid
+           AND m.import_batch_id = $2::uuid
            AND m.target_estimate_item_id = ANY($3::uuid[])`,
         [input.projectId, latestBatchId, targetEstimateItemIds]
       );
@@ -138,7 +182,12 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
       const procPackageIds = Array.from(
         new Set(
           input.updates
-            .map((update) => update.procPackageId)
+            .map((update) => {
+              if (hasOwn(update, "procPackageId")) {
+                return update.procPackageId ?? null;
+              }
+              return existingByItem.get(update.targetEstimateItemId)?.proc_package_id ?? null;
+            })
             .filter((value): value is string => Boolean(value))
         )
       );
@@ -152,6 +201,16 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
           [input.projectId, procPackageIds]
         );
         procDefaults = new Map(procResult.rows.map((row) => [row.id, row.default_work_package_id]));
+        if (procResult.rowCount !== procPackageIds.length) {
+          const foundIds = new Set(procResult.rows.map((row) => row.id));
+          const missingProcPackageId = procPackageIds.find((procPackageId) => !foundIds.has(procPackageId));
+          throw new AppError(
+            "Hankintapakettia ei loytynyt projektilta.",
+            "PROC_PACKAGE_NOT_FOUND",
+            404,
+            { procPackageId: missingProcPackageId ?? null }
+          );
+        }
       }
 
       let updatedCount = 0;
@@ -165,11 +224,41 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
         let workPackageId = hasWorkPackage ? update.workPackageId ?? null : currentWorkPackage;
         let procPackageId = hasProcPackage ? update.procPackageId ?? null : currentProcPackage;
 
-        if (!hasWorkPackage && hasProcPackage && !currentWorkPackage) {
-          const defaultWorkPackage = procPackageId ? procDefaults.get(procPackageId) ?? null : null;
-          if (defaultWorkPackage) {
+        if (procPackageId) {
+          const defaultWorkPackage = procDefaults.get(procPackageId) ?? null;
+          if (!defaultWorkPackage) {
+            throw new AppError(
+              "Hankintapaketti ei ole linkitetty tyopakettiin.",
+              "PROC_PACKAGE_WORK_PACKAGE_MISSING",
+              400,
+              { procPackageId }
+            );
+          }
+          if (!workPackageId) {
             workPackageId = defaultWorkPackage;
           }
+          if (workPackageId !== defaultWorkPackage) {
+            throw new AppError(
+              "Valittu tyopaketti ei vastaa hankintapaketin linkitysta.",
+              "WORK_PROC_LINK_MISMATCH",
+              409,
+              {
+                procPackageId,
+                workPackageId,
+                expectedWorkPackageId: defaultWorkPackage,
+                targetEstimateItemId: update.targetEstimateItemId
+              }
+            );
+          }
+        }
+
+        if (!workPackageId) {
+          throw new AppError(
+            "Tyopaketti puuttuu. Valitse tyopaketti ennen tallennusta.",
+            "WORK_PACKAGE_REQUIRED",
+            400,
+            { targetEstimateItemId: update.targetEstimateItemId }
+          );
         }
 
         await client.query(

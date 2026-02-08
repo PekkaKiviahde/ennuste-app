@@ -26,6 +26,7 @@ Huom:
 
 #### Lukitut päätökset (TP+HP, MVP)
 - Hankintapaketti (HP) mallinnetaan maksuerälistana (2–10+ erää).
+- Linkitys on 1:1: yksi hankintapaketti kuuluu yhteen työpakettiin ja yhdellä työpaketilla voi olla enintään yksi hankintapaketti.
 - Työpaketti (TP) mallinnetaan kahdella aikajanalla: työjakso ja kustannusjakso.
 - Aikajana on viikkotasolla (ISO-viikot).
 - TP-kustannusjakson sisällä käytetään painotusta:
@@ -34,6 +35,9 @@ Huom:
 
 ### 1.1 Hankintapaketin luonti
 - Hankintapaketin luonti ja rivien liittäminen sopimuksille/urakoille (hankinta).
+- Hankintapaketti linkitetään luontihetkellä työpakettiin (`defaultWorkPackageId` on pakollinen).
+- Työpaketilla voi olla vain yksi hankintapaketti (1:1). Jos työpaketille on jo hankintapaketti, uuden luonti estetään virheellä.
+- Työpaketin ja hankintapaketin ristiriitainen item-mäppäys estetään virheellä (ei hiljaista autokorjausta).
 - Oletus (automaattinen esitäyttö / suggestion): kun hankintapaketti luodaan tietylle 4-num litterakoodille, järjestelmä ehdottaa “loput saman litterakoodin riveistä” saman koodin alle työpaketiksi, jotta mikään ei jää ilman kotia.
 - Hankintapäälliköllä on oikeus:
   - poistaa “väärin laskettuja” rivejä suunnittelusta (append-only: riviä ei poisteta historiasta, vaan se merkitään ohitetuksi/poissuljetuksi kyseisessä versiossa perustelulla)
@@ -110,6 +114,8 @@ Validointi baseline-lukituksessa:
 - Lisätty nimeämissääntö: tämän dokumentin `0)–5)` = `E0..E5` (ei sama kuin SaaS-onboarding `S0`).
 - Täsmennetty, että yrityskohtainen oppiva automatiikka on vain ehdotuksia (ei pakotettua koodimuunnosta eikä automaattista mäppäystä).
 - Muutettu tuotannon vaihe “työpakettien taloudelliseksi suunnitteluksi” ja lisätty alavaiheiksi hankintapaketti (1.1) ja työpakettisuunnittelu (1.2), joissa poisto/lisäys tehdään append-only.
+- Lukittu TP-HP-linkitys malliin 1:1 ja tehty hankintapaketin työpakettilinkistä pakollinen luontivaiheessa.
+- Lisätty sääntö: ristiriitainen työpaketti+hankintapaketti estetään virheellä item-mäppäyksessä.
 - Lisätty hankintapaketin maksuerät (milestones) sekä työpaketin 2 aikajanaa (työjakso + kustannusjakso) ja kustannusjakson painotus (`cost_bias_pct`) viikkotasolla.
 - Lisätty UI-periaate: zoomattava aikajana, “venyvä viiva” jaksoille ja liukuri + preview-jakauma.
 - Lisätty baseline-lukitus omaksi vaiheeksi ennen seurantaa/ennustetta ja tarkennettu baseline-validoinnit (HP maksuerät, TP jaksot ja `cost_bias_pct`).
@@ -119,6 +125,9 @@ Validointi baseline-lukituksessa:
 - Tavoitearvio (laskennan data) on ennustamisen ja baselinen pohja, joten sen pitää olla olemassa ennen tuotannon suunnittelua.
 - Tavoitearviotyylit ja yrityskohtaiset käytännöt vaihtelevat, joten MVP:ssä järjestelmä voi vain ehdottaa ja ihminen hyväksyy (audit trail säilyy).
 - Mäppäys on tuotannon suunnitteluvaihe, joka määrittää “missä kustannus tehdään” ja mahdollistaa hankintojen linkityksen.
+- Pakollinen linkki hankintapaketilta työpakettiin poistaa orvot hankintapaketit.
+- 1:1-linkitys pitää vastuunjaon yksiselitteisenä MVP-vaiheessa.
+- Ristiriitaisen TP+HP-parin esto varmistaa, että kirjoituspolussa linkitys on aina ehjä.
 - Maksuerät ja aikajanat tekevät baselinesta aikasidonnaisen, jolloin seuranta/ennuste voidaan tehdä viikkotasolla.
 - Työpakettisuunnittelun erottaminen varmistaa, etta ennustaminen on ohjattua ja perusteltua.
 - Append-only loki varmistaa audit trailin ja tapahtumahistorian.
@@ -126,6 +135,10 @@ Validointi baseline-lukituksessa:
 
 ## Miten testataan (manuaali)
 - Importoi tavoitearvio projektille ja varmista, että 4-num koodit näkyvät `litteras`-listassa ja budjetti näkyy työpakettisuunnittelussa.
+- Yritä luoda hankintapaketti ilman `defaultWorkPackageId` -> odota 400 virhe.
+- Luo hankintapaketti työpaketille A ja yritä luoda toinen hankintapaketti samalle työpaketille A -> odota 409 virhe.
+- Tee item-mäppäys pelkällä `procPackageId`:llä -> `workPackageId` täyttyy linkitetystä työpaketista.
+- Tee item-mäppäys ristiriitaisella TP+HP-parilla -> odota 409 virhe.
 - Tee tuotannon suunnittelu: liitä rivejä työpakettiin ja hankintapakettiin; lisää HP:lle 2+ maksuerää (viikot + %/€) ja aseta TP:lle työ- ja kustannusjaksot sekä `cost_bias_pct`.
 - Yritä baseline-lukitusta, kun maksuerien summa ei täsmää (odota validointivirhe).
 - Lukitse baseline ja varmista, että ennustetapahtuma estyy ilman lukittua baselinea ja sallitaan vasta lukituksen jälkeen.
