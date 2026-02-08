@@ -115,14 +115,6 @@ export default function TargetEstimateMappingView() {
   }, [data.items, leafOnly, missingWork, missingProc, search]);
 
   const leafItems = useMemo(() => data.items.filter((item) => item.is_leaf), [data.items]);
-  const occupiedWorkPackageIds = useMemo(
-    () => new Set(data.procPackages.map((proc) => proc.default_work_package_id).filter((id): id is string => Boolean(id))),
-    [data.procPackages]
-  );
-  const availableWorkPackagesForProc = useMemo(
-    () => data.workPackages.filter((work) => !occupiedWorkPackageIds.has(work.work_package_id)),
-    [data.workPackages, occupiedWorkPackageIds]
-  );
   const totalLeafSum = useMemo(
     () => leafItems.reduce((sum, item) => sum + toNumber(item.total_eur), 0),
     [leafItems]
@@ -250,9 +242,6 @@ export default function TargetEstimateMappingView() {
       });
       const result = await response.json();
       if (!response.ok) {
-        if (result?.code === "WORK_PACKAGE_ALREADY_LINKED") {
-          throw new Error("Valitulla tyopaketilla on jo hankintapaketti (1:1 MVP).");
-        }
         throw new Error(result?.error ?? "Hankintapaketin luonti epäonnistui");
       }
       setNewProcPackageCode("");
@@ -425,15 +414,11 @@ export default function TargetEstimateMappingView() {
               <option
                 key={work.work_package_id}
                 value={work.work_package_id}
-                disabled={occupiedWorkPackageIds.has(work.work_package_id)}
               >
                 {work.name}
               </option>
             ))}
           </select>
-          {availableWorkPackagesForProc.length === 0 && (
-            <div className="notice">Kaikki työpaketit on jo linkitetty hankintapakettiin (1:1).</div>
-          )}
           <button
             className="btn btn-primary btn-sm"
             type="button"

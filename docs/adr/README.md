@@ -26,12 +26,13 @@ Päätösdokumentit: miksi teimme näin.
 - ADR-0021: PLG-entitlement ja projektin elinkaari (trial, read-only, STANDBY, reaktivointi)
 - ADR-0022: Billing-webhook allekirjoituksen validointi
 - ADR-0023: Työpaketti-hankintapaketti linkitys 1:1 MVP:ssa
+- ADR-0024: Työpaketti-hankintapaketti linkitys 1:N MVP:ssa
 
 ## Mitä muuttui
 - Yhdenmukaistettiin ADR-0001-otsikko vastaamaan päätösdokumenttia.
 - Lisättiin ADR-0010 listaan.
 - Lisättiin ADR-0021 listaan.
-- Lisättiin ADR-0022 ja ADR-0023 listaan.
+- Lisättiin ADR-0022, ADR-0023 ja ADR-0024 listaan.
 
 ## Miksi
 - Listauksen pitää vastata päätösdokumenttien otsikoita ja helpottaa hakua.

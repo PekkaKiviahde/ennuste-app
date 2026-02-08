@@ -5,6 +5,8 @@ Tama runbook on tarkoitettu Codexille: lue aina ennen dev-ympariston kaynnistami
 ## Mita muuttui (tahan runbookiin)
 - Lisatty dev-only ohje agenttiarmeijan Docker-palvelun (`agent_api`) kaynnistykseen ja pysaytykseen erillaan Next-UI:sta.
 - Lisatty `DIAG: fast` -smoke `mode=change` -ajolle (ajaa vain lint+typecheck, ei testeja).
+- Lisatty pakollinen 0055-migraation (`tyopaketti` <-> `hankintapaketti` 1:1) vikatilannepolku, jos vanha dev-data estaa kaynnistyksen.
+- Lisatty linkki SWC/lockfile-vikatilanteen erilliseen runbookiin.
 
 ## Miksi
 - Agenttiarmeija ei ole pakollinen UI-kehityksessa, ja sen halutaan olevan selkea "opt-in" devissa.
@@ -14,6 +16,7 @@ Tama runbook on tarkoitettu Codexille: lue aina ennen dev-ympariston kaynnistami
 2) Aja `docker compose -f docker-compose.yml -f docker-compose.agent-api.yml up -d --build db agent_api` ja varmista, etta `codex_agent_api` kaynnistyy.
 3) Aja `curl` smoke (katso "Smoke (Docker, mode=mission0)") ja varmista, etta saat JSON-responsen.
 4) Aja `curl` smoke (katso "Smoke (Docker, mode=change, DIAG: fast)") ja varmista, etta saat JSON-responsen nopeasti.
+5) Jos logissa on `Migraatio 0055 estetty`, aja alla oleva "0055-vikatilannepolku" ja varmista, etta `http://localhost:3000/login` aukeaa.
 
 ## Nopea tarkistus
 
@@ -50,6 +53,25 @@ Vaihtoehto (suositus Codespacesissa): yksi komento, joka hoitaa myos porttikolar
 ```bash
 bash tools/scripts/dev-up.sh --auto
 ```
+
+## 0055-vikatilannepolku (dev-data estaa migraation)
+Oire:
+- Next-kontin logissa nakyy: `Migraatio 0055 estetty: samaan tyopakettiin on linkitetty useita hankintapaketteja ...`
+
+Miksi:
+- Vanhassa dev-tietokannassa on dataa, joka rikkoo uuden 1:1-rajoitteen (`tyopaketti` <-> `hankintapaketti`).
+
+Turvallinen minimikorjaus (saailyta vanha `codex`, kayta puhdasta dev-DB:ta):
+```bash
+docker exec -i codex_saas_db psql -U codex -d postgres -c "CREATE DATABASE codex_demo_quicklogin;"
+DATABASE_URL="postgresql://codex:codex@127.0.0.1:5433/codex_demo_quicklogin" npm run db:migrate
+DEV_SEED_PIN=1234 ADMIN_MODE=false DATABASE_URL="postgresql://codex:codex@127.0.0.1:5433/codex_demo_quicklogin" npm run db:seed-demo
+DATABASE_URL="postgresql://codex:codex@127.0.0.1:5433/codex_demo_quicklogin" npm --workspace apps/web run dev -- --hostname 0.0.0.0 --port 3000
+```
+
+Huom:
+- Jos `CREATE DATABASE` failaa "already exists", jatka seuraavaan komentoon.
+- Pidä `SHOW_DEMO_USERS=true` ja `DEMO_MODE=true`, jos haluat pikakirjautumisen.
 
 ## Agenttiarmeija (Docker) – dev-only kaytto (ei pakollinen UI:lle)
 Tama on erillinen `agent_api`-palvelu (portti `3011`), jota kaytetaan dev-tyohon (mission0/change).
@@ -136,3 +158,4 @@ docker compose -f docker-compose.yml -f docker-compose.next.yml down
 - Next-UI ei lataudu / logissa `EBADENGINE` (node 24.x vaaditaan) tai `Failed to patch lockfile`:
   - Paivita kontti uusiksi: `docker compose -f docker-compose.yml -f docker-compose.next.yml up -d --build web_next`
   - Jos logissa edelleen `Failed to patch lockfile`: varmista, etta `web_next`-palvelulla on `NEXT_IGNORE_INCORRECT_LOCKFILE=1`
+  - Katso tarkempi korjauspolku: `docs/runbooks/NEXT_SWC_LOCKFILE.md`
