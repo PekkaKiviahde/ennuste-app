@@ -9,6 +9,14 @@ if (!databaseUrl) {
 
 const adminModeEnabled = process.env.ADMIN_MODE === "true";
 const seedDemoUsers = !adminModeEnabled && process.env.SEED_DEMO_USERS !== "false";
+const demoPin = (process.env.DEV_SEED_PIN ?? "1234").trim();
+if (!demoPin) {
+  console.error("DEV_SEED_PIN on tyhja (pikakirjautumisen PIN ei voi olla tyhja)");
+  process.exit(1);
+}
+if (seedDemoUsers) {
+  console.log(`DEMO PIN: ${demoPin}`);
+}
 
 const baseDemoUsers = [
   { username: "site.foreman", display: "Tyonjohtaja", projectRoles: ["SITE_FOREMAN"] },
@@ -531,11 +539,11 @@ const seedTenant = async (client, config) => {
   }
 
   const usersToSeed = seedDemoUsers ? config.users : [];
-  const userIdsByUsername = new Map();
+const userIdsByUsername = new Map();
   for (const user of usersToSeed) {
     const userResult = await client.query(
-      "INSERT INTO users (username, display_name, email, created_by, pin_hash) VALUES ($1, $2, $3, 'seed', crypt('1234', gen_salt('bf'))) ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name, pin_hash = EXCLUDED.pin_hash RETURNING user_id",
-      [user.username, user.display, user.email || `${user.username}@demo.local`]
+      "INSERT INTO users (username, display_name, email, created_by, pin_hash) VALUES ($1, $2, $3, 'seed', crypt($4, gen_salt('bf'))) ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name, pin_hash = EXCLUDED.pin_hash RETURNING user_id",
+      [user.username, user.display, user.email || `${user.username}@demo.local`, demoPin]
     );
     const userId = userResult.rows[0].user_id;
     userIdsByUsername.set(user.username, userId);

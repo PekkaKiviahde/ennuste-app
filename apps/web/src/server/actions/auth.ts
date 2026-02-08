@@ -7,6 +7,8 @@ import { clearSessionCookie, getSessionFromCookies, getSessionIdForLogout, requi
 import { redirect } from "next/navigation";
 import { setAdminSessionCookie } from "../adminSession";
 import { setActingRoleCookie } from "../actingRole";
+import { isDemoQuickLoginEnabled } from "../demoFlags";
+import { isDemoQuickLoginUsernameAllowed } from "../demoQuickLogins";
 
 export type LoginFormState = {
   error?: string | null;
@@ -24,11 +26,20 @@ const resolvePostLoginRedirect = (permissions: string[]) => {
 
 export const loginAction = async (_state: LoginFormState, formData: FormData): Promise<LoginFormState> => {
   const username = String(formData.get("username") ?? "").trim();
-  const pin = String(formData.get("pin") ?? "").trim();
+  const quick = String(formData.get("quick") ?? "").trim() === "1";
+  const pin = quick ? (process.env.DEV_SEED_PIN ?? "1234") : String(formData.get("pin") ?? "").trim();
   const projectId = formData.get("projectId") ? String(formData.get("projectId")) : undefined;
 
   const services = createServices();
   try {
+    if (quick) {
+      if (!isDemoQuickLoginEnabled()) {
+        return { error: "Pikakirjautuminen ei ole kaytossa.", errorLog: null };
+      }
+      if (!isDemoQuickLoginUsernameAllowed(username)) {
+        return { error: "Pikakirjautumisen kayttaja ei ole sallittu.", errorLog: null };
+      }
+    }
     const result = await login(services, { username, pin, projectId });
     const sessionId = await services.auth.createSession(result.session);
     setSessionCookie(sessionId);
@@ -47,6 +58,7 @@ export const loginAction = async (_state: LoginFormState, formData: FormData): P
     const details: string[] = [];
     details.push(`time=${new Date().toISOString()}`);
     details.push(`username=${username || "-"}`);
+    details.push(`quick=${quick ? "1" : "0"}`);
     details.push(`projectId=${projectId ?? "-"}`);
     details.push(`error=${rawMessage}`);
     if (error instanceof AppError) {
