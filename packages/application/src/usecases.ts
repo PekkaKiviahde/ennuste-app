@@ -261,7 +261,7 @@ export const createProcPackage = async (
     code: string;
     name: string;
     description?: string | null;
-    defaultWorkPackageId?: string | null;
+    defaultWorkPackageId: string;
     ownerType?: string | null;
     vendorName?: string | null;
     contractRef?: string | null;
@@ -269,13 +269,14 @@ export const createProcPackage = async (
   }
 ) => {
   await services.rbac.requirePermission(input.projectId, input.tenantId, input.username, "PLANNING_WRITE");
+  const defaultWorkPackageId = input.defaultWorkPackageId;
   const result = await services.targetEstimateMapping.createProcPackage({
     projectId: input.projectId,
     tenantId: input.tenantId,
     code: input.code,
     name: input.name,
     description: input.description ?? null,
-    defaultWorkPackageId: input.defaultWorkPackageId ?? null,
+    defaultWorkPackageId,
     ownerType: input.ownerType ?? null,
     vendorName: input.vendorName ?? null,
     contractRef: input.contractRef ?? null,

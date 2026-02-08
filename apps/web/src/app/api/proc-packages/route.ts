@@ -46,6 +46,13 @@ export async function POST(request: Request) {
     if (!name) {
       return NextResponse.json({ error: "Hankintapaketin nimi puuttuu" }, { status: 400 });
     }
+    const defaultWorkPackageId = String(body?.defaultWorkPackageId ?? "").trim();
+    if (!defaultWorkPackageId) {
+      return NextResponse.json(
+        { error: "Hankintapaketti on linkitettava tyopakettiin (defaultWorkPackageId)." },
+        { status: 400 }
+      );
+    }
 
     const services = createServices();
     const result = await createProcPackage(services, {
@@ -55,7 +62,7 @@ export async function POST(request: Request) {
       code,
       name,
       description: body?.description ?? null,
-      defaultWorkPackageId: body?.defaultWorkPackageId ?? null,
+      defaultWorkPackageId,
       ownerType: body?.ownerType ?? null,
       vendorName: body?.vendorName ?? null,
       contractRef: body?.contractRef ?? null,
@@ -65,7 +72,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ procPackageId: result.procPackageId }, { status: 201 });
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: error.code, details: error.details ?? null },
+        { status: error.status }
+      );
     }
     return NextResponse.json({ error: "Tapahtui odottamaton virhe" }, { status: 500 });
   }
