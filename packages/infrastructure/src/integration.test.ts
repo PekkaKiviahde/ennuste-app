@@ -498,17 +498,45 @@ test("proc package create requires default work package id", { skip: !databaseUr
   const response = await procPackagesPost(request);
   assert.equal(response.status, 400);
   const body = await response.json();
-  assert.match(String(body.error ?? ""), /defaultWorkPackageId/i);
+  assert.match(String(body.error ?? ""), /linkit/i);
 
   await client.end();
 });
 
-test("work package allows only one proc package (1:1)", { skip: !databaseUrl || !sessionSecret }, async () => {
+test("proc package create rejects invalid default work package UUID", { skip: !databaseUrl || !sessionSecret }, async () => {
   const client = new Client({ connectionString: databaseUrl });
   await client.connect();
 
   const suffix = crypto.randomUUID().slice(0, 8);
-  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "work-proc-1to1");
+  const { sessionToken } = await createProjectSessionFixture(client, suffix, "proc-invalid-uuid");
+
+  const request = new Request("http://localhost/api/proc-packages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      code: "9205",
+      name: "Proc invalid UUID",
+      defaultWorkPackageId: "abc"
+    })
+  });
+
+  const response = await procPackagesPost(request);
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.match(String(body.error ?? ""), /uuid/i);
+
+  await client.end();
+});
+
+test("work package allows multiple proc packages (1:N)", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "work-proc-1toN");
 
   const workPackageResult = await client.query(
     "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9206', $2, 'ACTIVE') RETURNING id",
@@ -544,9 +572,13 @@ test("work package allows only one proc package (1:1)", { skip: !databaseUrl || 
     })
   });
   const createResponseB = await procPackagesPost(createRequestB);
-  assert.equal(createResponseB.status, 409);
-  const body = await createResponseB.json();
-  assert.equal(body.code, "WORK_PACKAGE_ALREADY_LINKED");
+  assert.equal(createResponseB.status, 201);
+
+  const countResult = await client.query(
+    "SELECT count(*)::int AS count FROM proc_packages WHERE project_id = $1::uuid AND default_work_package_id = $2::uuid",
+    [projectId, workPackageId]
+  );
+  assert.equal(countResult.rows[0].count, 2);
 
   await client.end();
 });
@@ -642,6 +674,76 @@ test("target-estimate mapping rejects mismatched work/proc pair", { skip: !datab
   assert.equal(response.status, 409);
   const body = await response.json();
   assert.equal(body.code, "WORK_PROC_LINK_MISMATCH");
+
+  await client.end();
+});
+
+test("target-estimate mapping rejects invalid UUID payload", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const { projectId, sessionToken } = await createProjectSessionFixture(client, suffix, "mapping-invalid-uuid");
+  const { targetEstimateItemId } = await seedTargetEstimateItemWithActiveVersion(client, projectId, suffix);
+
+  const request = new Request("http://localhost/api/target-estimate-mapping", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${sessionToken}`
+    },
+    body: JSON.stringify({
+      itemIds: [targetEstimateItemId],
+      workPackageId: "abc"
+    })
+  });
+
+  const response = await targetEstimateMappingPost(request);
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.match(String(body.error ?? ""), /workPackageId|uuid/i);
+
+  await client.end();
+});
+
+test("target-estimate mapping rejects work package from another project", { skip: !databaseUrl || !sessionSecret }, async () => {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const projectA = await createProjectSessionFixture(client, suffix, "mapping-cross-a");
+  const projectB = await createProjectSessionFixture(client, suffix, "mapping-cross-b");
+
+  const workPackageResult = await client.query(
+    "INSERT INTO work_packages (project_id, code, name, status) VALUES ($1::uuid, '9401', $2, 'ACTIVE') RETURNING id",
+    [projectB.projectId, `CrossProject WP ${suffix}`]
+  );
+  const otherProjectWorkPackageId = workPackageResult.rows[0].id as string;
+
+  const { targetEstimateItemId } = await seedTargetEstimateItemWithActiveVersion(client, projectA.projectId, suffix);
+
+  const request = new Request("http://localhost/api/target-estimate-mapping", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `ennuste_session=${projectA.sessionToken}`
+    },
+    body: JSON.stringify({
+      itemIds: [targetEstimateItemId],
+      workPackageId: otherProjectWorkPackageId
+    })
+  });
+
+  const response = await targetEstimateMappingPost(request);
+  assert.equal(response.status, 404);
+  const body = await response.json();
+  assert.equal(body.code, "WORK_PACKAGE_NOT_FOUND");
+
+  const rowCount = await client.query(
+    "SELECT count(*)::int AS count FROM item_row_mappings WHERE target_estimate_item_id = $1::uuid",
+    [targetEstimateItemId]
+  );
+  assert.equal(rowCount.rows[0].count, 0);
 
   await client.end();
 });

@@ -4,6 +4,9 @@ import { createServices } from "../../../server/services";
 import { getSessionFromRequest } from "../../../server/session";
 import { AppError } from "@ennuste/shared";
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (value: string) => uuidRegex.test(value);
+
 export async function GET(request: Request) {
   try {
     const session = await getSessionFromRequest(request);
@@ -49,9 +52,12 @@ export async function POST(request: Request) {
     const defaultWorkPackageId = String(body?.defaultWorkPackageId ?? "").trim();
     if (!defaultWorkPackageId) {
       return NextResponse.json(
-        { error: "Hankintapaketti on linkitettava tyopakettiin (defaultWorkPackageId)." },
+        { error: "Hankintapaketti on linkitettava tyopakettiin." },
         { status: 400 }
       );
+    }
+    if (!isUuid(defaultWorkPackageId)) {
+      return NextResponse.json({ error: "Tyopaketin tunniste ei ole kelvollinen UUID." }, { status: 400 });
     }
 
     const services = createServices();

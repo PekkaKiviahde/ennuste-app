@@ -1,18 +1,20 @@
 -- 0055_proc_package_work_package_1to1.sql
--- Työpaketti-hankintapaketti linkitys 1:1 (MVP).
+-- Työpaketti-hankintapaketti linkitys 1:N (MVP).
 --
 -- Mitä muuttui:
 -- - `proc_packages.default_work_package_id` muutetaan pakolliseksi (NOT NULL).
--- - Lisätään uniikkius `default_work_package_id`-kentälle (1:1 työpaketti -> hankintapaketti).
+-- - Ei lisätä 1:1-uniikkiutta: yksi työpaketti voi kuulua useaan hankintapakettiin (1:N).
+-- - Vaihdettu FK-käytös: `default_work_package_id` -> `ON DELETE RESTRICT`.
 -- - Lisätään triggerivalidointi, joka varmistaa että hankintapaketti ja linkitetty työpaketti
 --   kuuluvat samaan projektiin.
 -- Miksi:
--- - MVP-päätös: yhdellä työpaketilla voi olla enintään yksi hankintapaketti.
+-- - MVP-päätös: yhdellä työpaketilla voi olla useita hankintapaketteja (1:N).
 -- - Estetään orvot hankintapaketit ja ristiriitaiset ristiin-projekti-linkit.
 -- Miten testataan (manuaali):
 -- - Yritä lisätä proc_package ilman default_work_package_id -> virhe.
 -- - Yritä lisätä proc_package, jonka default_work_package_id on toisesta projektista -> virhe.
--- - Yritä lisätä toinen proc_package samalle default_work_package_id:lle -> virhe.
+-- - Lisää toinen proc_package samalle default_work_package_id:lle -> sallittu (1:N).
+-- - Yritä poistaa työpaketti, johon hankintapaketti viittaa -> poisto estyy (RESTRICT).
 
 BEGIN;
 
@@ -20,7 +22,6 @@ DO $$
 DECLARE
   v_missing_count integer;
   v_mismatch_count integer;
-  v_duplicate_count integer;
 BEGIN
   SELECT COUNT(*) INTO v_missing_count
   FROM proc_packages
@@ -42,28 +43,22 @@ BEGIN
       'Migraatio 0055 estetty: proc_packages.default_work_package_id viittaa toisen projektin työpakettiin (% riviä).',
       v_mismatch_count;
   END IF;
-
-  SELECT COUNT(*) INTO v_duplicate_count
-  FROM (
-    SELECT default_work_package_id
-    FROM proc_packages
-    GROUP BY default_work_package_id
-    HAVING COUNT(*) > 1
-  ) duplicates;
-
-  IF v_duplicate_count > 0 THEN
-    RAISE EXCEPTION
-      'Migraatio 0055 estetty: samaan työpakettiin on linkitetty useita hankintapaketteja (% työpakettia).',
-      v_duplicate_count;
-  END IF;
 END
 $$;
 
 ALTER TABLE proc_packages
+  DROP CONSTRAINT IF EXISTS proc_packages_default_work_package_id_fkey;
+
+ALTER TABLE proc_packages
+  ADD CONSTRAINT proc_packages_default_work_package_id_fkey
+  FOREIGN KEY (default_work_package_id)
+  REFERENCES work_packages(id)
+  ON DELETE RESTRICT;
+
+ALTER TABLE proc_packages
   ALTER COLUMN default_work_package_id SET NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_proc_packages_default_work_package_1to1
-  ON proc_packages(default_work_package_id);
+DROP INDEX IF EXISTS ux_proc_packages_default_work_package_1to1;
 
 CREATE OR REPLACE FUNCTION proc_packages_validate_default_work_package()
 RETURNS trigger

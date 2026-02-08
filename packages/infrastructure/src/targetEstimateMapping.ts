@@ -91,28 +91,6 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
       );
     }
 
-    const existingLinkedProc = await tenantDb.query<{ id: string; code: string; name: string }>(
-      `SELECT id, code, name
-       FROM proc_packages
-       WHERE project_id = $1::uuid
-         AND default_work_package_id = $2::uuid
-       LIMIT 1`,
-      [input.projectId, defaultWorkPackageId]
-    );
-    if (existingLinkedProc.rowCount > 0) {
-      const current = existingLinkedProc.rows[0];
-      throw new AppError(
-        "Valitulla tyopaketilla on jo hankintapaketti (1:1 MVP).",
-        "WORK_PACKAGE_ALREADY_LINKED",
-        409,
-        {
-          defaultWorkPackageId,
-          existingProcPackageId: current.id,
-          existingProcPackageCode: current.code
-        }
-      );
-    }
-
     const result = await tenantDb.query<{ proc_package_id: string }>(
       `INSERT INTO proc_packages (
         project_id,
@@ -213,6 +191,34 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
         }
       }
 
+      const workPackageOkCache = new Map<string, boolean>();
+      const assertWorkPackageInProject = async (workPackageId: string, targetEstimateItemId: string) => {
+        const cached = workPackageOkCache.get(workPackageId);
+        if (cached === true) return;
+        if (cached === false) {
+          throw new AppError(
+            "Tyopakettia ei loytynyt projektilta.",
+            "WORK_PACKAGE_NOT_FOUND",
+            404,
+            { workPackageId, targetEstimateItemId }
+          );
+        }
+        const result = await client.query<{ id: string }>(
+          "SELECT id FROM work_packages WHERE project_id = $1::uuid AND id = $2::uuid",
+          [input.projectId, workPackageId]
+        );
+        const ok = result.rowCount > 0;
+        workPackageOkCache.set(workPackageId, ok);
+        if (!ok) {
+          throw new AppError(
+            "Tyopakettia ei loytynyt projektilta.",
+            "WORK_PACKAGE_NOT_FOUND",
+            404,
+            { workPackageId, targetEstimateItemId }
+          );
+        }
+      };
+
       let updatedCount = 0;
       for (const update of input.updates) {
         const hasWorkPackage = hasOwn(update, "workPackageId");
@@ -260,6 +266,8 @@ export const targetEstimateMappingRepository = (): TargetEstimateMappingPort => 
             { targetEstimateItemId: update.targetEstimateItemId }
           );
         }
+
+        await assertWorkPackageInProject(workPackageId, update.targetEstimateItemId);
 
         await client.query(
           `

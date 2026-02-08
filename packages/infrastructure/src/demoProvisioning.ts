@@ -223,9 +223,7 @@ const ensureProcPackages = async (
     );
     const defaultWorkPackageCode = String(proc.defaultWorkPackageCode ?? "").trim();
     if (!defaultWorkPackageCode) {
-      throw new AppError(
-        `Demo-exportin hankintapaketilta ${code} puuttuu defaultWorkPackageCode (1:1 MVP).`
-      );
+      throw new AppError(`Demo-exportin hankintapaketilta ${code} puuttuu defaultWorkPackageCode.`);
     }
     const defaultWorkPackageId = workPackageIds.get(defaultWorkPackageCode) ?? null;
     if (!defaultWorkPackageId) {
@@ -234,19 +232,6 @@ const ensureProcPackages = async (
       );
     }
     if (existing.rowCount === 0) {
-      const existingLinked = await client.query<{ id: string; code: string }>(
-        `SELECT id, code
-         FROM proc_packages
-         WHERE project_id = $1::uuid
-           AND default_work_package_id = $2::uuid
-         LIMIT 1`,
-        [projectId, defaultWorkPackageId]
-      );
-      if (existingLinked.rowCount > 0) {
-        throw new AppError(
-          `Tyopaketilla ${defaultWorkPackageCode} on jo hankintapaketti ${existingLinked.rows[0].code} (1:1 MVP).`
-        );
-      }
       const inserted = await client.query<{ id: string }>(
         `INSERT INTO proc_packages (
           project_id, code, name, owner_type, vendor_name, contract_ref, default_work_package_id, status
