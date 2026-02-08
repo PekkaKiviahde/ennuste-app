@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  Dev auto-heal smoke:
+  dev_auto_heal_smoke:
+    name: Dev auto-heal smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
