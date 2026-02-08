@@ -43,6 +43,23 @@ for f in $(ls migrations/*.sql | sort); do
 done
 ```
 
+Jos migraatio pysahtyy virheeseen:
+- `Migraatio 0055 estetty: samaan tyopakettiin on linkitetty useita hankintapaketteja ...`
+
+kayta puhdasta dev-tietokantaa:
+
+```bash
+docker exec -i codex_saas_db psql -U codex -d postgres -c "CREATE DATABASE codex_demo_quicklogin;"
+export DATABASE_URL="postgres://codex:codex@127.0.0.1:5433/codex_demo_quicklogin"
+for f in $(ls migrations/*.sql | sort); do
+  echo "Running $f"
+  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+done
+```
+
+Huom:
+- Jos `CREATE DATABASE` palauttaa "already exists", jatka seuraavaan komentoon.
+
 ## 4) Aja seed: kanoninen demo
 
 Voit asettaa PINin etukäteen:
